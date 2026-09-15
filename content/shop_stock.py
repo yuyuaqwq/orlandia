@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 """奥兰迪亚·余烬纪年内容包 —— shop_stock 核心域实现（B13-L5，2026-09-14）。
 
-真源 = 宿主 `game/core/shop_stock.py`（原 228 行）**逐字搬**：函数体一字未改，只换「宿主取件」：
+真源 = 宿主 `game/core/shop_stock.py`（原 228 行）；「宿主取件」对照：
 
 | 真源写法 | 包内 | 依据 |
 |---|---|---|
 | `from ..data.shop_limit import SHOP_LIMIT`（`get_limit` 函数内） | 模块级 `SHOP_LIMIT` = 包内域读口 `shop_stock`（`content/data/shop_stock.json`） | 域 = 商品限购配置 35 条；对拍与宿主 `data.shop_limit.SHOP_LIMIT` **逐键相等**，`overnight/w1213_l5_probe.py` P2 |
-| `from .. import db`（三个函数内，惰性） | 模块级 `db`（包内存储层句柄） | 正文里 `db.get_event_state(...)` 一字未改（抄 `content/world_cmds.py` 的替身形状）；**真源本来就把 db 放在函数体内**，本模块改成模块级惰性代理 = 同一个时机（属性访问时取） |
+| `from .. import db`（三个函数内，惰性） | 模块级 `db = _HostMod("db")` | 正文里 `db.get_event_state(...)` 一字未改（抄 `content/world_cmds.py` 的替身形状）；**真源本来就把 db 放在函数体内**，本模块改成模块级惰性代理 = 同一个时机（属性访问时取） |
 | —（模块无其它宿主依赖） | — | 时间/随机全部走 stdlib（`time`/`datetime`/`json`），无 DB 之外的双源风险 |
+
+库存份数 / 补货周期 / 售罄扣减这套机制走引擎 `saintess_engine.shelf.Shelf`：本模块只给
+「单格摆的是哪个商品、满额几份、两类周期多长」，引擎算到点与扣减；引擎簿记投影回原存档行
+`shop_stock_{子区域}_{商品key}` 的 `{left, last_restock}`，全服共享的存储落点不变。
 
 ⚠️ 与真源语义完全一致的两点（照抄，不是新行为）：
   · `get_limit` 仍返回 `dict(SHOP_LIMIT.get(key) or {})`（**拷贝**）—— 调用方改返回值不会写脏域表；
@@ -17,23 +21,58 @@
 
 宿主侧：`game/core/shop_stock.py` 现在只剩「加载包 + 模块别名」薄壳，见那边头注。
 """
+import datetime
+import importlib
 import json
 import os
+import sys
 import time
 from datetime import date
+
+from saintess_engine.shelf import Shelf
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    抄 `content/world_cmds.py` 的同款写法（B9 线2 定的包内标准形状）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
+_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+_INJECTED = {}
 _MOD = "shop_stock"
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名。"""
-    _WIRE.bind(**objs)
+    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名。"""
+    for k, v in (objs or {}).items():
+        if v is not None:
+            _INJECTED[k] = v
+
+
+def _host_module(name: str):
+    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
+    if name in _INJECTED:
+        return _INJECTED[name]
+    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+        m = sys.modules.get(prefix if not name else "%s.%s" % (prefix, name))
+        if m is not None:
+            return m
+    last = None
+    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+        try:
+            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
+        except Exception as exc:                # noqa: BLE001
+            last = exc
+    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (_MOD, name, last))
+
+
+class _HostMod:
+    """宿主模块替身（`db`）——正文里 `db.xxx` 照原样写，属性访问时解析。"""
+
+    def __init__(self, name):
+        self._name = name
+
+    def __getattr__(self, attr):
+        return getattr(_host_module(self._name), attr)
 
 
 from ._pkgref import DB as db
@@ -55,6 +94,9 @@ def _read_domain(domain: str, sub: str = "data"):
 
 
 SHOP_LIMIT: dict = _read_domain("shop_stock")
+
+#: 每日周期（秒）：`restock_at`（HH:MM）折算成「锚点 + 一天 = 该时刻」的换货周期
+_DAILY = 86400
 
 
 def _now_ts() -> int:
@@ -87,32 +129,66 @@ def get_limit(key: str) -> dict:
 def _limit_of(prefix: str, ident: str) -> dict:
     return get_limit(f"{prefix}:{ident}")
 
-# ================= 库存状态（店内共享） =================
+# ================= 限量货架（店内共享） =================
 
 def _stock_key(sa_id: str, key: str) -> str:
     """店内共享库存 key：shop_stock_{子区域}_{商品key}（带子区域=各店独立）"""
     return f"shop_stock_{sa_id}_{key}"
 
-def _is_restock_due(st: dict, cfg: dict, now: int) -> bool:
-    """判断是否需要补货：restock_hours 到点 / restock_at 每日时刻到点"""
-    if not cfg.get("restock_hours") and not cfg.get("restock_at"):
-        return False
-    last = st.get("last_restock", 0)
-    if cfg.get("restock_hours") and now - last >= float(cfg["restock_hours"]) * 3600:
-        return True
+def _restock_period(cfg: dict):
+    """固定补货周期（秒）：`restock_hours` × 3600；未配置 → None。"""
+    hours = cfg.get("restock_hours")
+    return int(float(hours) * 3600) if hours else None
+
+def _daily_target(cfg: dict):
+    """`restock_at`（HH:MM）→ 今日该时刻的整数秒；未配置 / 非法 → None。"""
     ra = cfg.get("restock_at")
-    if ra:
-        # 每日固定时刻：今天 HH:MM 对应 epoch > last_restock 且 ≤ now
-        import datetime
-        try:
-            hh, mm = ra.split(":")
-            today_dt = datetime.datetime.now().replace(hour=int(hh), minute=int(mm), second=0, microsecond=0)
-            target = int(today_dt.timestamp())
-        except (ValueError, OSError):
-            return False
-        if target > last and target <= now:
-            return True
-    return False
+    if not ra:
+        return None
+    try:
+        hh, mm = str(ra).split(":")
+        at = datetime.datetime.now().replace(hour=int(hh), minute=int(mm),
+                                            second=0, microsecond=0)
+    except (ValueError, OSError):
+        return None
+    return int(at.timestamp())
+
+def _bucket(cfg: dict, key: str, left: int, last: int, now: int):
+    """该商品的引擎货架 + 由存档行投影来的簿记（单格：摆的是该商品，满额 = `stock`）。
+
+    · `restock_hours` → 补货周期；`restock_at`（HH:MM）→ 每日换货（锚点 + 一天 = 该时刻）。
+    · `last` / 锚点晚于当前时钟时夹到 `now`：到点判据只可能「未到点」，形状也拒绝倒退的簿记。
+    """
+    period = _restock_period(cfg)
+    target = _daily_target(cfg)
+    restocked = min(int(last), now)
+    rotated = restocked
+    if target is not None:
+        anchor = target if int(last) >= target else target - _DAILY
+        rotated = min(anchor, now)
+    book = {
+        "size": 1,
+        "rotated_at": rotated,
+        "restocked_at": restocked,
+        "slots": [{"slot": 0, "left": int(left), "stock": int(cfg["stock"]), "payload": key}],
+    }
+    shelf = Shelf(
+        slots=1,
+        clock=lambda: now,
+        rotate_every=_DAILY if target is not None else None,
+        restock_every=period,
+        fill=lambda: [{"payload": key, "stock": int(cfg["stock"])}],
+    )
+    return shelf, {"shelf": book}
+
+def _row(book: dict, prev: dict, last: int, now: int, keep: int) -> dict:
+    """引擎簿记 → 存档行：剩余份数照抄；上次补货时刻只在本次真的换货/补货时前移。
+
+    `keep` = 没到点时写回的「上次补货时刻」（存档行缺该字段时取当前时钟）。
+    """
+    moved = (book["rotated_at"] != prev["rotated_at"]
+             or book["restocked_at"] != prev["restocked_at"])
+    return {"left": int(book["slots"][0]["left"]), "last_restock": int(now) if moved else int(keep)}
 
 def stock_state(sa_id: str, key: str, cfg: dict | None = None) -> dict:
     """读该店该商品共享库存状态；惰性初始化/补货后写回。
@@ -124,16 +200,18 @@ def stock_state(sa_id: str, key: str, cfg: dict | None = None) -> dict:
     skey = _stock_key(sa_id, key)
     now = _now_ts()
     st = _load_state(db, skey)
-    if not st:
-        st = {"left": int(max_stock), "last_restock": now}
-        _save_state(db, skey, st)
-        return {"left": int(max_stock), "max": int(max_stock), "last_restock": now}
-    left = st.get("left", int(max_stock))
-    if _is_restock_due(st, cfg, now):
-        left = int(max_stock)
-        st = {"left": left, "last_restock": now}
-        _save_state(db, skey, st)
-    return {"left": left, "max": int(max_stock), "last_restock": st.get("last_restock", now)}
+    if st:
+        left = int(st.get("left", int(max_stock)))
+        last = int(st.get("last_restock", 0))
+        keep = int(st["last_restock"]) if "last_restock" in st else now
+    else:
+        left, last, keep = int(max_stock), now, now
+    shelf, state = _bucket(cfg, key, left, last, now)
+    prev = state["shelf"]
+    shelf.ensure(state)
+    row = _row(state["shelf"], prev, last, now, keep)
+    _save_state(db, skey, row)
+    return {"left": row["left"], "max": int(max_stock), "last_restock": row["last_restock"]}
 
 def _consume_shared(db, sa_id: str, key: str, cfg: dict, qty: int) -> bool:
     """原子扣店内共享库存 qty 件（先到先得）。不足返回 False。"""
@@ -142,16 +220,19 @@ def _consume_shared(db, sa_id: str, key: str, cfg: dict, qty: int) -> bool:
         return True  # 不限量
     skey = _stock_key(sa_id, key)
     now = _now_ts()
-    st = _load_state(db, skey) or {"left": int(max_stock), "last_restock": now}
-    # 读时补货
-    if _is_restock_due(st, cfg, now):
-        st = {"left": int(max_stock), "last_restock": now}
-    if st.get("left", 0) < qty:
-        _save_state(db, skey, st)
-        return False
-    st["left"] = int(st.get("left", 0)) - qty
-    _save_state(db, skey, st)
-    return True
+    st = _load_state(db, skey)
+    if st:
+        left = int(st.get("left", 0))
+        last = int(st.get("last_restock", 0))
+        keep = int(st["last_restock"]) if "last_restock" in st else now
+    else:
+        left, last, keep = int(max_stock), now, now
+    shelf, state = _bucket(cfg, key, left, last, now)
+    prev = state["shelf"]
+    ok = shelf.take(state, 0, qty)
+    row = _row(state["shelf"], prev, last, now, keep)
+    _save_state(db, skey, row)
+    return ok
 
 # ================= 个人每日限购 =================
 

@@ -6,6 +6,10 @@
 `game/reward.py` = 「确定奖励发放」的唯一入口 `grant_reward()`（任务 / 成就 / 收藏 / 对话NPC /
 签到 / 周常 / 爬塔 全走这里）+ 批量物品辅助 `grant_items_batch()` + 五个发放子过程
 （`_grant_items` / `_grant_pets` / `_grant_mounts` / `_grant_title` / `_grant_bonus`）。
+「装包 → 分类发放」的编排走引擎 `saintess_engine.grant.Grant`：类别名与 sink 实现
+（`_grant_items` / `_grant_equips` / `_grant_pets` / `_grant_mounts` / `_grant_title` /
+`_grant_bonus`）都由本文件给，`sinks` 的声明序 = 发放序；名册装备（`equips`）的发放位置
+在 items 与 pets 之间（与真源 `grant_reward()` 内该循环的位置一致）。
 2026-09-14（B12B13-TAIL 线3）起宿主 `game/reward.py` 已成**薄壳**（模块别名到本文件）。
 
 宿主耦合替身（**只改「宿主取件」两类：① 存储/流水 import 口 ② 读表口**；正文逻辑一行未改）
@@ -45,16 +49,16 @@ from .catalog_items import (EQUIP_ROSTER, EQUIP_ROSTER_BY_NAME,          # noqa:
 from .catalog_quests import TITLES                                       # noqa: E402  真源 `C.TITLES`
 from .mounts import make_mount_rein                                      # noqa: E402  真源 `C.make_mount_rein`
 from .pets import make_pet_egg                                           # noqa: E402  真源 `C.make_pet_egg`
+from saintess_engine.grant import Grant                                  # noqa: E402  发放编排（类别名 → sink）
 
 # ============================================================
 # 宿主面取件口（B2-C4 收口）—— 注入优先（宿主薄壳 `game/reward.py:91` 的 `bind_host`）→ 包内兜底
 #   本文件 B2 读点：LOG → `content/obs.py`；tlog → `content/obs.py::emit`；`C.<名>` → 包内直取；
 #   残留只剩 `core.drops` 面（B2-C2 待落地 `content/drops.py`，见 `_drops()`）。
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-from saintess_engine.wire import Wire
-_WIRE = Wire()
+_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+_INJECTED = {}
 
 
 def bind_host(**objs):
@@ -62,7 +66,9 @@ def bind_host(**objs):
     `log` / `tlog` / `key_to_id` / `levelup` / `stat_bonus`；值 = **模块/对象**（定值）或
     **零参可调用**（活源，每次取用时调用一次 → 等价真源「函数内惰性 import 宿主」的时机）。
     `None` 忽略。"""
-    _WIRE.bind(**objs)
+    for k, v in (objs or {}).items():
+        if v is not None:
+            _INJECTED[k] = v
 
 
 def _live_provider(v):
@@ -95,7 +101,7 @@ def _live_provider(v):
 
 def _resolve(key: str, fallback):
     """注入优先（**零参**可调用 = 活源 → 调一次；模块/对象 = 定值）→ 否则走 `fallback()`（包内兜底）。"""
-    v = _WIRE.handles().get(key)
+    v = _INJECTED.get(key)
     if v is not None:
         return v() if _live_provider(v) else v
     return fallback()
@@ -130,13 +136,13 @@ def _drops():
             _DROPS = importlib.import_module(_DROPS_PKG)
         except ImportError:
             last = None
-            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+            for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
                 m = sys.modules.get("%s.core.drops" % prefix)
                 if m is not None:
                     _DROPS = m
                     break
             if _DROPS is None:
-                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+                for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
                     try:
                         _DROPS = importlib.import_module("%s.core.drops" % prefix)
                         break
@@ -172,12 +178,27 @@ def _host_stat_bonus():
     return _resolve("stat_bonus", lambda: _sb)
 
 
+class _RewardCtx:
+    """发放上下文（`Grant.grant(ctx)` 的 `ctx` 透传外壳）：本次玩家标识 + 文案追加列表。
+
+    引擎不读它的任何字段，只把它原样交给各自的 sink。
+    """
+
+    __slots__ = ("group_id", "qq_id", "lines")
+
+    def __init__(self, group_id, qq_id, lines):
+        self.group_id = group_id
+        self.qq_id = qq_id
+        self.lines = lines
+
+
 # ============================================================
 # ↓↓↓ 以下 = 真源正文（只改上表登记的「宿主取件」几行）
 # ============================================================
 
-def _grant_items(group_id, qq_id, items, lines, db):
+def _grant_items(ctx, items):
     """物品/材料/装备入包。items: [{item, n}]。返回 (成功, 失败计数)。"""
+    group_id, qq_id, lines = ctx.group_id, ctx.qq_id, ctx.lines
     _key_to_id = _host_key_to_id()
     fail = 0
     for it in items or []:
@@ -214,7 +235,21 @@ def _grant_items(group_id, qq_id, items, lines, db):
     return fail
 
 
-def _grant_pets(group_id, qq_id, pets, lines, db):
+def _grant_equips(ctx, equips):
+    """名册装备入包（条目 = `{"rid": …}` 或 rid 字符串）。"""
+    group_id, qq_id, lines = ctx.group_id, ctx.qq_id, ctx.lines
+    for eq in equips or []:
+        rid = eq.get("rid") if isinstance(eq, dict) else eq
+        try:
+            equip = _drops().generate_roster_equip(rid)
+            db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", equip)
+            lines.append(f"  🎁 获得装备：{equip.get('name', rid)}")
+        except Exception:
+            print(f"[dragonfall][reward] 装备奖励名册缺失: {rid}，已跳过")
+
+
+def _grant_pets(ctx, pets):
+    group_id, qq_id, lines = ctx.group_id, ctx.qq_id, ctx.lines
     for pid in pets or []:
         try:
             egg = make_pet_egg(pid)
@@ -226,7 +261,8 @@ def _grant_pets(group_id, qq_id, pets, lines, db):
             pass
 
 
-def _grant_mounts(group_id, qq_id, mounts, lines, db):
+def _grant_mounts(ctx, mounts):
+    group_id, qq_id, lines = ctx.group_id, ctx.qq_id, ctx.lines
     for mid in mounts or []:
         try:
             rein = make_mount_rein(mid)
@@ -238,8 +274,10 @@ def _grant_mounts(group_id, qq_id, mounts, lines, db):
             pass
 
 
-def _grant_title(group_id, qq_id, title, lines):
+def _grant_title(ctx, titles):
     """称号授予：titles.py 按 id/中文名匹配，播报解锁（条件系统自动判定拥有）。"""
+    lines = ctx.lines
+    title = titles[0] if titles else None
     if not title:
         return
     tinfo = next((t for t in TITLES if t.get("id") == title), None)
@@ -251,7 +289,7 @@ def _grant_title(group_id, qq_id, title, lines):
         print(f"[dragonfall][reward] 称号 id 缺失：{title}（titles.py 未登记），已跳过")
 
 
-def _grant_bonus(group_id, qq_id, bonus, lines, db):
+def _grant_bonus(ctx, bonuses):
     """永久属性加成（收藏册满套 bonus）。
 
     注意：游戏内永久属性走 stat_bonus() 动态计算（读 TITLES/ACHIEVEMENTS 已解锁项），
@@ -259,6 +297,8 @@ def _grant_bonus(group_id, qq_id, bonus, lines, db):
     由 title_bonus 模块动态给，这里不做存储。若数据里 bonus 到达这里，说明调用方用了
     grant 的直接 bonus 语义——仅播报（属性由 title_bonus 动态源保证），不重复落库。
     """
+    lines = ctx.lines
+    bonus = bonuses[0] if bonuses else None
     if not bonus:
         return
     parts = []
@@ -268,6 +308,17 @@ def _grant_bonus(group_id, qq_id, bonus, lines, db):
         parts.append(f"{_CN.get(k, k)}+{v}")
     if parts:
         lines.append(f"  ✨ 永久属性：{'、'.join(parts)}（已自动生效）")
+
+
+#: 发放类别 → sink；声明序 = 发放序（items → equips → pets → mounts → title → bonus）
+_SINKS = {
+    "items": _grant_items,
+    "equips": _grant_equips,
+    "pets": _grant_pets,
+    "mounts": _grant_mounts,
+    "title": _grant_title,
+    "bonus": _grant_bonus,
+}
 
 
 def grant_items_batch(group_id, qq_id, items_dict, lines=None) -> tuple:
@@ -280,7 +331,7 @@ def grant_items_batch(group_id, qq_id, items_dict, lines=None) -> tuple:
     if lines is None:
         lines = []
     items = [{"item": k, "n": v} for k, v in (items_dict or {}).items()]
-    _fail = _grant_items(group_id, qq_id, items, lines, db)
+    _fail = _grant_items(_RewardCtx(group_id, qq_id, lines), items)
     return lines, _fail == 0
 
 
@@ -341,26 +392,24 @@ def grant_reward(reward: dict, group_id, qq_id, *, player=None, lines=None) -> l
             if parts:
                 lines.append(f"🎁 获得{'、'.join(parts)}")
             lines += lv_logs
-    # ── 物品/材料/装备 ──────────────────────────────────────
+    # ── 奖励包 → 分类发放（`sinks` 声明序 = 发放序）──────────
+    grant = Grant(sinks=_SINKS)
     items = reward.get("items") or []
     # 兼容旧 items: {key: count} dict 形态
     if isinstance(items, dict):
         items = [{"item": k, "n": v} for k, v in items.items()]
-    _grant_items(group_id, qq_id, items, lines, db)
     # 兼容旧 reward_item（任务单值/列表）——由调用方转成 items 传入，此处不处理
-    # ── 名册装备 ────────────────────────────────────────────
+    for it in items:
+        grant.add("items", it)
     for eq in reward.get("equips") or []:
-        rid = eq.get("rid") if isinstance(eq, dict) else eq
-        try:
-            equip = _drops().generate_roster_equip(rid)
-            db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", equip)
-            lines.append(f"  🎁 获得装备：{equip.get('name', rid)}")
-        except Exception:
-            print(f"[dragonfall][reward] 装备奖励名册缺失: {rid}，已跳过")
-    # ── 宠物蛋 / 坐骑缰绳 ───────────────────────────────────
-    _grant_pets(group_id, qq_id, reward.get("pets"), lines, db)
-    _grant_mounts(group_id, qq_id, reward.get("mounts"), lines, db)
-    # ── 称号 / 永久属性 ─────────────────────────────────────
-    _grant_title(group_id, qq_id, reward.get("title"), lines)
-    _grant_bonus(group_id, qq_id, reward.get("bonus"), lines, db)
+        grant.add("equips", eq)
+    for pid in reward.get("pets") or []:
+        grant.add("pets", pid)
+    for mid in reward.get("mounts") or []:
+        grant.add("mounts", mid)
+    if reward.get("title"):
+        grant.add("title", reward["title"])
+    if reward.get("bonus"):
+        grant.add("bonus", reward["bonus"])
+    grant.grant(_RewardCtx(group_id, qq_id, lines))
     return lines

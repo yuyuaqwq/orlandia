@@ -112,7 +112,7 @@ def _register_cond(key):
     """向 COND_CHECKS 注册条件判定（v140 波2 新增类型）。"""
     def deco(fn):
         if _COND_CHECKS is not None:
-            _COND_CHECKS[key] = fn
+            _COND_CHECKS.register(key, fn)
         return fn
     return deco
 

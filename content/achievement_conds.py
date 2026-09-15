@@ -141,17 +141,10 @@ from saintess_engine.conditions import Conditions      # 引擎条件注册表
 COND_CHECKS = Conditions()
 
 
-def _bind(fn):
-    """把 Ctx 的透传字段摊回判定函数的既有位置参数（player/stats/profs/extra/cond）。"""
-    def _evaluate(ctx):
-        return fn(ctx.player, ctx.stats, ctx.profs, ctx.extra, ctx.cond)
-    return _evaluate
-
-
 def register(key):
     """条件注册装饰器。"""
     def deco(fn):
-        COND_CHECKS.register(key, _bind(fn))
+        COND_CHECKS.register(key, fn)
         return fn
     return deco
 

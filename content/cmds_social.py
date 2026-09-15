@@ -22,7 +22,7 @@ B9-L3 / B12-L1 / B12-L4 已经把社交域**大部分实现体**搬进包内，�
 
 宿主替身口（包内不 import 宿主，I2）
 -----------------------------------
-`C` / `db` 直接复用 `content/social_cmds.py` 的替身口（与 `cmds_world.py`
+`C` / `db` / `_host_attr` 直接复用 `content/social_cmds.py` 的替身口（与 `cmds_world.py`
 复用 `world_cmds` 的替身口同款）；宿主壳对象经 `env.state["shell"]` 取（桥接层透传），
 用于**平台/命令层能力**：`_strip_cmd` / `_parse_page` / `_page_items` / `_tip` /
 `_record_list_state` / `_player` / `_broadcast` / `_instance_battle_for` / `_unlock_battle`。
@@ -31,7 +31,7 @@ B9-L3 / B12-L1 / B12-L4 已经把社交域**大部分实现体**搬进包内，�
 
 ⚠️ 三条命令的处理器是 `async def`（`world_event` / `auction` / `bid`：实现体 `await`
 `broadcast` 等平台能力，**真挂起**，同步驱动器不能跑）—— 故按 B18-L3c 战斗族的既有先例
-用本地 `_declare` 登记为异步处理器，宿主壳对这三条用 `_BRIDGE.run_async`
+用包内 `bind` 登记为异步处理器，宿主壳对这三条用 `_BRIDGE.run_async`
 （逐条 `yield`，与改造前 `for _line in await …: yield` 的消息切分逐字相同）；
 其余 30 条一律同步 `@register` + 宿主壳一行 `_BRIDGE.run`。
 
@@ -43,7 +43,7 @@ from __future__ import annotations
 from . import social_cmds as _SC
 from . import social_pet as _SP
 from . import social_stall as _SS
-from .commands import COMMANDS, register
+from .commands import bind, register
 # 宿主替身口：与 `content/social_cmds.py` 同一份（`C` / `db` 正文一字未改；见该模块头注）
 from .social_cmds import db
 from ._pkgref import PkgModule
@@ -90,21 +90,6 @@ def _final_stats():
     """宿主 `content_rules.panel.player_final_stats`（队伍面板速度值）——调用时解析。"""
     from .panel import player_final_stats
     return player_final_stats
-
-
-def _declare(key, guards=(), params=()):
-    """登记一条**异步**命令（表形状与 `content/commands.py::register` 逐字段相同）。
-
-    唯一差异 = 处理器是 `async def`（`world_event` / `auction` / `bid` 要 `await` 平台广播），
-    故不经 `register()`（它把 handler 包成同步 `render_panel(fn(env), env)`）。
-    重复 key 直接抛（与 `register()` 同口径）——见 `content/cmds_combat.py::_declare` 同款先例。
-    """
-    def deco(fn):
-        if key in COMMANDS:
-            raise KeyError("content.commands：命令 %r 重复登记" % key)
-        COMMANDS[key] = {"guards": tuple(guards), "params": tuple(params), "handler": fn}
-        return fn
-    return deco
 
 
 # ============================================================
@@ -751,7 +736,7 @@ def mount_cmd(env):
 # ============================================================
 # ⑦ 世界事件 / 拍卖 / 竞拍（实现体 `await` 平台广播 → 异步处理器，见模块头注）
 # ============================================================
-@_declare("world_event", guards=("hook:player",), params=("cmd=事件",))
+@bind("world_event", guards=("hook:player",), params=("cmd=事件",))
 async def world_event(env):
     """『事件』：先惰性调度（notice 由 maybe_roll_event 产出）→ 事件面板。"""
     shell = _shell(env)
@@ -761,7 +746,7 @@ async def world_event(env):
     return await _SC.world_event_run(group_id, notice, shell._broadcast, shell)
 
 
-@_declare("auction", guards=("hook:player",), params=("cmd=拍卖",))
+@bind("auction", guards=("hook:player",), params=("cmd=拍卖",))
 async def auction(env):
     """『拍卖』：面板主体 / 过期结算+广播全在包内；`_tip("auction")` 按真源**惰性**取。"""
     shell = _shell(env)
@@ -771,7 +756,7 @@ async def auction(env):
                                  lambda: shell._tip("auction"), shell._broadcast)
 
 
-@_declare("bid", guards=("hook:player",), params=("cmd=竞拍",))
+@bind("bid", guards=("hook:player",), params=("cmd=竞拍",))
 async def bid(env):
     """『竞拍 <编号> <金币>』：底价/金币/重复出价守卫 + 被超越退还 + 一口价 + 过期结算。"""
     shell = _shell(env)

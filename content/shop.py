@@ -19,6 +19,7 @@ from . import catalog_items as _ci    # 物品/材料/符文/装备名册
 from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（QUALITY/WEAPON_FLAVOR）
+from saintess_engine.trade import apply_rate
 # ---- B14-2 L5 读点切换（2026-09-14）----
 # 数据名读点（SHOP_EQUIP/SHOP_WEAPONS/PAWN_RATES/ECON_CONFIG/FISH_POOL/MOUNT_BY_KEY ·
 # EQUIP_ROSTER/EQUIP_ROSTER_BY_NAME/MATERIALS/MATERIALS_BY_NAME/ITEMS · MAP_BY_ID ·
@@ -258,7 +259,7 @@ def sell_one(group_id, qq_id, player, it, rate, *, is_smith_shop_=None, at_shop=
     # 历史堆 data.type 被写死为"材料"，仅判 data.type 仍卖不掉（0.8 折 int(0.8)=0）
     if d.get("type") == "收藏" or (_ci.MATERIALS_BY_NAME.get(d.get("name", "")) or {}).get("type") == "收藏":
         rate = 1.0
-    price = int(d.get("price", 0) * rate * sell_mult)
+    price = apply_rate(d.get("price", 0), rate=rate, discount=sell_mult, floor=None, mode="trunc")
     if price <= 0:
         return None
     # v126.2 大鱼卖更贵：鱼获个体属性在 item_data.tags（FIFO），单条实收 = int(base × (0.5 + w/wmax))，

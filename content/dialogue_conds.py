@@ -61,17 +61,10 @@ def _main_quests() -> list:
 CONDITIONS = Conditions()
 
 
-def _bind(fn):
-    """把 Ctx 的透传字段摊回判定函数的既有位置参数（ctx / v）。"""
-    def _evaluate(ctx):
-        return fn(ctx.ctx, ctx.v)
-    return _evaluate
-
-
 def register(key):
     """条件注册装饰器。"""
     def deco(fn):
-        CONDITIONS.register(key, _bind(fn))
+        CONDITIONS.register(key, fn)
         return fn
     return deco
 

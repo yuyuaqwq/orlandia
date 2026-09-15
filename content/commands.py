@@ -11,12 +11,20 @@
   （→ 守卫 → `Env` → handler → 回话）；
 * 编辑器（B20）：同一张表拿指令清单，不必另抄一份。
 
-形状（只剩两件事）
-------------------
-    COMMANDS: dict      # key -> {"guards": (...), "handler": fn, "params": (...)}
-    register(...)       # 装饰器：登记命令；handler 写「面板节点列表」或「已渲染行」
-    text/static/raw     # 面板节点写法（行序一眼可见）
-    render_panel(...)   # 节点 → **已渲染文本段**（渲染点唯一 = 包内 `content/texts.py`）
+形状
+----
+    REGISTRY: CommandRegistry   # 处理器登记表（引擎 `bind`）：key → handler + guards/params
+    COMMANDS: dict              # 同一批登记的宿主视图：key -> {"guards", "handler", "params"}
+    register(key, ...)          # 装饰器：同步 handler（面板节点 / 已渲染行），登记件包 render_panel
+    bind(key, ...)              # 装饰器：handler **原样**登记（同步/协程都收，不包 render_panel）
+    text/static/raw             # 面板节点写法（行序一眼可见）
+    render_panel(...)           # 节点 → **已渲染文本段**（渲染点唯一 = 包内 `content/texts.py`）
+
+两处用同一批登记
+----------------
+`REGISTRY` 是引擎形状的登记面（`handler_of` / `is_async` / `binding_of` / `audit_handlers`）；
+`COMMANDS` 是同一批登记的宿主视图（引擎 `Package.command_handlers()` 读它）。一次登记写两处，
+两侧内容逐字段相同。
 
 渲染归属（铁律）
 ----------------
@@ -36,26 +44,54 @@ handler 只吃引擎 `Env`（`uid` / `group_id` / `player` / `text` / `save` / `
 """
 from __future__ import annotations
 
-__all__ = ["COMMANDS", "register", "text", "static", "raw", "render_panel"]
+from saintess_engine.command import CommandRegistry
+
+__all__ = ["COMMANDS", "REGISTRY", "register", "bind",
+           "text", "static", "raw", "render_panel"]
 
 #: 命令表：key（= 宿主声明表 `command_specs.json` 的 key）→ 声明项
 COMMANDS: dict = {}
 
+#: 处理器登记表（引擎 `CommandRegistry.bind`）：key → 处理器 + guards/params 元数据
+REGISTRY = CommandRegistry(name="orlandia.commands")
+
+
+def _declare(key: str, handler, guards=(), params=()):
+    """登记一条处理器：写引擎 `REGISTRY`（fail-closed：重复 key 抛）并在 `COMMANDS` 留同一条。
+
+    重复 key 的报错与口径 = `KeyError("content.commands：命令 %r 重复登记")`。
+    """
+    if key in COMMANDS:
+        raise KeyError("content.commands：命令 %r 重复登记" % key)
+    REGISTRY.bind(key, handler, guards=tuple(guards), params=tuple(params))
+    COMMANDS[key] = {"guards": tuple(guards),
+                     "params": tuple(params),
+                     "handler": handler}
+
 
 def register(key: str, guards=(), params=()):
-    """登记一条命令（装饰器）。
+    """登记一条**同步**命令（装饰器）。
 
     `guards`：声明驱动守卫（引擎 `run_guards`）—— 内置名 `player`/`battle`、
     包侧钩子 `hook:<名>`（读 `content/guards.py::GUARDS`）。
     `params`：取参槽位（`"cmd=<命令词>"` / `"page"`）—— 元数据，编辑器/校验用；
     运行时取参走 `env.arg_text(...)` / `env.page(...)`。
+    handler 交「面板节点列表」或「已渲染行」，登记件统一包 `render_panel(fn(env), env)`。
     """
     def deco(fn):
-        if key in COMMANDS:
-            raise KeyError("content.commands：命令 %r 重复登记" % key)
-        COMMANDS[key] = {"guards": tuple(guards),
-                         "handler": (lambda env, _fn=fn: render_panel(_fn(env), env)),
-                         "params": tuple(params)}
+        _declare(key, (lambda env, _fn=fn: render_panel(_fn(env), env)), guards, params)
+        return fn
+    return deco
+
+
+def bind(key: str, guards=(), params=()):
+    """登记一条命令处理器（装饰器）—— handler **原样**登记，引擎不包装。
+
+    同步函数与协程函数都收（`REGISTRY.is_async(key)` 现场判定）；不做 `render_panel`
+    渲染 ⇒ handler 自己交 `list[str]`。重复 key 直接抛（与 `register` 同口径）。
+    """
+    def deco(fn):
+        _declare(key, fn, guards, params)
         return fn
     return deco
 
@@ -98,7 +134,7 @@ def _fold_blank_segments(seq) -> list:
 
     为什么改包内而不是引擎：三个通道（QQ 适配器 loopback / 编辑器试玩 / 引擎直调）都经包内
     `render_panel` 渲染面板，改这里一次覆盖三通道；引擎 `_as_replies` 的「空段不是一条回话」
-    口径不必动（异步族逐段投递不受影响：`_declare` 族不经本函数）。
+    口径不必动（异步族逐段投递不受影响：`bind` 族不经本函数）。
     """
     res = []
     lead = 0

@@ -14,7 +14,7 @@
 ----------------------------------------------------------------------------------
 * **本模块**：域的**命令清单** `COMMAND_KEYS`（与宿主声明表逐字相等的 key）+ **声明视图**
   `DECLARED`（guards / params，是 `command_specs.json` 的**派生视图**，不重造口径）+
-  **8 条 `@_declare` 处理器**（唯一映射点：key → 包内实现方法；宿主壳不再认识实现方法名）+
+  **8 条 `@bind` 处理器**（唯一映射点：key → 包内实现方法；宿主壳不再认识实现方法名）+
   **兼容转发口** `forward(shell, key, event)`（B18-L5 起的历史接口，宿主已不再调用，
   保留给既有调用点/工具）；
 * **包内实现**：`content/instance_cmds.py::InstanceImpl`（B11-L1 整块搬入：8 个命令入口
@@ -34,7 +34,7 @@ B18-L10 把守卫声明与调包**搬进包内本模块**（终态形状），�
 迭代 —— 与 B18-L3c 战斗族（`content/cmds_combat.py`）、B18-L9 经济族
 （`content/cmds_economy.py`）同款：
 
-    @_declare("<key>", guards=("hook:player", "hook:no_prof_waiting"), params=(...))
+    @bind("<key>", guards=("hook:player", "hook:no_prof_waiting"), params=(...))
     async def <key>(env):
         return await _messages(InstanceImpl.<key>(_shell(env), _event(env)))
 
@@ -70,7 +70,7 @@ I2（包内不 import 宿主）
 """
 from __future__ import annotations
 
-from .commands import COMMANDS
+from .commands import COMMANDS, bind
 from .instance_cmds import InstanceImpl
 
 __all__ = ["COMMAND_KEYS", "DECLARED", "forward",
@@ -130,23 +130,6 @@ async def _messages(agen) -> list:
     return out
 
 
-def _declare(key, guards=(), params=()):
-    """登记一条副本命令（表形状与 `content/commands.py::register` 逐字段相同）。
-
-    唯一差异 = 处理器是 `async def`（见模块头注：实现体是 async generator），故不经
-    `register()`（它把 handler 包成同步 `render_panel(fn(env), env)`）；`guards` / `params`
-    的语义与声明表（`game/data/command_specs.json`）逐字对齐。重复 key 直接抛（与
-    `register()` 同口径）——同款先例：`content/cmds_combat.py::_declare` /
-    `content/cmds_economy.py::_declare` / `content/cmds_social.py::_declare`。
-    """
-    def deco(fn):
-        if key in COMMANDS:
-            raise KeyError("content.commands：命令 %r 重复登记" % key)
-        COMMANDS[key] = {"guards": tuple(guards), "params": tuple(params), "handler": fn}
-        return fn
-    return deco
-
-
 # ============================================================
 # ① 域清单 + 声明视图（B18-L5 起：真源 = command_specs.json 的派生视图）
 # ============================================================
@@ -179,56 +162,56 @@ DECLARED = {
 # ============================================================
 # ② 8 条处理器（B18-L10：进引擎通道 —— 守卫/调包/回话都在包内）
 # ============================================================
-@_declare("join_battle", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("join_battle", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=加入战斗",))
 async def join_battle(env):
     """『加入战斗』（旧宿主体：`@require_player` + `@no_prof_waiting` → 取玩家 → 调包）。"""
     return await _messages(InstanceImpl.join_battle(_shell(env), _event(env)))
 
 
-@_declare("instance_cmd", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_cmd", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=副本", "name"))
 async def instance_cmd(env):
     """『副本 [名字]』（旧宿主体：取玩家 → 列表/开本/状态/恢复进度）。"""
     return await _messages(InstanceImpl.instance_cmd(_shell(env), _event(env)))
 
 
-@_declare("instance_advance", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_advance", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=深入", "floor"))
 async def instance_advance(env):
     """『深入 [第N层]』（旧宿主体：清完当前层后推进一层）。"""
     return await _messages(InstanceImpl.instance_advance(_shell(env), _event(env)))
 
 
-@_declare("instance_map_view_cmd", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_map_view_cmd", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=副本地图",))
 async def instance_map_view_cmd(env):
     """『副本地图』（旧宿主体：当前层小地图全景）。"""
     return await _messages(InstanceImpl.instance_map_view_cmd(_shell(env), _event(env)))
 
 
-@_declare("instance_investigate", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_investigate", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=调查", "target"))
 async def instance_investigate(env):
     """『调查 [目标]』（旧宿主体：与当前层 POI 互动）。"""
     return await _messages(InstanceImpl.instance_investigate(_shell(env), _event(env)))
 
 
-@_declare("instance_retreat", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_retreat", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=撤退",))
 async def instance_retreat(env):
     """『撤退』（旧宿主体：弹二次确认，不真正放弃）。"""
     return await _messages(InstanceImpl.instance_retreat(_shell(env), _event(env)))
 
 
-@_declare("instance_retreat_confirm", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_retreat_confirm", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=确认撤退",))
 async def instance_retreat_confirm(env):
     """『确认撤退』（旧宿主体：真正放弃本局进度）。"""
     return await _messages(InstanceImpl.instance_retreat_confirm(_shell(env), _event(env)))
 
 
-@_declare("instance_leave", guards=("hook:player", "hook:no_prof_waiting"),
+@bind("instance_leave", guards=("hook:player", "hook:no_prof_waiting"),
           params=("cmd=离开副本",))
 async def instance_leave(env):
     """『离开副本』（旧宿主体：通关后传出，保留战利品）。"""

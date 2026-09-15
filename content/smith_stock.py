@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """奥兰迪亚·余烬纪年内容包 —— smith_stock 核心域实现（B13-L5，2026-09-14）。
 
-真源 = 宿主 `game/core/smith_stock.py`（原 438 行，v135 铁匠铺全服共享货架）**逐字搬**：
-函数体一字未改，只换「宿主取件」。头注「全服共享限量货架…」整段随迁，见下：
+真源 = 宿主 `game/core/smith_stock.py`（原 438 行，v135 铁匠铺全服共享货架）。头注
+「全服共享限量货架…」整段随迁，见下：
 全服共享限量货架（NPC 作品）：每城镇铁匠铺 4 件 = 2 武器 + 1 防具 + 1 饰品。
 - 全服共享：event_state 用全局 key（不带 qq_id 后缀），所有玩家同一货架，先到先得
 - 每日 0 点换货：读时惰性判定日期 ordinal 变化 → 全量重 roll
@@ -14,8 +14,12 @@
 - 随机池：EQUIP_ROSTER 按城镇等级 ±5 窗口 + 品质权重 sample，exclude 静态
   SHOP_EQUIP / SHOP_WEAPONS 已上架名册（避免与保底商店重复）
 
-「宿主取件」对照（正文一行未改）
---------------------------------
+「货架机制」走引擎 `saintess_engine.shelf.Shelf`（STOCK_COUNT 格 + 每日换货 + RESTOCK_HOURS
+补货）：本模块给「新品怎么生成、几份、周期多长」，引擎算到点 / 保留未售罄 / 扣减；
+引擎簿记每次由存档行（`items` / `day` / `restock_at`）投影而来并投影回去，全服共享的存储落点不变。
+
+「宿主取件」对照
+----------------
 | 真源写法 | 包内 | 依据 |
 |---|---|---|
 | `QUALITY_WEIGHTS` / `STOCK_COUNT` / `STOCK_WINDOW` / `RESTOCK_HOURS` / `_QTY_BY_QUALITY` / `SMITH_NPC_NAMES` / `_SMITH_TOWN_LEVELS`（源码字面量） | 包内域读口 `smith_stock`（`content/data/smith_stock.json`：`quality_weights` / `shelf_rules{stock_count,stock_window,restock_hours,qty_by_quality}` / `npc_names` / `town_levels`） | 域 = 这四组静态配置的**逐值镜像**（导出器 = 游戏仓 `scripts/export_domains/shop_econ.py:derive_smith_stock`）；对拍逐项相等，`overnight/w1213_l5_probe.py` P1 |
@@ -30,11 +34,15 @@
 
 宿主侧：`game/core/smith_stock.py` 现在只剩「加载包 + 模块别名 + 源码探针」薄壳，见那边头注。
 """
+import copy
+import datetime
 import json
 import os
 import random
 import time
 from datetime import date
+
+from saintess_engine.shelf import Shelf, ShelfStateError
 
 # ============================================================
 # ① 宿主取件（B2-C2：本模块已全部改包内直取；原 `_host_*` 宿主替身机械已删）
@@ -306,6 +314,124 @@ def _now_ts() -> int:
     return int(time.time())
 
 
+#: 每日周期（秒）：`day` 翻页即换货（锚点 + 一天 = 次日 0 点）
+_DAY = 86400
+
+
+def _read_state(key: str):
+    """读该城镇货架存档行；缺失 / 坏 JSON → None（走初次上架）。"""
+    raw = db.get_event_state(key)
+    if not raw:
+        return None
+    try:
+        st = json.loads(raw)
+    except (ValueError, TypeError):
+        return None
+    return st if isinstance(st, dict) else None
+
+
+def _shelf_book(st: dict, now: int) -> dict:
+    """存档行（items / day / restock_at）→ 引擎货架簿记（STOCK_COUNT 格）。
+
+    · 换货锚点 = `day` 的次日 0 点 - 一天（锚点 + 一天 ≤ now 即日期翻页）。
+    · 补货时刻 = `restock_at` - RESTOCK_HOURS（now ≥ restock_at 即到点）。
+    · 满额 = 当前剩余：补货只保留未售罄件的份数，不回满单件。
+    """
+    items = st.get("items") or []
+    if len(items) > STOCK_COUNT:
+        raise ShelfStateError(
+            f"smith_stock 存档 {len(items)} 件 > 货架 {STOCK_COUNT} 格：{items!r}")
+    day = st.get("day")
+    if isinstance(day, int) and not isinstance(day, bool) and 1 <= day <= 3652058:
+        nxt = datetime.datetime.combine(date.fromordinal(day + 1), datetime.time.min)
+        rotated = int(nxt.timestamp()) - _DAY
+    else:
+        rotated = now - _DAY
+    restocked = min(int(st.get("restock_at", 0)) - RESTOCK_HOURS * 3600, now)
+    slots = [{"slot": i, "left": int(it.get("qty", 0)), "stock": int(it.get("qty", 0)),
+              "payload": {"rid": it["rid"], "price_mult": it.get("price_mult")}}
+             for i, it in enumerate(items)]
+    slots += [None] * (STOCK_COUNT - len(slots))
+    return {"size": STOCK_COUNT, "rotated_at": min(rotated, now),
+            "restocked_at": restocked, "slots": slots}
+
+
+def _shelf_for(now: int, fill) -> Shelf:
+    """该城镇的引擎货架（格数 / 两类周期由本模块的配置注入；时钟 = 本次调用的同一个 now）。"""
+    return Shelf(STOCK_COUNT, clock=lambda: now, rotate_every=_DAY,
+                 restock_every=RESTOCK_HOURS * 3600, fill=fill)
+
+
+def _pending(book: dict, now: int):
+    """向形状问一次本次到点的是换货、补货，还是都没到点；返回 (类别, 空载后的簿记)。"""
+    probe = {"shelf": copy.deepcopy(book)}
+    _shelf_for(now, lambda: []).ensure(probe)
+    post = probe["shelf"]
+    if post["rotated_at"] != book["rotated_at"]:
+        return "rotate", post
+    if post["restocked_at"] != book["restocked_at"]:
+        return "restock", post
+    return "", book
+
+
+def _roll_fill(map_id: str, town_lv: int):
+    """换货新品：整批重 roll（货品规则 / 品质权重 / 价格浮动原样）。"""
+    return [{"payload": {"rid": it["rid"], "price_mult": it["price_mult"]}, "stock": it["qty"]}
+            for it in roll_stock(map_id, town_lv)]
+
+
+def _refill_fill(map_id: str, town_lv: int, have: set, missing: int):
+    """补货新品：等级窗口候选里按序抽 missing 件（exclude 静态店名册与在架名册）。"""
+    lo, hi = town_lv - STOCK_WINDOW, town_lv + STOCK_WINDOW
+    cands = [rid for rid, r in EQUIP_ROSTER.items()
+             if rid not in _static_shop_rids() and rid not in have
+             and r.get("source") != "重锻"
+             and lo <= r["lv"] <= hi]
+    fresh = []
+    for _ in range(missing):
+        if not cands:
+            break
+        rid = random.choice(cands)
+        cands.remove(rid)
+        r = EQUIP_ROSTER[rid]
+        q = r["quality"]
+        qty = _QTY_BY_QUALITY.get(q, random.randint(2, 3))
+        fresh.append({"payload": {"rid": rid, "price_mult": round(random.uniform(0.8, 1.2), 1)},
+                      "stock": qty})
+    return fresh
+
+
+def _fill_for(case: str, map_id: str, town_lv: int, probe: dict):
+    """本次转换对应的新品生成口（换货 = 整批 roll；补货 = 补缺口）。"""
+    if case == "rotate":
+        return lambda: _roll_fill(map_id, town_lv)
+    have = {e["payload"]["rid"] for e in probe["slots"] if e is not None}
+    missing = sum(1 for e in probe["slots"] if e is None)
+    return lambda: _refill_fill(map_id, town_lv, have, missing)
+
+
+def _restock_book(book: dict) -> dict:
+    """补货前的簿记：未售罄件排到低格（原序），售罄 / 空位留高格。
+
+    引擎补货按格序保留在架件并填新品 ⟹ 出架顺序 = 未售罄（原序）+ 新品，与存档行 items 顺序一致。
+    """
+    keep = [e for e in book["slots"] if e is not None and e["left"] > 0]
+    gone = [e for e in book["slots"] if e is not None and e["left"] == 0]
+    slots = []
+    for e in keep + gone:
+        slots.append({"slot": len(slots), "left": e["left"], "stock": e["stock"],
+                      "payload": e["payload"]})
+    slots += [None] * (STOCK_COUNT - len(slots))
+    return {"size": STOCK_COUNT, "rotated_at": book["rotated_at"],
+            "restocked_at": book["restocked_at"], "slots": slots}
+
+
+def _items_of(book: dict) -> list:
+    """引擎簿记 → 存档行 items（含售罄件，顺序即格序）。"""
+    return [{"rid": e["payload"]["rid"], "qty": e["left"], "price_mult": e["payload"]["price_mult"]}
+            for e in book["slots"] if e is not None]
+
+
 def get_smith_stock(map_id: str, town_lv: int | None = None) -> list:
     """读时惰性刷新全服共享货架（event_state key f"smith_stock_{map_id}"，全局共享）。
 
@@ -317,53 +443,19 @@ def get_smith_stock(map_id: str, town_lv: int | None = None) -> list:
     town_lv = town_level(map_id) if town_lv is None else town_lv
     today = date.today().toordinal()
     now = _now_ts()
-    raw = db.get_event_state(key)
-    st = None
-    if raw:
-        try:
-            st = json.loads(raw)
-        except (ValueError, TypeError):
-            st = None
-    if not st or not isinstance(st, dict):
-        st = {"items": roll_stock(map_id, town_lv), "day": today,
-              "restock_at": now + RESTOCK_HOURS * 3600}
-        db.set_event_state(key, json.dumps(st, ensure_ascii=False))
-        return list(st["items"])
-    items = st.get("items") or []
-    if st.get("day") != today:
-        # 每日 0 点换货：全量重 roll
-        st = {"items": roll_stock(map_id, town_lv), "day": today,
-              "restock_at": now + RESTOCK_HOURS * 3600}
-        db.set_event_state(key, json.dumps(st, ensure_ascii=False))
-        return list(st["items"])
-    if now >= st.get("restock_at", 0):
-        # 6h 补货：保留未售罄件（qty>0），补新品填满 STOCK_COUNT
-        kept = [it for it in items if it.get("qty", 0) > 0]
-        missing = STOCK_COUNT - len(kept)
-        if missing > 0:
-            have = {it["rid"] for it in kept}
-            # 复用 roll 但排除已在架名册 → 用临时逻辑补抽（roll 已 exclude 静态店名册）
-            lo, hi = town_lv - STOCK_WINDOW, town_lv + STOCK_WINDOW
-            cands = [rid for rid, r in EQUIP_ROSTER.items()
-                     if rid not in _static_shop_rids() and rid not in have
-                     and r.get("source") != "重锻"  # v172 路B：重锻专属不进货架
-                     and lo <= r["lv"] <= hi]
-            for _ in range(missing):
-                if not cands:
-                    break
-                rid = random.choice(cands)
-                cands.remove(rid)
-                r = EQUIP_ROSTER[rid]
-                q = r["quality"]
-                kept.append({
-                    "rid": rid,
-                    "qty": _QTY_BY_QUALITY.get(q, random.randint(2, 3)),
-                    "price_mult": round(random.uniform(0.8, 1.2), 1),
-                })
-        st["items"] = kept
-        st["restock_at"] = now + RESTOCK_HOURS * 3600
-        db.set_event_state(key, json.dumps(st, ensure_ascii=False))
-    return list(st["items"])
+    st = _read_state(key)
+    book = _shelf_book(st or {}, now)
+    case, probe = _pending(book, now)
+    if not case:
+        return list(_items_of(book))
+    state = {"shelf": _restock_book(book) if case == "restock" else book}
+    _shelf_for(now, _fill_for(case, map_id, town_lv, probe)).ensure(state)
+    out = dict(st or {})
+    out["items"] = _items_of(state["shelf"])
+    out["day"] = today if case == "rotate" else out.get("day", today)
+    out["restock_at"] = now + RESTOCK_HOURS * 3600
+    db.set_event_state(key, json.dumps(out, ensure_ascii=False))
+    return list(out["items"])
 
 
 def _smith_equip_price(rid: str) -> int:
@@ -408,56 +500,29 @@ def buy_stock_item(map_id: str, town_lv: int | None, rid: str):
     today = date.today().toordinal()
     now = _now_ts()
     # 惰性刷新（换货/补货）后做原子读-判-写
-    raw = db.get_event_state(key)
-    st = None
-    if raw:
-        try:
-            st = json.loads(raw)
-        except (ValueError, TypeError):
-            st = None
-    if not st or not isinstance(st, dict):
-        st = {"items": roll_stock(map_id, town_lv), "day": today,
-              "restock_at": now + RESTOCK_HOURS * 3600}
-    items = st.get("items") or []
-    if st.get("day") != today:
-        st = {"items": roll_stock(map_id, town_lv), "day": today,
-              "restock_at": now + RESTOCK_HOURS * 3600}
-        items = st["items"]
-    elif now >= st.get("restock_at", 0):
-        kept = [it for it in items if it.get("qty", 0) > 0]
-        missing = STOCK_COUNT - len(kept)
-        if missing > 0:
-            have = {it["rid"] for it in kept}
-            lo, hi = town_lv - STOCK_WINDOW, town_lv + STOCK_WINDOW
-            cands = [rid_ for rid_, r in EQUIP_ROSTER.items()
-                     if rid_ not in _static_shop_rids() and rid_ not in have
-                     and r.get("source") != "重锻"  # v172 路B：重锻专属不进货架
-                     and lo <= r["lv"] <= hi]
-            for _ in range(missing):
-                if not cands:
-                    break
-                rid_ = random.choice(cands)
-                cands.remove(rid_)
-                r = EQUIP_ROSTER[rid_]
-                q = r["quality"]
-                kept.append({
-                    "rid": rid_,
-                    "qty": _QTY_BY_QUALITY.get(q, random.randint(2, 3)),
-                    "price_mult": round(random.uniform(0.8, 1.2), 1),
-                })
-        st["items"] = kept
-        st["restock_at"] = now + RESTOCK_HOURS * 3600
-    # 原子扣减
-    for it in st.get("items") or []:
-        if it.get("rid") == rid and it.get("qty", 0) > 0:
-            it["qty"] -= 1
-            db.set_event_state(key, json.dumps(st, ensure_ascii=False))
-            from .drops import generate_roster_equip   # B2-C2 包内直取（同位置，调用时解析）
-            item = generate_roster_equip(rid)
-            npc = SMITH_NPC_NAMES.get(map_id, "铁匠")
-            item["name"] = f"{item['name']}（{npc}的作品）"
-            price = int(_smith_equip_price(rid) * it["price_mult"])
-            return True, item, price
-    # 未找到或售罄：仍把当前状态落库（防陈旧）
-    db.set_event_state(key, json.dumps(st, ensure_ascii=False))
-    return False, None, 0
+    st = _read_state(key)
+    book = _shelf_book(st or {}, now)
+    case, probe = _pending(book, now)
+    state = {"shelf": _restock_book(book) if case == "restock" else book}
+    shelf = _shelf_for(now, _fill_for(case, map_id, town_lv, probe) if case else (lambda: []))
+    shelf.ensure(state)
+    slot = next((e for e in state["shelf"]["slots"]
+                 if e is not None and e["payload"]["rid"] == rid and e["left"] > 0), None)
+    out = dict(st or {})
+    if case:
+        out["items"] = _items_of(state["shelf"])
+        out["day"] = today if case == "rotate" else out.get("day", today)
+        out["restock_at"] = now + RESTOCK_HOURS * 3600
+    if slot is None:
+        # 未找到或售罄：仍把当前状态落库（防陈旧）
+        db.set_event_state(key, json.dumps(out, ensure_ascii=False))
+        return False, None, 0
+    shelf.take(state, slot["slot"], 1)
+    out["items"] = _items_of(state["shelf"])
+    db.set_event_state(key, json.dumps(out, ensure_ascii=False))
+    from .drops import generate_roster_equip   # B2-C2 包内直取（同位置，调用时解析）
+    item = generate_roster_equip(rid)
+    npc = SMITH_NPC_NAMES.get(map_id, "铁匠")
+    item["name"] = f"{item['name']}（{npc}的作品）"
+    price = int(_smith_equip_price(rid) * slot["payload"]["price_mult"])
+    return True, item, price

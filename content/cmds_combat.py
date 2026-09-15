@@ -13,8 +13,8 @@
 都是 async，命门在宿主能力口，本线不搬；B18_DESIGN §7「不适合这套的类别」第 1/3 条
 （多消息 / 开战装配类）正是本族）。
 
-所以本模块**照抄样板的表形状**——`COMMANDS[key] = {"guards", "params", "handler"}`，
-守卫文案在包、取参在包、渲染在包、宿主零游戏知识——只把处理器写成 `async def fn(env) -> list[str]`：
+所以本模块**照抄样板的表形状**——`@bind(key, guards=…, params=…)` 登记处理器，守卫文案在包、
+取参在包、渲染在包、宿主零游戏知识——只把处理器写成 `async def fn(env) -> list[str]`：
 宿主侧 `_host_bridge.run_async` **逐段回话**（一条 = 一条消息），**不做 `"\\n".join` 合并**
 —— 对齐改造前 `async for _r in _CC.<cmd>(...): yield _r` 的逐条语义（含分支/异常提示行序）。
 现状实测：本线 141 场景快照里 157 次命令驱动**全部 = 1 条消息**（多段合并与否同形）。
@@ -39,7 +39,7 @@ I2（包内不 import 宿主）
 from __future__ import annotations
 
 from . import combat_cmds as _CC
-from .commands import COMMANDS
+from .commands import bind
 
 
 # ============================================================
@@ -98,32 +98,17 @@ async def _messages(agen) -> list:
     return out
 
 
-def _declare(key, guards=(), params=()):
-    """登记一条战斗族命令（表形状与 `content/commands.py::register` 逐字段相同）。
-
-    唯一差异 = 处理器是 `async def`（见模块头注），故不经 `register()`（它把 handler 包成
-    同步 `render_panel(fn(env), env)`）；`guards` / `params` 的语义与声明表
-    （`content/data/commands.json`）逐字对齐。重复 key 直接抛（与 `register()` 同口径）。
-    """
-    def deco(fn):
-        if key in COMMANDS:
-            raise KeyError("content.commands：命令 %r 重复登记" % key)
-        COMMANDS[key] = {"guards": tuple(guards), "params": tuple(params), "handler": fn}
-        return fn
-    return deco
-
-
 # ============================================================
 # 探索族
 # ============================================================
-@_declare("explore", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=探索",))
+@bind("explore", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=探索",))
 async def explore(env):
     """『探索』（旧宿主体：`@require_player` + `@no_prof_waiting` → 取玩家 → 调包）。"""
     return await _messages(_CC.explore(_shell(env), _event(env),
                                        env.group_id, env.uid, env.player))
 
 
-@_declare("wild_king_chest", guards=("hook:player",), params=("cmd=摸宝箱",))
+@bind("wild_king_chest", guards=("hook:player",), params=("cmd=摸宝箱",))
 async def wild_king_chest(env):
     """『摸宝箱』（旧宿主体：`@require_player` → 取玩家 → 调包）。"""
     return await _messages(_CC.wild_king_chest(_shell(env), _event(env),
@@ -133,7 +118,7 @@ async def wild_king_chest(env):
 # ============================================================
 # 冒险族（许愿 / 商人确认 / 复活确认）
 # ============================================================
-@_declare("wish", guards=("hook:player",), params=("cmd=许愿",))
+@bind("wish", guards=("hook:player",), params=("cmd=许愿",))
 async def wish(env):
     """『许愿 [类型]』（旧宿主体：`opt = self._strip_cmd(event, "许愿").strip()`）。"""
     opt = env.arg_text("许愿")
@@ -141,14 +126,14 @@ async def wish(env):
                                     env.group_id, env.uid, env.player, opt))
 
 
-@_declare("trader_confirm", guards=("hook:player",), params=("cmd=确认购买",))
+@bind("trader_confirm", guards=("hook:player",), params=("cmd=确认购买",))
 async def trader_confirm(env):
     """『确认购买 / 拒绝』（旧宿主体：**不取玩家档**，只取 uid —— 逐字保留）。"""
     return await _messages(_CC.trader_confirm(_shell(env), _event(env),
                                               env.group_id, env.uid))
 
 
-@_declare("revive_confirm", guards=("hook:player",), params=("cmd=使用复活羽毛",))
+@bind("revive_confirm", guards=("hook:player",), params=("cmd=使用复活羽毛",))
 async def revive_confirm(env):
     """『使用复活羽毛 / 放弃复活』（旧宿主体：**不取玩家档**，只取 uid —— 逐字保留）。"""
     return await _messages(_CC.revive_confirm(_shell(env), _event(env),
@@ -158,7 +143,7 @@ async def revive_confirm(env):
 # ============================================================
 # 战斗族
 # ============================================================
-@_declare("attack", guards=("hook:player",), params=("cmd=攻击",))
+@bind("attack", guards=("hook:player",), params=("cmd=攻击",))
 async def attack(env):
     """『攻击 [目标]』（旧宿主体：`target_arg = self._strip_cmd(event, "攻击").strip()`）。"""
     target_arg = env.arg_text("攻击")
@@ -166,7 +151,7 @@ async def attack(env):
                                       env.group_id, env.uid, env.player, target_arg))
 
 
-@_declare("skill", guards=("hook:player",), params=("cmd=技能",))
+@bind("skill", guards=("hook:player",), params=("cmd=技能",))
 async def skill(env):
     """『技能 <名称/槽位> [目标]』（旧宿主体：`skill_name = self._strip_cmd(event, "技能")`）。"""
     skill_name = env.arg_text("技能")
@@ -174,28 +159,28 @@ async def skill(env):
                                      env.group_id, env.uid, env.player, skill_name))
 
 
-@_declare("defend", guards=("hook:player", "hook:battle"), params=("cmd=防御",))
+@bind("defend", guards=("hook:player", "hook:battle"), params=("cmd=防御",))
 async def defend(env):
     """『防御』（旧宿主体：`@require_player` + `@require_battle` → 取玩家 → 调包）。"""
     return await _messages(_CC.defend(_shell(env), _event(env),
                                       env.group_id, env.uid, env.player))
 
 
-@_declare("flee", guards=("hook:player", "hook:battle"), params=("cmd=逃跑",))
+@bind("flee", guards=("hook:player", "hook:battle"), params=("cmd=逃跑",))
 async def flee(env):
     """『逃跑』（旧宿主体：`@require_player` + `@require_battle` → 取玩家 → 调包）。"""
     return await _messages(_CC.flee(_shell(env), _event(env),
                                     env.group_id, env.uid, env.player))
 
 
-@_declare("hunt_boss", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=讨伐",))
+@bind("hunt_boss", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=讨伐",))
 async def hunt_boss(env):
     """『讨伐』（旧宿主体：`@require_player` + `@no_prof_waiting` → 取玩家 → 调包）。"""
     return await _messages(_CC.hunt_boss(_shell(env), _event(env),
                                          env.group_id, env.uid, env.player))
 
 
-@_declare("honor_shop", guards=("hook:player",), params=("cmd=荣誉",))
+@bind("honor_shop", guards=("hook:player",), params=("cmd=荣誉",))
 async def honor_shop(env):
     """『荣誉 [兑换 <编号>]』（旧宿主体：`raw = self._strip_cmd(event, "荣誉").strip()`）。"""
     raw = env.arg_text("荣誉")
@@ -206,7 +191,7 @@ async def honor_shop(env):
 # ============================================================
 # v139 战前指令（双形态预设 / 终结阈值 / 奥术力场 / 查看）
 # ============================================================
-@_declare("battle_prefs_form", guards=("hook:player",), params=("cmd=战前形态",))
+@bind("battle_prefs_form", guards=("hook:player",), params=("cmd=战前形态",))
 async def battle_prefs_form(env):
     """『战前形态 [值]』（旧宿主体：`text.split("战前形态", 1)[1].strip()`，非该词 → ""）。"""
     text = _message_text(env)
@@ -215,7 +200,7 @@ async def battle_prefs_form(env):
                                                  env.group_id, env.uid, env.player, arg))
 
 
-@_declare("battle_prefs_finisher", guards=("hook:player",), params=("cmd=战前阈值",))
+@bind("battle_prefs_finisher", guards=("hook:player",), params=("cmd=战前阈值",))
 async def battle_prefs_finisher(env):
     """『战前阈值 [值]』（旧宿主体：`text.split("战前阈值", 1)[1].strip()`，非该词 → ""）。"""
     text = _message_text(env)
@@ -224,7 +209,7 @@ async def battle_prefs_finisher(env):
                                                      env.group_id, env.uid, env.player, arg))
 
 
-@_declare("battle_prefs_arcane_field", guards=("hook:player",), params=("cmd=战前力场",))
+@bind("battle_prefs_arcane_field", guards=("hook:player",), params=("cmd=战前力场",))
 async def battle_prefs_arcane_field(env):
     """『战前力场 [盾/刃]』（旧宿主体：`text.split("战前力场", 1)[1].strip()`，非该词 → ""）。"""
     text = _message_text(env)
@@ -233,7 +218,7 @@ async def battle_prefs_arcane_field(env):
                                                          env.group_id, env.uid, env.player, arg))
 
 
-@_declare("battle_prefs_view", guards=("hook:player",), params=("cmd=战前指令",))
+@bind("battle_prefs_view", guards=("hook:player",), params=("cmd=战前指令",))
 async def battle_prefs_view(env):
     """『战前指令』（旧宿主体：`@require_player` → 取玩家 → 调包）。"""
     return await _messages(_CC.battle_prefs_view(_shell(env), _event(env),
