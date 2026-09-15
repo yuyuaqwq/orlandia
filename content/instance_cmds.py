@@ -119,9 +119,10 @@ from .catalog_rules import (INSTANCE_BOSS_EQUIP_DROP as _INSTANCE_BOSS_EQUIP_DRO
 from ._pkgref import DB as db                          # 包内存储层句柄（B1 起既有）
 from . import texts as T                               # 文案表（B11-L1 起既有）
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
@@ -132,9 +133,7 @@ def bind_host(**objs):
     （幂等、`None` 忽略），但**本文件已无读点依赖它** —— 九个 B2 单元与本文件的函数/数据读口
     全部改成包内直取（见头注「宿主替身口 → 包内直取」）。
     """
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 # ---- 宿主边界 ①：`game.core.drops` 的 2 个构造器（跨簇缺口，W-B2C1 §6 登记）----
 
@@ -152,8 +151,8 @@ def _drops(name):
         _mod = None
     if _mod is not None:
         return getattr(_mod, name)
-    _cands = (_HOST_PKG + ".content", _HOST_PKG_FALLBACK + ".content",
-              _HOST_PKG + ".core.drops", _HOST_PKG_FALLBACK + ".core.drops")
+    _cands = (HOST_PKG + ".content", HOST_PKG_FALLBACK + ".content",
+              HOST_PKG + ".core.drops", HOST_PKG_FALLBACK + ".core.drops")
     for _full in _cands:
         _m = sys.modules.get(_full)
         if _m is not None and hasattr(_m, name):
@@ -216,7 +215,7 @@ class _InstanceGate:
     # ---- 猴补回挂（等价宿主壳 `_bind_text_funcs`）----
     def _bind_text_funcs(self) -> None:
         _host = None
-        for _full in (_HOST_PKG + ".core.instance_gate", _HOST_PKG_FALLBACK + ".core.instance_gate"):
+        for _full in (HOST_PKG + ".core.instance_gate", HOST_PKG_FALLBACK + ".core.instance_gate"):
             _host = sys.modules.get(_full)
             if _host is not None:
                 break

@@ -22,7 +22,7 @@ B9-L3 / B12-L1 / B12-L4 已经把社交域**大部分实现体**搬进包内，�
 
 宿主替身口（包内不 import 宿主，I2）
 -----------------------------------
-`C` / `db` / `_host_attr` 直接复用 `content/social_cmds.py` 的替身口（与 `cmds_world.py`
+`C` / `db` 直接复用 `content/social_cmds.py` 的替身口（与 `cmds_world.py`
 复用 `world_cmds` 的替身口同款）；宿主壳对象经 `env.state["shell"]` 取（桥接层透传），
 用于**平台/命令层能力**：`_strip_cmd` / `_parse_page` / `_page_items` / `_tip` /
 `_record_list_state` / `_player` / `_broadcast` / `_instance_battle_for` / `_unlock_battle`。
@@ -45,7 +45,7 @@ from . import social_pet as _SP
 from . import social_stall as _SS
 from .commands import COMMANDS, register
 # 宿主替身口：与 `content/social_cmds.py` 同一份（`C` / `db` 正文一字未改；见该模块头注）
-from .social_cmds import db, _host_attr
+from .social_cmds import db
 from ._pkgref import PkgModule
 # ★ P4′-W1 A 组连带（2026-09-15）：本模块过去从 `social_cmds` **借** C 句柄，读 4 个不同模块的名字。
 #   现按包内真源逐个改直取（表 = 模块级；函数 = 惰性句柄，取件时机不变）。

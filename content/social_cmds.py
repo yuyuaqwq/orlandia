@@ -21,11 +21,11 @@
 ----------------------------------------------------------
 1. 命令方法开头那两行「取 (group_id, qq_id) + `self._player(...)`」→ 提到宿主薄壳当参数传进来；
    `self._player` 在正文里以 `player_lookup` 回调出现（拍卖最高价/被超越者姓名）。
-2. 宿主模块引用 → 惰性替身：`from .. import db` → `db = _HostMod("db")`；
-   `from .. import content as C` → `C = _HostMod("content")`；
+2. 宿主模块引用 → 惰性替身：`from .. import db` → `db`（包内存储层句柄）；
+   `from .. import content as C` → `C`（包内惰性门面句柄）；
    函数内 `from ..core.world_event_templates import INITIALIZERS/DISPLAYS`、
    `from ..services.auction import settle_auction/settle_expired_auction`
-   → `_host_attr("core.world_event_templates", …)` / `_host_attr("services.auction", …)`（调用时解析）。
+   → `宿主面取件("core.world_event_templates", …)` / `宿主面取件("services.auction", …)`（调用时解析）。
 
 ⚠️ 缺口（报告同步登记）
 ----------------------
@@ -34,7 +34,7 @@
   `C.generate_equip`（宿主 content 函数面，函数名不切）仍走宿主 `C` 句柄，不在包侧另起第二份表。
 * `DISPLAYS` / `INITIALIZERS`（`game/core/world_event_templates.py`）归 **B13-L3**；
   `services.auction`（`settle_auction` / `settle_expired_auction`）归 **B12-L5** —— 两条线都未落地，
-  本模块按跨线规则走**宿主句柄惰性替身**；待它们进包后，把 `_host_attr(...)` 换成包内直取即可。
+  本模块按跨线规则走**宿主句柄惰性替身**；待它们进包后，把 `宿主面取件(...)` 换成包内直取即可。
 
 用法::
 
@@ -46,8 +46,6 @@
 """
 from __future__ import annotations
 
-import importlib
-import sys
 import time
 
 # ★ W4（2026-09-14）：`C.WORLD_EVENT_POOL` → 包内门面（真源 `game/data/world.py:8`）
@@ -57,59 +55,13 @@ from . import catalog_b143 as _cat_b143
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("social_cmds：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`C` / `db`）——`C.xxx` / `db.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db`）。"""
+    _WIRE.bind(**objs)
 
 
 from ._pkgref import DB as db, PkgModule

@@ -52,8 +52,8 @@ _DATA_DIR = os.path.join(_HERE, "data")
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/talk_actions.py` 同口径（B8.2 线1 立的规矩）
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 
 def _read_json(path: str, default):
@@ -66,33 +66,39 @@ def _read_json(path: str, default):
 
 
 # ============================================================
-# 宿主替身口（存储层）—— 正文里 `db.xxx(...)` 一行未改
+# 宿主替身口（存储层）—— 引擎 wire 形状
 # ============================================================
-_HOST_DB = None            # 宿主存储层模块（真源 `from .. import db`）
+from saintess_engine.wire import Wire, WireMissing
+
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
 
 
 def bind_host(db=None) -> None:
-    """宿主替身注入（幂等；宿主薄壳在 import 期调用）。`db` = 宿主存储层模块。"""
-    global _HOST_DB
-    if db is not None:
-        _HOST_DB = db
+    """宿主替身注入（幂等；宿主薄壳在 import 期调用）——写进引擎 wire 句柄面（`None` = 没给）。"""
+    _WIRE.bind(db=db)
 
 
-def _resolve_host(mod: str):
-    """取宿主子模块：注入优先 → 已加载的宿主模块（`sys.modules`，**不 import**）。"""
-    for name in ("%s.%s" % (_HOST_PKG, mod), "%s.%s" % (_HOST_PKG_FALLBACK, mod)):
-        m = sys.modules.get(name)
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
+    import sys
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError(
-        "misc_cmds：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % mod)
+    raise WireMissing(
+        "misc_cmds：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
 
 
 class _HostDB:
     """惰性宿主存储层代理（真源 `from .. import db`）——`db.xxx` 正文不动，属性访问时解析。"""
 
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 db = _HostDB()

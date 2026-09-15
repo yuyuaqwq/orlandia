@@ -52,8 +52,8 @@ __all__ = ["help_cmd", "game_tip", "signin", "achievements", "feedback_cmd"]
 # 未落地则回退宿主 `game.core.drops`（与宿主聚合层 `C.generate_equip` **同一对象**，
 # 证据 `out/evidence/identity_map.txt`）。两侧都取不到 → 抛（不静默空跑）。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 _DROPS = None
 
 
@@ -67,13 +67,13 @@ def _drops():
             _DROPS = importlib.import_module("content.drops")
         except ImportError:
             last = None
-            for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                 m = sys.modules.get("%s.core.drops" % prefix)
                 if m is not None:
                     _DROPS = m
                     break
             if _DROPS is None:
-                for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                     try:
                         _DROPS = importlib.import_module("%s.core.drops" % prefix)
                         break

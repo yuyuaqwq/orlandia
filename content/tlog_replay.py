@@ -35,19 +35,18 @@ from .tlog_collect import _rounds_of, _uid
 # ---------------------------------------------------------------- 取件口（包内直取）
 # 真源 `from ..services.battle_bridge import (…)` = 包内 `content/bridge.py` 的构造半边。
 # 旧键 `services.battle_bridge`（宿主薄壳注入）保留兼容：薄壳的 3 个同名函数是同一实现的委托。
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """过渡注入槽（幂等）——键 `bridge` 或旧键 `services.battle_bridge`（宿主薄壳 import 期调用）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _bridge():
     """重演用构造半边：注入槽优先 → 包内真源 `content/bridge.py`（B2-C3 包内直取）。"""
-    m = _INJECTED.get("bridge") or _INJECTED.get("services.battle_bridge")
+    m = _WIRE.handles().get("bridge") or _WIRE.handles().get("services.battle_bridge")
     if m is not None:
         return m
     from . import bridge as _BR

@@ -19,7 +19,7 @@
 |---|---|---|
 | `from .. import db` + `db.xxx(...)` | 模块级 `db` = 惰性宿主代理 `_HostDB` | 正文 `db.xxx` 一行未改；注入优先 → 已加载宿主模块（**不 import**） |
 | `MAP_BY_ID` / `HOUSE_LEVELS` / `ECON_CONFIG`（真源写法 `C.<名>`） | **包内门面直取**：`catalog_space`（`_cs`）/ `catalog_life`（`_cl`） | ★ **B14-2 L6**：切共享门面（`b14_catalog_gate.py` 逐值 + 键序相等）；`bind_host(maps=…, house_levels=…, econ=…)` 三个注入位**保留（宿主薄壳仍在传）但本域不再取用** |
-| `QUALITY`（真源写法 `C.<名>`） | `bind_host(quality=…)` → `_host_attr("QUALITY", …)` | **缺口**：包内无品质表域（B14-B/E 已登记）⇒ 仍走宿主句柄；缺注入且宿主无该名 → 抛（不静默空表） |
+| `QUALITY`（真源写法 `C.<名>`） | `bind_host(quality=…)` → `宿主面取件("QUALITY", …)` | **缺口**：包内无品质表域（B14-B/E 已登记）⇒ 仍走宿主句柄；缺注入且宿主无该名 → 抛（不静默空表） |
 
 返回结构（与真源逐字一致）
 --------------------------
@@ -44,67 +44,47 @@ from . import catalog_life as _cl        # HOUSE_LEVELS / ECON_CONFIG
 from . import catalog_space as _cs       # MAP_BY_ID
 
 # ============================================================
-# ① 宿主替身口（存储层 / 宿主常量）
+# ① 宿主替身口（存储层 / 宿主常量）—— 引擎 wire 形状
 # ============================================================
-_HOST_DB = None
-_HOST_STORE_SOCIAL = None   # 注入槽：`game.store.social`—— 未注入 → 包内直取 `content/persistence/social.py`（market_sell_atomic 不在 db 门面上）
-_MAPS = None            # 遗留注入位（B14-2 L6 起 `MAP_BY_ID()` 走包内门面 catalog_space）
-_HOUSE_LEVELS = None    # 遗留注入位（B14-2 L6 起 `HOUSE_LEVELS()` 走包内门面 catalog_life）
-_QUALITY = None         # `QUALITY`（装备品质色表）—— 包内无域 ⇒ 仍走宿主句柄（缺口）
-_ECON = None            # 遗留注入位（B14-2 L6 起 `ECON_CONFIG()` 走包内门面 catalog_life）
+from saintess_engine.wire import Wire, WireMissing
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
+
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 
 def bind_host(db=None, maps=None, house_levels=None, quality=None, econ=None, store_social=None):
     """宿主替身注入（幂等；宿主薄壳在 import 期调用）。"""
-    global _HOST_DB, _MAPS, _HOUSE_LEVELS, _QUALITY, _ECON, _HOST_STORE_SOCIAL
-    if db is not None:
-        _HOST_DB = db
-    if maps is not None:
-        _MAPS = maps
-    if house_levels is not None:
-        _HOUSE_LEVELS = house_levels
-    if quality is not None:
-        _QUALITY = quality
-    if econ is not None:
-        _ECON = econ
-    if store_social is not None:
-        _HOST_STORE_SOCIAL = store_social
+    _WIRE.bind(db=db, maps=maps, house_levels=house_levels, quality=quality,
+               econ=econ, store_social=store_social)
 
 
-def _resolve_host(mod: str):
-    """取宿主子模块：注入优先 → 已加载的宿主模块（`sys.modules`，**不 import**）。"""
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
     import sys
-    for name in (f"{_HOST_PKG}.{mod}", f"{_HOST_PKG_FALLBACK}.{mod}"):
-        m = sys.modules.get(name)
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError(f"social_stall：宿主模块 {mod} 不可用（未 bind_host 且未加载）—— 拒绝静默空跑")
+    raise WireMissing(
+        "social_stall：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
+
 
 
 class _HostDB:
     """惰性宿主存储层代理（真源 `from .. import db`）——`db.xxx` 正文不动，属性访问时解析。"""
 
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 db = _HostDB()
-
-
-def _host_attr(name: str, injected):
-    """宿主常量取值：注入优先 → 已加载的宿主 `game.content` → 抛（不静默空表）。
-
-    B14-2 L6 后只剩 `QUALITY`（包内无域）走这里；另三张表已切包内门面。
-    """
-    if injected is not None:
-        return injected
-    c = _resolve_host("content")
-    if not hasattr(c, name):
-        raise RuntimeError(f"social_stall：宿主 content 缺 {name} —— 拒绝用空表继续")
-    return getattr(c, name)
 
 
 def MAP_BY_ID() -> dict:
@@ -119,8 +99,9 @@ def HOUSE_LEVELS() -> dict:
 
 def QUALITY() -> dict:
     """装备品质色表 —— **缺口**（包内无域）：仍走宿主句柄。"""
-    if _QUALITY is not None:          # 注入位优先（真源语义），B1：兜底切包内门面
-        return _QUALITY
+    _q = _WIRE.handles().get("quality")   # 注入位优先（真源语义），B1：兜底切包内门面
+    if _q is not None:
+        return _q
     from .catalog_b143 import QUALITY as _cb_quality   # 与宿主 `C.QUALITY` 同对象（is）
     return _cb_quality
 
@@ -326,7 +307,7 @@ def market_sell_place(group_id, qq_id, item_name, price):
     # ★ REPOINT-PKG（2026-09-15，B4R B 组第 5 项）：兜底由宿主子模块 `game.store.social`
     #   改**包内直取** `content/persistence/social.py`（宿主那边是 `import *` 委托薄壳
     #   ⇒ 同一函数对象）；注入槽 `bind_host(store_social=…)` 原样保留。
-    _store_social = _HOST_STORE_SOCIAL
+    _store_social = _WIRE.handles().get("store_social")
     if _store_social is None:
         from .persistence import social as _store_social   # 包内直取（调用时取件，与旧口径同时机）
     if not _store_social.market_sell_atomic(group_id, qq_id, item_key, data, price):

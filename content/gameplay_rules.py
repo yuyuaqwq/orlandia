@@ -14,7 +14,7 @@
 | `C.resolve` / `C.display` | `from .index import resolve, display` | 名字索引（= 宿主 `game/core/index.py` 转发的那份，同一函数对象） |
 | `C.ITEMS` / `C.MATERIALS` | `from .catalog_items import ITEMS, MATERIALS` | 物品域（同 `content/achievements.py` 的既有读口） |
 | `from content.mech.class_data import MECH_CFG` | 同左（原样） | 机制参数表（元素反应 / 叠层上限） |
-| 函数内 `from .. import db as _db` | `_db = _host_module("db")`（同位置、调用时解析） | 写 `event_state` 是宿主存储（判据 3「接人性」） |
+| 函数内 `from .. import db as _db` | `_db = 宿主模块取件("db")`（同位置、调用时解析） | 写 `event_state` 是宿主存储（判据 3「接人性」） |
 | 函数内 `from ..store.inventory import add_item` | `from .persistence.inventory import add_item`（同位置惰性） | B17 存档层已归包；宿主 `game/store/inventory.py` 是它的薄壳 ⇒ **同一函数对象** |
 | `ELEMENT_MARKS = {...}` 字面量 | `from .mech.element_procs import ELEMENT_MARKS` | **单源归位**：真源这份与 `game/services/battle_element_procs.py` / 包内 `content/mech/element_procs.py:35` 三处同值；包内不造第二份字面量 |
 
@@ -22,9 +22,6 @@
 升级结算整库 dump + 掉落解析 + 元素反应）。
 """
 from __future__ import annotations
-
-import importlib
-import sys
 
 from .catalog_b143 import CHAPTER_PACK
 from .catalog_core import exp_to_next
@@ -40,34 +37,13 @@ from .skills import _sk_table
 # ============================================================
 # 宿主替身口（惰性；真源「函数内 `from .. import db as _db`」的同义替身）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等）——键 = 模块名（`db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（真源 `from .. import <name>` 那一类）。取不到 → 抛，不静默空跑。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
+    _WIRE.bind(**objs)
 
 
 # ============================================================

@@ -1,0 +1,19 @@
+{
+  "fields": {
+    "keys": {
+      "zh": "键序",
+      "note": "一张表的源迭代序；**下标即次序**（不是升序）。元素 = 该域外层键（`rune_level_roman` / `gem_tiers` / `gem_tier_names` / `honor_shop` 四条是 int 键）。消费者按名取用，键集与域不符即 raise —— 不静默改序、不静默漏项。",
+      "group": "order"
+    }
+  },
+  "groups": [
+    {
+      "id": "order",
+      "label": "键序声明",
+      "icon": "🔢",
+      "fields": [
+        "keys"
+      ]
+    }
+  ]
+}

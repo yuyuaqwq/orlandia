@@ -10,7 +10,7 @@
    `scripts/export_domains/npc_story.py:derive_tips` 的说明），本读口还原成宿主
    `game/data/tips.py:TIPS` 的**裸列表**形状；逐键 + 逐条 + 逐序对拍相等（报告 §3）。
 2. `ItemContext._db()` / `._C()` 里的 `from .. import db` / `from .. import content as C`
-   → 模块级惰性替身 `db = _HostMod("db")` / `C = _HostMod("content")`（正文 `db.`/`C.` 未改）。
+   → 模块级惰性替身 `db`（包内存储层句柄） / `C`（包内惰性门面句柄）（正文 `db.`/`C.` 未改）。
 3. `from ..content_rules.panel import player_final_stats` / `from ..content_rules.skills import
    skill_info` → **包内直取** `from .panel import ...` / `from .skills import ...`。
 4. `from ..data import battle_rules as _B2R`（净化判定）→ **包内直取**
@@ -26,7 +26,7 @@
   `MATERIAL_KIND_TYPES` / `CHEST_BP_CHANCE` / `START_MAP` / `MAP_TYPE_TOWN` / `CLASSES` ← `catalog_core`；
   `MAP_BY_ID` / `PORTALS` ← `catalog_space`；`RUNES` ← `catalog_items`；
   `FISHING_SPOTS` / `PET_POOL` / `MOUNT_BY_KEY` ← `catalog_life`。
-* `C`（`_HostMod("content")`）仍是**宿主聚合层**，余下读点全是**函数名缺口**（无同名域/读口，按 B14 派工
+* `C`（`C` 句柄）仍是**宿主聚合层**，余下读点全是**函数名缺口**（无同名域/读口，按 B14 派工
   保留 `C.<名>`，报告登记）：`roll_blueprint` / `rune_item` / `resolve` / `check_achievements`。
 * `tips` 域条目多一层 `{"lines": …}` 包装：本文件读口就地还原（唯一一处形状适配），
   若要「域即真相源」得先在导出器侧定形状（登记，未做）。
@@ -39,48 +39,32 @@ import sys
 # 宿主替身口（`content/index.py` / `content/world_cmds.py` 同款：注入优先 → sys.modules →
 # importlib；**绝不静默空跑**）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等）——键 = 宿主模块名（`data` / `content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
-def _host_module(name: str):
+def _wire_module(name: str):
     """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    if name in _WIRE.handles():
+        return _WIRE.handle(name)
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
     last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         try:
             return importlib.import_module("%s.%s" % (prefix, name))
         except Exception as exc:                # noqa: BLE001
             last = exc
     raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
 
 
 class _HostMod:
@@ -90,7 +74,7 @@ class _HostMod:
         self._name = name
 
     def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+        return getattr(_wire_module(self._name), attr)
 
 # -*- coding: utf-8 -*-
 """奥兰迪亚·余烬纪年核心层 - item_templates.py（v97.7：道具效果模板引擎）
@@ -189,10 +173,10 @@ class ItemContext:
         return self._focus.get("level", 1)
 
     def _db(self):
-        return db          # B13-L1：模块级 `db = _HostMod("db")`
+        return db          # B13-L1：模块级 `db`（包内存储层句柄）
 
     def _C(self):
-        return C           # B13-L1：模块级 `C = _HostMod("content")`
+        return C           # B13-L1：模块级 `C`（包内惰性门面句柄）
 
     def hook(self, name, *args, **kwargs):
         fn = self.hooks.get(name)
@@ -206,7 +190,7 @@ class ItemContext:
 
 def infer_template(data):
     """从道具数据推断模板名（use() 分发用）。"""
-    # B13-L1：真源 `from .. import content as C` → 模块级 `C = _HostMod("content")`
+    # B13-L1：真源 `from .. import content as C` → 模块级 `C`（包内惰性门面句柄）
     if data.get("learn_skill"):
         # v112 P1：隐藏技能书（learn_skill + require_class 数据驱动，优先于通用 effect）
         return "skill_tome"
@@ -946,7 +930,7 @@ def tpl_skill_tome(ctx):
     战斗内不可使用（battle_ok=False，走 use() 战斗外分支）。
     跨流派学习是设计使然：技能书 = 横向扩展，不选对应流派也能学（§6 铁律）。
     """
-    # B13-L1：`from .. import content as C` → 模块级 `C = _HostMod("content")`；下两行包内直取
+    # B13-L1：`from .. import content as C` → 模块级 `C`（包内惰性门面句柄）；下两行包内直取
     from .panel import player_final_stats
     from .skills import skill_info
     d = ctx.data
@@ -1091,7 +1075,7 @@ def tpl_grapple(ctx):
     event_state 标记 v140_grapple_{qq_id}，探索/移动消费端读取。"""
     if ctx.battle:
         return ItemResult(text="钩索要在野外攀爬时使用，战斗中用不上～", consume=False)
-    # B13-L1：真源 `from .. import content as C` → 模块级 `C = _HostMod("content")`
+    # B13-L1：真源 `from .. import content as C` → 模块级 `C`（包内惰性门面句柄）
     cur = (ctx._focus or {}).get("cur_map", "")
     cm = _cs.MAP_BY_ID.get(cur) or {}
     if cm.get("type") == _cc.MAP_TYPE_TOWN:
@@ -1124,7 +1108,7 @@ def tpl_scout(ctx):
     """星光望远镜：查看当前地图特产/隐藏区域线索/危险度（纯信息，不消耗）。"""
     if ctx.battle:
         return ItemResult(text="望远镜要在野外眺望时使用，战斗中用不上～", consume=False)
-    # B13-L1：真源 `from .. import content as C` → 模块级 `C = _HostMod("content")`
+    # B13-L1：真源 `from .. import content as C` → 模块级 `C`（包内惰性门面句柄）
     cur = (ctx._focus or {}).get("cur_map", "")
     cm = _cs.MAP_BY_ID.get(cur) or {}
     lines = [f"🔭 你举起【{ctx.item_name()}】眺望{cm.get('name', '此地')}……"]
@@ -1237,7 +1221,7 @@ def tpl_anchor(ctx):
     event_state 标记 v140_anchor_{qq_id}，移动/传送消费端读取。"""
     if ctx.battle:
         return ItemResult(text="星砂要在野外安置，战斗中用不上～", consume=False)
-    # B13-L1：真源 `from .. import content as C` → 模块级 `C = _HostMod("content")`
+    # B13-L1：真源 `from .. import content as C` → 模块级 `C`（包内惰性门面句柄）
     cur = (ctx._focus or {}).get("cur_map", "")
     cm = _cs.MAP_BY_ID.get(cur) or {}
     if cm.get("type") == _cc.MAP_TYPE_TOWN:

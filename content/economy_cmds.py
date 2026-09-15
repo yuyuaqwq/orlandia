@@ -1274,20 +1274,6 @@ class EconomyImpl(CommandBase):
         """v181.P4-7：转发 services.profession.gather_cond_roll（economy 本地定义已随迁）"""
         return _prof_svc.gather_cond_roll(cur_map)
 
-    def _prof_wait_key(self, group_id, qq_id):
-        """v181.P4-7：转发 services.profession.prof_wait_key"""
-        return _prof_svc.prof_wait_key(group_id, qq_id)
-
-    @staticmethod
-    def _prof_wait_ev_name(qq_id):
-        """v181.P4-7：转发 services.profession.prof_wait_ev_name"""
-        return _prof_svc.prof_wait_ev_name(qq_id)
-
-    @staticmethod
-    def _prof_wait_compat(ev):
-        """v181.P4-7：转发 services.profession.prof_wait_compat"""
-        return _prof_svc.prof_wait_compat(ev)
-
     def _prof_wait_residual(self, group_id, qq_id):
         """v181.P4-7：转发 services.profession.prof_wait_residual"""
         return _prof_svc.prof_wait_residual(group_id, qq_id)

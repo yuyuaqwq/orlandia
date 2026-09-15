@@ -94,7 +94,7 @@ from ._pkgref import DB as db, HANDLES
 #   「已探索地图 / 强化装备」静默恒空。改指真源（同一注入值得同一路径字符串）。
 
 # ---- 壳面兼容段（★ B2-W2 已删）--------------------------------------------------
-# 原 `_HOST_PKG`/`_INJECTED`/`_HostFace` + `C = _HostFace("content")` /
+# 原宿主包名常量 / 注入字典 / `_HostFace` + `C = _HostFace("content")` /
 # `LOG = _HostFace("log_setup", "LOG")`：宿主薄壳 `game/core/stat_bonus.py:23-24` 的按名再导出
 # 所需（全仓零消费点，B2-C4 实测登记）。波2 宿主那两行已删 ⇒ 本段一并删除（无第二处消费）。
 

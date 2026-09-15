@@ -8,14 +8,14 @@
 正文改动面（只有三类，替换表见 `overnight/w1213_b13l4_port.py`，每条都断言出现次数）
 --------------------------------------------------------------------------------------
 1. 宿主取件 → 惰性替身（同位置、调用时解析）：函数内 `from .. import content as C` /
-   `from .. import db` 删除，改模块级 `C = _HostMod("content")` / `db = _HostMod("db")`；
+   `from .. import db` 删除，改模块级 `C`（包内惰性门面句柄） / `db`（包内存储层句柄）；
    `from ..data.equip_roster import EQUIP_ROSTER` / `from ..data.hidden_monsters import
-   HIDDEN_MONSTERS` / `from ..data import MAIN_QUESTS` → `_host_attr(...)`。
+   HIDDEN_MONSTERS` / `from ..data import MAIN_QUESTS` → `宿主面取件(...)`。
    ★ W6（2026-09-14）：上面这**三张数据表**改门面直取（宿主 `game/data` 删后本模块仍能活）——
    `EQUIP_ROSTER` → `catalog_items`（687 条，已剥导出期注入字段）、`HIDDEN_MONSTERS` →
    `catalog_b143`（`game_config.hidden_monsters`）、`MAIN_QUESTS` → `catalog_quests`（70 条，
    含键序）；门禁 `--names EQUIP_ROSTER,HIDDEN_MONSTERS,MAIN_QUESTS` 逐名 OK · 不等 0。
-   切后 `_host_attr` 只剩函数 / 单例句柄（本线无）。
+   切后 `宿主面取件` 只剩函数 / 单例句柄（本线无）。
 2. 包内直取（**本线模块**）：`from .achievements import _bestiary_kills / _monster_total`
    原样保留（真源也是函数内延迟 import，包内同样延迟 → 不成环）。
 3. 读点切包内域读口（I1）：`C.PLAYER_SKILLS` / `C.BRANCH_SKILLS` → `from .skills import …`
@@ -27,7 +27,7 @@
     `ember_corridor`）—— B13-L4 时期「maps 域是 nodes/roles 投影」的判断已随 B14-A 重造
     MAPS 失效；
   · W6：`C.HIDDEN_MAP_UNLOCK` → 门面 `content/catalog_b143.py:HIDDEN_MAP_UNLOCK`（B14-3 新建
-    `game_config.maps` 域，外层键序由 `_ORDER_HIDDEN_MAP_UNLOCK` 还原；门禁
+    `game_config.maps` 域，外层键序由 `key_order` 域的 `hidden_map_unlock` 还原；门禁
     `b14_catalog_gate.py --names HIDDEN_MAP_UNLOCK` → 不等 0），取值仍保留 `or {}` 兜底；
   · `C.display("skills", …)`（`_c_skill_has`）：宿主 `C.display` 走 `_INDEXES`（17 张表、
     `skills` 67 条、`monsters` 354 条），包内 `content/tables.display` 只认 classes/skills
@@ -58,83 +58,33 @@
 
 from __future__ import annotations
 
-import importlib
-import sys
-
-
 # ============================================================
 # 宿主替身口（**惰性**：属性访问时才解析宿主模块；绝不 import 宿主模块树、绝不静默空跑）
-# 真源写法 → 包内替身：`from .. import content as C` → `C = _HostMod("content")`；
-# `from .. import db` → `db = _HostMod("db")`。函数内那几行 import 已按原位置删除，
+# 真源写法 → 包内替身：`from .. import content as C` → `C`（包内惰性门面句柄）；
+# `from .. import db` → `db`（包内存储层句柄）。函数内那几行 import 已按原位置删除，
 # 所有调用点 `C.xxx` / `db.xxx` **一行未改**（与 `content/world_cmds.py` / `talk_actions.py` 同款）。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`C` / `db`）——`C.xxx` / `db.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db`）。"""
+    _WIRE.bind(**objs)
 
 
 from ._pkgref import DB as db, PkgModule
 # ★ P4′-W1 A 组（2026-09-15）：宿主门面 `game.content.display` 实测 **`__module__ == "content.index"**
 #   （`content/tables.py` 的同名另一只**不是**目标）⇒ 改指包内同一只。
-#   惰性：属性访问时解析，取件时机与旧 `_HostMod("content")` 逐字相同。
+#   惰性：属性访问时解析，取件时机与旧 `C` 句柄 逐字相同。
 C = PkgModule("content.index")
 
 from .skills import PLAYER_SKILLS, BRANCH_SKILLS   # 包内读口（实测与宿主深等）
 from .catalog_space import MAPS                    # B14-2：真源 `C.MAPS`（门禁 OK，含键序）
 from .catalog_b143 import HIDDEN_MAP_UNLOCK        # W6：真源 `C.HIDDEN_MAP_UNLOCK`（门禁 OK，含键序）
-from .catalog_b143 import HIDDEN_MONSTERS          # W6：真源 `_host_attr("data.hidden_monsters", …)`（门禁 OK）
-from .catalog_items import EQUIP_ROSTER            # W6：真源 `_host_attr("data.equip_roster", …)`（门禁 OK）
-from .catalog_quests import MAIN_QUESTS            # W6：真源 `_host_attr("data", …)`（门禁 OK，含键序）
+from .catalog_b143 import HIDDEN_MONSTERS          # W6：真源 `宿主面取件("data.hidden_monsters", …)`（门禁 OK）
+from .catalog_items import EQUIP_ROSTER            # W6：真源 `宿主面取件("data.equip_roster", …)`（门禁 OK）
+from .catalog_quests import MAIN_QUESTS            # W6：真源 `宿主面取件("data", …)`（门禁 OK，含键序）
 
 COND_CHECKS = {}
 

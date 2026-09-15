@@ -12,12 +12,14 @@
 | `lock` | 引擎 `Database.lock`（RLock，可重入） | `_lock`（代理，`with _lock:` 逐语义等价） | 注入值 → 否则 Database 的 RLock |
 
 注入方式 = 模块级 `bind(**handles)`（与包内既有 `bind_host` 约定同形，不另发明第三套）。
-`_host_attr` / `_host_attrs` / `_HostMod` 沿用包内既有「宿主替身口」写法（`content/auction.py` 起）。
+宿主面取件 = 引擎 wire 形状（`saintess_engine.wire`）：注入句柄面 = `_WIRE`（`bind_host` 写），
+`宿主模块取件` / `宿主面取件` / `_wire_attrs` / `_HostMod` 只补 wire 管不到的两级
+（`sys.modules` 已加载 → importlib）。
 
-★ W2a 改指（2026-09-15）：`C` 与 `_host_content()` 不再指向**宿主** `game.content`，
+★ W2a 改指（2026-09-15）：`C` 不再指向**宿主** `game.content`，
 改指**包内聚合门面** `content/facade.py::C`（`from ..facade import C`）。
 等价性 = 探针逐名对象同一性（71 名 / 298 处，`out/probe/c_facade_identity.log` BAD=0）
-+ 取件时机不变（两侧都是属性访问时解析）。`_host_module` / `_host_attr` / `_host_attrs` /
++ 取件时机不变（两侧都是属性访问时解析）。`宿主模块取件` / `宿主面取件` / `_wire_attrs` /
 `_HostMod` **保留**（`cmds_gm` / `persistence/players` / `persistence/battle_state` 仍在用）。
 """
 from __future__ import annotations
@@ -26,7 +28,7 @@ import importlib
 import sys
 import time as _time
 
-# ★ W2a 改指：包内内容聚合门面（原 `C = _HostMod("content")` → 宿主 `game.content`）。
+# ★ W2a 改指：包内内容聚合门面（原 `C`（包内惰性门面句柄） → 宿主 `game.content`）。
 #   `content.facade` 零 import 依赖（只 import importlib）⇒ 放在 import 期不会把 EAGER 窗口
 #   拖进半初始化；`C.<名>` 的取件时机仍是**属性访问时**（facade.C 是惰性句柄），逐字同旧。
 from ..facade import C  # noqa: F401
@@ -125,74 +127,46 @@ _connect = connect
 # ============================================================
 # 宿主替身口（与包内既有约定同形：注入优先 → sys.modules → importlib；绝不静默空跑）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_INJECTED = {}
+from saintess_engine.wire import Wire, WireMissing
+
+#: 宿主模块在 `sys.modules` 里的两个候选全名（运行时包路径 + 测试路径）
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
+
+#: 注入句柄面（引擎 wire 形状：`bind_host()` 写；`None` = 没给）
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db`）。"""
+    _WIRE.bind(**objs)
 
 
-def _host_module(name: str):
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+def _wire_module(name: str):
+    if name in _WIRE.handles():
+        return _WIRE.handle(name)
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         full = prefix if not name else "%s.%s" % (prefix, name)
         m = sys.modules.get(full)
         if m is not None:
             return m
     last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         try:
             return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
         except Exception as exc:                    # noqa: BLE001
             last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
+    raise WireMissing("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last),
+                      name=name)
 
 
-def _host_content():
-    """内容聚合面句柄 —— **包内聚合门面** `content/facade.py::C`（★ W2a 改指，2026-09-15）。
-
-    改前：返回**宿主** `game.content` 模块本体（注入槽 → `sys.modules` → importlib → 抛）。
-    改后：返回**包内**聚合门面句柄（同一个 `C`，属性访问时解析；facade 模块零 import 依赖）。
-
-    为什么能改（等价性证据，不是推测）
-    ----------------------------------
-    门面的聚合口径 = 宿主 `game/content.py`（`from .core import *` + `catalog_*` 逐名
-    `setdefault`）。探针实测：包内全部 `C.<名>` 读点（71 个名 / 298 处）取到的对象与宿主
-    `game.content.<名>` **逐名同一只**（`out/probe/c_facade_identity.log`，BAD=0）。
-    取件时机也一致：旧 `_HostMod("content")` 与门面 `C` 都是**属性访问时**才解析，
-    故 EAGER 窗口（`content/persistence/__init__.py` → `schema.py:25` 读 `C.MAP_BY_ID`）行为不变。
-
-    为什么住这里（B2-INTFIX 落点裁定，完整理由见 `out/W-INTFIX.md` §1）
-    ------------------------------------------------------------------
-      · 本模块就是包内既有的**宿主面解析区**（`_host_module` / `_host_attr` / `_host_attrs` /
-        `_HostMod` 全在这），4 个消费者的调用写法已按「函数体内惰性 import」定死；
-      · 本批只换**返回对象**，函数名 / 签名 / 调用点一字不改（W2b 才改消费者读点）。
-
-    ⚠️ 调用点必须**惰性 import**（函数体内 `from .persistence.handles import _host_content`）：
-    本模块经 `content/persistence/__init__.py`（EAGER 窗口）暴露，在 `game/core/__init__`
-    装配链上不能 import 期取。
-
-    缺口登记（两侧一致，不是本批引入）：门面**不含** `STAT_NAMES` —— 宿主 `game.content` 同样
-    没有它（它住 `game/content_rules/panel.py`，不在 core 聚合面），故 `getattr(C, "STAT_NAMES",
-    None)` 两侧同为 `None`。
-    """
-    from ..facade import C as _facade_C
-    return _facade_C
-
-
-def _host_attr(mod: str, attr: str):
+def _wire_attr(mod: str, attr: str):
     """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
+    m = _wire_module(mod)
     try:
         return getattr(m, attr)
     except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+        for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
             try:
                 return importlib.import_module("%s.%s" % (
                     prefix if not mod else "%s.%s" % (prefix, mod), attr))
@@ -201,9 +175,9 @@ def _host_attr(mod: str, attr: str):
         raise
 
 
-def _host_attrs(mod: str, *attrs):
-    """多符号版 `_host_attr` —— 真源「`from ..<mod> import a, b, c`」的同位置一行替身。"""
-    return tuple(_host_attr(mod, a) for a in attrs)
+def _wire_attrs(mod: str, *attrs):
+    """多符号版 `宿主面取件` —— 真源「`from ..<mod> import a, b, c`」的同位置一行替身。"""
+    return tuple(_wire_attr(mod, a) for a in attrs)
 
 
 class _HostMod:
@@ -211,14 +185,14 @@ class _HostMod:
 
     ★ W2a 起 `C` **不再**用本类（改指包内门面 `content/facade.py::C`）；本类保留是因为
     `content/cmds_gm.py` 仍 `from .persistence.handles import _HostMod`，且它是包内其他
-    宿主面替身（如各模块自带的 `_HostMod("db")`）的同形样板。
+    宿主面替身（如各模块自带的 `db` 句柄）的同形样板。
     """
 
     def __init__(self, name):
         self._name = name
 
     def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+        return getattr(_wire_module(self._name), attr)
 
 
 #: 包内内容聚合门面句柄（真源 模块级 `from .. import content as C`）——见文件头「W2a 改指」。

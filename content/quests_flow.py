@@ -31,7 +31,7 @@
 | `_cc.CLASSES`（8） | 门面 `catalog_core`（`classes.json`） | 门禁相等；**只用到 `name` / `tier_levels` 两个字段** |
 | `_cs.MAP_BY_ID`（121） | 门面 `content/catalog_space.py`（`worlds` 域） | 门禁相等；**只用到 `.get(...).get("name")` / `.get("area")` / `.get("type")`**（`obj_text` / `quest_reputation` / `_rule_fire` 的 `cur_map` 参数位） |
 | `_cq.TITLES`（68） | 门面 `catalog_quests`（`titles` 域全量） | B14-2 前走宿主 `game/data/titles.py`；门禁实测门面 == 宿主（含键序），消费是「按 id / name 扫表」⇒ 顺序无语义 |
-| `FACTIONS` / `AREA_FACTION` | 门面 `content/catalog_b143.py`（B14-3 新建域 `factions`；外层键序由 `_ORDER_FACTIONS` / `_ORDER_AREA_FACTION` 还原） | 门禁逐条相等（含键序）：`b14_catalog_gate.py --names FACTIONS,AREA_FACTION` → 不等 0 |
+| `FACTIONS` / `AREA_FACTION` | 门面 `content/catalog_b143.py`（B14-3 新建域 `factions`；外层键序由 `key_order` 域的 `factions` / `area_faction` 还原） | 门禁逐条相等（含键序）：`b14_catalog_gate.py --names FACTIONS,AREA_FACTION` → 不等 0 |
 | `C.resolve("materials", …)` | **函数名句柄**（宿主 `game/core/index.py:47`，W6 后 `C` 上只剩这一项） | 材料名→id 的**权威索引在宿主**（`materials`(598) ⊊ `items`(900)，且 `build_index` 是装配期产物）——包内 `content/tables.py:resolve` 对 `materials` 是**原样返回**，直接改用它会静默错（`db.count_item` 拿到中文名）⇒ 必须走宿主 |
 
 ★ 顺序声明 `SIDE_QUEST_ORDER` —— 为什么必须有
@@ -77,56 +77,49 @@ SIDE_QUEST_ORDER = [q["id"] for q in _cq.SIDE_QUESTS]
 
 
 # ============================================================
-# 宿主替身口（存储层 / 内容聚合层 / 同级服务 / 发放与结算）
+# 宿主替身口（存储层 / 内容聚合层 / 同级服务 / 发放与结算）—— 引擎 wire 形状
 # ============================================================
-_HOST_DB = None            # 宿主存储层（真源 `from .. import db`）
-_HOST_C = None             # 宿主内容聚合层（真源 `from .. import content as C`）—— W6 后只喂 `resolve`（函数名句柄；ALL_WILD / FACTIONS / AREA_FACTION 均已有包内读口）
-_HOST_LEVEL_UP = None      # 注入槽：`game.content_rules.gameplay.check_player_level_up`（宿主薄壳波2 可注入）—— 未注入 → 包内直取 `content/gameplay_rules.py`
-_HOST_STAT_BONUS = None    # 注入槽：`game.core.stat_bonus.stat_bonus`（宿主薄壳波2 可注入）—— 未注入 → 包内直取 `content/stat_bonus.py`
-_HOST_GRANT = None         # `game.reward.grant_reward`
-_HOST_QUESTS_SVC = None    # `game.services.quests`（每日委托：bump_daily_progress / settle_daily_quest / DAILY_META_KEYS）
+from saintess_engine.wire import Wire, WireMissing
+
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` / `content/talk_actions.py` 同口径（B8.2 线1 立的规矩）
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 # `C` 上**未进包**的符号 → 转宿主聚合层：W6 后只剩函数名 `resolve`（见下面 `_Dom`）
 
 
 def bind_host(db=None, c=None, level_up=None, stat_bonus_fn=None,
               grant_reward_fn=None, quests_svc=None) -> None:
-    """宿主替身注入（幂等；宿主薄壳在 import 期调用）。"""
-    global _HOST_DB, _HOST_C, _HOST_LEVEL_UP, _HOST_STAT_BONUS, _HOST_GRANT, _HOST_QUESTS_SVC
-    if db is not None:
-        _HOST_DB = db
-    if c is not None:
-        _HOST_C = c
-    if level_up is not None:
-        _HOST_LEVEL_UP = level_up
-    if stat_bonus_fn is not None:
-        _HOST_STAT_BONUS = stat_bonus_fn
-    if grant_reward_fn is not None:
-        _HOST_GRANT = grant_reward_fn
-    if quests_svc is not None:
-        _HOST_QUESTS_SVC = quests_svc
+    """宿主替身注入（幂等；宿主薄壳在 import 期调用）——写进引擎 wire 句柄面（`None` = 没给）。"""
+    _WIRE.bind(db=db, c=c, level_up=level_up, stat_bonus_fn=stat_bonus_fn,
+               grant_reward_fn=grant_reward_fn, quests_svc=quests_svc)
 
 
-def _resolve_host(mod: str):
-    """取宿主子模块：注入优先 → 已加载的宿主模块（`sys.modules`，**不 import**）。"""
-    for name in ("%s.%s" % (_HOST_PKG, mod), "%s.%s" % (_HOST_PKG_FALLBACK, mod)):
-        m = sys.modules.get(name)
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
+    import sys
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError(
-        "quests_flow：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % mod)
+    raise WireMissing(
+        "quests_flow：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
+
 
 
 class _HostDB:
     """惰性宿主存储层代理（真源 `from .. import db`）——`db.xxx` 正文不动，属性访问时解析。"""
 
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 db = _HostDB()
@@ -134,7 +127,7 @@ db = _HostDB()
 
 def _host_c():
     """宿主内容聚合层（真源 `from .. import content as C`）。"""
-    return _HOST_C if _HOST_C is not None else _resolve_host("content")
+    return _bound_host("c", "content")
 
 
 class _HostAttr:
@@ -144,9 +137,8 @@ class _HostAttr:
         self._mod, self._attr = mod, attr
 
     def _v(self):
-        m = _HOST_QUESTS_SVC if self._mod == "services.quests" and _HOST_QUESTS_SVC is not None \
-            else _resolve_host(self._mod)
-        return getattr(m, self._attr)
+        key = "quests_svc" if self._mod == "services.quests" else self._mod
+        return getattr(_bound_host(key, self._mod), self._attr)
 
     def __contains__(self, item):
         return item in self._v()
@@ -172,7 +164,7 @@ def check_player_level_up(group_id, qq_id, player):
       —— 宿主那边是同名单再导出（同一函数对象），包内不再指向宿主薄壳。
       注入槽 `bind_host(level_up=…)` 原样保留（宿主薄壳波2 仍可用它覆盖；取件时机 = 调用时，不变）。
     """
-    fn = _HOST_LEVEL_UP
+    fn = _WIRE.handles().get("level_up")
     if fn is None:
         from .gameplay_rules import check_player_level_up as fn   # 包内直取（调用时取件，与旧口径同时机）
     return fn(group_id, qq_id, player)
@@ -186,7 +178,7 @@ def stat_bonus(group_id, qq_id, player):
       同名单再导出（同一函数对象），包内不再指向宿主薄壳。
       注入槽 `bind_host(stat_bonus_fn=…)` 原样保留。
     """
-    fn = _HOST_STAT_BONUS
+    fn = _WIRE.handles().get("stat_bonus_fn")
     if fn is None:
         from .stat_bonus import stat_bonus as fn                  # 包内直取（调用时取件，与旧口径同时机）
     return fn(group_id, qq_id, player)
@@ -194,22 +186,21 @@ def stat_bonus(group_id, qq_id, player):
 
 def grant_reward(*args, **kwargs):
     """发放（真源 函数体内 `from ..reward import grant_reward`）。"""
-    fn = _HOST_GRANT if _HOST_GRANT is not None \
-        else getattr(_resolve_host("reward"), "grant_reward")
+    fn = _WIRE.handles().get("grant_reward_fn")
+    if fn is None:
+        fn = getattr(_bound_host("grant_reward_fn", "reward"), "grant_reward")
     return fn(*args, **kwargs)
 
 
 def _bump_daily_progress(*args, **kwargs):
     """行会每日委托计数（真源 函数体内 `from .quests import bump_daily_progress`）。"""
-    fn = getattr(_HOST_QUESTS_SVC, "bump_daily_progress") if _HOST_QUESTS_SVC is not None \
-        else getattr(_resolve_host("services.quests"), "bump_daily_progress")
+    fn = getattr(_bound_host("quests_svc", "services.quests"), "bump_daily_progress")
     return fn(*args, **kwargs)
 
 
 def settle_daily_quest(*args, **kwargs):
     """每日委托达标结算单点（真源 函数体内 `from ..services.quests import settle_daily_quest`）。"""
-    fn = getattr(_HOST_QUESTS_SVC, "settle_daily_quest") if _HOST_QUESTS_SVC is not None \
-        else getattr(_resolve_host("services.quests"), "settle_daily_quest")
+    fn = getattr(_bound_host("quests_svc", "services.quests"), "settle_daily_quest")
     return fn(*args, **kwargs)
 
 

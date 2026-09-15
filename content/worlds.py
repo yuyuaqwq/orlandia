@@ -29,67 +29,19 @@ import time
 import uuid
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
-import importlib
-import sys
-
 # ============================================================
 # ① 宿主替身口（B13-L2 搬包 2026-09-14；正文 `db.xxx(...)` / `C.xxx` 一行未改）
 #    写法照抄包内 `content/world_cmds.py`（B9 线2）：注入优先 → sys.modules → importlib，
 #    取不到**大声抛**（绝不静默空跑）。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`db` / `content`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`db` / `content`）。"""
+    _WIRE.bind(**objs)
 
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("B13-L2：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「`from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`db` / `C`）——`db.xxx` / `C.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
 
 # ★ B14-2 L8（2026-09-14）：`create_instance_world` 克隆用的三张表切**包内门面**
 #   （`deepcopy` 落地 → 与宿主表**身份无关**，只需内容相等；门禁逐值+键序 OK）。
@@ -359,6 +311,6 @@ def resolve_map_for(world_id: str, map_id: str) -> Optional[dict]:
         if data is None:
             return None
         return data.get("maps", {}).get(map_id)
-    from . import catalog_space as _cs          # ★ B16-W11d：包内门面（原 `_host_attr("data", …)`；
+    from . import catalog_space as _cs          # ★ B16-W11d：包内门面（原 `宿主面取件("data", …)`；
     MAP_BY_ID = _cs.MAP_BY_ID                   #   删表后 `C.MAP_BY_ID` 同一对象 = 本门面，身份断言仍成立）
     return MAP_BY_ID.get(map_id)

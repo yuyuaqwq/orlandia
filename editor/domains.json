@@ -655,5 +655,14 @@
     "icon": "💎",
     "owner": "package",
     "tier": "fixed"
+  },
+  "key_order": {
+    "label": "键序声明",
+    "kind": "data",
+    "schema": "key_order.schema.json",
+    "primary": "key_order_entry",
+    "icon": "🔢",
+    "owner": "package",
+    "tier": "fixed"
   }
 }

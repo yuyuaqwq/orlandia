@@ -60,11 +60,13 @@ from .skills import skill_info             # 包内直取（技能链 D3 已进�
 #   · `get_instance_st`→ 包内 `content/worlds.py`（副本运行态真源）
 #   · `build_monster`  → 包内 `content/drops.py`（C2 已落地；旧注释的「未进包缺口」已消）
 # `content/_pkgref.py::PkgModule` 保持「属性访问时解析」的取件时机（与旧替身逐字同时机）。
-# ★ W2b（2026-09-15）：兜底句柄从 `persistence.handles._host_content()`（宿主聚合层 `game.content`）
+# ★ W2b（2026-09-15）：兜底句柄从 `persistence.handles` 的宿主内容聚合层取件口（宿主聚合层 `game.content`）
 #   换成**包内聚合门面** `content/facade.py::C` —— 本文件不再回宿主取件。
 # ============================================================
-_INJECTED = {}
-_HOST_C = None
+from saintess_engine.wire import Wire
+
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）
+_WIRE = Wire()
 
 _cs = _PkgModule("content.catalog_space")     # MAP_BY_ID
 _worlds = _PkgModule("content.worlds")        # get_instance_st
@@ -72,32 +74,27 @@ _worlds = _PkgModule("content.worlds")        # get_instance_st
 
 def bind_host(**objs):
     """宿主替身注入（幂等；wave 2 宿主壳调用）——键 `c`（内容聚合层）/ `build_monster`。`None` 忽略。"""
-    global _HOST_C
-    for k, v in (objs or {}).items():
-        if v is None:
-            continue
-        if k == "c":
-            _HOST_C = v
-        _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _host_c():
     """内容聚合层句柄（只喂**未进包**符号）：注入槽 `c` → **包内聚合门面**。
 
-    ★ W2b（2026-09-15）：兜底从 `content/persistence/handles.py::_host_content()`（宿主聚合层）
+    ★ W2b（2026-09-15）：兜底从 `content/persistence/handles.py` 的宿主内容聚合层取件口（宿主聚合层）
     换成包内门面 `content/facade.py::C`（W2a 落点）；`C.<名>` 逐名解析到包内真源
     （`MAP_BY_ID` → `content.catalog_space`；`build_monster` → `content.drops`）。
     注入槽 `c` 仍在（宿主壳 wave 2 的注入协议），但包内不再回宿主取件。
     """
-    if _HOST_C is not None:
-        return _HOST_C
+    c = _WIRE.handles().get("c")
+    if c is not None:
+        return c
     from .facade import C
     return C
 
 
 def _build_monster():
     """`C.build_monster`（缺口名）：注入槽 → 包内 `content.drops`（C2 落点）→ 宿主聚合层。"""
-    fn = _INJECTED.get("build_monster")
+    fn = _WIRE.handles().get("build_monster")
     if fn is not None:
         return fn
     try:
@@ -192,7 +189,7 @@ class _OrchestratorRef:
     """`IB` 替身（正文 `IB.<名>` 一字未改）：注入槽 → 宿主壳外部替换件 → 包内真源。"""
 
     def __getattr__(self, name):
-        _inj = _INJECTED.get("instance_battle")
+        _inj = _WIRE.handles().get("instance_battle")
         if _inj is not None:
             return getattr(_inj, name)
         _ov = _external_override(name)

@@ -93,14 +93,13 @@ _DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")      # <pkg>/content/da
 # 冻结理由与顺序见文件头 ② R1；写法照 `content/reward.py` / `content/travel.py` 的替身口
 # （注入优先 → 包内直取；取不到抛，拒绝静默空跑）。
 # ============================================================
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主替身注入（幂等）——键 `db_update`（callable）或 `db`（宿主 db 模块）；`None` 忽略。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _make_db_update(mod):
@@ -132,10 +131,10 @@ def _default_db_update():
 def _resolve_db_update():
     """取写库口：注入槽 `db_update`（6 参 callable）→ 注入槽 `db`（模块，按同一契约包一层）
     → 包内直取。"""
-    fn = _INJECTED.get("db_update")
+    fn = _WIRE.handles().get("db_update")
     if fn is not None:
         return fn
-    mod = _INJECTED.get("db")
+    mod = _WIRE.handles().get("db")
     if mod is not None:
         return _make_db_update(mod)
     return _default_db_update()
@@ -157,7 +156,7 @@ def _resolve_db_update():
 # 为什么不让 facade 直接指 `_default_db_update`：那是**工厂**（0 参返回 callable），
 # 而注入槽的契约是「6 参 callable 本身」，指过去会以 6 个参数调用工厂 → TypeError。
 # 与 `_resolve_db_update()` 无递归：本供体走 `_default_db_update()`，**不**回读
-# `_INJECTED["db_update"]`（否则 facade 注入它回自己 = 自环）。
+# `_WIRE.handles()["db_update"]`（否则 facade 注入它回自己 = 自环）。
 # ============================================================
 
 def db_update(group_id, key, hp, mp, max_hp, max_mp):
@@ -185,21 +184,21 @@ def db_update(group_id, key, hp, mp, max_hp, max_mp):
 # 缺省从「裸 `boss_script` 模块」升级为本端口 = 与宿主壳注入的 `script_api` **同形同源**，
 # 否则读点改包内直取后 Boss 剧本会退化（阶段模板不合并 / 援军变木桩）。
 # ★ B2-INTFIX（2026-09-14）：宿主聚合层句柄**只有一个家** = 包内唯一规范落点
-#   `content/persistence/handles.py::_host_content()`（注入 → `sys.modules` → importlib → 抛）。
-#   本文件原来的私有 `_host_content()`（第三份同义实现）已删 —— 它是 C2↔C4 接口错位的成因之一。
+#   `content/persistence/handles.py` 的宿主内容聚合层取件口（注入 → `sys.modules` → importlib → 抛）。
+#   本文件原来的私有 `宿主内容聚合层取件口()`（第三份同义实现）已删 —— 它是 C2↔C4 接口错位的成因之一。
 # ★ W2b（2026-09-15）：**该兜底改指包内门面** `content/facade.py::C` ——
-#   本文件不再有 `_host_content()` 消费者（`handles._host_content` 的 4 个消费者全部改口）。
+#   本文件不再有 `宿主内容聚合层取件口()` 消费者（`handles` 的宿主内容聚合层取件口 的 4 个消费者全部改口）。
 # ============================================================
 
 
 def _resolve_build_monster():
     """Boss 援军构造器：注入槽 → 包内 `content.drops` → **包内聚合门面** `facade.C` → None。
 
-    ★ W2b（2026-09-15）：最后一级兜底从 `persistence.handles._host_content()`（宿主聚合层）
+    ★ W2b（2026-09-15）：最后一级兜底从 `persistence.handles` 的宿主内容聚合层取件口（宿主聚合层）
     换成包内门面 `content/facade.py::C`（`C.build_monster` = `content.drops.build_monster`，
     探针实测同一只对象），包侧不再回宿主取件。
     """
-    fn = _INJECTED.get("build_monster")
+    fn = _WIRE.handles().get("build_monster")
     if fn is not None:
         return fn
     try:
@@ -254,7 +253,7 @@ class _ScriptApiPort:
 
 def _default_script_api():
     """缺省 Boss 剧本导演：注入槽 `script_api` → 包内端口 `_ScriptApiPort`。"""
-    injected = _INJECTED.get("script_api")
+    injected = _WIRE.handles().get("script_api")
     if injected is not None:
         return injected
     from . import boss_script as _BS

@@ -70,29 +70,28 @@ from saintess_engine import make_actor  # 只读 saintess_engine 工厂，不改
 # 的实现体（读 `game/tlog_setup` 开关 + `game/services/battle_tlog.py` 采集 sink，属平台件），
 # 按宿主壳同款约定取：`bind_host(attach_tlog=…)` 注入 → `sys.modules` 已加载 → import。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（AstrBot 插件加载路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（AstrBot 插件加载路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主替身注入（幂等；宿主薄壳 import 期调用）。键 = `attach_tlog`；`None` 忽略。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _host_mod(name: str):
     """取宿主子模块：注入优先 → `sys.modules` → importlib；取不到抛（拒绝静默空跑）。"""
-    m = _INJECTED.get(name)
+    m = _WIRE.handles().get(name)
     if m is not None:
         return m
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         mod = sys.modules.get("%s.%s" % (prefix, name))
         if mod is not None:
             return mod
     last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         try:
             return importlib.import_module("%s.%s" % (prefix, name))
         except Exception as exc:                                  # noqa: BLE001
@@ -557,7 +556,7 @@ def attach_tlog(b, *, btype: str = "monster", player=None, enemies=None, seed=No
     实现体 = 注入的 `attach_tlog`（wave 2 宿主壳注入）或宿主薄壳同名函数；包内不搬 sink。
     签名 / 返回 / 异常语义与真源（`game/services/battle_bridge.py:203`）逐字一致。
     """
-    fn = _INJECTED.get("attach_tlog")
+    fn = _WIRE.handles().get("attach_tlog")
     if fn is None:
         fn = getattr(_host_mod("services.battle_bridge"), "attach_tlog")
     try:

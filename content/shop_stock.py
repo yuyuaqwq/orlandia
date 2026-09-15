@@ -6,7 +6,7 @@
 | 真源写法 | 包内 | 依据 |
 |---|---|---|
 | `from ..data.shop_limit import SHOP_LIMIT`（`get_limit` 函数内） | 模块级 `SHOP_LIMIT` = 包内域读口 `shop_stock`（`content/data/shop_stock.json`） | 域 = 商品限购配置 35 条；对拍与宿主 `data.shop_limit.SHOP_LIMIT` **逐键相等**，`overnight/w1213_l5_probe.py` P2 |
-| `from .. import db`（三个函数内，惰性） | 模块级 `db = _HostMod("db")` | 正文里 `db.get_event_state(...)` 一字未改（抄 `content/world_cmds.py` 的替身形状）；**真源本来就把 db 放在函数体内**，本模块改成模块级惰性代理 = 同一个时机（属性访问时取） |
+| `from .. import db`（三个函数内，惰性） | 模块级 `db`（包内存储层句柄） | 正文里 `db.get_event_state(...)` 一字未改（抄 `content/world_cmds.py` 的替身形状）；**真源本来就把 db 放在函数体内**，本模块改成模块级惰性代理 = 同一个时机（属性访问时取） |
 | —（模块无其它宿主依赖） | — | 时间/随机全部走 stdlib（`time`/`datetime`/`json`），无 DB 之外的双源风险 |
 
 ⚠️ 与真源语义完全一致的两点（照抄，不是新行为）：
@@ -17,10 +17,8 @@
 
 宿主侧：`game/core/shop_stock.py` 现在只剩「加载包 + 模块别名」薄壳，见那边头注。
 """
-import importlib
 import json
 import os
-import sys
 import time
 from datetime import date
 
@@ -28,44 +26,14 @@ from datetime import date
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    抄 `content/world_cmds.py` 的同款写法（B9 线2 定的包内标准形状）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 _MOD = "shop_stock"
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = sys.modules.get(prefix if not name else "%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (_MOD, name, last))
-
-
-class _HostMod:
-    """宿主模块替身（`db`）——正文里 `db.xxx` 照原样写，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名。"""
+    _WIRE.bind(**objs)
 
 
 from ._pkgref import DB as db

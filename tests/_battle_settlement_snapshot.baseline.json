@@ -1,0 +1,679 @@
+{
+ "A_normal_victory": {
+  "out": "⚔️ 你发起了攻击！\n🎉 你击败了【野猪】！\n✨ 经验 +51\n📈 经验进度 51/4630 (1%)\n📚 求知属性：经验 +5%！\n🎒 拾取材料：蛇皮 ×6（可到城镇商店/铁匠铺出售）\n\n🏆 成就解锁：初试锋芒！(完成首次战斗)\n      🎁 经验+100、兽肉×3（『成就 领取』领取）\n🏆 成就解锁：初出茅庐！(注册角色)\n      🎁 草药×2（『成就 领取』领取）\n🗺️ 继续『探索』oak_plain，还有未知的角落等着你——\n━━━━━━━━━━━━\n你：❤️ 100/236 💙 100/51",
+  "db": {
+   "player": {
+    "level": 5,
+    "exp": 51,
+    "gold": 50,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "oak_plain",
+    "cur_subarea": "oak_plain_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [
+    {
+     "key": "mat_she_pi",
+     "count": 6,
+     "data": {
+      "name": "蛇皮",
+      "type": "兽材",
+      "stackable": true,
+      "price": 5,
+      "quality": "white"
+     }
+    }
+   ],
+   "pet": null,
+   "stats": {
+    "qq_id": "qA",
+    "kills": 1,
+    "elite_kills": 0,
+    "boss_kills": 0,
+    "deaths": 0,
+    "day_kills": 1,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {
+    "m_boar": 1
+   },
+   "rep": {
+    "kingdom": 1
+   },
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {},
+   "extra": {}
+  }
+ },
+ "B_elite_victory": {
+  "out": "⚔️ 你发起了攻击！\n🎉 你击败了【巨型野猪】！\n✨ 经验 +173\n📈 经验进度 173/5300 (3%)\n📚 求知属性：经验 +5%！\n🔵 一道蓝光闪过，你拾起了【晨光法杖】！\n🎒 拾取材料：野猪牙 ×13（可到城镇商店/铁匠铺出售）\n🎒 拾取材料：狼皮 ×13（可到城镇商店/铁匠铺出售）\n🏛️ 🏰 声望 +3\n\n🏆 成就解锁：初试锋芒！(完成首次战斗)\n      🎁 经验+100、兽肉×3（『成就 领取』领取）\n🏆 成就解锁：初出茅庐！(注册角色)\n      🎁 草药×2（『成就 领取』领取）\n🗺️ 继续『探索』oak_plain，还有未知的角落等着你——\n━━━━━━━━━━━━\n你：❤️ 100/257 💙 100/54",
+  "db": {
+   "player": {
+    "level": 6,
+    "exp": 173,
+    "gold": 0,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "oak_plain",
+    "cur_subarea": "oak_plain_6",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [
+    {
+     "key": "eq_00000000",
+     "count": 1,
+     "data": {
+      "name": "晨光法杖",
+      "slot": "weapon",
+      "quality": "blue",
+      "lv": 15,
+      "weapon_type": "staff",
+      "stats": {
+       "atk": 5,
+       "matk": 58,
+       "crit": 0.019
+      },
+      "price": 1025,
+      "req": {
+       "int": 14
+      },
+      "series": "晨光",
+      "flavor": {
+       "matk": 4
+      },
+      "affixes": [
+       "meditate",
+       "ember_brand"
+      ]
+     }
+    },
+    {
+     "key": "mat_ye_zhu_ya",
+     "count": 13,
+     "data": {
+      "name": "野猪牙",
+      "type": "兽材",
+      "stackable": true,
+      "price": 5,
+      "quality": "white"
+     }
+    },
+    {
+     "key": "mat_lang_pi",
+     "count": 13,
+     "data": {
+      "name": "狼皮",
+      "type": "兽材",
+      "stackable": true,
+      "price": 5,
+      "quality": "white"
+     }
+    }
+   ],
+   "pet": null,
+   "stats": {
+    "qq_id": "qB",
+    "kills": 1,
+    "elite_kills": 1,
+    "boss_kills": 0,
+    "deaths": 0,
+    "day_kills": 1,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {
+    "e_great_boar": 1
+   },
+   "rep": {
+    "kingdom": 3
+   },
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {},
+   "extra": {}
+  }
+ },
+ "C_boss_extra_kills": {
+  "out": "⚔️ 你发起了攻击！\n🎉 你击败了【野猪王】！\n✨ 经验 +519\n📈 经验进度 519/7100 (7%)\n📚 求知属性：经验 +5%！\n🎒 拾取材料：兽肉 ×19（可到城镇商店/铁匠铺出售）\n🎒 拾取材料：野猪牙 ×20（可到城镇商店/铁匠铺出售）\n🏛️ 🏰 声望 +5\n\n📜 主线『野猪之患』：1/5\n📜 主线『野猪之患』：2/5\n\n🏆 成就解锁：初试锋芒！(完成首次战斗)\n      🎁 经验+100、兽肉×3（『成就 领取』领取）\n🏆 成就解锁：屠龙者！(击杀 1 个区域 Boss)\n      🎁 精铁×3、木箱×1（『成就 领取』领取）\n🏆 成就解锁：初出茅庐！(注册角色)\n      🎁 草药×2（『成就 领取』领取）\n👑 你在 Boss 的巢穴深处又搜刮了一遍，摸到一小袋私藏的金币！\n💰 额外获得 80 金币！\n🗺️ 继续『探索』oak_plain，还有未知的角落等着你——\n━━━━━━━━━━━━\n你：❤️ 100/300 💙 100/60",
+  "db": {
+   "player": {
+    "level": 8,
+    "exp": 519,
+    "gold": 180,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "oak_plain",
+    "cur_subarea": "oak_plain_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [
+    {
+     "key": "mat_shou_rou",
+     "count": 19,
+     "data": {
+      "name": "兽肉",
+      "type": "食材",
+      "stackable": true,
+      "price": 12,
+      "quality": "white"
+     }
+    },
+    {
+     "key": "mat_ye_zhu_ya",
+     "count": 20,
+     "data": {
+      "name": "野猪牙",
+      "type": "兽材",
+      "stackable": true,
+      "price": 5,
+      "quality": "white"
+     }
+    }
+   ],
+   "pet": null,
+   "stats": {
+    "qq_id": "qC",
+    "kills": 1,
+    "elite_kills": 0,
+    "boss_kills": 1,
+    "deaths": 0,
+    "day_kills": 1,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {
+    "野猪王": 1
+   },
+   "rep": {
+    "kingdom": 5
+   },
+   "quests": {
+    "qq_id": "qC",
+    "main_quest": "q1_3",
+    "main_status": "active",
+    "main_progress": {
+     "野猪": 2
+    },
+    "daily": {
+     "_date": "2026-09-07",
+     "d0": {
+      "name": "讨伐试炼",
+      "desc": "击杀任意怪物",
+      "objective": {
+       "kill_any": 5
+      },
+      "reward_exp": 100,
+      "reward_gold": 50,
+      "progress": 3
+     }
+    },
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {},
+   "extra": {
+    "ek": [
+     {
+      "id": "m_boar",
+      "uid": "u_m_boar",
+      "name": "野猪",
+      "lv": 3,
+      "role": "dps",
+      "rank": 1,
+      "reach": 1,
+      "hp": 100,
+      "max_hp": 100,
+      "exp": 49,
+      "gold": 20,
+      "is_boss": false,
+      "is_elite": false,
+      "map_area": "oak",
+      "drops": [],
+      "skills": [],
+      "buffs": {}
+     },
+     {
+      "id": "m_boar_piglet",
+      "uid": "u_m_boar_piglet",
+      "name": "野猪·幼崽",
+      "lv": 2,
+      "role": "dps",
+      "rank": 1,
+      "reach": 1,
+      "hp": 100,
+      "max_hp": 100,
+      "exp": 30,
+      "gold": 10,
+      "is_boss": false,
+      "is_elite": false,
+      "map_area": "oak",
+      "drops": [],
+      "skills": [],
+      "buffs": {}
+     }
+    ]
+   }
+  }
+ },
+ "D_hidden_monster": {
+  "out": "⚔️ 你发起了攻击！\n🎉 你击败了【黄金史莱姆】！\n✨ 经验 +53\n📉 碾压低阶怪：经验 ×0.85\n📈 经验进度 53/9409 (0%)\n📚 求知属性：经验 +5%！\n🎒 拾取材料：兽肉 ×3（可到城镇商店/铁匠铺出售）\n\n🏆 成就解锁：初试锋芒！(完成首次战斗)\n      🎁 经验+100、兽肉×3（『成就 领取』领取）\n🏆 成就解锁：初出茅庐！(注册角色)\n      🎁 草药×2（『成就 领取』领取）\n🏆 成就解锁：崭露头角！(达到 10 级)\n      🎁 铁矿石×2（『成就 领取』领取）\n💢 鲜血顺着伤口滴落，你握剑的手却没有一丝颤抖。赢了——赢得惊心动魄！\n🗺️ 继续『探索』oak_plain，还有未知的角落等着你——\n━━━━━━━━━━━━\n你：❤️ 100/344 💙 100/66",
+  "db": {
+   "player": {
+    "level": 10,
+    "exp": 53,
+    "gold": 0,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "oak_plain",
+    "cur_subarea": "oak_plain_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [
+    {
+     "key": "mat_shou_rou",
+     "count": 3,
+     "data": {
+      "name": "兽肉",
+      "type": "食材",
+      "stackable": true,
+      "price": 12,
+      "quality": "white"
+     }
+    }
+   ],
+   "pet": null,
+   "stats": {
+    "qq_id": "qD",
+    "kills": 1,
+    "elite_kills": 0,
+    "boss_kills": 0,
+    "deaths": 0,
+    "day_kills": 1,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {
+    "黄金史莱姆": 1
+   },
+   "rep": {
+    "kingdom": 1
+   },
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {
+    "hm_defeated_gD_qD": "e_gold_slime"
+   },
+   "extra": {}
+  }
+ },
+ "E_pet_victory": {
+  "out": "⚔️ 你发起了攻击！\n🎉 你击败了【野猪】！\n✨ 经验 +53\n📈 经验进度 53/4630 (1%)\n📚 求知属性：经验 +5%！\n🎒 拾取材料：蛇皮 ×6（可到城镇商店/铁匠铺出售）\n🐾 陪伴：经验 +0.2%\n💕 羁绊(亲密度≥50)：经验 +5%\n\n🏆 成就解锁：初试锋芒！(完成首次战斗)\n      🎁 经验+100、兽肉×3（『成就 领取』领取）\n🏆 成就解锁：初出茅庐！(注册角色)\n      🎁 草药×2（『成就 领取』领取）\n🗺️ 继续『探索』oak_plain，还有未知的角落等着你——\n━━━━━━━━━━━━\n你：❤️ 100/236 💙 100/51",
+  "db": {
+   "player": {
+    "level": 5,
+    "exp": 53,
+    "gold": 0,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "oak_plain",
+    "cur_subarea": "oak_plain_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [
+    {
+     "key": "mat_she_pi",
+     "count": 6,
+     "data": {
+      "name": "蛇皮",
+      "type": "兽材",
+      "stackable": true,
+      "price": 5,
+      "quality": "white"
+     }
+    }
+   ],
+   "pet": {
+    "qq_id": "qE",
+    "pet_key": "pet_wolf",
+    "name": "森林狼崽",
+    "level": 1,
+    "exp": 10,
+    "satiety": 98,
+    "bond": 60,
+    "last_sat_time": 0
+   },
+   "stats": {
+    "qq_id": "qE",
+    "kills": 1,
+    "elite_kills": 0,
+    "boss_kills": 0,
+    "deaths": 0,
+    "day_kills": 1,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {
+    "m_boar": 1
+   },
+   "rep": {
+    "kingdom": 1
+   },
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {},
+   "extra": {}
+  }
+ },
+ "F_defeat_normal": {
+  "out": "你被击败了\n💀 你倒下了……被【烬山魔物】击败。\n你丢失了 100 金币（战败损失 10% 金币），被好心人送回了霜角堡·堡垒广场。\n休息后满血复活！下次要小心啊，冒险者。",
+  "db": {
+   "player": {
+    "level": 30,
+    "exp": 0,
+    "gold": 900,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "frost_horn",
+    "cur_subarea": "frost_horn_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [],
+   "pet": null,
+   "stats": {
+    "qq_id": "qF",
+    "kills": 0,
+    "elite_kills": 0,
+    "boss_kills": 0,
+    "deaths": 1,
+    "day_kills": 0,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {},
+   "rep": {},
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {},
+   "extra": {}
+  }
+ },
+ "G_defeat_redname": {
+  "out": "你被击败了\n💀 你倒下了……被【沼泽鳄】击败。\n☠️ 红名期间死亡：额外损失 2000 金币(上限 2000)！\n你丢失了 5000 金币（战败损失 10% 金币），被好心人送回了白鹿城·白鹿广场。\n休息后满血复活！下次要小心啊，冒险者。",
+  "db": {
+   "player": {
+    "level": 30,
+    "exp": 0,
+    "gold": 43000,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "white_deer",
+    "cur_subarea": "white_deer_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [],
+   "pet": null,
+   "stats": {
+    "qq_id": "qG",
+    "kills": 0,
+    "elite_kills": 0,
+    "boss_kills": 0,
+    "deaths": 1,
+    "day_kills": 0,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {},
+   "rep": {},
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {
+    "red_qG": "0"
+   },
+   "extra": {}
+  }
+ },
+ "H_defeat_feather": {
+  "out": "你被击败了\n💀 你倒下了……被【烬山魔物】击败。\n🪶 背包里的复活羽毛泛起微光！回复『使用复活羽毛』消耗 1 根，免于损失 100 金币；或回复『放弃复活』损失 100 金币。\n你已被送回霜角堡·堡垒广场，休息后满血复活。",
+  "db": {
+   "player": {
+    "level": 30,
+    "exp": 0,
+    "gold": 1000,
+    "hp": 100,
+    "mp": 100,
+    "max_hp": 100,
+    "max_mp": 100,
+    "cur_map": "frost_horn",
+    "cur_subarea": "frost_horn_1",
+    "attr_pts": 9,
+    "skill_points": 0,
+    "learned_skills": [],
+    "learned_blueprints": [],
+    "equipment": {}
+   },
+   "inv": [
+    {
+     "key": "i_fu_huo_yu_mao",
+     "count": 1,
+     "data": {
+      "name": "复活羽毛",
+      "type": "消耗品",
+      "stackable": true,
+      "effect": "revive",
+      "price": 500
+     }
+    }
+   ],
+   "pet": null,
+   "stats": {
+    "qq_id": "qH",
+    "kills": 0,
+    "elite_kills": 0,
+    "boss_kills": 0,
+    "deaths": 1,
+    "day_kills": 0,
+    "day_date": "",
+    "visited_areas": 0,
+    "inst_clears": 0,
+    "party_count": 0,
+    "fish_count": 0,
+    "gather_count": 0,
+    "mine_count": 0,
+    "cook_count": 0,
+    "alchemy_count": 0,
+    "craft_count": 0,
+    "enhance_count": 0,
+    "enchant_count": 0,
+    "world_events": 0,
+    "catch_collect": 0,
+    "chests_opened": 0
+   },
+   "bestiary": {},
+   "rep": {},
+   "quests": {
+    "main_quest": "q1_1",
+    "main_status": "pending",
+    "main_progress": {},
+    "daily": {},
+    "completed_main": [],
+    "side": {}
+   },
+   "evt": {
+    "revive_choice_gH_qH": "{\"ts\": 0, \"lost\": 100, \"extra\": 0, \"monster\": \"烬山魔物\"}"
+   },
+   "extra": {}
+  }
+ }
+}

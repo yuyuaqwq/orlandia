@@ -161,9 +161,10 @@ from .flow import instance_run as _IR                  # poi `dom` 替身：livi
 from ._pkgref import DB as db
 from .constants import ACT_TICK
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
@@ -172,9 +173,7 @@ def bind_host(**objs):
     仍在用的键：`db` / `content` / `commands.combat`（宿主壳 `game/commands/combat.py:65`）；
     接口表冻结、波2 才注入的键：`attach_tlog`（接口表第 11 行）。
     """
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 # ---- 宿主边界 ①：`game.core.drops` 的 3 个构造器（跨簇缺口，W-B2C1 §6 登记）----
@@ -192,8 +191,8 @@ def _drops(name):
         _mod = None
     if _mod is not None:
         return getattr(_mod, name)
-    _cands = (_HOST_PKG + ".content", _HOST_PKG_FALLBACK + ".content",
-              _HOST_PKG + ".core.drops", _HOST_PKG_FALLBACK + ".core.drops")
+    _cands = (HOST_PKG + ".content", HOST_PKG_FALLBACK + ".content",
+              HOST_PKG + ".core.drops", HOST_PKG_FALLBACK + ".core.drops")
     for _full in _cands:
         _m = sys.modules.get(_full)
         if _m is not None and hasattr(_m, name):
@@ -231,7 +230,7 @@ def _overlay(name, pkg_obj):
     `b2_impact.md:100` 对 `explore_king` 的要求同样适用于聚合层：宿主模块属性是测试的替换点。
     只查**已加载**模块，**绝不 import 宿主模块树**。
     """
-    for _full in (_HOST_PKG + ".content", _HOST_PKG_FALLBACK + ".content"):
+    for _full in (HOST_PKG + ".content", HOST_PKG_FALLBACK + ".content"):
         _m = sys.modules.get(_full)
         if _m is None:
             continue
@@ -276,7 +275,7 @@ def _wild_king(name):
     **绝不 import 宿主模块树**。
     """
     _fn = getattr(_WK, name)
-    for _full in (_HOST_PKG + ".commands.combat", _HOST_PKG_FALLBACK + ".commands.combat"):
+    for _full in (HOST_PKG + ".commands.combat", HOST_PKG_FALLBACK + ".commands.combat"):
         _m = sys.modules.get(_full)
         if _m is None:
             continue
@@ -313,10 +312,10 @@ def _attach_tlog(b, *, btype="monster", player=None, enemies=None, seed=None):
     · 都没有 → **抛**（fail-closed：开战流水静默不挂 = 平台缺陷被吞）；句柄在但流水未启用 →
       宿主契约自返回 `b`（零行为，`game/tlog_setup.py:98-124`）。
     """
-    _fn = _INJECTED.get("attach_tlog")
+    _fn = _WIRE.handles().get("attach_tlog")
     if _fn is None:
-        for _full in (_HOST_PKG + ".services.battle_bridge",
-                      _HOST_PKG_FALLBACK + ".services.battle_bridge"):
+        for _full in (HOST_PKG + ".services.battle_bridge",
+                      HOST_PKG_FALLBACK + ".services.battle_bridge"):
             _m = sys.modules.get(_full)
             if _m is not None:
                 _fn = getattr(_m, "attach_tlog", None)
@@ -376,13 +375,13 @@ class _SettleHost:
 
     @property
     def db(self):
-        return _INJECTED.get("db") or db
+        return _WIRE.handles().get("db") or db
 
     @property
     def C(self):                                        # noqa: N802（沿用真源 `_Host.C` 名）
-        _mod = _INJECTED.get("content")
+        _mod = _WIRE.handles().get("content")
         if _mod is None:
-            for _full in (_HOST_PKG + ".content", _HOST_PKG_FALLBACK + ".content"):
+            for _full in (HOST_PKG + ".content", HOST_PKG_FALLBACK + ".content"):
                 _mod = sys.modules.get(_full)
                 if _mod is not None:
                     break
@@ -400,7 +399,7 @@ class _SettleHost:
 
 def _settle_db():
     """结算/开战句柄的存储层（宿主注入优先 → 包内存储句柄）。"""
-    return _INJECTED.get("db") or db
+    return _WIRE.handles().get("db") or db
 
 
 def _settle_host():

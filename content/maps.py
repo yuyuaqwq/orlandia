@@ -58,7 +58,6 @@ B13-L7（2026-09-14）。宿主 `game/core/maps.py` 已改成薄壳（本模块�
 """
 from __future__ import annotations
 
-import importlib
 import os
 import sys
 
@@ -86,34 +85,15 @@ _DOM_ROLES: dict = next((e.get("roles") for e in _MAPS.values() if e.get("roles"
 # ============================================================
 # 宿主替身口（`db` / `data`）—— 正文 `db.xxx(...)` 一行未改
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主替身注入（幂等）——键 = 模块名（`db` / `data`）。宿主薄壳 import 期调用。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def lazy_module(full_name: str):
-    """按**完整模块名**包一个惰性宿主模块句柄 —— 宿主薄壳用它注入自己那棵树的模块：:
-
-        _M.bind_host(data=_M.lazy_module(__package__.rsplit(".", 1)[0] + ".data"))
-
-    为什么必须由薄壳注入全名：同一进程里可能并存 `game.*` 与 `data.plugins.dragonfall.game.*`
-    两套模块树（plan §8-R2；`tests/` 两种 import 都有）—— 写目标（`_INDEXES` / `MONSTER_LOCS` /
-    派生表）必须落在**调用方那棵树**上，否则另一棵树读到空表。
-    """
-    import importlib
-
-    class _Mod:
-        def __getattr__(self, attr):
-            return getattr(importlib.import_module(full_name), attr)
-
-    return _Mod()
+    _WIRE.bind(**objs)
 
 
 def _data_mod():
@@ -122,9 +102,9 @@ def _data_mod():
     注入优先（宿主薄壳 `game/core/maps.py:29`）→ `sys.modules` 已加载的宿主 `data`
     （**不 import 宿主模块树**）→ 抛；调用处吞掉（镜像跳过），不影响包内真源。
     """
-    if "data" in _INJECTED:
-        return _INJECTED["data"]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    if "data" in _WIRE.handles():
+        return _WIRE.handle("data")
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         m = sys.modules.get("%s.data" % prefix)
         if m is not None:
             return m
@@ -136,15 +116,7 @@ def _data():
     return _data_mod()
 
 
-class _HostDB:
-    """惰性宿主存储层代理（真源 `from .. import db`）。"""
-
-    def __getattr__(self, name):
-        from ._pkgref import DB as _pdb   # B1：包内直取（原宿主 db 句柄）
-        return getattr(_pdb, name)
-
-
-db = _HostDB()
+from ._pkgref import DB as db            # B1：包内存储层（引擎 wire 形状的惰性句柄）
 
 
 # ============================================================

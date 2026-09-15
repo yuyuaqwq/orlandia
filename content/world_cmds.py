@@ -89,9 +89,10 @@ from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（�
 #    · `_drops()`：`core.drops` 面（B2-C2 线待落 `content/drops.py`，未落则回退宿主同对象）
 #    · 兼容面两个旧替身口名（`content/cmds_world.py:49` 的 F401 再导出用，**零调用点**，见头注 ⚠️）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 #: `core.drops` 面的包内落点（接口表第 5 行冻结：`content/drops.py`，B2-C2 线负责落地）
 _DROPS_PKG = "content.drops"
@@ -100,9 +101,7 @@ _DROPS = None
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _drops():
@@ -119,13 +118,13 @@ def _drops():
             _DROPS = importlib.import_module(_DROPS_PKG)
         except ImportError:
             last = None
-            for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                 m = sys.modules.get("%s.core.drops" % prefix)
                 if m is not None:
                     _DROPS = m
                     break
             if _DROPS is None:
-                for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                     try:
                         _DROPS = importlib.import_module("%s.core.drops" % prefix)
                         break
@@ -144,14 +143,14 @@ def _check_action_keys(action):
     → **同改造前的 importlib 兜底**（旧替身就是注入→sys.modules→importlib；宿主未加载的测试/工具
     路径靠它，见 `tests/test_numeric_reward_unify.py`）→ 抛（不静默空跑）。
     """
-    fn = _INJECTED.get("check_action_keys")
+    fn = _WIRE.handles().get("check_action_keys")
     if fn is None:
         # ★ P5E-DELETE（2026-09-15，删壳批）：兜底原来按**旧宿主模块名**
         #   `game.commands.talk_actions` 取件 —— 删壳后该模块不复存在，本口在「未被注入」时
         #   必抛（实测 13 个测试文件红）。该防御的**真源已在包内**：`content/talk_actions.py`
         #   就是旧壳的逐字端口（动作注册表 `ACTIONS` 在本模块；`check_action_keys` 本批按
         #   同一段逻辑补回包内，见那边 docstring）。故兜底改为**包内真源**，
-        #   与外层「包内直取」口径一致；仍保留 `_INJECTED` 优先（宿主/测试可覆盖）。
+        #   与外层「包内直取」口径一致；仍保留 `_WIRE` 优先（宿主/测试可覆盖）。
         from .talk_actions import check_action_keys as fn      # noqa: PLC0415（同位置惰性取件）
     if fn is None:
         raise RuntimeError("world_cmds：check_action_keys 取不到（未注入且包内真源缺件）——拒绝静默空跑")
@@ -173,7 +172,7 @@ from . import timed_events as _timed     # list_timed / get_timed
 from . import time_weather as _tw        # current_period / time_weather_summary
 from . import worlds as _worlds          # get_instance_world
 
-# ★ B2-W2 已收口：`content/cmds_world.py:49` 的两个死 import 名已删，本段（C/_host_attr 占位）随之删除。
+# ★ B2-W2 已收口：`content/cmds_world.py:49` 的两个死 import 名已删，本段（C/宿主面取件 占位）随之删除。
 
 # 真源宿主顶层 `from ..services.quests import DAILY_META_KEYS as _DAILY_META_KEYS`
 from .profession_quests import DAILY_META_KEYS as _DAILY_META_KEYS

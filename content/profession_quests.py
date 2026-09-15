@@ -27,7 +27,7 @@
 * 函数体逐行照搬（含注释/文案槽位名/`lines` 追加顺序）。
 * `random.sample` / 衰减乘算 / `daily[f"d{i}"]` 键序与真源完全一致。
 * `DAILY_QUESTS` 的**源顺序**参与 `daily_pool` 过滤 + `random.sample` 抽样 → 顺序敏感；
-  ★ B14-2 L8（2026-09-14）：切包内门面 `catalog_quests.DAILY_QUESTS`（按 `_DAILY_QUESTS_ORDER` 声明序
+  ★ B14-2 L8（2026-09-14）：切包内门面 `catalog_quests.DAILY_QUESTS`（按 `key_order` 域 `quests_daily` 的声明序
   重建 → **列表序 == 源序**，门禁 `b14_catalog_gate.py` 逐条+序 OK），旧注「包内 JSON 是字典序故仍读宿主 C」**已作废**。
 
 用法::
@@ -47,60 +47,45 @@ from ._pkgref import PkgModule as _PkgModule
 # ============================================================
 # 宿主替身口（全部对应真源的**函数体内**惰性 import → 包内改模块级惰性代理）
 # ============================================================
-_HOST_DB = None            # 真源 `from .. import db`
-_HOST_CONTENT = None       # 真源 `from .. import content as C`
-_HOST_LEVEL_UP = None      # 注入槽（真源 `from ..content_rules.gameplay import …`）—— 未注入 → 包内直取 `content/gameplay_rules.py`
-_HOST_STAT_BONUS = None    # 注入槽（真源 `from ..core.stat_bonus import stat_bonus`）—— 未注入 → 包内直取 `content/stat_bonus.py`
+from saintess_engine.wire import Wire, WireMissing
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
+
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 
 def bind_host(db=None, content=None, texts=None, level_up=None, stat_bonus=None):
     """宿主替身注入（幂等；宿主薄壳 `game/services/quests.py` 在 import 期调用）。
 
     ★ P4′-W1-B：`texts` 形参按宿主薄壳的注入协议**保留**
-      （`game/services/quests.py:71` 用 `texts=_pkg.lazy_module(_host_texts)` 传参 —— 少了会
+      （`game/services/quests.py:71` 用一个惰性模块句柄按 `texts=…` 传参 —— 少了会
       TypeError），但包内已不再持有它的槽位：文案表改指包内 `content/texts.py`（`T`）。
       传进来的值被显式忽略。
     """
-    global _HOST_DB, _HOST_CONTENT, _HOST_LEVEL_UP, _HOST_STAT_BONUS
-    if db is not None:
-        _HOST_DB = db
-    if content is not None:
-        _HOST_CONTENT = content
-    if level_up is not None:
-        _HOST_LEVEL_UP = level_up
-    if stat_bonus is not None:
-        _HOST_STAT_BONUS = stat_bonus
+    _WIRE.bind(db=db, content=content, level_up=level_up, stat_bonus=stat_bonus)
 
 
-def lazy_module(getter):
-    """把「宿主模块取用 thunk」包成懒模块对象（宿主薄壳注入 `T` 用）。"""
-    return _LazyModule(getter)
-
-
-def _resolve_host(mod: str):
-    """取宿主子模块：**已加载**的宿主模块（`sys.modules`，绝不 import）。"""
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
     import sys
-    for name in ("%s.%s" % (_HOST_PKG, mod), "%s.%s" % (_HOST_PKG_FALLBACK, mod)):
-        m = sys.modules.get(name)
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError("quests：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % mod)
+    raise WireMissing(
+        "quests：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
 
-
-class _LazyModule(object):
-    def __init__(self, getter):
-        self._getter = getter
-
-    def __getattr__(self, name):
-        return getattr(self._getter(), name)
 
 
 class _HostDB(object):
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 # ★ P4′-W1-B：`_HostMod` 样板随唯一使用点（旧 `T = _HostMod(...)`）变死 → 已删
@@ -122,8 +107,9 @@ def check_player_level_up(*args, **kwargs):
       `game.content_rules.gameplay` 改**包内直取** `content/gameplay_rules.py`
       （宿主是同名单再导出 ⇒ 同一函数对象）。注入槽 `bind_host(level_up=…)` 原样保留。
     """
-    if _HOST_LEVEL_UP is not None:
-        return _HOST_LEVEL_UP(*args, **kwargs)
+    _fn = _WIRE.handles().get("level_up")
+    if _fn is not None:
+        return _fn(*args, **kwargs)
     from .gameplay_rules import check_player_level_up as _fn   # 包内直取
     return _fn(*args, **kwargs)
 
@@ -135,8 +121,9 @@ def stat_bonus(*args, **kwargs):
       改**包内直取** `content/stat_bonus.py`（宿主是同名单再导出 ⇒ 同一函数对象）。
       注入槽 `bind_host(stat_bonus=…)` 原样保留。
     """
-    if _HOST_STAT_BONUS is not None:
-        return _HOST_STAT_BONUS(*args, **kwargs)
+    _fn = _WIRE.handles().get("stat_bonus")
+    if _fn is not None:
+        return _fn(*args, **kwargs)
     from .stat_bonus import stat_bonus as _fn                  # 包内直取
     return _fn(*args, **kwargs)
 

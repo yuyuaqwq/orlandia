@@ -12,23 +12,20 @@
 正文改动面（**只有一类**，可复算见 `overnight/w1213_b12l5_gen.py`）
 ------------------------------------------------------------------
 函数体内 `from .. import db` / `from .. import content as C`（共 4 行）**删行** ——
-替身改由模块级 `db = _HostMod("db")` / `C = _HostMod("content")` 承担（属性访问时解析，
+替身改由模块级 `db`（包内存储层句柄） / `C`（包内惰性门面句柄） 承担（属性访问时解析，
 时机与真源「函数体内惰性 import」等价）。**其余一字未改**（含注释与文案字面量）。
 
 宿主替身口（注入优先；宿主薄壳 `bind_host(db=…, content=…)`）
 -------------------------------------------------------------
 | 真源写法 | 包内替身 |
 |---|---|
-| 函数内 `from .. import db`（3 处） | 模块级 `db = _HostMod("db")` |
-| 函数内 `from .. import content as C`（1 处） | 模块级 `C = _HostMod("content")` |
+| 函数内 `from .. import db`（3 处） | 模块级 `db`（包内存储层句柄） |
+| 函数内 `from .. import content as C`（1 处） | 模块级 `C`（包内惰性门面句柄） |
 
 ⚠️ 缺口（报告同步登记）：`C.generate_equip`（装备生成器，宿主 `game/core/drops.py`）**无同名域**
 → 按 BRIEF §5 判断口径走宿主句柄 + 缺口登记；B14 切读点/裁缺口时统一处置。本线**不建第二份**。
 """
 from __future__ import annotations
-
-import importlib
-import sys
 
 import time
 import uuid as _uuid
@@ -38,59 +35,13 @@ import uuid as _uuid
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    形状照抄包内参考实现 `content/world_cmds.py`（B9 线2 产物）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`C` / `db`）——`C.xxx` / `db.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db`）。"""
+    _WIRE.bind(**objs)
 
 
 

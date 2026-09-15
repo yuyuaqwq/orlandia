@@ -7,8 +7,8 @@
 | 真源写法 | 包内替身 | 为什么 |
 |---|---|---|
 | `from .connection import _connect, _lock[, atomic]` | `from .handles import ...` | 连接/锁/事务三个句柄由**注入面**给（宿主工厂注入 db_path） |
-| `from .. import content as C` | `from .handles import C`（`_HostMod("content")`） | 包内禁 import 宿主（I2）；宿主内容面走既有句柄约定 |
-| 函数内 `from ..<宿主模块> import <名>` | `_host_attr("…", "…")` / `_host_attrs(...)` | 同位置、调用时解析（与真源「函数内惰性 import」同刻） |
+| `from .. import content as C` | `from .handles import C`（`C` 句柄） | 包内禁 import 宿主（I2）；宿主内容面走既有句柄约定 |
+| 函数内 `from ..<宿主模块> import <名>` | `宿主面取件("…", "…")` / `宿主面多符号取件(...)` | 同位置、调用时解析（与真源「函数内惰性 import」同刻） |
 | `time.time()` | `clock()` | 时钟是四个注入点之一（默认 = stdlib `time.time`，行为零变化） |
 
 **注入面**：`content/persistence/handles.py`（`bind(db_path=…, clock=…, flush_log=…, lock=…)`）；
@@ -16,7 +16,7 @@
 """
 import json
 import time
-from .handles import _connect, _lock, clock, _host_attr
+from .handles import _connect, _lock, clock, _wire_attr
 
 """奥兰迪亚·余烬纪年存储层 - battle_state"""
 # v104 M02 P2：普通战斗 24h 无活动自动回收（battle_state 永久残留泄漏；PVP 另有 5 分钟超时在 combat.py）

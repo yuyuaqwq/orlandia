@@ -20,7 +20,7 @@
   cycle：date.toordinal() % N == 0
   保底：连续 7 次条件满足未遇 → 下次必出
 
-⚠️ 宿主存储经 `db = _HostMod("db")` 替身（B13-L2 搬包 2026-09-14）：正文 `db.xxx(...)`
+⚠️ 宿主存储经 `db`（包内存储层句柄） 替身（B13-L2 搬包 2026-09-14）：正文 `db.xxx(...)`
    一字未改，属性访问时解析宿主 `game.db`；取不到**大声抛**（不静默空跑）。
 """
 import datetime
@@ -30,67 +30,18 @@ import random
 
 from .time_weather import current_period, current_season, today_weather   # 包内（本线同名模块）
 from .timed_events import register_timed, set_timed                       # 包内（本线同名模块）
-import importlib
-import sys
-
 # ============================================================
 # ① 宿主替身口（B13-L2 搬包 2026-09-14；正文 `db.xxx(...)` / `C.xxx` 一行未改）
 #    写法照抄包内 `content/world_cmds.py`（B9 线2）：注入优先 → sys.modules → importlib，
 #    取不到**大声抛**（绝不静默空跑）。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`db` / `content`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("B13-L2：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「`from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`db` / `C`）——`db.xxx` / `C.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`db` / `content`）。"""
+    _WIRE.bind(**objs)
 
 
 from ._pkgref import DB as db
@@ -107,8 +58,8 @@ from ._pkgref import DB as db
 #
 #    为什么不能直接读域 JSON：域外层键是**字典序**落盘（导出契约 `sort_table`，幂等优先），
 #    真源是插入序，而本模块的 `roll_wild_encounter` / `nearby_hints` 是**按 ALL_WILD 顺序
-#    取第一个命中** ⇒ 顺序 = 行为。序表（`_WILD_NPCS_ORDER` 47 / `_HIDDEN_NPCS_ORDER` 22）
-#    在 `catalog_quests.py` 里显式声明 + 导入期集合守卫（`_ordered()`：域键集 ≠ 序表键集
+#    取第一个命中** ⇒ 顺序 = 行为。序声明（`key_order` 域的 `npcs_wild` 47 / `npcs_hidden` 22）
+#    在 `content/data/key_order.json` 里 + 导入期集合守卫（`_ordered()`：域键集 ≠ 序表键集
 #    → raise），实测与宿主 `C.WILD_NPCS` / `C.HIDDEN_NPCS` **键集 / 键序 / 逐条值全等**。
 #    ⚠️ 本模块**不再本地派生这两张表** —— 同一张表两份定义必漂移（与 `content/talk_actions.py`
 #       「ALL_WILD 切包内读口后本地派生随之删除」同纪律）。

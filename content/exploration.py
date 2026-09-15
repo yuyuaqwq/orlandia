@@ -137,63 +137,13 @@ _FIRST_VISIT_MAT_POOL = ("草药", "铁矿石", "兽肉", "浆果", "蜂蜜")
 
 _WORLDS = _read_json(os.path.join(_DATA_DIR, "worlds.json"), {})
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs) -> None:
     """宿主替身注入（幂等）——键 = 模块名（`db` / `content`）。宿主薄壳 import 期调用。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def lazy_module(full_name: str):
-    """按**完整模块名**包一个惰性宿主模块句柄 —— 宿主薄壳用它注入自己那棵树的模块：:
-
-        _M.bind_host(data=_M.lazy_module(__package__.rsplit(".", 1)[0] + ".data"))
-
-    为什么必须由薄壳注入全名：同一进程里可能并存 `game.*` 与 `data.plugins.dragonfall.game.*`
-    两套模块树（plan §8-R2；`tests/` 两种 import 都有）—— 写目标（`_INDEXES` / `MONSTER_LOCS` /
-    派生表）必须落在**调用方那棵树**上，否则另一棵树读到空表。
-    """
-    import importlib
-
-    class _Mod:
-        def __getattr__(self, attr):
-            return getattr(importlib.import_module(full_name), attr)
-
-    return _Mod()
-
-
-def _host_module(name: str):
-    """取宿主子模块（注入优先 → `sys.modules` → importlib；**绝不静默空跑**）。"""
-    import importlib
-    import sys
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module("%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("exploration：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
-
-
-class _HostMod:
-    """宿主模块替身（`db` / `content`）——正文 `db.xxx(...)` / `C.xxx(...)` 一行未改。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    _WIRE.bind(**objs)
 
 
 from ._pkgref import DB as db, PkgModule

@@ -51,9 +51,10 @@ from .pets import make_pet_egg                                           # noqa:
 #   本文件 B2 读点：LOG → `content/obs.py`；tlog → `content/obs.py::emit`；`C.<名>` → 包内直取；
 #   残留只剩 `core.drops` 面（B2-C2 待落地 `content/drops.py`，见 `_drops()`）。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
@@ -61,9 +62,7 @@ def bind_host(**objs):
     `log` / `tlog` / `key_to_id` / `levelup` / `stat_bonus`；值 = **模块/对象**（定值）或
     **零参可调用**（活源，每次取用时调用一次 → 等价真源「函数内惰性 import 宿主」的时机）。
     `None` 忽略。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _live_provider(v):
@@ -96,7 +95,7 @@ def _live_provider(v):
 
 def _resolve(key: str, fallback):
     """注入优先（**零参**可调用 = 活源 → 调一次；模块/对象 = 定值）→ 否则走 `fallback()`（包内兜底）。"""
-    v = _INJECTED.get(key)
+    v = _WIRE.handles().get(key)
     if v is not None:
         return v() if _live_provider(v) else v
     return fallback()
@@ -131,13 +130,13 @@ def _drops():
             _DROPS = importlib.import_module(_DROPS_PKG)
         except ImportError:
             last = None
-            for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                 m = sys.modules.get("%s.core.drops" % prefix)
                 if m is not None:
                     _DROPS = m
                     break
             if _DROPS is None:
-                for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                     try:
                         _DROPS = importlib.import_module("%s.core.drops" % prefix)
                         break

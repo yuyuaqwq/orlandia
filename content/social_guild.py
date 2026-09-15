@@ -57,12 +57,13 @@ from saintess_engine.membership import Contribution
 # ============================================================
 # ① 宿主替身口（存储层 / 公会原语 / 数值配置）
 # ============================================================
-_HOST_DB = None            # 宿主存储层（真源 `from .. import db`）
-_HOST_STORE_SOCIAL = None  # 注入槽：`game.store.social`（公会三原语）—— 未注入 → 包内直取 `content/persistence/social.py`
-_CONFIG = None             # GUILD_CONFIG——宿主薄壳注入优先；未注入 → 包内门面 `catalog_b143`（★ W4）
+from saintess_engine.wire import Wire, WireMissing
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
+
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 
 def bind_host(db=None, config=None, store_social=None):
@@ -72,30 +73,30 @@ def bind_host(db=None, config=None, store_social=None):
     - `config`：`GUILD_CONFIG` dict（L7 配置面，本域不搬）
     - `store_social`：`game.store.social` 模块（公会原语不在 `db` 门面上）
     """
-    global _HOST_DB, _HOST_STORE_SOCIAL, _CONFIG
-    if db is not None:
-        _HOST_DB = db
-    if config is not None:
-        _CONFIG = config
-    if store_social is not None:
-        _HOST_STORE_SOCIAL = store_social
+    _WIRE.bind(db=db, config=config, store_social=store_social)
 
 
-def _resolve_host(mod: str):
-    """取宿主子模块：注入优先 → 已加载的宿主模块（`sys.modules`，**不 import**）。"""
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
     import sys
-    for name in (f"{_HOST_PKG}.{mod}", f"{_HOST_PKG_FALLBACK}.{mod}"):
-        m = sys.modules.get(name)
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError(f"social_guild：宿主模块 {mod} 不可用（未 bind_host 且未加载）—— 拒绝静默空跑")
+    raise WireMissing(
+        "social_guild：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
+
 
 
 class _HostDB:
     """惰性宿主存储层代理（真源 `from .. import db`）——`db.xxx` 正文不动，属性访问时解析。"""
 
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 db = _HostDB()
@@ -108,18 +109,20 @@ def _store_social():
       改为**包内直取** `content/persistence/social.py`（B17 已整域进包；宿主
       `game/store/social.py` 只剩 `from content.persistence.social import *` 的委托薄壳
       ⇒ 同一批函数对象）。注入槽 `bind_host(store_social=…)` 原样保留；
-      取件时机 = 调用时（与旧 `_resolve_host` 口径一致）。
+      取件时机 = 调用时（与旧取件口口径一致）。
     """
-    if _HOST_STORE_SOCIAL is not None:
-        return _HOST_STORE_SOCIAL
+    _ss = _WIRE.handles().get("store_social")
+    if _ss is not None:
+        return _ss
     from .persistence import social as _pkg_social   # 包内直取（调用时取件，与旧口径同时机）
     return _pkg_social
 
 
 def _cfg():
     """`GUILD_CONFIG`（注入优先 → 包内门面 `content/catalog_b143.py`；真源 `game/data/guild.py:3`）。"""
-    if _CONFIG is not None:
-        return _CONFIG
+    _inj = _WIRE.handles().get("config")
+    if _inj is not None:
+        return _inj
     return _cat_b143.GUILD_CONFIG
 
 

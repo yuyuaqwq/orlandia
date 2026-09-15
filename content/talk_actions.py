@@ -66,14 +66,16 @@ def _read_domain(domain: str, sub: str = "data", default=None):
 
 
 # ============================================================
-# 宿主替身口（存储层 + 发放函数）—— 正文里 `db.xxx(...)` / `grant_reward(...)` 一行未改
+# 宿主替身口（存储层 + 发放函数）—— 引擎 wire 形状
 # ============================================================
-_HOST_DB = None            # 宿主存储层模块（真源 `from .. import db`）
-_HOST_GRANT = None         # 宿主发放函数（真源 `from ..reward import grant_reward`）
+from saintess_engine.wire import Wire, WireMissing
+
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` 同口径（B8.2 线1 立的规矩）
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 
 def bind_host(db=None, grant_reward=None) -> None:
@@ -82,28 +84,30 @@ def bind_host(db=None, grant_reward=None) -> None:
     `db` = 宿主存储层模块（真源 `from .. import db`）；`grant_reward` = 宿主发放函数
     （真源 `from ..reward import grant_reward`，函数体内 import）。
     """
-    global _HOST_DB, _HOST_GRANT
-    if db is not None:
-        _HOST_DB = db
-    if grant_reward is not None:
-        _HOST_GRANT = grant_reward
+    _WIRE.bind(db=db, grant_reward=grant_reward)
 
 
-def _resolve_host(mod: str):
-    """取宿主子模块：注入优先 → 已加载的宿主模块（`sys.modules`，**不 import**）。"""
-    for name in ("%s.%s" % (_HOST_PKG, mod), "%s.%s" % (_HOST_PKG_FALLBACK, mod)):
-        m = sys.modules.get(name)
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
+    import sys
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError(
-        "talk_actions：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % mod)
+    raise WireMissing(
+        "talk_actions：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
+
 
 
 class _HostDB:
     """惰性宿主存储层代理（真源 `from .. import db`）——`db.xxx` 正文不动，属性访问时解析。"""
 
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 db = _HostDB()
@@ -111,7 +115,9 @@ db = _HostDB()
 
 def grant_reward(*args, **kwargs):
     """宿主发放函数（真源 函数体内 `from ..reward import grant_reward`）—— 正文调用点不动。"""
-    fn = _HOST_GRANT if _HOST_GRANT is not None else getattr(_resolve_host("reward"), "grant_reward")
+    fn = _WIRE.handles().get("grant_reward")
+    if fn is None:
+        fn = getattr(_bound_host("grant_reward", "reward"), "grant_reward")
     return fn(*args, **kwargs)
 
 

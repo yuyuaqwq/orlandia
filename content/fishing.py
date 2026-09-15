@@ -11,108 +11,26 @@
 | `from ..data import FISH_QUALITY_ORDER` | `_HostAttr("data", "FISH_QUALITY_ORDER")` | **缺口**：`QUALITY_ORDER` 无同名域（BRIEF §5 对照表列明） |
 | `from .quality_tiers import FISH_TIERS` | `_HostAttr("core.quality_tiers", "FISH_TIERS")` | `core/quality_tiers.py` 属 **B13-L1** 线（并行未落地）→ 按 SOP 走宿主句柄；正文 `FISH_TIERS.weights_at(…)` 一字未改（宿主源码级门禁指向本实现，见宿主壳头注） |
 | `from .time_weather import current_season` | `_HostAttr("core.time_weather", "current_season")`（模块级可调用替身） | `core/time_weather.py` 属 **B13-L2** 线（并行未落地）→ 宿主句柄；**仍是模块级名字**，故 `tests/test_v116_fishing_season.py:31 F.current_season = …` 的打补丁语义不变（宿主壳 = 本模块别名，补丁打在实现本体的模块全局） |
-| `from ..drop_engine import roll as _roll, _SimpleCtx`（`roll_fish` 函数内） | 同位置 `_host_attr("drop_engine", …)` | **缺口**：`game/drop_engine.py`（476 行）是宿主根文件（B14 才动）；包内 `content/loot.py` 已是它的逐字端口，但垂钓档位表要**调用方 `install_quality_tiers`**，未装时 `_roll_fish` 守卫直接返回 `[]`（= 抽空）→ **现在切过去会改行为**，本线不切 |
+| `from ..drop_engine import roll as _roll, _SimpleCtx`（`roll_fish` 函数内） | 同位置 `宿主面取件("drop_engine", …)` | **缺口**：`game/drop_engine.py`（476 行）是宿主根文件（B14 才动）；包内 `content/loot.py` 已是它的逐字端口，但垂钓档位表要**调用方 `install_quality_tiers`**，未装时 `_roll_fish` 守卫直接返回 `[]`（= 抽空）→ **现在切过去会改行为**，本线不切 |
 
 宿主侧：`game/core/fishing.py` 现在只剩「加载包 + 模块别名 + 源码探针」薄壳，见那边头注。
 """
-import importlib
 import os
 import random
-import sys
-
 from saintess_engine.records import RecordsSet
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    抄 `content/world_cmds.py` 的同款写法（B9 线2 定的包内标准形状）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 _MOD = "fishing"
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = sys.modules.get(prefix if not name else "%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (_MOD, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module(
-                    "%s.%s" % (prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostAttr:
-    """宿主「模块属性」惰性替身 —— 真源模块级 `from ..data import X` 的同义替身：模块级名字不变、
-    正文一字未改；取值在**首次被访问/调用**时发生（`FISH_TIERS.weights_at(...)` / `current_season()` 照原样）。"""
-
-    __slots__ = ("_mod", "_attr", "_val")
-
-    def __init__(self, mod, attr):
-        object.__setattr__(self, "_mod", mod)
-        object.__setattr__(self, "_attr", attr)
-
-    def _v(self):
-        try:
-            return object.__getattribute__(self, "_val")
-        except AttributeError:
-            v = _host_attr(object.__getattribute__(self, "_mod"),
-                           object.__getattribute__(self, "_attr"))
-            object.__setattr__(self, "_val", v)
-            return v
-
-    def __getattr__(self, name):
-        return getattr(self._v(), name)
-
-    def __getitem__(self, k):
-        return self._v()[k]
-
-    def __setitem__(self, k, v):
-        self._v()[k] = v
-
-    def __contains__(self, k):
-        return k in self._v()
-
-    def __iter__(self):
-        return iter(self._v())
-
-    def __len__(self):
-        return len(self._v())
-
-    def __bool__(self):
-        return bool(self._v())
-
-    def __call__(self, *a, **kw):
-        return self._v()(*a, **kw)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名。"""
+    _WIRE.bind(**objs)
 
 
 # ============================================================

@@ -16,40 +16,20 @@
   `overnight/w11c_dump_pet_tables.py` 从宿主真源 dump、非手抄；登记 `NOT_YET_DOMAINED`）
 * `_PET_SKILL_DESC`（8 个展示模板 lambda）属**实现**，随本模块代码走（非数据表）
 
-`bind_host` / `lazy_module` **保留**：宿主薄壳 `game/core/pets.py:26` 仍调它们注入句柄
+`bind_host` **保留**：宿主薄壳 `game/core/pets.py:26` 仍调它注入句柄
 （导入期不得抛；句柄在本模块已无消费点，留着即向后兼容）。
 """
 from __future__ import annotations
 
-import importlib
-import sys
+from saintess_engine.wire import Wire
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_HOST_PETS = None                    # 宿主 `game.data.pets` 模块（注入优先；本模块已不消费，留兼容）
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）
+_WIRE = Wire()
 
 
 def bind_host(pets=None):
-    """宿主 `game.data.pets` 注入（幂等）。"""
-    global _HOST_PETS
-    if pets is not None:
-        _HOST_PETS = pets
-
-
-def lazy_module(full_name: str):
-    """按**完整模块名**包一个惰性宿主模块句柄 —— 宿主薄壳用它注入自己那棵树的模块。
-
-    宿主侧调用形如（见 `game/core/pets.py`）：宿主包名 + 数据层子模块名 ⇒ 本模块的句柄名。
-    为什么必须由薄壳注入全名：同一进程可能并存 `game.*` 与 `data.plugins.dragonfall.game.*`
-    两套模块树（plan §8-R2；`tests/` 两种 import 都有）。
-    """
-    import importlib
-
-    class _Mod:
-        def __getattr__(self, attr):
-            return getattr(importlib.import_module(full_name), attr)
-
-    return _Mod()
+    """宿主 `game.data.pets` 注入（幂等）——写进引擎 wire 句柄面（`None` = 没给）。"""
+    _WIRE.bind(pets=pets)
 
 
 # ============================================================

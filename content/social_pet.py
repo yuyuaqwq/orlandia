@@ -47,40 +47,41 @@ from . import catalog_b143 as _b143       # B14-3：PET_MAX_LEVEL / PET_SKILL_UN
 # ============================================================
 # ① 宿主替身口（存储层 / 读表口 / 品质色表）
 # ============================================================
-_HOST_DB = None
-_C = None               # 宿主 content 读表口（C）
-_QUALITY = None         # C.QUALITY（装备品质色表，坐骑面板用）
+from saintess_engine.wire import Wire, WireMissing
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+#: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
+_WIRE = Wire()
+
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 
 def bind_host(db=None, content=None, quality=None):
     """宿主替身注入（幂等；宿主薄壳在 import 期调用）。"""
-    global _HOST_DB, _C, _QUALITY
-    if db is not None:
-        _HOST_DB = db
-    if content is not None:
-        _C = content
-    if quality is not None:
-        _QUALITY = quality
+    _WIRE.bind(db=db, content=content, quality=quality)
 
 
-def _resolve_host(mod: str):
-    """取宿主子模块：注入优先 → 已加载的宿主模块（`sys.modules`，**不 import**）。"""
+def _bound_host(key: str, mod: str = None):
+    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
     import sys
-    for name in (f"{_HOST_PKG}.{mod}", f"{_HOST_PKG_FALLBACK}.{mod}"):
-        m = sys.modules.get(name)
+    h = _WIRE.handles()
+    if key in h:
+        return h[key]
+    name = mod or key
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
-    raise RuntimeError(f"social_pet：宿主模块 {mod} 不可用（未 bind_host 且未加载）—— 拒绝静默空跑")
+    raise WireMissing(
+        "social_pet：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
+
 
 
 class _HostDB:
     """惰性宿主存储层代理（真源 `from .. import db`）——`db.xxx` 正文不动，属性访问时解析。"""
 
     def __getattr__(self, name):
-        return getattr(_HOST_DB if _HOST_DB is not None else _resolve_host("db"), name)
+        return getattr(_bound_host("db"), name)
 
 
 db = _HostDB()
@@ -88,7 +89,7 @@ db = _HostDB()
 
 def _content():
     """宿主内容读表口（真源 `from .. import content as C`）。"""
-    return _C if _C is not None else _resolve_host("content")
+    return _bound_host("content")
 
 
 def QUALITY() -> dict:
@@ -97,8 +98,9 @@ def QUALITY() -> dict:
     ★ B14-3（2026-09-14）：兜底来源由宿主 `game/data/equipment.py` 换成包内门面
     `catalog_b143.QUALITY`（门禁 `b14_catalog_gate.py` 逐值 + 键序相等）。
     """
-    if _QUALITY is not None:
-        return _QUALITY
+    _q = _WIRE.handles().get("quality")
+    if _q is not None:
+        return _q
     return _b143.QUALITY
 
 

@@ -10,71 +10,24 @@
 3. `ENCHANT_RECIPES` → 包内门面 `content/catalog_b143.py`（`enchant` 域，序 = 真源插入序）；
    `ENCHANT_MAX_VALUE` → 包内门面 `content/catalog_rules.py`（包内**无域** ⇒ 值随代码 dump，
    已登记 `NOT_YET_DOMAINED`，建域后改读 `content/data/enchant.json`）。
-4. `from .stats import equip_stats` → 宿主**函数**句柄 `_host_attr("core.stats", "equip_stats")`
+4. `from .stats import equip_stats` → 宿主**函数**句柄 `宿主面取件("core.stats", "equip_stats")`
    （`core/stats.py` 归 B13-L6；句柄属「函数名」类，按收口纪律不切）。
 
 正文一字未改：只换「取值来源」（原 `_D.<名>` → 同名门面名）。
 """
 
-import importlib
-import sys
-
 # ============================================================
 # 宿主替身口（`content/index.py` / `content/world_cmds.py` 同款：注入优先 → sys.modules →
 # importlib；**绝不静默空跑**）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等）——键 = 宿主模块名（`data` / `content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module("%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`C` / `db` / `_D`）——`C.xxx` / `db.xxx` / `_D.xxx` 属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
 
 # -*- coding: utf-8 -*-
 

@@ -56,30 +56,29 @@ import sys
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`db` / `content`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`db` / `content`）。"""
+    _WIRE.bind(**objs)
 
 
-def _host_module(name: str):
+def _wire_module(name: str):
     """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
+    if name in _WIRE.handles():
+        return _WIRE.handle(name)
     import importlib
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         full = prefix if not name else "%s.%s" % (prefix, name)
         m = sys.modules.get(full)
         if m is not None:
             return m
     last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         try:
             return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
         except Exception as exc:                # noqa: BLE001
@@ -87,9 +86,9 @@ def _host_module(name: str):
     raise RuntimeError("party：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
 
 
-def _host_attr(mod: str, attr: str):
+def _wire_attr(mod: str, attr: str):
     """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    return getattr(_host_module(mod), attr)
+    return getattr(_wire_module(mod), attr)
 
 
 class _HostMod:
@@ -99,7 +98,7 @@ class _HostMod:
         self._name = name
 
     def __getattr__(self, attr):
-        return _host_attr(self._name, attr)
+        return _wire_attr(self._name, attr)
 
 
 from ._pkgref import DB as db, PkgModule
@@ -111,8 +110,8 @@ C = _HostMod("content")     # 残留：历史句柄，无调用点（P5C 随壳�
 
 def _panel_stats():
     """真源函数体内 `from ..content_rules.panel import player_final_stats` 的同义替身（注入优先）。"""
-    if "panel_stats" in _INJECTED:
-        return _INJECTED["panel_stats"]
+    if "panel_stats" in _WIRE.handles():
+        return _WIRE.handle("panel_stats")
     from .panel import player_final_stats
     return player_final_stats
 

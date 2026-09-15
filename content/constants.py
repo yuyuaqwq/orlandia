@@ -13,7 +13,7 @@ v181.P2B），外加唯一函数 `prof_exp_need`。宿主 `game/core/constants.p
      `ACT_TICK = 1.0`，因为 `tests/test_package_mech_ports.py:256` 的 TABLES 用 AST **静态读
      宿主文件模块级字面量**与包内 we_data 对拍（宿主改成再导出 → 该门禁报「取不到」）。
      该门禁本身就是这两份的漂移守卫。
-  ③ `prof_exp_need` 内 `from ..data import FORMULA_SKELETON` → `_host_attr("data", "FORMULA_SKELETON")`
+  ③ `prof_exp_need` 内 `from ..data import FORMULA_SKELETON` → `宿主面取件("data", "FORMULA_SKELETON")`
      （表在宿主数据层；包内 `content/mech/params.py::FORMULA_SKELETON` 是**子集**，只留引擎读的两段）。
 
 缺口（报告登记）：`FORMULA_SKELETON`（宿主句柄，待 B14）；其余常量（约 50 个）是纯值，随本文件
@@ -26,61 +26,14 @@ v181.P2B），外加唯一函数 `prof_exp_need`。宿主 `game/core/constants.p
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    形状逐字抄 `content/world_cmds.py`（B9 线2 定稿）
 # ============================================================
-import importlib as _importlib
-import sys as _sys
-
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content` / `db` / `data`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db` / `data`）。"""
+    _WIRE.bind(**objs)
 
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = _sys.modules.get(prefix if not name else "%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return _importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return _importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`C` / `db` / `data`）——`C.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
 
 # -*- coding: utf-8 -*-
 """奥兰迪亚·余烬纪年核心层 - constants.py（v98.2：全局常量收敛）
@@ -289,7 +242,7 @@ def prof_exp_need(lv):
     - 满级周期估算：等待型（可挂机）约 1 个月，制造型（体力限制）约 2-3 个月
     - 存量玩家兼容：exp 按级内进度存储，曲线变更只影响后续升级需求，已满级不受影响
     """
-    from .catalog_rules import FORMULA_SKELETON   # ★ B16-W11d：包内门面（原 `_host_attr("data", …)` 检测器盲区形态）
+    from .catalog_rules import FORMULA_SKELETON   # ★ B16-W11d：包内门面（原 `宿主面取件("data", …)` 检测器盲区形态）
     _p = FORMULA_SKELETON["prof_exp_need"]
     return _p["a"] * lv * lv + _p["b"] * lv
 

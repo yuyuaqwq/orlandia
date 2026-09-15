@@ -28,28 +28,27 @@ import sys
 #   注入面 = 宿主薄壳 `game/core/class_sets.py:47-49` 的 `bind_host(data=…)`（本文件既有口）
 #   解析：注入优先 → `sys.modules` 已加载的宿主模块（**不 import** 之外的模块树）→ importlib → 抛
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
+HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`data` 等）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _host_mod(name: str):
     """取宿主子模块（注入优先 → `sys.modules` → importlib；**绝不静默空跑**）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    if name in _WIRE.handles():
+        return _WIRE.handle(name)
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         m = sys.modules.get("%s.%s" % (prefix, name))
         if m is not None:
             return m
     last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         try:
             return importlib.import_module("%s.%s" % (prefix, name))
         except Exception as exc:                # noqa: BLE001
@@ -66,8 +65,8 @@ def _data_mod():
     硬约束（接口表第 9 行）：`SETS` 必须仍是**宿主同一只字典**（`_build_class_sets` 是**写入型**
     装配器，宿主面板读 `C.SETS`）⇒ 只认宿主装配器给的**对象**，绝不包内自建第二份。
     """
-    if "data" in _INJECTED:
-        return _INJECTED["data"]
+    if "data" in _WIRE.handles():
+        return _WIRE.handle("data")
     return _host_mod("data")
 
 # -*- coding: utf-8 -*-

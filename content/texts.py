@@ -43,8 +43,8 @@ import os
 
 from saintess_engine.text import TextTable
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 # 包内真源：本模块自己定位（宿主 `game/data/text_specs.json` 只是构建期镜像）
@@ -105,7 +105,7 @@ def _log():
     if _LOG_INJ is not None:
         return _LOG_INJ
     import sys
-    for name in ("%s.log_setup" % _HOST_PKG, "%s.log_setup" % _HOST_PKG_FALLBACK):
+    for name in ("%s.log_setup" % HOST_PKG, "%s.log_setup" % HOST_PKG_FALLBACK):
         m = sys.modules.get(name)
         if m is not None and getattr(m, "LOG", None) is not None:
             return m.LOG

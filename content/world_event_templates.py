@@ -11,7 +11,7 @@
 ------------------------------------------------------------
 | 真源写法 | 包内替身 |
 |---|---|
-| `from .. import content as C`（`_i_auction` / `_i_boss` 内，`C.AUCTION_POOL` / `C.generate_equip` / `C.WORLD_BOSS_POOL`） | `AUCTION_POOL` / `WORLD_BOSS_POOL` → **包内门面** `content/catalog_b143.py`（★ W4，2026-09-14）；`generate_equip` 是**函数名**（不切）→ 仍走模块级 `C = _HostMod("content")` | 只换「取值来源」：两张池子逐条逐序与宿主 `C` 相等 ⇒ 行为一字未变 |
+| `from .. import content as C`（`_i_auction` / `_i_boss` 内，`C.AUCTION_POOL` / `C.generate_equip` / `C.WORLD_BOSS_POOL`） | `AUCTION_POOL` / `WORLD_BOSS_POOL` → **包内门面** `content/catalog_b143.py`（★ W4，2026-09-14）；`generate_equip` 是**函数名**（不切）→ 仍走模块级 `C`（包内惰性门面句柄） | 只换「取值来源」：两张池子逐条逐序与宿主 `C` 相等 ⇒ 行为一字未变 |
 
 ★ 数据读口（I1）：`AUCTION_POOL` / `WORLD_BOSS_POOL` —— 原「包内无同名域」缺口已由 **B14-3**
 （`game_config.world` 组）补齐 ⇒ ★ W4 切包内门面 `content/catalog_b143.py`。
@@ -23,9 +23,6 @@
 """
 from __future__ import annotations
 
-import importlib
-import sys
-
 # ★ W4（2026-09-14）：`C.AUCTION_POOL` / `C.WORLD_BOSS_POOL` → 包内门面（真源 `game/data/world.py:110/123`）
 from . import catalog_b143 as _cat_b143
 
@@ -33,42 +30,13 @@ from . import catalog_b143 as _cat_b143
 # ============================================================
 # ① 宿主替身口（与 content/world_cmds.py 同款）
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module("%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("world_event_templates：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
-
-
-class _HostMod:
-    """宿主模块替身（`C`）——`C.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content`）。"""
+    _WIRE.bind(**objs)
 
 
 from ._pkgref import PkgModule

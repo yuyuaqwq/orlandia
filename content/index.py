@@ -15,7 +15,7 @@
 
 兼容面（宿主薄壳 `game/core/index.py` 仍在调，签名/行为保持）
 ----------------------------------------------------------
-* `bind_host(data=…)` / `lazy_module(全名)`：保留。**主构建路径不碰它**——唯一消费者是
+* `bind_host(data=…)`：保留。**主构建路径不碰它**——唯一消费者是
   `_host_data()`，只给 3 张**无域缺口表**（`WEAPON_TYPES` / `WT_CN` / `QUALITY_CN`）兜底，
   见 `content/index_build.py` 头注「缺口」与报告 `overnight/_w1_index_to_pkg.md`。
 * `content/index_build.py::GAP_SOURCES` 记录每张缺口表的实际来源（探针/报告取证用）。
@@ -24,14 +24,14 @@
 """
 from __future__ import annotations
 
-import importlib
 import sys
 
 from pypinyin import lazy_pinyin
 
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
-_INJECTED = {}
+HOST_PKG = "data.plugins.dragonfall.game"
+HOST_PKG_FALLBACK = "game"
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 # 包内自建索引（`content/index_build.build_into` 的产物；模块级唯一一份）
 _INDEXES: dict = {}
@@ -44,34 +44,14 @@ def bind_host(**objs):
     兼容注入口：宿主薄壳 `game/core/index.py` 仍按老签名调它（不让宿主 import 炸）。
     **索引构建不依赖它**（15/17 张表全部来自包内）；只有「无域缺口表」在包内无源时才经它兜底。
     """
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def lazy_module(full_name: str):
-    """按**完整模块名**包一个惰性宿主模块句柄 —— 宿主薄壳用它注入自己那棵树的模块：:
-
-        _M.bind_host(data=_M.lazy_module(__package__.rsplit(".", 1)[0] + ".data"))
-
-    为什么必须由薄壳注入全名：同一进程里可能并存 `game.*` 与 `data.plugins.dragonfall.game.*`
-    两套模块树（plan §8-R2；`tests/` 两种 import 都有）—— 写目标（`_INDEXES` / `MONSTER_LOCS` /
-    派生表）必须落在**调用方那棵树**上，否则另一棵树读到空表。
-    """
-    import importlib
-
-    class _Mod:
-        def __getattr__(self, attr):
-            return getattr(importlib.import_module(full_name), attr)
-
-    return _Mod()
+    _WIRE.bind(**objs)
 
 
 def _data_mod():
     """宿主 `data` 模块句柄（决策项 U1；接口表第 9 行冻结机制 = 注入名 `data`）。"""
-    if "data" in _INJECTED:
-        return _INJECTED["data"]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+    if "data" in _WIRE.handles():
+        return _WIRE.handle("data")
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
         m = sys.modules.get("%s.data" % prefix)
         if m is not None:
             return m

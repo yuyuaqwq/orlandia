@@ -86,19 +86,18 @@ from . import catalog_b143 as _b143   # B14-3 收口名（宠物/公会/势力/�
 #   （没有 host 参数）。`@_host_tolerant` 让两种约定都成立且行为一致：首参不是宿主面句柄时，
 #   自动左对齐补上包内自解析句柄。**函数签名/正文/返回值一字未改**（装饰器只做取件归一）。
 # ============================================================
-_INJECTED = {}
+from saintess_engine.wire import Wire
+_WIRE = Wire()
 
 
 def bind_host(**objs):
     """宿主面注入（幂等）——键 = 符号名；值 = 模块/函数（定值）；`None` 忽略。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
+    _WIRE.bind(**objs)
 
 
 def _slot(key, fallback):
     """取一个宿主面符号：注入槽优先 → `fallback()`（包内直取 / 宿主聚合层）。"""
-    v = _INJECTED.get(key)
+    v = _WIRE.handles().get(key)
     if v is not None:
         return v
     return fallback()
@@ -138,7 +137,7 @@ class _HostFace:
 
     @property
     def C(self):
-        # ★ W2b（2026-09-15）：兜底从 `persistence.handles._host_content()`（宿主聚合层
+        # ★ W2b（2026-09-15）：兜底从 `persistence.handles` 的宿主内容聚合层取件口（宿主聚合层
         # `game.content`）换成**包内聚合门面** `content/facade.py::C`（W2a 落点）——
         # 本文件不再回宿主取件。注入槽 `content` 仍优先（宿主壳 wave 2 的注入协议）。
         # 惰性 import（函数体内）：`content.persistence` 在 EAGER 窗口不可取（见 `_pkgref` docstring）。
