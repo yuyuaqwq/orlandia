@@ -6,12 +6,12 @@
 宿主 `game/content.py` 是**薄聚合层**：`from .core import *`（宿主各级薄壳再导出包内实现）
 + 从包内 `catalog_*` 门面 `setdefault` 落名；包内过去有一批模块（`cmds_social` /
 `persistence/*` / `profession` / `settlement` / `event_templates` / `economy_cmds` …）
-**通过宿主句柄 `C`**（`_HostMod("content")` / `from .handles import C`）读那些名字 ⇒ 包离不开宿主。
+**通过宿主句柄 `C`**（宿主惰性聚合句柄 / `from .handles import C`）读那些名字 ⇒ 包离不开宿主。
 本模块把那只门面**搬进包内**，于是这些读点可以「包 → 包」。
 
 取件时机（**行为的一部分，别改成 import 期**）
 --------------------------------------------
-旧写法 `_HostMod("content")` 在**属性访问时**才 `import game.content`（惰性）。本模块保持同一时机：
+旧写法（宿主惰性聚合句柄）在**属性访问时**才 `import game.content`（惰性）。本模块保持同一时机：
 `C` 是惰性聚合句柄 —— 首次属性访问时才 import 各来源模块并聚合。
 理由见 `content/_pkgref.py` 的 docstring：`content/persistence/__init__.py` 在 EAGER 窗口里读
 `C.MAP_BY_ID`（`schema.py:25`），改成 import 期解析会炸 `partially initialized module`。
@@ -69,6 +69,8 @@
 from __future__ import annotations
 
 import importlib
+
+from saintess_engine.wire import Wire
 
 __all__ = ["C", "bind_host", "resolve_name", "AGGREGATE_MODULES"]
 
@@ -220,6 +222,29 @@ _NAME_ALIAS = {
     "exploration_record_visit": ("content.exploration", "record_visit"),
 }
 
+#: 名字面（引擎 wire 形状）：**声明名 → 取值源**。名单 = `_NAME_SRC`（内容契约，一字不动）
+#: ∪ `_NAME_ALIAS` 的**门面名**（每个别名在这里就是一个声明名，值 = `(模块全名, 属性名)` 元组）。
+#:
+#: ★ 为什么别名不塞进 `Surface(..., aliases=…)`：`aliases` 的口径是「别名 → **已声明的名字**」，
+#:   而本包的别名换的是**属性名**（`exploration_record_visit` → `content.exploration.record_visit`）。
+#:   硬塞就得往名单里补一个 `record_visit` 声明，那会让 `C.record_visit` 从「AttributeError」
+#:   变成「取到值」= 名字面**变宽**（改行为）。故按铁律 4：形状没覆盖的这层原样保留成
+#:   「别名名 → 元组源」，由同一个 `Surface` 承载 —— 不新增第二套机制。
+_NAME_SRC_ALL = dict(_NAME_SRC)
+_NAME_SRC_ALL.update(_NAME_ALIAS)
+
+
+def _name_getter(src, name):
+    """名字面取值器：源 = 模块全名（同名取）或 `(模块全名, 属性名)`（换名取）。"""
+    if isinstance(src, tuple):
+        return getattr(importlib.import_module(src[0]), src[1])
+    return getattr(importlib.import_module(src), name)
+
+
+#: 包内名字聚合面（`Wire.surface` 形状）：`resolve` 取值 / 未知名 → `KeyError`（点名）。
+_WIRE = Wire()
+_SURFACE = _WIRE.surface(_NAME_SRC_ALL, getter=_name_getter)
+
 _NS = None
 
 
@@ -241,21 +266,23 @@ def _namespace() -> dict:
 
 
 class _Aggregate(object):
-    """惰性聚合句柄：`C.<名>` 属性访问时解析（取件时机 = 旧 `_HostMod("content")` 逐字相同）。"""
+    """惰性聚合句柄：`C.<名>` 属性访问时解析（取件时机与旧宿主聚合句柄逐字相同）。
+
+    两层，**顺序就是裁定**：
+      ① 名字面 `_SURFACE`（引擎 wire 形状 `Surface`）：`_NAME_SRC` 覆盖层 + 别名层 —— 先查；
+      ② `AGGREGATE_MODULES` 的 `setdefault` 聚合段（`_namespace()`）—— 后查。
+    ② 是 wire 形状**没有对应物**的业务（多模块先落者胜的对象同一性口径，见模块头 ★），
+    按铁律 4 原样保留，不硬塞。
+    """
 
     __slots__ = ()
 
     def __getattr__(self, attr):
-        # ★ 别名层优先：`_NAME_ALIAS` 是「宿主门面名 ≠ 包内真源名」的唯一一处（换名取），
-        #   比 `_NAME_SRC`（同名取）更具体，故先查。
-        alias = _NAME_ALIAS.get(attr)
-        if alias is not None:
-            return getattr(importlib.import_module(alias[0]), alias[1])
-        # ★ 覆盖层优先：`_NAME_SRC` 每一行都是探针实测的「宿主同一只」，
-        #   聚合面里若有同名异对象（`content.tables` 这类同值不同序的再导出面）不应遮住它。
-        src = _NAME_SRC.get(attr)
-        if src is not None:
-            return getattr(importlib.import_module(src), attr)
+        # ★ 名字面优先：`_NAME_SRC` 每一行都是探针实测的「宿主同一只」，
+        #   聚合面里若有同名异对象（`content.tables` 这类同值不同序的再导出面）不应遮住它；
+        #   别名（换名取）也在同一只 `Surface` 里，同样比聚合面更具体。
+        if _SURFACE.has(attr):
+            return _SURFACE.resolve(attr)
         ns = _namespace()
         if attr in ns:
             return ns[attr]
@@ -265,7 +292,7 @@ class _Aggregate(object):
             "请查 overnight/C_NAME_TO_PACKAGE_MAP.md 并登记缺口，别静默兜底）" % (attr,))
 
     def __dir__(self):
-        return sorted(set(_namespace()) | set(_NAME_SRC) | set(_NAME_ALIAS))
+        return sorted(set(_namespace()) | set(_SURFACE.names()))
 
     def __repr__(self):
         return "<content.facade.C 聚合句柄（%d 名）>" % len(_namespace())
@@ -467,24 +494,25 @@ def bind_host(**inject):
     from . import obs as _obs
     _obs.bind(log=inject.get("log"), tlog=inject.get("tlog"))
 
-    # ---- ③ 组装扇出 payload = 包内自解析面 + 宿主注入（宿主注入优先）----
-    payload = {key: _surface_item(item) for key, item in _PKG_SURFACE.items()}
-    for key, value in inject.items():
-        if key in _HANDLE_KEYS:
-            continue          # 已由 ① 归口（语义是 `handles.bind` 的形参，不是模块/对象面）
-        if value is not None:
-            payload[key] = value
+    # ---- ③ 组装扇出面 = 包内自解析面 + 宿主注入（宿主注入优先）----
+    #   机制 = 引擎 wire 取件面（`Wire.bind` 同名后写者胜、`None` = 没给，与包内既有
+    #   「注入优先 / None 不覆盖」口径逐字一致）。每次调用用**新** `Wire`：本函数可被
+    #   反复调用（引擎/测试各一次），旧实现每次重解析一遍 `_PKG_SURFACE`，新实现逐字同刻。
+    wire = Wire()
+    wire.bind(**{key: _surface_item(item) for key, item in _PKG_SURFACE.items()})
+    wire.bind(**{key: value for key, value in inject.items() if key not in _HANDLE_KEYS})
     # 发奖：宿主没给 → 包内真源（`content/reward.py::grant_reward`）
-    if payload.get("grant_reward") is None:
-        payload["grant_reward"] = _surface_item(("content.reward", "grant_reward"))
-    if "grant_reward_fn" not in payload:
-        payload["grant_reward_fn"] = payload["grant_reward"]
+    if "grant_reward" not in wire.handles():
+        wire.bind(grant_reward=_surface_item(("content.reward", "grant_reward")))
+    if "grant_reward_fn" not in wire.handles():
+        wire.bind(grant_reward_fn=wire.handle("grant_reward"))
 
     # ---- ④ 逐个模块扇出（穷举表；只喂它认的键）----
+    bound = wire.handles()
     for mod_name, keys in _BIND_SLOTS:
         mod = importlib.import_module(mod_name)                        # import 失败 → 上抛
         fn = getattr(mod, "bind_host", None)
         if not callable(fn):
             raise RuntimeError("content.facade：扇出表里的 %s 没有 bind_host（表过期了？）"
                                % mod_name)
-        fn(**{k: payload[k] for k in keys if k in payload})             # 抛错 → 上抛
+        fn(**{k: wire.handle(k) for k in keys if k in bound})           # 抛错 → 上抛

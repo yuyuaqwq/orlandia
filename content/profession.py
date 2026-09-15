@@ -13,7 +13,7 @@
 |---|---|---|
 | `from .. import db`（**函数体内**惰性 import） | 模块级 `db` = **惰性宿主代理** `_HostDB` | 正文里 `db.xxx(...)` **一行未改**；宿主由 `bind_host(db)` 注入，或按 `sys.modules` 找**已加载**的宿主模块（绝不 import，防在包侧另起一份宿主模块树） |
 | `from .. import content as C`（模块级） | 模块级 `C` = **包内逐名惰性读口** `_PkgFace`（★ W2b：旧 `_HostMod("content")` 已删） | 表读口（`current_period`/`roll_fish`/`check_achievements`/`make_pet_egg`/…）逐名解析到**包内真源**（探针实测，见 §`_PkgFace` 类头注）；宿主聚合层**在册时优先**（= 旧 `_HostMod` 取件语义，保 tests 猴补可见）；`bind_host(content=…)` 形参按宿主注入协议保留但**不再落槽** |
-| `from ..core import timed_events as _te`（模块级） | 模块级 `_te` = **包内**惰性句柄 `PkgModule("content.timed_events")`（★ P4′-W1-B） | `get_timed`/`set_timed`/`remove_timed` 三处调用名未改；宿主 `game.core.timed_events` 是**别名壳**（`sys.modules[__name__] = content.timed_events`）⇒ 逐字同一个模块对象 |
+| `from ..core import timed_events as _te`（模块级） | **★ PKG-D 换机制：已删** —— 等待型副业的计时作业队列改走引擎 `saintess_engine.produce`（`Jobs` / `Job`），存储面 = event_state KV（键 `prof_jobs_{qq}`） | 旧 `_te` 句柄与 `get_timed`/`set_timed`/`remove_timed` 三处调用随换机制一并删除（铁律②：不留旧实现）；`content/timed_events.py` 仍是别的族的包内真源 |
 | `from ..log_setup import LOG`（模块级） | 告警改走**包内唯一日志取用口** `content/obs.py::log()`（★ P4′-W1-B；句柄由宿主 `bootstrap.bind_observability()` 在包加载期注入） | fail-closed **告警原文未改**，取用写法由 `LOG.warning` 改 `obs.log().warning`；包内不再出现第二个日志口 |
 | `from ..drop_engine import expand_pool as _expand`（**函数体内**惰性 import，两处） | 模块级 `_expand` / `_expand_pool` = **惰性调用代理** | 每次调用解析宿主 `game.drop_engine.expand_pool`（与真源同：真源也是调用时才 import） |
 | **模块级副作用** `_te.register_timed("prof_wait", …, on_expire=prof_wait_expire_cb)` | **留在宿主薄壳**（`game/services/profession.py`）注册，回调指向本模块的 `prof_wait_expire_cb` | 包被 `package_apply()` import 时宿主 `content`/`timed_events` 未必就绪；注册时机必须与真源一致（宿主模块 import 期）。回调体在本模块 |
@@ -22,16 +22,23 @@
 不变式
 ------
 * 全部函数体逐行照搬（含注释/变量名/日志文本）；只删掉「宿主 import 口」那一行。
-* `prof_wait_key` 的 `group_id` 兼容参数、`prof_wait_compat` 的三种缺键补齐、`settle_fishing`
-  四个分支的文案拼接顺序、`fishing_surprise_fn` 的「图纸池空 → 不额外吃随机」等**全部原样**。
+* ★ PKG-D（2026-09-16）换机制：等待型副业的**队列语义**（`prof_wait_key` / `prof_wait_ev_name` /
+  `prof_wait_compat` / `prof_wait_residual` / `prof_wait_state` / `prof_wait_clear` /
+  `prof_wait_begin` 的挂计时+落状态 / `prof_delayed_push` 的取数 / `prof_settle` 的清状态 /
+  `prof_wait_flow` 的三分支编排）改走引擎 produce 形状；**业务面原样**：`prof_wait_duration`
+  的时长公式、`prof_wait_expire_cb` 的数据保全、`settle_fishing` / `settle_gather` /
+  `settle_mining` 的结算业务、`gather_roll` / `mining_fatigue_*` / 钓鱼彩蛋 —— 一字未改。
+* `settle_fishing` 四个分支的文案拼接顺序、`fishing_surprise_fn` 的「图纸池空 → 不额外吃随机」
+  等**全部原样**。
 * 随机数消费序列与真源完全一致（同 seed 同结果）—— 快照脚本 `overnight/b9_l4_snap.py` 逐字节对拍。
 
 用法::
 
     from content import profession as P
-    P.bind_host(db, content=C, timed=_te, log=LOG, expand_pool=expand_pool)   # 宿主薄壳注入
-    #   ★ P4′-W1-B 后 `timed` / `log` 仍可按协议传（形参在、值被忽略）；`_te` 已是包内句柄
+    P.bind_host(db, content=C, timed=None, log=LOG, expand_pool=expand_pool)   # 宿主薄壳注入
+    #   ★ P4′-W1-B 后 `timed` / `log` 仍可按协议传（形参在、值被忽略）
     #   ★ W2b 后 `content` 同理按协议传（形参在、值被忽略）；包内 `C` 已是**包内门面**
+    #   ★ PKG-D 后等待型副业的计时不再经 `content.timed_events`；`timed` 形参只为注入协议保留
     mats = P.gather_roll(20, 5, "oak_plain")
 """
 from __future__ import annotations
@@ -49,10 +56,13 @@ from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（FISH_EXP/QUALITY —— 原缺口名已建域）
 from .prof_config import price_band  # ★ B15b：宿主函数进包（原 `C.price_band`，宿主已无对象）
-# ★ P4′-W1-B（包侧去 shim）：① 包内惰性模块句柄（旧 `_HostMod` 的包内等价物；零依赖，
-#   取件时机逐字相同 = 属性访问时解析）② 包内唯一日志取用口 `content/obs.py`。
-from ._pkgref import PkgModule as _PkgModule
+# ★ P4′-W1-B（包侧去 shim）：包内唯一日志取用口 `content/obs.py`。
 from . import obs
+# ★ PKG-D 换机制（2026-09-16）：计时作业队列改用引擎 produce 形状（`Jobs` / `Job`；存储面 =
+#   event_state，时钟 = 墙上时钟整数秒）。旧的包内惰性模块句柄 `PkgModule`（在本文件只为
+#   `_te` 存在）随 `_te` 一并删除 —— 已无其它使用点。
+from saintess_engine.clock import wall
+from saintess_engine.produce import Job, Jobs
 # ★ W2b（2026-09-15）：读表口 `C` 改指**包内真源**（逐名惰性解析）。
 #   为什么不是 `from .facade import C`（实测，不是偏好 —— 全量 newly-red 证据）：
 #     `facade.C` 的 `_namespace()` **首次访问即冻结**（`ns.setdefault` 快照），而旧写法
@@ -144,8 +154,9 @@ def bind_host(db=None, content=None, timed=None, log=None, expand_pool=None):
 
     ★ P4′-W1-B：`timed` / `log` 两个形参按宿主薄壳的注入协议**保留**
       （`game/services/profession.py:57` 逐个关键字传参 —— 少了会 TypeError），
-      但包内已不再持有它们的槽位：倒计时引擎改指包内 `content/timed_events.py`（`_te`），
-      日志改走包内唯一取用口 `content/obs.py`。传进来的值被显式忽略。
+      但包内已不再持有它们的槽位：日志改走包内唯一取用口 `content/obs.py`；
+      ★ PKG-D 后等待型副业的计时也不再走 `content/timed_events.py`（改走引擎 produce 形状，
+      见下方「计时作业队列」段）⇒ `timed` 现在纯粹是注入协议的占位形参。传进来的值被显式忽略。
     ★ W2b：`content`（宿主聚合层，真源 `from .. import content as C`）形参同样按注入协议保留，
       但包内 `C` 已改指包内门面 ⇒ **不再落槽、不再被读**（宿主可继续照旧传参）。
     """
@@ -192,11 +203,14 @@ db = _HostDB()
 # ★ W2b：`C` = **包内**聚合门面（顶部 `from .facade import C`），正文 `C.<名>` 一字未改。
 #   旧写法 `C = _HostMod(lambda: _HOST_CONTENT, "content")` 与 `_HOST_CONTENT` 槽、`_HostMod`
 #   类随本次改口一并删除（二者在本文件已无其它使用点）。取件时机不变（属性访问时解析）。
-# ★ P4′-W1-B：倒计时引擎改指**包内实现**。宿主 `game.core.timed_events` 是别名壳
-#   （`sys.modules[__name__] = content.timed_events`）⇒ 与旧 `_te` 解析到的是**同一个模块
-#   对象 / 同一批函数对象**；但包内不再经宿主命名空间取件。`PkgModule` 每次属性访问解析一次，
-#   与旧 `_HostMod` 的取件时机逐字相同。
-_te = _PkgModule("content.timed_events")
+# ★ P4′-W1-B（历史）：倒计时引擎曾改指**包内实现**（`PkgModule("content.timed_events")` 的 `_te`）。
+# ★ PKG-D 换机制（2026-09-16）：等待型副业的计时存储不再走包内 `content.timed_events`（懒计时
+#   引擎 + 历史遗留键），改用引擎 produce 形状的作业队列（见下方「计时作业队列（引擎 produce
+#   形状）」段）。旧 `_te` 句柄（`PkgModule("content.timed_events")`）与三处
+#   `get_timed` / `set_timed` / `remove_timed` 调用随本次换机制一并删除（铁律②：不留旧实现）；
+#   `PkgModule` 在本文件已无其它使用点，import 也一并删除。
+#   `content/timed_events.py` 本身仍是「限时存在/限时有效」形状的包内真源（wild / world_cmds
+#   等族仍在用），只是 profession 族不再是它的消费方。
 
 
 def _expand(*args, **kwargs):
@@ -374,77 +388,108 @@ def gather_cond_roll(cur_map: str):
 
 # ============ 等待型副业状态机（v55：垂钓/采集/挖掘；v127.5 懒计时引擎收编） ============
 # 基准等待（秒）随机范围：fish/gather 45~75，mining 65~115；副业等级每级 -5%（上限 -50%），保底 10 秒
+#
+# ★ PKG-D 换机制（2026-09-16）：队列语义从「timed_events 懒计时引擎 + 历史遗留键兜底」
+#   换成引擎 produce 形状（`saintess_engine.produce.Jobs` / `Job`）：
+#     * 存储面 = event_state KV（`_EventStateStore`），值 = 作业表 `[job.to_dict(), …]` 的 JSON；
+#       存储键 = `prof_jobs_{qq}`（**不带 group_id**：v83 明文「按玩家全局互斥，防跨群双开多刷」，
+#       group_id 只在签名里兼容保留）。键后缀 `_{qq}` 与注销清理白名单（persistence/players.py
+#       `_delete_player_event_state`）同一口径。
+#     * 到点判据 = `Job.done(now)`；时钟 = `int(wall.now())`（**整数秒** —— 形状显式拒绝 float）。
+#     * 「到点未结算不丢」是形状原生保证（到点但未收取的作业留在队列里）⇒ 旧实现的
+#       「expire lazy 清 → prof_wait_expire_cb 平移 → 历史遗留键回读」三件补丁全部删除。
+#   业务面（时长公式 / 结算派发 / 文案 / 顺序）一字未改。
 
-def prof_wait_key(group_id, qq_id):
-    # v83: 去掉 group_id —— 等待型副业按玩家全局互斥，防止跨群双开多刷
-    # v127.5：仅保留作为历史遗留键（v127.5 前的在途等待迁移/清理用），主体存储已走引擎
-    return f"prof_wait_{qq_id}"
+# ---------- 作业表存储面（`Jobs` 的 store：内容侧绑定，引擎只做 get/set/del/in） ----------
+
+class _EventStateStore(object):
+    """`Jobs` 的存储面：包内 event_state KV（扁平 键 → 文本）。
+
+    * 值 = 作业表 `[job.to_dict(), …]` 的 **JSON 文本**：`db.set_event_state` 落 TEXT 列，
+      引擎的 `_load_by_key` 认 str 并自己 `json.loads`（坏数据由形状抛 `ProduceStorageError`
+      —— fail-closed 只有一处实现，本适配层不另造一套）。
+    * 缺失 / 空串 → 视为「没有作业」（旧实现的遗留键也用 "" 表示已清）。
+    * **有意不实现 `keys` / `__iter__`**：这是**扁平全域** KV，枚举会把别人的键当作业表解；
+      形状的 `due()` 在本绑定里不该用 —— 真被调到，引擎会显式抛「store 不支持枚举」（fail-closed），
+      而不是把无关键误读成空作业表。
+    * 取件走本模块既有的惰性宿主替身 `db`（= `content.persistence`），不新增第二个存储出口。
+    """
+
+    __slots__ = ()
+
+    def __getitem__(self, key):
+        raw = db.get_event_state(key)
+        if raw is None or raw == "":
+            raise KeyError(key)
+        return raw                      # str → 交给形状自己 json.loads
+
+    def __setitem__(self, key, value):
+        db.set_event_state(key, json.dumps(value, ensure_ascii=False))
+
+    def __delitem__(self, key):
+        if not self.__contains__(key):
+            raise KeyError(key)
+        db.delete_event_state(key)
+
+    def __contains__(self, key):
+        raw = db.get_event_state(key)
+        return raw is not None and raw != ""
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def __repr__(self):
+        return "<content.profession 作业表存储面：event_state（prof_jobs_*）>"
 
 
-def prof_wait_ev_name(qq_id):
-    # timed_events 引擎的玩家事件存储 key（与 engine 内部 _PLAYER_KEY 同一模板）
-    return f"timed_events_{qq_id}"
+def _job_owner(qq_id):
+    """作业持有者 = 玩家：v83「等待型副业按玩家全局互斥，防跨群双开多刷」⇒ 只认 qq_id。"""
+    return str(qq_id)
 
 
-def prof_wait_compat(ev):
-    """引擎事件 → 兼容 st 形状 {finish,type,…extra}（data 平铺 + finish/type 补齐）"""
-    st = dict(ev.get("data") or {})
-    if not st.get("finish"):
-        st["finish"] = ev.get("expire")
-    if st.get("type") is None:
-        st["type"] = ev.get("type")
-    return st if st.get("finish") else None
+#: 该族的作业队列（每人 1 槽；同类在跑再开 → AlreadyBusy，绝不静默顶掉）
+jobs = Jobs(store=_EventStateStore(), clock=lambda: int(wall.now()), max_slots=1,
+            key=lambda owner: "prof_jobs_%s" % owner)
+
+
+def _st_of(job):
+    """作业 → 结算业务吃的 st 形状 `{finish,type,…extra}`（= 旧 `prof_wait_begin` 的 data 平铺）。"""
+    st = {"finish": int(job.ends_at), "type": job.kind}
+    st.update(job.payload)
+    return st
 
 
 def prof_wait_residual(group_id, qq_id):
-    """非破坏读『到点但未结算』的残留等待数据（惰性结算兜底数据源）。
+    """非破坏读『到点但未结算』的作业（惰性结算兜底数据源，**不清槽**）。
 
-    v127.5：引擎 expire = 完成时间，到点即被 get_timed/_maint_gate refresh 惰性清除；
-    但结算需要事件数据（type/spot/spot_map/finish），清除即丢 → 从这里按引擎存储布局
-    非破坏回读残留（不清除），供 prof_wait_flow/prof_delayed_push/prof_forget 兜底。
-    顺序：timed_events 引擎残留 → v127.5 前历史遗留 prof_wait_{qq}（迁移）。
+    新形状：到点但未收取的作业**留在队列里**（`Jobs` 不自动清理、`due()` 会一直点名它），
+    所以这里只是 `jobs.current()` 的只读投影 —— 旧实现要靠「引擎存储残留 + v127.5 前历史
+    遗留 prof_wait_{qq}」两段回读，两个补丁随本次换机制一并删除。
     """
-    raw = db.get_event_state(prof_wait_ev_name(qq_id))
-    if raw:
-        try:
-            d = json.loads(raw)
-        except (ValueError, TypeError):
-            d = None
-        ev = ((d or {}).get("prof_wait")) if isinstance(d, dict) else None
-        if isinstance(ev, dict):
-            st = prof_wait_compat(ev)
-            if st:
-                return st
-    # v127.5 前历史遗留键（旧格式 {finish,type,…extra}）——迁移兜底
-    raw = db.get_event_state(prof_wait_key(group_id, qq_id))
-    if not raw:
+    job = jobs.current(_job_owner(qq_id))
+    if job is None or not job.done(int(wall.now())):
         return None
-    try:
-        st = json.loads(raw)
-    except (ValueError, TypeError):
-        return None
-    if isinstance(st, dict) and st.get("finish"):
-        return st
-    return None
+    return _st_of(job)
 
 
 def prof_wait_state(group_id, qq_id):
-    """读取进行中的等待型副业状态(无/损坏返回 None)。v127.5 改走 timed_events 引擎。
+    """读取**进行中**的等待型副业状态（无/到点 → None）。
 
-    未过期 → 兼容 st 形状 {finish,type,…extra}（data 平铺 + finish=expire）；
-    已到点/无 → None（引擎 lazy 清除，与惰性语义一致——到点即视为不在等待中）。
-    注意：调用方如需结算『到点但未结算』的数据，用 prof_wait_residual。
+    口径与旧实现逐字一致：到点即视为不在等待中（旧 = 引擎 lazy 清除）。
+    调用方如需结算『到点但未结算』的数据，用 prof_wait_residual。
     """
-    raw = _te.get_timed(group_id, qq_id, "prof_wait")
-    if not raw:
+    job = jobs.current(_job_owner(qq_id))
+    if job is None or job.done(int(wall.now())):
         return None
-    return prof_wait_compat(raw)
+    return _st_of(job)
 
 
 def prof_wait_clear(group_id, qq_id):
-    _te.remove_timed(group_id, qq_id, "prof_wait")
-    # 顺手清历史遗留键，防 v127.5 前残留状态串台
-    db.set_event_state(prof_wait_key(group_id, qq_id), "")
+    # 机制：清槽（旧 = remove_timed + 历史遗留键置空；新 = 删作业表键，`Jobs.clear` 幂等）
+    jobs.clear(_job_owner(qq_id))
 
 
 def prof_wait_duration(prof_type, prof_lv):
@@ -458,10 +503,11 @@ def prof_wait_duration(prof_type, prof_lv):
 
 def prof_wait_begin(group_id, qq_id, prof_type, extra=None, *,
                     delayed_push=None, duration=None):
-    """开始一轮等待型副业：挂 timed_events 引擎倒计时 + 尽力而为的延迟推送(失败由惰性结算兜底)。
+    """开始一轮等待型副业：开一条计时作业 + 尽力而为的延迟推送(失败由惰性结算兜底)。
 
-    v127.5：set_timed(key="prof_wait", type_key="prof_wait", duration_sec=wait)
-    → 引擎 expire = 真实完成时间；data 平铺 {finish,type,…extra} 供结算取用。
+    机制（引擎 produce 形状）：`jobs.begin(持有者, Job(kind=prof_type, ends_at=now+wait,
+    payload=extra))` —— `started_at` 由形状回填为当前时刻；槽已满/同类在跑 → `AlreadyBusy`
+    （**不静默顶掉**，fail-closed）。
 
     命令层能力注入（§2.4）：delayed_push=命令层 async 推送壳（收 group_id/qq_id/st/wait），
     由命令层内部 create_task(self._prof_delayed_push(...))；缺省 None = 不推送
@@ -474,15 +520,10 @@ def prof_wait_begin(group_id, qq_id, prof_type, extra=None, *,
         wait = duration(prof_type, prof_lv)
     else:
         wait = prof_wait_duration(prof_type, prof_lv)
-    finish = int(time.time()) + wait
-    data = {"finish": finish, "type": prof_type}
-    if extra:
-        data.update(extra)
-    _te.set_timed(group_id, qq_id, key="prof_wait", type_key="prof_wait",
-                  data=data, duration_sec=wait)
-    # 历史遗留键清空：新轮已挂引擎，防止 v127.5 前残留/测试残留后续被 residual 误读
-    db.set_event_state(prof_wait_key(group_id, qq_id), "")
-    st = dict(data)  # 兼容形状（延迟推送/结算用）
+    now = int(wall.now())
+    job = jobs.begin(_job_owner(qq_id), Job(kind=prof_type, started_at=now,
+                                            ends_at=now + wait, payload=extra))
+    st = _st_of(job)  # 兼容形状（延迟推送/结算用）
     try:
         asyncio.get_running_loop()
         if delayed_push is not None:
@@ -495,14 +536,16 @@ def prof_wait_begin(group_id, qq_id, prof_type, extra=None, *,
 async def prof_delayed_push(group_id, qq_id, st, wait, *, settle=None, send=None):
     """延迟结算并主动推送结果(尽力而为；进程重启/推送失败由惰性结算兜底)。
 
-    v127.5：到点后引擎已 lazy 清除事件，结算数据从 prof_wait_residual（引擎存储残留）取。
+    机制（引擎 produce 形状）：到点后作业仍在队列里（到点未收取不自动消失）→ 直接读
+    `jobs.current()` 拿原始载荷，不再走「引擎残留 + 历史遗留键」两段回读。
     settle：结算注入（收 group_id/qq_id/st → 文本）；send：推送注入（收 text，命令层
     event.send(MessageChain([Plain(text)])) 壳）——缺省 None 不推送（service 不 import
     commands._platform，纯 I/O 留命令层，行为与原 economy._prof_delayed_push 等价）。
     """
     try:
         await asyncio.sleep(wait)
-        cur = prof_wait_state(group_id, qq_id) or prof_wait_residual(group_id, qq_id)
+        job = jobs.current(_job_owner(qq_id))
+        cur = _st_of(job) if job is not None else None
         if not cur or cur.get("finish") != st.get("finish"):
             return  # 已被惰性结算/开新轮
         text = ""
@@ -520,6 +563,8 @@ def prof_settle(group_id, qq_id, st, *,
                 clear=None):
     """结算等待型副业(入包/经验/每日任务)，返回结果文本；先清状态防双结算
 
+    机制（引擎 produce 形状）：清状态 = 清作业槽（`prof_wait_clear` → `Jobs.clear`；
+    原 remove_timed + 历史遗留键置空随本次换机制删除）；命令层 `clear` 注入字形原样保留。
     rule_fire：命令层 v97.5 行为彩蛋（rule_engine.fire 封装）注入，收
     (trigger, group_id, qq_id, player, cur_map, evt) → 文本；缺省 None 不触发彩蛋
     （原 self._rule_fire 恒由命令层提供；service 缺省 = 不触发，无副作用）。
@@ -554,28 +599,29 @@ def prof_wait_flow(group_id, qq_id, prof_type, extra=None, begin_text="", *,
     """等待型副业统一流程：进行中→提示剩余；到期→先结算再开新一轮；无→开新一轮。
     返回 (回复文本, 是否开启新一轮)。
 
-    v127.5 惰性结算兜底：引擎 expire=完成时间，到点事件已被 get_timed/_maint_gate
-    refresh lazy 清除，旧轮结算数据只剩引擎存储残留可取 → 先 prof_wait_residual
-    非破坏读一次再走 prof_wait_state，防『到点但未结算』被吞（奖励丢失）。
+    机制（引擎 produce 形状，三分支编排）：`jobs.current()` 把「进行中」与「到点未收取」
+    一并给出（形状保证到点不清槽）→ `Job.done(now)` 分叉出「还在…」提示 → 否则
+    `jobs.settle()` 收取（到点 → 返回并清槽；未到点 → None 且原样不动），把原始载荷接回
+    原来的结算业务。旧实现的「先 prof_wait_residual 非破坏回读一次再走 prof_wait_state」
+    兜底（防『到点但未结算』被 lazy 清除吞奖）由形状原生保证 ⇒ 两个补丁读取器一并删除。
 
     settle/begin：命令层结算/开轮注入（收 group_id/qq_id/…）；缺省 None 时回退
     本模块纯实现（prof_settle/prof_wait_begin，等价 economy 原自调用）。
     """
     _settle = settle or (lambda g, q, s: prof_settle(g, q, s))
     _begin = begin or (lambda g, q, pt, ex: prof_wait_begin(g, q, pt, ex))
-    leftover = prof_wait_residual(group_id, qq_id)
-    st = prof_wait_state(group_id, qq_id)
-    now = int(time.time())
-    if st and st["finish"] > now:
-        left = st["finish"] - now
-        tname = _cl.PROF_WAIT_BASE.get(st["type"], (0, 0, "副业"))[2]
+    cur = jobs.current(_job_owner(qq_id))
+    now = int(wall.now())
+    if cur is not None and not cur.done(now):
+        left = cur.ends_at - now
+        tname = _cl.PROF_WAIT_BASE.get(cur.kind, (0, 0, "副业"))[2]
         return f"⏳ 你还在{tname}呢，再有 {left} 秒就完成啦～(完成会自动入包)", False
     settle_text = None
-    if st:
-        settle_text = _settle(group_id, qq_id, st)
-    elif leftover and int(leftover.get("finish", 0)) <= now:
-        # 到点但引擎已惰性清 → 残留数据结算（防吞旧轮产出）
-        settle_text = _settle(group_id, qq_id, leftover)
+    if cur is not None:
+        # 到点但未收取 → 收取（返回并清槽，防吞旧轮产出）
+        done = jobs.settle(_job_owner(qq_id))
+        if done is not None:
+            settle_text = _settle(group_id, qq_id, _st_of(done))
     wait = _begin(group_id, qq_id, prof_type, extra)
     head = f"{settle_text}\n" if settle_text else ""
     return f"{head}{begin_text}{wait} 秒后完成，自动入包～", True

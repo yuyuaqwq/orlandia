@@ -18,6 +18,7 @@
 | `from ..store.social import guild_get_member / guild_set_role / guild_spend_contribute`（不在 `db` 门面上） | `_store_social()`（注入优先 → ★ REPOINT-PKG 起兜底**包内直取** `content/persistence/social.py`） | 这三个原语在宿主 `game/store/social.py`（= `from content.persistence.social import *` 的委托薄壳 ⇒ 同一批函数对象）；`game/db.py` 聚合面没导出 |
 | `from .. import content as C` + `C.GUILD_CONFIG` | `_cfg()`（`bind_host(config=…)` 注入优先 → ★ W4 兜底改**包内门面** `content/catalog_b143.py:GUILD_CONFIG`） | 数值配置仍由宿主薄壳注入（L7 配置面）；原兜底读宿主 `game.data.guild.GUILD_CONFIG` 已切门面（门禁逐键逐值相等）⇒ `game/data` 删后本模块仍可活 |
 | `from ..data import guild as _G` + `_G.GUILD_ROLES / GUILD_SHOP_ITEMS / GUILD_SKILLS` | 读包内 `content/data/guild.json`（`guild_roles()` / `guild_shop_items()` / `guild_skills()`） | 域真源 = `game/data/guild.py`，单向导出器 `scripts/export_domains/b9_social.py:derive_guild` |
+| 真源手写「公会任务进度跨天归零」（读 task_date，不等于今天就当 0；面板与击杀推进**两处各写一遍**） | `_task_window(gid, qq_id)` = 引擎 `saintess_engine.membership.Contribution`（`window="day"`，`period_key=_today`） | ★ PKG-G：**按日窗口累计**的换桶语义归引擎 —— 跨天自然读不到旧桶，不用再手写 if；账本 = 内容侧给的 MutableMapping |
 
 ⚠️ 读表坑：`guild.json` 的 `shop_items` 键是**字符串化整数**（JSON 只有字符串键，真源是 int 1..6）→
 `guild_shop_items()` 读时**还原 int**。不还原 = `get(编号)` 恒 None = 「公会商店 1」全部报
@@ -49,6 +50,9 @@ import os
 
 # ★ W4（2026-09-14）：`C.GUILD_CONFIG` 兜底 → 包内门面（真源 `game/data/guild.py:3`）
 from . import catalog_b143 as _cat_b143
+
+# ★ PKG-G：贡献账本形状（引擎 `membership.Contribution`）——按日窗口累计 / 跨窗口换桶
+from saintess_engine.membership import Contribution
 
 # ============================================================
 # ① 宿主替身口（存储层 / 公会原语 / 数值配置）
@@ -193,6 +197,19 @@ def _today():
     return datetime.date.today().isoformat()
 
 
+def _task_window(gid, qq_id) -> Contribution:
+    """公会任务进度的账本（引擎 `membership.Contribution`）——按**日窗口**累计。
+
+    真源手写「跨天归零」（读 `task_date`，不等于今天就当 0），面板与击杀推进**两处各写一遍**；
+    引擎的窗口语义把「换桶」交给 `period_key()`（= 今天）——跨天自然读不到旧桶，
+    不用再写 if（`Contribution` 的窗口语义，见引擎 `membership/contribution.py`）。
+    账本 = 内容侧给的 MutableMapping：此处由存档行（`task_date` / `task_progress`）投影而来；
+    `task_date` 不是今天 → 今天的桶不存在 → 读到 0（与旧「归零」同义）。
+    """
+    tdate, tprog = db.guild_get_task(gid, qq_id)
+    return Contribution({"day": {str(tdate): {str(qq_id): tprog}}}, _today)
+
+
 def _is_leader(g, qq_id):
     return str(g.get("leader")) == str(qq_id)
 
@@ -282,11 +299,10 @@ def guild_task_view(group_id, qq_id, g):
     """公会任务面板（击杀型，跨天重置）：返回 (ok, lines, err)。
 
     击杀自动推进由 combat 侧调 guild_kill_progress；此处仅读当前进度。
+    跨天重置 = `_task_window`（引擎 `Contribution` 的日窗口换桶），不再手写日期比较。
     """
     need = _cfg()["kill_task"]
-    tdate, tprog = db.guild_get_task(g["gid"], qq_id)
-    if tdate != _today():
-        tdate, tprog = _today(), 0
+    tprog = _task_window(g["gid"], qq_id).of(qq_id, window="day")
     if tprog >= need:
         return False, None, "今天的公会任务已完成！明天再来～"
     return True, [
@@ -402,11 +418,10 @@ def guild_kill_progress(group_id, qq_id, g, lines=None):
     无公会成员资格（g=None）返回 ([], False)。v43：跨天重置而非跳过。
     """
     cfg = _cfg()
-    tdate, tprog = db.guild_get_task(g["gid"], qq_id)
-    if tdate != _today():
-        tprog = 0  # 新的一天/新成员：重置进度
+    _win = _task_window(g["gid"], qq_id)
+    tprog = _win.of(qq_id, window="day")     # 跨天：今天的桶为空 → 0（换桶归引擎）
     if tprog < cfg["kill_task"]:
-        tprog += 1
+        tprog = _win.add(qq_id, 1, window="day")
         db.guild_set_task(g["gid"], qq_id, _today(), tprog)
         if tprog >= cfg["kill_task"]:
             db.guild_add_exp(g["gid"], cfg["task_exp"], member_qq=qq_id, contribute=cfg["task_contribute"])

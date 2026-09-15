@@ -8,22 +8,42 @@
 「命令注册 + 从 DB 取玩家 + 调包 + 渲染消息」。包**不 import 宿主**（方向铁律：内容 → 引擎；
 引擎/包侧零宿主依赖），改由宿主壳在 `bind_host(...)` 里把需要的宿主面**注入**进来：
 
-    content/economy_host.py   本模块：注入登记 + 惰性引用 `_HostRef` + 取件器 `_h()`
+    content/economy_host.py   本模块：注入登记（引擎 wire 形状）+ 惰性引用 `_HostRef` + 取件器 `_h()`
     content/economy_cmds.py   economy 实现（模块级常量/渲染器 + `EconomyImpl` 混合类）
     content/shop.py           交易区实现（原 `game/services/shop.py` 正文）
 
 ⚠️ 顺序铁律：`bind_host()` 必须在 `import content.economy_cmds` / `import content.shop`
    **之前**调用 —— 两者模块级代码就要读宿主面（`C.CRAFT_RECIPES`、`_shop_svc._MAT_FACILITY`、
-   `C.SHOP_EQUIP` 等），惰性引用在 import 期即被求值。未绑定 → `RuntimeError`（fail-closed，
+   `C.SHOP_EQUIP` 等），惰性引用在 import 期即被求值。未绑定 → `WireMissing`（fail-closed，
    不静默给空表：空表会让商店卖空、渲染缺行，比报错难查得多）。
 
 ⚠️ 注入的是**宿主模块对象本身**（同一模块树，不是第二份副本）—— 数据 / 数值 / 文案真源仍唯一，
    包内因此**不产生任何第二份表**（域导出物与本注入面并存时以域为编辑器口径，见 B9-L1 报告
    「未做与缺口」）。
-"""
 
-_HOST = {}
-_BOUND_ORDER = []
+取件机制（换装说明）
+====================
+句柄**存放与取件**走引擎 wire 形状（`saintess_engine.wire.Wire`）：
+    `_WIRE.bind(**fn)` 写入 · `_WIRE.handle(name)` 取件（缺 → `WireMissing` 点名）·
+    `_WIRE.handles()` 只读活视图。
+**本模块保留的业务**（wire 形状没有对应物，按铁律 4 原样保留）：
+    `bind_host` 的**首绑优先**语义 + `_CONFLICTS` 异对象登记（双模块树诊断，见 `bind_host` 文档）。
+    `Wire.bind` 是「同名后写者胜」，与本模块的首绑优先**不等价** ⇒ 不可直接顶替，
+    故本模块自己判「是否首绑」，只把**判定通过的**那批交给 `_WIRE.bind`。
+    ★ 由此带来的唯一口径归一：`None` 值 = **没给**（`Wire.bind` 契约，与 `handles.bind` /
+    `obs.bind` 同口径）—— 旧实现在这里会把 `None` 存进表；生产路径不会注入 `None`
+    （扇出只喂 `_PKG_SURFACE` 已解析的非空对象 + 宿主注入的非空值），故不可达。
+"""
+from __future__ import annotations
+
+from saintess_engine.wire import Wire
+
+__all__ = ["bind_host", "conflicts", "bound", "_h", "_HostRef"]
+
+#: 宿主面句柄（引擎 wire 形状：`bind_host()` 写；取不到 → `WireMissing` 点名）
+_WIRE = Wire()
+
+#: 首绑被忽略的异对象绑定（双模块树诊断用）
 _CONFLICTS = []
 
 
@@ -42,12 +62,8 @@ class _HostRef:
 
     def _value(self):
         key = object.__getattribute__(self, "_key")
-        try:
-            return _HOST[key]
-        except KeyError:
-            raise RuntimeError(
-                "宿主面 %r 未注入：宿主壳需先调 bind_host()（见 content/economy_host.py 模块头）"
-                % (key,))
+        # wire 取件：未注入 → WireMissing（点名该键；RuntimeError 子类，既有 except 不变）
+        return _WIRE.handle(key)
 
     def __getattr__(self, name):
         return getattr(self._value(), name)
@@ -78,14 +94,17 @@ def bind_host(**kw):
     ——若抛，测试进程里「命令层走 data.plugins 树 + 某处 `from game.x import y`」会当场炸，
     而这不是本线的错。真静默失效（键缺失 / 面是空表）仍由 `_HostRef` / `_h` fail-closed 兜住。
     """
+    seen = _WIRE.handles()
+    accepted = {}
     for key, val in kw.items():
-        if key in _HOST and _HOST[key] is not val:
-            _CONFLICTS.append((key, _HOST[key], val))
+        if key in seen:
+            if seen[key] is not val:
+                _CONFLICTS.append((key, seen[key], val))
             continue
-        _HOST[key] = val
-        if key not in _BOUND_ORDER:
-            _BOUND_ORDER.append(key)
-    return tuple(_BOUND_ORDER)
+        accepted[key] = val
+    if accepted:
+        _WIRE.bind(**accepted)          # `None` = 没给（wire 契约，不落表）
+    return tuple(_WIRE.handles())
 
 
 def conflicts():
@@ -96,14 +115,11 @@ def conflicts():
 def _h(name):
     """取件器：包内正文里「函数体内 `from ..xxx import name`」的等位替代。
 
-    语义与惰性 import 等位（原写法就是函数内 import → 调用时绑定），未注入 → 抛。
+    语义与惰性 import 等位（原写法就是函数内 import → 调用时绑定），未注入 → `WireMissing`（点名）。
     """
-    try:
-        return _HOST[name]
-    except KeyError:
-        raise RuntimeError("宿主面 %r 未注入（包内正文原为 `from .. import %s`）" % (name, name))
+    return _WIRE.handle(name)
 
 
 def bound():
     """当前注入面（自检/测试用：键 → 对象）。"""
-    return {k: _HOST[k] for k in _BOUND_ORDER}
+    return dict(_WIRE.handles())

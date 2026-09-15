@@ -14,6 +14,7 @@
 | 函数体内 `from .. import db` | **删行**（模块级 `db` = 惰性宿主代理） | 正文里 `db.xxx(...)` 一行未改 |
 | 函数体内 `from .. import content as C` | **删行**（模块级 `C` = 宿主聚合层代理） | `C.display` / `C.CLASS_NOVICE` / `C.check_achievements` 一字未改 |
 | 函数体内 `from ..content_rules.panel import player_final_stats` | `final_stats = _panel_stats()` | 同一函数对象（注入优先），正文其余不动 |
+| 真源「队员 list + `members[0]` 当队长」的隐含约定（散在 3 处） | `_roster(members)` = 引擎 `saintess_engine.run.Roster` | ★ PKG-G：**成员集合形状**（保序 / 队长 / 在册过滤）；不造第二个名单，顺序与判据都不变 |
 
 ※ B14-2 L8（2026-09-14）：`C.CLASS_NOVICE` 已切包内读口（`content/tables.py:45`，逐值相等实测 True），
   正文该行取值口改写为本地名 `CLASS_NOVICE`；`C` 仍有残余（`C.display` / `C.check_achievements`）→ 替身保留。
@@ -124,6 +125,38 @@ import re
 # B14-2 L8（2026-09-14）：`C.CLASS_NOVICE`（宿主聚合层）→ 包内读口（`content/tables.py:45`，逐值相等）
 from .tables import CLASS_NOVICE      # noqa: E402
 
+# ★ PKG-G：成员集合形状（引擎 `saintess_engine.run.Roster`）——「谁在里面」只有这一个来源
+from saintess_engine.run import Roster   # noqa: E402
+
+
+def _roster(members) -> Roster:
+    """队伍成员集合形状（引擎 `run.Roster`）：**保序** + **队长 = 首成员**。
+
+    真源把队伍成员当普通 list 用，队长靠 `members[0]` 的隐含约定，散在
+    面板队长标记 / 拉人权限 / 副本成员判定三处各写一遍。引擎已有名单形状 ⇒
+    收口到 `Roster`，包内不再复制这套约定（**不造第二个成员集合**）。
+    顺序 = `db.party_members` 给的顺序（队长自指行第一）——本形状**不重排**。
+
+    `members` 是**调用方给的当前队伍**：`None` / `[]` = 无队（与真源 `if members:` 同义）。
+    """
+    return Roster(members or ())
+
+
+def _state_roster(state) -> Roster:
+    """从战斗态读成员集合（引擎 `run.Roster`）。
+
+    - `members` **键缺失** = 老存档的空名单（真源 `.get("members", [])` 同义）；
+    - `members` **键在但读到 None** = 形状读不到 → **醒目报错**（fail-closed：不静默
+      降级成「空名单」；真源那句 `for m in None` 的 TypeError 同样是响亮失败）。
+    """
+    if "members" not in state:
+        return _roster(())
+    members = state["members"]
+    if members is None:
+        raise ValueError("party：战斗态成员集合读不到（state['members'] 是 None）—— 拒绝静默当空名单")
+    return _roster(members)
+
+
 # ---- 组队（『组队/队伍』）----
 
 
@@ -198,9 +231,10 @@ def party_view_lines(group_id, members, get_player=None, final_stats=None, displ
         final_stats = _panel_stats()
     if display is None:
         display = _C_INDEX.display
-    lines = [f"🤝 【队伍】({len(members)}人)", "━━━━━━━━━━━━"]
+    roster = _roster(members)
+    lines = [f"🤝 【队伍】({len(roster)}人)", "━━━━━━━━━━━━"]
     _order = []
-    for _m in members:
+    for _m in roster.members:
         _p = get_player(group_id, _m)
         _spd = 0
         if _p:
@@ -211,14 +245,14 @@ def party_view_lines(group_id, members, get_player=None, final_stats=None, displ
             ).get("spd", 0) or 0
         _order.append((_spd, str(_m)))
     _spdmap = dict(_order)
-    for i, m in enumerate(members, 1):
+    for i, m in enumerate(roster.members, 1):
         p = get_player(group_id, m)
         cls_str = (
             f" Lv.{p.get('level', '?')} {display('classes', p.get('class_name') or CLASS_NOVICE)}"
             if p else ""
         )
-        pos_str = f" · 💨速{_spdmap.get(str(m), '?')}" if len(members) > 1 else ""
-        lines.append(f"{i}. {p['name'] if p else m}{cls_str}{pos_str}" + ("(队长)" if m == members[0] else ""))
+        pos_str = f" · 💨速{_spdmap.get(str(m), '?')}" if len(roster) > 1 else ""
+        lines.append(f"{i}. {p['name'] if p else m}{cls_str}{pos_str}" + ("(队长)" if m == roster.leader else ""))
     lines.append("💡 组队打怪经验＋10%（野外各自为战，仅经验加成；副本内才并肩作战）！队长『组队 <名字>』可再拉人(上限 4 人)；『退队』离开")
     return lines
 
@@ -233,9 +267,10 @@ def party_join(group_id, qq_id, target_qq, target_name, members, check_achieveme
     """
     if check_achievements is None:
         check_achievements = _C_ACH.check_achievements
-    if members:
+    roster = _roster(members)
+    if roster.members:
         # 已有队伍：仅队长可拉人
-        if str(members[0]) != str(qq_id):
+        if roster.leader != str(qq_id):
             return False, ["你已在队伍中，让队长『组队 <名字>』拉人吧～"], None
         if db.party_add(group_id, qq_id, target_qq):
             db.bump_stats(group_id, qq_id, party_count=1)
@@ -275,11 +310,11 @@ def party_leave_check(group_id, qq_id):
 
 def party_leave_inst_member(group_id, qq_id):
     """退队者是否正挂在副本队伍中（战斗记录存队长名下）→ 退队后需清其战斗锁。"""
-    members = db.party_members(group_id, qq_id)
-    if members and str(members[0]) != str(qq_id):
-        lb = db.get_battle(group_id, members[0])
+    roster = _roster(db.party_members(group_id, qq_id))
+    if roster.members and roster.leader != str(qq_id):
+        lb = db.get_battle(group_id, roster.leader)
         if lb and lb["state"].get("type") == "instance" and not lb["state"].get("retreated") \
-                and str(qq_id) in [str(m) for m in lb["state"].get("members", [])]:
+                and _state_roster(lb["state"]).is_member(qq_id):
             return True
     return False
 

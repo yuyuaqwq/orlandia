@@ -29,6 +29,12 @@
 缺口（报告登记）：`display`（展示名索引，宿主 `game/core/index.py`）包内**无同名域/读口** ⇒ 保留宿主句柄；
   `TitleCtx/CONDITIONS/check_pro_title`（`game/core/title_conds.py`）= 函数，非数据名 ⇒ 保留宿主句柄。
   `db`/`log_setup` 属存档/平台面（留宿主，I2 注入）。
+
+★ PKG-E 换形状（2026-09-16）：③ 容器读写助手的**机制**换成引擎通用形状
+  `saintess_engine.bonus.Bonus`（分域 / 来源标签 / 同 `(domain, src)` **幂等覆盖** /
+  未登记域·非数值·非有限数**当场报错**）：手写全容器字面量与手写域名单已删（不留壳、
+  不设开关、无新旧双路径）；`actor["bonus"]` 仍投影为**引擎读侧编码** `{域: {来源: 值}}`
+  （引擎读侧零改动，§4 判据 4）。逐处说明见 `out/DIFF_NOTES.md`，判据原始输出见 `out/LANDING.md`。
 """
 
 # ============================================================
@@ -97,6 +103,11 @@ from ._pkgref import DB as db, HANDLES
 from . import catalog_items as _ci          # noqa: E402  ITEMS / MATERIALS
 from . import catalog_quests as _cq         # noqa: E402  TITLES / ACHIEVEMENTS
 from . import collection as _col            # noqa: E402  COLLECTION_BOOKS → books()（源列表序）
+
+# ★ PKG-E 换形状：数值修正容器的机制真源 = 引擎通用形状
+#   `saintess_engine.bonus.Bonus`（只此一份；lane env 该形状与引擎仓 HEAD 逐字节相同，
+#   见 `out/LANDING.md`「环境事实」）
+from saintess_engine.bonus import Bonus     # noqa: E402
 
 
 def _visited_maps(group_id, qq_id):
@@ -250,9 +261,37 @@ def _collection_completed_bonus(qq_id: str, player: dict) -> dict:
 
 # ============================================================
 # 统一 bonus 容器助手（v181.M-bonus：panel/cap/cost 分域读写约定）
+#
+# ★ PKG-E 换形状（2026-09-16）：容器机制真源 = 引擎通用形状
+#   `saintess_engine.bonus.Bonus` —— 分域 / 来源标签 / 同 `(domain, src)` **幂等覆盖**
+#   / 未登记域·非法 mode·非数值·非有限数**当场报错**（不静默吞成 0）。原手写全容器
+#   字面量与手写域名单已**删**（不留兼容壳、不设开关、无新旧双路径）。
+#
+#   `actor["bonus"]` 仍是**引擎读侧容器编码** `{域: {来源: 值}}`（读侧一个字节不动，
+#   §4 判据 4）：`battle/effects.py::_cap_of` 读 `["cap"]` · `battle/stats.py` 面板合成读
+#   `["panel"]` · `battle/actions.py::_bonus_cost_of` 读 `["cost"]`（一律 get 兜底）。
+#   故形状与编码之间只有 `_container_dict()` 一次投影：**形状 = 内存机制，
+#   编码 = 引擎读侧契约**（不是两份实现）。
+#
+# ★ 换形状边界（铁律 4，读口保持原样）：`cost` 域的声明**不入形状** ——
+#   它的值是**嵌套声明**（`res{资源: 折扣}` / `when[{mp_pct|mp_flat, judge{…}}]`；
+#   写入点 `content/mech/equip.py::_apply_cost_bonus`，读点引擎 `actions._bonus_cost_of`），
+#   而形状只收**有限数**的 `(来源, 值)` ⇒ `Bonus({"cost": {...}})` 会当场 `TypeError`。
+#   硬塞 = 读不到 cost 声明 / 丢修正 ⇒ `bonus_domain` 的"取分域 dict"一层原样保留。
+#   反证原始输出见 `out/LANDING.md` §4.3。
 # ============================================================
 
-BONUS_DOMAINS = ("panel", "cap", "cost")
+BONUS_DOMAINS = Bonus.DOMAINS          # 域名单真源 = 形状（不再有第二份字面量）
+
+
+def _container_dict(b: Bonus) -> dict:
+    """形状 → `actor["bonus"]` 引擎读侧编码（`{域: {来源: 值}}`，三档域齐全、空域 `{}`）。
+
+    只投影形状登记的 `value`（`mode` 是形状内部的合并语义，引擎读侧不认、不落 actor）；
+    三档域的**键序** = 形状登记序 = 播种入参序（与旧 `dict(panel)` 同序）。
+    """
+    return {domain: {src: spec["value"] for src, spec in specs.items()}
+            for domain, specs in b.to_dict()["domains"].items()}
 
 
 def bonus_seed(actor: dict, panel: dict = None) -> dict:
@@ -261,17 +300,30 @@ def bonus_seed(actor: dict, panel: dict = None) -> dict:
     panel = 外部面板增幅 flat dict（本模块 stat_bonus() 聚合产物）。
     覆盖写：开战装配点每场重算外部增幅 → 整容器重建（cap/cost 由装备装配
     apply_to_actor 随后覆盖写各自分域，先后无冲突）。
+
+    ★ 机制：panel 逐条走形状 `Bonus.add("panel", 来源, 值)` —— 同 `(domain, src)`
+    **幂等覆盖**（= 旧「全量覆盖」语义，**不是累加**），再由 `_container_dict()` 投影成
+    引擎读侧编码（cap/cost 空域随形状一起产出）。值非有限数 / 来源标签为空 →
+    形状**当场报错**（fail-closed，不再照单全收）；实测包内三处真源的 `bonus` 声明
+    （titles 9 条 / achievements 25 条 / 收藏册满套 5 册 = 39 条 · 59 个键）逐条都是数值
+    ⇒ 玩家可见行为零变化（证据 `out/LANDING.md` §4.1）。
     """
-    actor["bonus"] = {
-        "panel": dict(panel or {}),
-        "cap": {},
-        "cost": {},
-    }
+    b = Bonus()
+    for src, value in (panel or {}).items():
+        b.add("panel", src, value)
+    actor["bonus"] = _container_dict(b)
     return actor["bonus"]
 
 
 def bonus_domain(actor: dict, domain: str) -> dict:
-    """读 bonus 分域 dict（无容器/无域 → {}；引擎读源兜底铁律）。"""
+    """读 bonus 分域 dict（无容器/无域 → {}；引擎读源兜底铁律）。
+
+    ★ 换形状：域名单取形状真源 `BONUS_DOMAINS = Bonus.DOMAINS`（只此一份）；
+    **取分域 dict 本身形状无对应口**（形状是"一档域一个合并值"：`resolve` 返回标量，
+    `to_dict()` 只给 `(来源 → 值|{value,mode})`），而本读口要返回 cost 域的**嵌套声明
+    原样**（引擎 `actions._bonus_cost_of` 依赖它）⇒ 这一层的 `get` + 类型兜底
+    原样保留（铁律 4：换不动的原样留着，宁可少换不许改行为）。
+    """
     if domain not in BONUS_DOMAINS:
         return {}
     try:
