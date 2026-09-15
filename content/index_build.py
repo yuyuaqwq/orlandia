@@ -42,10 +42,12 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>/
 
 # 缺口表名（宿主 equipment.py 有、包内 66 域无）
 GAP_TABLES = ("WEAPON_TYPES", "WT_CN", "QUALITY_CN")
@@ -53,18 +55,10 @@ GAP_TABLES = ("WEAPON_TYPES", "WT_CN", "QUALITY_CN")
 GAP_SOURCES: dict = {}
 
 
-def _read_json(sub: str, name: str):
-    """读包内 `content/<sub>/<name>.json`（缺文件 / 坏 JSON → `{}`，不抛 —— 与 `content/tables.py:48` 同款）。
-
-    ⚠️ 2026-09-14 收口修：原实现拼路径漏了 `.json` 后缀 ⇒ 二级解析（`equipment` 域）恒读空、
-    三级宿主兜底一直在替它兜着（`GAP_SOURCES` 表现为 `host:game.data`）—— 本函数是补域键后
-    「包内单跑 17/17」生效的唯一开关，故必须带后缀。
-    """
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % name), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                                        # noqa: BLE001
-        return {}
+# 读表口 = 引擎 records 形状：`content/data/<域>.json` → 只读资料表（缺文件 / 坏 JSON → 空表 + 留痕）
+_R = RecordsSet(_PKG_ROOT, {
+    "equipment": {"sub": "content/data"},
+})
 
 
 def _gap_tables(_host_getter=None, _B143=None, _CI=None, _CC=None) -> dict:
@@ -81,7 +75,7 @@ def _gap_tables(_host_getter=None, _B143=None, _CI=None, _CC=None) -> dict:
                 val, src = getattr(mod, name), "facade:%s" % mod.__name__
                 break
         if val is None:                                      # ② equipment 域
-            dom = _read_json("data", "equipment")
+            dom = _R.equipment.all()
             grp = dom.get("equipment") if isinstance(dom, dict) else None
             ent = (grp or {}).get(name) if isinstance(grp, dict) else None
             if ent:

@@ -28,26 +28,24 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → default，不抛 —— 与 `content/tables.py` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
+# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处（零默认值、零改写）
+_R = RecordsSet(_PKG_ROOT, {
+    "collection_books": {"sub": "content/data"},
+    "items":            {"sub": "content/data"},
+})
 
 
 # ============================================================
 # ① 收藏册表（content/data/collection_books.json）
 # ============================================================
-_BOOK_TABLE = _read_json(os.path.join(_DATA_DIR, "collection_books.json"), {})
+_BOOK_TABLE = _R.collection_books.all()
 
 # 按源列表序（`order`）还原：总览/领取的遍历序 = 源 `COLLECTION_BOOKS` 的列表序。
 _BOOKS = sorted((b for b in (_BOOK_TABLE or {}).values() if isinstance(b, dict)),
@@ -89,7 +87,7 @@ def _items() -> dict:
     """包内 items 域（`content/data/items.json`）—— 惰性加载（900 条，没用到就不读）。"""
     global _ITEMS
     if _ITEMS is None:
-        _ITEMS = _read_json(os.path.join(_DATA_DIR, "items.json"), {}) or {}
+        _ITEMS = _R.items.all()
     return _ITEMS
 
 

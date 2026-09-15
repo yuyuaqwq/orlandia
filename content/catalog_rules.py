@@ -47,31 +47,23 @@ B14 收口要把宿主 `game/**` 里的 55 条 `from ..data… import …` 全�
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_DATA_DIR = os.path.join(_HERE, "data")
-_RULES_DIR = os.path.join(_HERE, "rules")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path: str, default):
-    """读包内 JSON（缺文件 / 坏 JSON / 权限 → default，不抛；与 `content/tables.py` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return default
-
-
-def _read_domain(domain: str, sub: str, default):
-    """读包内 `content/<sub>/<domain>.json`（`sub` = data|rules）。"""
-    return _read_json(os.path.join(_HERE, sub, f"{domain}.json"), default)
+#: 域读表口（引擎 records 形状）；在 `_ORDER_*` 序声明之后建（`order=` 要用它们）
+_R = None
 
 
 def _read_group(domain: str, sub: str, group: str, key: str, default=None):
-    """取某域里一个 **常量组** 里的某个键（域/组/键缺 → default）。"""
-    dom = _read_domain(domain, sub, None)
+    """取某域里一个 **常量组** 里的某个键（域/组/键缺 → default）。
+
+    `sub` 已由 `_R` 的域声明给 —— 读文件/缺表留痕那层机制归形状，本函数只做组内取键。
+    """
+    dom = getattr(_R, domain).all()
     if not isinstance(dom, dict):
         return default
     grp = dom.get(group)
@@ -93,30 +85,6 @@ def _tupled_rows(rows):
     if not isinstance(rows, (list, tuple)):
         return rows
     return tuple(tuple(x) if isinstance(x, list) else x for x in rows)
-
-
-def _ordered(tbl, order, where: str):
-    """按**声明序**排外层键（域 JSON 是字典序，真源是插入序）。
-
-    ⚠️ 序 = 行为：`content/effects/potion_effects` 那类 `for k, v in EFFECT_RULES.items(): … break`
-    的「首个命中者」语义直接吃插入序。域读不到 → `{}` 不抛；域在但键集与声明不符 → `raise`
-    （防「源改了、门面静默改序」）。
-    """
-    if not isinstance(tbl, dict) or not tbl:
-        return {}
-    keys = list(order)
-    if len(set(keys)) != len(keys):
-        raise ValueError(f"catalog_rules：{where} 的序声明有重复键 —— 拒绝静默取首个")
-    have = set(tbl)
-    miss = [k for k in keys if k not in have]
-    extra = [k for k in have if k not in set(keys)]
-    if miss or extra:
-        raise ValueError(
-            "catalog_rules：%s 域与序声明不一致（域缺 %d / 声明缺 %d）—— 请重跑 "
-            "overnight/w2_gen_catalog_rules.py 同步序声明。域缺 %s … 未声明 %s …"
-            % (where, len(miss), len(extra), miss[:5], sorted(extra)[:5]))
-    return {k: tbl[k] for k in keys}
-
 
 
 # ============================================================
@@ -209,13 +177,24 @@ _ORDER_EFFECT_RULES = ['zhan_yi',
  'holy_weaken']
 
 # ============================================================
+# 域读表口（引擎 records 形状）—— 序声明齐了才建（`order=` 用 `_ORDER_EFFECT_RULES`）
+# ============================================================
+_R = RecordsSet(_PKG_ROOT, {
+    "game_config":  {"sub": "content/rules"},
+    "effect_rules": {"sub": "content/rules", "order": _ORDER_EFFECT_RULES},
+    "drop_pools":   {"sub": "content/data"},
+    "panel_rules":  {"sub": "content/rules"},
+    "events":       {"sub": "content/data"},
+})
+
+
+# ============================================================
 # ① 包内域（真域；改数值 = 改这些 JSON）
 # ============================================================
 # rules/effect_rules.json（85 条，与 content/mech/params.py 读的是**同一份文件**）
 # 序 = 真源插入序（`_ORDER_EFFECT_RULES` 由 overnight/w2_gen_catalog_rules.py 从宿主
 # `game/data/battle_rules.py` 的运行时表 dump，非手抄）
-EFFECT_RULES: dict = _ordered(_read_json(os.path.join(_RULES_DIR, "effect_rules.json"), {}),
-                              _ORDER_EFFECT_RULES, "effect_rules")
+EFFECT_RULES: dict = _R.effect_rules.all()
 
 # rules/game_config.json -> battle_rules 组
 BAR_STATE_PREFIX = _read_group("game_config", "rules", "battle_rules", "BAR_STATE_PREFIX")
@@ -233,10 +212,10 @@ FIELD_TIER_MULT: dict = {k: _tupled_rows(v) for k, v in (
     _read_group("game_config", "rules", "stat_templates", "FIELD_TIER_MULT", {}) or {}).items()}
 
 # data/drop_pools.json（596 池；导出物 = 宿主 game/data/drop_pools.py 的 DROP_POOLS）
-DROP_POOLS: dict = _read_domain("drop_pools", "data", {})
+DROP_POOLS: dict = _R.drop_pools.all()
 
 # rules/panel_rules.json -> base_growth 组（+ **linear_stats 还原 tuple**）
-_BASE_GROWTH: dict = _read_domain("panel_rules", "rules", {}).get("base_growth") or {}
+_BASE_GROWTH: dict = _R.panel_rules.all().get("base_growth") or {}
 PLAYER_BASE_GROWTH: dict = dict(_BASE_GROWTH)
 if "linear_stats" in PLAYER_BASE_GROWTH:
     PLAYER_BASE_GROWTH["linear_stats"] = tuple(PLAYER_BASE_GROWTH["linear_stats"] or ())
@@ -244,7 +223,7 @@ if "linear_stats" in PLAYER_BASE_GROWTH:
 # ============================================================
 # ② 派生（由包内 events 域现算；真源 = 宿主 `game/data/events.py` 的两条 sum）
 # ============================================================
-_EVENTS: dict = _read_domain("events", "data", {})
+_EVENTS: dict = _R.events.all()
 
 
 def _weight_sum(source: str) -> int:

@@ -56,43 +56,17 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import Records, RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")
-_RULES_DIR = os.path.join(_HERE, "rules")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → default，不抛）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
-
-
-def _read_domain(domain: str, sub: str, default):
-    """读包内 `content/<sub>/<domain>.json`（`sub` = data|rules）。"""
-    return _read_json(os.path.join(_HERE, sub, f"{domain}.json"), default)
-
-
-# ============================================================
-# ② 域（只读；缺域 → 空表 + 记进 `missing_domains()`，不静默造数）
-# ============================================================
-_ITEMS: dict = _read_domain("items", "data", {})
-_EQUIP_ROSTER_RAW: dict = _read_domain("equip_roster", "data", {})
-_RUNES_RAW: dict = _read_domain("runes", "data", {})
-_AFFIXES_RAW: dict = _read_domain("affixes", "data", {})
-_SETS_RAW: dict = _read_domain("sets", "data", {})
-_PROPS_RAW: dict = _read_domain("props", "data", {})
-_LEGENDARY_RAW: dict = _read_domain("legendary_effects", "data", {})
-_ENHANCE_TABLE_RAW: dict = _read_domain("enhance_table", "data", {})
-_GAME_CONFIG: dict = _read_domain("game_config", "rules", {})
-_CFG_ENHANCE: dict = dict(_GAME_CONFIG.get("enhance") or {})
-_CFG_UPGRADE: dict = dict(_GAME_CONFIG.get("upgrade") or {})
-_CFG_REFINE: dict = dict(_GAME_CONFIG.get("refine") or {})
+# `_R`（域读表口 = 引擎 records 形状）在下面的 `_ORDER_*` 序声明**之后**才建（`order=` 要用它们）。
+_R = None
+#: `runes` 域的**未剥**视图（`RUNE_CRAFT` / `_rune_conflicts` 要读 `craft` / `conflicts`）
+_RUNES_RAW: dict = {}
 
 # __B14B_ORDERS_BEGIN__
 _ORDER_MATERIALS = """
@@ -365,39 +339,44 @@ chain weaken thorns scavenger exp_bless ironwall mana_flow magic_break
 # __B14B_ORDERS_END__
 
 
+# ============================================================
+# ③ 域读表口（引擎 records 形状）+ 两个键型小工具
+# ------------------------------------------------------------
+# 读文件 / 键型还原 / 声明序 + 集合守卫 / 剥导出期注入字段 / 缺表留痕
+# 全部收进 `_R` 的域声明；下面只留形状覆盖不到的两件**键型**变换：
+#   `_int_keys`   —— 嵌套子表（符文条目 `lvl`、`game_config` 的 `ENHANCE_FAIL_DROP`/`UPGRADE_TABLE`）
+#   `_num_sorted` —— int 键按数值升序（域文件是字典序）
+# ============================================================
+_EQUIP_ROSTER_INJECTED = ("series_set", "fixed_affixes")
+_RUNES_INJECTED = ("craft", "conflicts")
+
+_R = RecordsSet(_PKG_ROOT, {
+    # items 的序分两段声明（材料段 + 非材料段）；形状要求一条 `order` 覆盖全域 ⇒ 拼起来
+    "items":             {"sub": "content/data", "order": _ORDER_MATERIALS + _ORDER_ITEMS_REST},
+    "equip_roster":      {"sub": "content/data", "order": _ORDER_EQUIP_ROSTER,
+                          "drop": _EQUIP_ROSTER_INJECTED},
+    "runes":             {"sub": "content/data", "order": _ORDER_RUNES, "drop": _RUNES_INJECTED},
+    "affixes":           {"sub": "content/data", "order": _ORDER_AFFIXES},
+    "sets":              {"sub": "content/data", "order": _ORDER_SETS},
+    "props":             {"sub": "content/data", "order": _ORDER_PROPS, "drop": ("mounts",)},
+    "legendary_effects": {"sub": "content/data", "order": _ORDER_LEGENDARY_EFFECTS},
+    "enhance_table":     {"sub": "content/data", "key_type": int},
+    "game_config":       {"sub": "content/rules"},
+})
+
+# 未剥视图：`RUNE_CRAFT` / `_rune_conflicts` 要读条目里的 `craft` / `conflicts`
+_RUNES_RAW = Records(_PKG_ROOT, "runes", sub="content/data").all()
+
+_GAME_CONFIG: dict = _R.game_config.all()
+_CFG_ENHANCE: dict = dict(_GAME_CONFIG.get("enhance") or {})
+_CFG_UPGRADE: dict = dict(_GAME_CONFIG.get("upgrade") or {})
+_CFG_REFINE: dict = dict(_GAME_CONFIG.get("refine") or {})
+
+
 
 # ============================================================
-# ③ 小工具（建索引 / 还原键型 / 剥导出期注入字段）
+# ③b 两个键型小工具（形状覆盖不到的嵌套/数值序变换）
 # ============================================================
-def _missing(table) -> bool:
-    return not isinstance(table, dict) or not table
-
-
-def _ordered(dom, order, where: str, partial: bool = False) -> dict:
-    """按**声明序**建表（域是字典序，真源是插入序）。
-
-    域读不到（缺文件/坏 JSON/空表）→ 返回 `{}`，**不抛**（与 `_read_json` 同口径；
-    空表会在门禁上以「不等」现形，不会静默通过），并把域记进 `missing_domains()`。
-    域在、但键集与声明不一致 → `raise`（防「加内容忘了改序声明」= 静默漏条目/改序）。
-    `partial=True`：本条声明只覆盖域的**一段**（`ITEMS` = 材料段 + 非材料段两条声明）——
-    仍查「声明里的键域里得有 + 声明内不重复」，只是不要求覆盖全域。
-    """
-    if _missing(dom):
-        return {}
-    keys = list(order)
-    if len(set(keys)) != len(keys):
-        raise ValueError(f"catalog_items：{where} 的序声明有重复键 —— 拒绝静默取首个")
-    have = set(dom)
-    miss = [k for k in keys if k not in have]
-    extra = [] if partial else [k for k in dom if k not in set(keys)]
-    if miss or extra:
-        raise ValueError(
-            "catalog_items：%s 域与序声明不一致（域缺 %d / 声明缺 %d）—— 请重跑 "
-            "overnight/_b14b_gen_orders.py 同步序声明。域缺 %s … 未声明 %s …"
-            % (where, len(miss), len(extra), miss[:5], sorted(extra)[:5]))
-    return {k: dom[k] for k in keys}
-
-
 def _int_keys(tbl) -> dict:
     """字符串键 → int 键（非整数键**原样保留**，不静默丢）。"""
     out: dict = {}
@@ -417,23 +396,16 @@ def _num_sorted(tbl) -> dict:
     return {**{k: ints[k] for k in sorted(ints)}, **rest}
 
 
-def _strip(entry, dropped) -> dict:
-    """剥掉导出期注入字段（**保持其余字段顺序**，与真源逐位一致）。"""
-    if not isinstance(entry, dict):
-        return entry
-    return {k: v for k, v in entry.items() if k not in dropped}
-
-
 def missing_domains() -> list:
     """本模块要用的域里，哪几张读不到（缺文件 / 坏 JSON / 空表）。"""
     out = []
-    for name, sub, tbl in (("items", "data", _ITEMS), ("equip_roster", "data", _EQUIP_ROSTER_RAW),
-                           ("runes", "data", _RUNES_RAW), ("affixes", "data", _AFFIXES_RAW),
-                           ("sets", "data", _SETS_RAW), ("props", "data", _PROPS_RAW),
-                           ("legendary_effects", "data", _LEGENDARY_RAW),
-                           ("enhance_table", "data", _ENHANCE_TABLE_RAW),
-                           ("game_config", "rules", _GAME_CONFIG)):
-        if _missing(tbl):
+    for name, sub in (("items", "data"), ("equip_roster", "data"),
+                      ("runes", "data"), ("affixes", "data"),
+                      ("sets", "data"), ("props", "data"),
+                      ("legendary_effects", "data"),
+                      ("enhance_table", "data"),
+                      ("game_config", "rules")):
+        if getattr(_R, name).missing:
             out.append(f"{sub}/{name}")
     return out
 
@@ -447,18 +419,8 @@ def missing_domains() -> list:
 # 不靠前缀猜（`i_stone_*` / `item_*` 7 个不是 `mat_` 开头）—— 由 `_ORDER_MATERIALS` /
 # `_ORDER_ITEMS_REST` 两段声明给出（生成自真源插入序，带集合守卫）。
 # ============================================================
-_MATERIALS_SEG: dict = _ordered(_ITEMS, _ORDER_MATERIALS, "items（材料段）", partial=True)
-_ITEMS_REST_SEG: dict = _ordered(_ITEMS, _ORDER_ITEMS_REST, "items（非材料段）", partial=True)
-if set(_MATERIALS_SEG) | set(_ITEMS_REST_SEG) != set(_ITEMS) and _ITEMS:
-    raise ValueError(
-        "catalog_items：items 域有 %d 条既不在材料段声明也不在非材料段声明里 —— "
-        "请重跑 overnight/_b14b_gen_orders.py 同步序声明（漏条目 = 静默丢物品）。"
-        % len(set(_ITEMS) - set(_MATERIALS_SEG) - set(_ITEMS_REST_SEG)))
-
-MATERIALS: dict = dict(_MATERIALS_SEG)
-
-ITEMS: dict = dict(MATERIALS)
-ITEMS.update(_ITEMS_REST_SEG)
+MATERIALS: dict = {k: _R.items.all()[k] for k in _ORDER_MATERIALS}   # 已按声明序排好 + 集合守卫
+ITEMS: dict = dict(_R.items.all())
 
 # 名字 → 材料条目（真源 `items.py:3054 {_m["name"]: _m for _m in MATERIALS.values()}`；值序 = MATERIALS 序）
 MATERIALS_BY_NAME: dict = {v["name"]: v for v in MATERIALS.values() if isinstance(v, dict) and v.get("name")}
@@ -472,12 +434,7 @@ MATERIALS_BY_NAME: dict = {v["name"]: v for v in MATERIALS.values() if isinstanc
 # `EQUIP_ROSTER_BY_NAME`（:1048 `setdefault(name, []).append(id)`）= 名字 → [id]（686 键 / 687 id，
 # 重名 1 处「精铁短杖」），由剥好的 `EQUIP_ROSTER` 按值序重建（无需第二份声明）。
 # ============================================================
-_EQUIP_ROSTER_INJECTED = ("series_set", "fixed_affixes")
-
-EQUIP_ROSTER: dict = {
-    rid: _strip(ent, _EQUIP_ROSTER_INJECTED)
-    for rid, ent in _ordered(_EQUIP_ROSTER_RAW, _ORDER_EQUIP_ROSTER, "equip_roster").items()
-}
+EQUIP_ROSTER: dict = _R.equip_roster.all()
 
 EQUIP_ROSTER_BY_NAME: dict = {}
 for _rid, _ent in EQUIP_ROSTER.items():
@@ -494,14 +451,10 @@ for _rid, _ent in EQUIP_ROSTER.items():
 # 折成对称的条目 `conflicts` 字段 → 两张表都由剥出来的值重建（序由真源插入序声明给出）。
 # `RUNE_DROP` / `RUNE_LEVEL_ROMAN` / `RUNE_CRAFT_SHARDS` **无域** → 缺口，不提供。
 # ============================================================
-_RUNES_INJECTED = ("craft", "conflicts")
-
-
 def _runes_build() -> dict:
     out: dict = {}
-    raw = _ordered(_RUNES_RAW, _ORDER_RUNES, "runes")
-    for rid, ent in raw.items():
-        e = _strip(ent, _RUNES_INJECTED)
+    for rid, ent in _R.runes.all().items():
+        e = dict(ent)                                       # 副本（形状的表只读，不得就地改）
         if e.get("lvl") is not None:                        # int 键还原（不做 = 符文数值恒 0）
             e["lvl"] = _int_keys(e["lvl"])
         out[rid] = e
@@ -561,16 +514,13 @@ RUNE_SHARD_KEY: str = _RUNE_SHARD_HITS[0]
 # ============================================================
 # ⑦ 词条 / 套装 / 道具 / 传说特效（域直读，仅还原序）
 # ============================================================
-AFFIXES: dict = _ordered(_AFFIXES_RAW, _ORDER_AFFIXES, "affixes")
-SETS: dict = _ordered(_SETS_RAW, _ORDER_SETS, "sets")
-LEGENDARY_EFFECTS: dict = _ordered(_LEGENDARY_RAW, _ORDER_LEGENDARY_EFFECTS, "legendary_effects")
+AFFIXES: dict = _R.affixes.all()
+SETS: dict = _R.sets.all()
+LEGENDARY_EFFECTS: dict = _R.legendary_effects.all()
 
 # 道具（真源 `game/data/props.py:12 PROPS`）；域条目多一个导出期注入的 `mounts`（← `MOUNT_POOL`
 # 挂点）→ 剥掉（道具本体条目没有它）。
-PROPS: dict = {
-    pid: _strip(ent, ("mounts",))
-    for pid, ent in _ordered(_PROPS_RAW, _ORDER_PROPS, "props").items()
-}
+PROPS: dict = _R.props.all()
 
 
 # ============================================================
@@ -580,7 +530,7 @@ PROPS: dict = {
 # 的 `enhance` / `upgrade` / `refine`（导出器「每个模块级常量都有家」硬闸的产物）。
 # 三张数值键表（`ENHANCE_TABLE` / `UPGRADE_TABLE` / `ENHANCE_FAIL_DROP`）都按数值升序还原键型。
 # ============================================================
-ENHANCE_TABLE: dict = _num_sorted(_int_keys(_ENHANCE_TABLE_RAW))
+ENHANCE_TABLE: dict = _num_sorted(_R.enhance_table.all())
 MAX_ENHANCE = _CFG_ENHANCE.get("MAX_ENHANCE")
 ENHANCE_FAIL_DROP: dict = _num_sorted(_int_keys(_CFG_ENHANCE.get("ENHANCE_FAIL_DROP")))
 ENHANCE_SMITH_MAPS: list = list(_CFG_ENHANCE.get("ENHANCE_SMITH_MAPS") or [])

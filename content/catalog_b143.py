@@ -56,44 +56,27 @@ B14-3_BRIEF §1 列的 46 个缺口名（42 个数据名 + 派生名 `ALL_WILD` 
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_DATA_DIR = os.path.join(_HERE, "data")
-_RULES_DIR = os.path.join(_HERE, "rules")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path: str, default):
-    """读包内 JSON（缺文件 / 坏 JSON → default，不抛；与 `content/tables.py::_read_json` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return default
-
-
-def _read_domain(domain: str, sub: str, default):
-    return _read_json(os.path.join(_HERE, sub, f"{domain}.json"), default)
-
-
-def _read_group(domain: str, sub: str, group: str, default=None):
-    """取某域里**一个常量组**（表组域的成员；缺组 → default）。"""
-    dom = _read_domain(domain, sub, None)
-    if not isinstance(dom, dict):
-        return default
-    grp = dom.get(group)
-    return grp if isinstance(grp, dict) else default
-
-
-def _read_path(domain: str, sub: str, path: str, default=None):
-    """按 `a.b.c` 取域内嵌套键（用于 `shop.honor_shop.ranks` 这种保留行）。"""
-    cur = _read_domain(domain, sub, None)
-    for seg in path.split("."):
-        if not isinstance(cur, dict) or seg not in cur:
-            return default
-        cur = cur[seg]
-    return cur
+# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明。
+# 本文件的 `_int_keys` / `_ordered` 作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后），
+# 形状的 `key_type` / `order` 只作用于域顶层键 ⇒ 按铁律 4 原样保留（见 out/DIFF_NOTES.md §C）。
+_R = RecordsSet(_PKG_ROOT, {
+    "game_config": {"sub": "content/rules"},
+    "equipment":   {"sub": "content/data"},
+    "factions":    {"sub": "content/data"},
+    "enchant":     {"sub": "content/data"},
+    "poi_pools":   {"sub": "content/data"},
+    "chapters":    {"sub": "content/data"},
+    "gems":        {"sub": "content/data"},
+    "guild":       {"sub": "content/data"},
+    "shop":        {"sub": "content/data"},
+})
 
 
 def _missing(table) -> bool:
@@ -141,7 +124,7 @@ def missing_domains() -> list:
     """本模块要用的域里，哪几张读不到（缺文件 / 坏 JSON / 空表）。"""
     out = []
     for name, sub, path in _REQUIRED:
-        if not _read_path(name, sub, path, None):
+        if not getattr(_R, name).get(path):
             out.append(f"{sub}/{name}:{path}")
     return out
 
@@ -188,7 +171,7 @@ _ORDER_HONOR_SHOP = [1, 2, 3, 4, 5, 6]
 # ============================================================
 # ② 42 个名字（域 → 值；含两处类型还原）
 # ============================================================
-_CFG = _read_domain("game_config", "rules", {}) or {}
+_CFG = _R.game_config.all()
 
 
 def _grp(group: str) -> dict:
@@ -214,30 +197,30 @@ FISH_EXP = _ordered((_grp("fishing").get("FISH_EXP") if isinstance(_grp("fishing
 POIS = _ordered((_grp("pois").get("POIS") if isinstance(_grp("pois").get("POIS"), dict) else {}), _ORDER_POIS, "game_config.pois")
 HIDDEN_MONSTERS = _ordered((_grp("hidden_monsters").get("HIDDEN_MONSTERS") if isinstance(_grp("hidden_monsters").get("HIDDEN_MONSTERS"), dict) else {}), _ORDER_HIDDEN_MONSTERS, "game_config.hidden_monsters")
 INVESTIGATE_COLLECT_SAMPLES = _grp("instance_investigation").get("INVESTIGATE_COLLECT_SAMPLES")
-QUALITY = _ordered((_read_group("equipment", "data", "equipment", {}).get("QUALITY") if isinstance(_read_group("equipment", "data", "equipment", {}).get("QUALITY"), dict) else {}), _ORDER_QUALITY, "equipment")
-EQUIP_SLOTS = _ordered((_read_group("equipment", "data", "equipment", {}).get("EQUIP_SLOTS") if isinstance(_read_group("equipment", "data", "equipment", {}).get("EQUIP_SLOTS"), dict) else {}), _ORDER_EQUIP_SLOTS, "equipment")
-WEAPON_FLAVOR = _ordered((_read_group("equipment", "data", "equipment", {}).get("WEAPON_FLAVOR") if isinstance(_read_group("equipment", "data", "equipment", {}).get("WEAPON_FLAVOR"), dict) else {}), _ORDER_WEAPON_FLAVOR, "equipment")
-QUALITY_ORDER = _read_group("equipment", "data", "equipment", {}).get("QUALITY_ORDER")
-FACTIONS = _ordered((_read_group("factions", "data", "factions", {}).get("FACTIONS") if isinstance(_read_group("factions", "data", "factions", {}).get("FACTIONS"), dict) else {}), _ORDER_FACTIONS, "factions")
-FACTION_ORDER = _read_group("factions", "data", "factions", {}).get("FACTION_ORDER")
-AREA_FACTION = _ordered((_read_group("factions", "data", "factions", {}).get("AREA_FACTION") if isinstance(_read_group("factions", "data", "factions", {}).get("AREA_FACTION"), dict) else {}), _ORDER_AREA_FACTION, "factions")
-CHRONICLES = _read_group("factions", "data", "factions", {}).get("CHRONICLES")
-REPUTATION_TIERS = _tupled_rows(_read_group("factions", "data", "factions", {}).get("REPUTATION_TIERS"))
-ENCHANT_RECIPES = _ordered((_read_group("enchant", "data", "enchant", {}).get("ENCHANT_RECIPES") if isinstance(_read_group("enchant", "data", "enchant", {}).get("ENCHANT_RECIPES"), dict) else {}), _ORDER_ENCHANT_RECIPES, "enchant")
-ENCHANT_SLOTS = _ordered((_read_group("enchant", "data", "enchant", {}).get("ENCHANT_SLOTS") if isinstance(_read_group("enchant", "data", "enchant", {}).get("ENCHANT_SLOTS"), dict) else {}), _ORDER_ENCHANT_SLOTS, "enchant")
-ENCHANT_CRIT_CHANCE = _read_group("enchant", "data", "enchant", {}).get("ENCHANT_CRIT_CHANCE")
-WISH_POOL = _read_group("poi_pools", "data", "poi_pools", {}).get("WISH_POOL")
-CAMPFIRE_FOOD_POOL = _read_group("poi_pools", "data", "poi_pools", {}).get("CAMPFIRE_FOOD_POOL")
-HERB_POOL = _read_group("poi_pools", "data", "poi_pools", {}).get("HERB_POOL")
-CHAPTER_PACK = _read_group("chapters", "data", "quest_add_v140", {}).get("CHAPTER_PACK")
-GEM_TIERS = _num_sorted(_ordered(_int_keys((_read_group("gems", "data", "gems", {}).get("GEM_TIERS") if isinstance(_read_group("gems", "data", "gems", {}).get("GEM_TIERS"), dict) else {})), _ORDER_GEM_TIERS, "gems"))
-GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_read_group("gems", "data", "gems", {}).get("GEM_TIER_NAMES") if isinstance(_read_group("gems", "data", "gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _ORDER_GEM_TIER_NAMES, "gems"))
-GEM_SOCKETS = _ordered((_read_group("gems", "data", "gems", {}).get("GEM_SOCKETS") if isinstance(_read_group("gems", "data", "gems", {}).get("GEM_SOCKETS"), dict) else {}), _ORDER_GEM_SOCKETS, "gems")
-GEM_DRILL = _ordered((_read_group("gems", "data", "gems", {}).get("GEM_DRILL") if isinstance(_read_group("gems", "data", "gems", {}).get("GEM_DRILL"), dict) else {}), _ORDER_GEM_DRILL, "gems")
-GEM_LEGENDARY_EFFECTS = _read_group("gems", "data", "gems", {}).get("GEM_LEGENDARY_EFFECTS")
-RUNE_REMOVE_COST = _read_group("gems", "data", "gems", {}).get("RUNE_REMOVE_COST")
-GUILD_CONFIG = _ordered((_read_group("guild", "data", "config", {}) if isinstance(_read_group("guild", "data", "config", {}), dict) else {}), _ORDER_GUILD_CONFIG, "guild")
-HONOR_SHOP = _num_sorted(_ordered(_int_keys((_read_path("shop", "data", "honor_shop.ranks", {}) if isinstance(_read_path("shop", "data", "honor_shop.ranks", {}), dict) else {})), _ORDER_HONOR_SHOP, "shop"))
+QUALITY = _ordered((_R.equipment.get("equipment", {}).get("QUALITY") if isinstance(_R.equipment.get("equipment", {}).get("QUALITY"), dict) else {}), _ORDER_QUALITY, "equipment")
+EQUIP_SLOTS = _ordered((_R.equipment.get("equipment", {}).get("EQUIP_SLOTS") if isinstance(_R.equipment.get("equipment", {}).get("EQUIP_SLOTS"), dict) else {}), _ORDER_EQUIP_SLOTS, "equipment")
+WEAPON_FLAVOR = _ordered((_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR") if isinstance(_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR"), dict) else {}), _ORDER_WEAPON_FLAVOR, "equipment")
+QUALITY_ORDER = _R.equipment.get("equipment", {}).get("QUALITY_ORDER")
+FACTIONS = _ordered((_R.factions.get("factions", {}).get("FACTIONS") if isinstance(_R.factions.get("factions", {}).get("FACTIONS"), dict) else {}), _ORDER_FACTIONS, "factions")
+FACTION_ORDER = _R.factions.get("factions", {}).get("FACTION_ORDER")
+AREA_FACTION = _ordered((_R.factions.get("factions", {}).get("AREA_FACTION") if isinstance(_R.factions.get("factions", {}).get("AREA_FACTION"), dict) else {}), _ORDER_AREA_FACTION, "factions")
+CHRONICLES = _R.factions.get("factions", {}).get("CHRONICLES")
+REPUTATION_TIERS = _tupled_rows(_R.factions.get("factions", {}).get("REPUTATION_TIERS"))
+ENCHANT_RECIPES = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES"), dict) else {}), _ORDER_ENCHANT_RECIPES, "enchant")
+ENCHANT_SLOTS = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS"), dict) else {}), _ORDER_ENCHANT_SLOTS, "enchant")
+ENCHANT_CRIT_CHANCE = _R.enchant.get("enchant", {}).get("ENCHANT_CRIT_CHANCE")
+WISH_POOL = _R.poi_pools.get("poi_pools", {}).get("WISH_POOL")
+CAMPFIRE_FOOD_POOL = _R.poi_pools.get("poi_pools", {}).get("CAMPFIRE_FOOD_POOL")
+HERB_POOL = _R.poi_pools.get("poi_pools", {}).get("HERB_POOL")
+CHAPTER_PACK = _R.chapters.get("quest_add_v140", {}).get("CHAPTER_PACK")
+GEM_TIERS = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _ORDER_GEM_TIERS, "gems"))
+GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _ORDER_GEM_TIER_NAMES, "gems"))
+GEM_SOCKETS = _ordered((_R.gems.get("gems", {}).get("GEM_SOCKETS") if isinstance(_R.gems.get("gems", {}).get("GEM_SOCKETS"), dict) else {}), _ORDER_GEM_SOCKETS, "gems")
+GEM_DRILL = _ordered((_R.gems.get("gems", {}).get("GEM_DRILL") if isinstance(_R.gems.get("gems", {}).get("GEM_DRILL"), dict) else {}), _ORDER_GEM_DRILL, "gems")
+GEM_LEGENDARY_EFFECTS = _R.gems.get("gems", {}).get("GEM_LEGENDARY_EFFECTS")
+RUNE_REMOVE_COST = _R.gems.get("gems", {}).get("RUNE_REMOVE_COST")
+GUILD_CONFIG = _ordered((_R.guild.get("config", {}) if isinstance(_R.guild.get("config", {}), dict) else {}), _ORDER_GUILD_CONFIG, "guild")
+HONOR_SHOP = _num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _ORDER_HONOR_SHOP, "shop"))
 
 
 _REQUIRED = (
@@ -257,11 +240,11 @@ _REQUIRED = (
 #   `WT_CN`/`QUALITY_CN` → `content/index_build.py` 的 `weapon_types`/`quality` 索引表
 #   `WEAPON_DIST`/`ARMOR_FAMILY`/`ARMOR_FAMILY_ALIAS` → `content/stats.py:103-105` 模块级取件
 # =============================================================================
-WT_CN = (_read_group("equipment", "data", "equipment", {}).get("WT_CN") or {})
-QUALITY_CN = (_read_group("equipment", "data", "equipment", {}).get("QUALITY_CN") or {})
-WEAPON_DIST = (_read_group("equipment", "data", "equipment", {}).get("WEAPON_DIST") or {})
-ARMOR_FAMILY = (_read_group("equipment", "data", "equipment", {}).get("ARMOR_FAMILY") or {})
-ARMOR_FAMILY_ALIAS = (_read_group("equipment", "data", "equipment", {}).get("ARMOR_FAMILY_ALIAS") or {})
+WT_CN = (_R.equipment.get("equipment", {}).get("WT_CN") or {})
+QUALITY_CN = (_R.equipment.get("equipment", {}).get("QUALITY_CN") or {})
+WEAPON_DIST = (_R.equipment.get("equipment", {}).get("WEAPON_DIST") or {})
+ARMOR_FAMILY = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY") or {})
+ARMOR_FAMILY_ALIAS = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY_ALIAS") or {})
 
 
 # =============================================================================

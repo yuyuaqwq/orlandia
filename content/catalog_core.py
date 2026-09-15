@@ -54,24 +54,21 @@
 """
 from __future__ import annotations
 
-import json
 import os
+
+from saintess_engine.records import RecordsSet
 
 from . import constants as _K
 from . import skills as _SK
 from . import tables as _T
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_RULES_DIR = os.path.join(_HERE, "rules")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path: str, default):
-    """读包内 JSON（缺文件 / 坏 JSON → default，不抛；与 `content/tables.py::_read_json` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
+# 读表口 = 引擎 records 形状：`content/rules/game_config.json` → 只读资料表（缺表 → 空表 + 留痕）
+_R = RecordsSet(_PKG_ROOT, {
+    "game_config": {"sub": "content/rules"},
+})
 
 
 # ============================================================
@@ -121,8 +118,7 @@ prof_exp_need = _K.prof_exp_need                      # 函数（副业升级经
 # `scripts/export_domains/b9_l7_domains.py:derive_game_config`）→ 组内键名与宿主
 # `game/data/battle_config.py` 顶层常量名一一对应，取值原样（无换算）。
 # ============================================================
-_BATTLE_CONFIG: dict = dict((_read_json(os.path.join(_RULES_DIR, "game_config.json"), {})
-                             or {}).get("battle_config") or {})
+_BATTLE_CONFIG: dict = dict(_R.game_config.all().get("battle_config") or {})
 
 
 def _bc(name: str, default=None):

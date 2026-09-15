@@ -54,26 +54,24 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")
-_RULES_DIR = os.path.join(_HERE, "rules")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → default，不抛）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
-
-
-def _read_domain(domain: str, sub: str, default):
-    """读包内 `content/<sub>/<domain>.json`（`sub` = data|rules）。"""
-    return _read_json(os.path.join(_HERE, sub, f"{domain}.json"), default)
+# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明（本文件的域顶层键无声明序）
+_R = RecordsSet(_PKG_ROOT, {
+    "game_config":   {"sub": "content/rules"},
+    "craft":         {"sub": "content/data"},
+    "alchemy":       {"sub": "content/data"},
+    "cooking":       {"sub": "content/data"},
+    "fishing_spots": {"sub": "content/data"},
+    "fishing_pool":  {"sub": "content/data"},
+    "shop":          {"sub": "content/data"},
+    "pets":          {"sub": "content/data"},
+})
 
 
 def _int_keys(tbl) -> dict:
@@ -263,7 +261,7 @@ def _ordered(raw: dict, block: str, where: str) -> dict:
 # ============================================================
 # ② 配置归口域 `game_config`（rules）—— 一个组 = 一个宿主源模块的常量组
 # ============================================================
-_GAME_CONFIG: dict = _read_domain("game_config", "rules", {}) or {}
+_GAME_CONFIG: dict = _R.game_config.all()
 
 
 def _cfg(group: str) -> dict:
@@ -322,7 +320,7 @@ MOUNT_BY_KEY: dict = {m["key"]: m for m in MOUNT_POOL}
 # ============================================================
 # ③ 副业配方域 `craft` / `alchemy` / `cooking`（data）
 # ============================================================
-_CRAFT: dict = _read_domain("craft", "data", {}) or {}
+_CRAFT: dict = _R.craft.all()
 
 # 配方条目剥掉导出期注入的 `aliases`（= 真源 CRAFT_RECIPE_ALIASES 折进条目）
 _CRAFT_STRIPPED: dict = {
@@ -337,10 +335,10 @@ CRAFT_RECIPE_ALIASES: dict = _ordered(
     _ORDER_CRAFT_RECIPE_ALIASES, "craft 配方别名")
 
 ALCHEMY_RECIPES: dict = _ordered(
-    {k: dict(v) for k, v in (_read_domain("alchemy", "data", {}) or {}).items()},
+    {k: dict(v) for k, v in _R.alchemy.all().items()},
     _ORDER_ALCHEMY_RECIPES, "alchemy 配方")
 COOKING_RECIPES: dict = _ordered(
-    {k: dict(v) for k, v in (_read_domain("cooking", "data", {}) or {}).items()},
+    {k: dict(v) for k, v in _R.cooking.all().items()},
     _ORDER_COOKING_RECIPES, "cooking 配方")
 
 
@@ -348,14 +346,14 @@ COOKING_RECIPES: dict = _ordered(
 # ④ 垂钓域 `fishing_spots` / `fishing_pool`（data）
 # ============================================================
 FISHING_SPOTS: dict = _ordered(
-    {k: dict(v) for k, v in (_read_domain("fishing_spots", "data", {}) or {}).items()},
+    {k: dict(v) for k, v in _R.fishing_spots.all().items()},
     _ORDER_FISHING_SPOTS, "fishing_spots")
 
 # 渔获池 = 源 list 的等价物：域 = {鱼名: 条目 + seq}，按 `seq` 还原成 list 并剥掉 `seq`
 # （源 `FISH_POOL` 是 list、插入序参与 `random.choices` 抽样 → 必须保序；域里已有 `seq`，不需要序声明）
 FISH_POOL: list = [
     {k: v for k, v in ent.items() if k != "seq"}
-    for ent in sorted((_read_domain("fishing_pool", "data", {}) or {}).values(),
+    for ent in sorted(_R.fishing_pool.all().values(),
                       key=lambda x: x["seq"])
 ]
 
@@ -364,7 +362,7 @@ FISH_POOL: list = [
 # ⑤ 商店域 `shop`（data）—— 89 条「六张源表并集」合表，按列拆回各表
 #    ⚠ 合表里五列是**五张源表**，各有各的插入序 → 每列一个序声明
 # ============================================================
-_SHOP: dict = _read_domain("shop", "data", {}) or {}
+_SHOP: dict = _R.shop.all()
 
 SHOP_WEAPONS: dict = _ordered(_pick(_SHOP, "weapons"), _ORDER_SHOP_WEAPONS,
                               "shop.weapons")               # 真源 game/data/shop.py:83
@@ -384,7 +382,7 @@ SUBAREA_KIND: dict = _ordered(_pick(_SHOP, "kind"), _ORDER_SUBAREA_KIND, "shop.k
 # ============================================================
 # ⑥ 宠物域 `pets`（data）—— 一条 = 一个品种，规则行挂在条目 `egg_roll`
 # ============================================================
-_PETS: dict = _read_domain("pets", "data", {}) or {}
+_PETS: dict = _R.pets.all()
 # 品种池：剥掉导出期注入的 `egg_roll`（= 该品种的掷蛋规则行）
 _PET_POOL_BY_KEY: dict = _ordered(
     {k: {kk: vv for kk, vv in ent.items() if kk != "egg_roll"} for k, ent in _PETS.items()},
@@ -405,8 +403,7 @@ REQUIRED_DOMAINS = ("game_config", "craft", "alchemy", "cooking",
 
 def missing_domains() -> list:
     """缺哪张源域（文件不在 / 坏 JSON / 空表）→ 域名清单（空 = 全在）。"""
-    return [d for d in REQUIRED_DOMAINS
-            if not _read_domain(d, "rules" if d == "game_config" else "data", {})]
+    return [d for d in REQUIRED_DOMAINS if getattr(_R, d).missing]
 
 
 # 本模块**不做**的名字（无域可依，禁编数据；详见报告「缺口」表）：

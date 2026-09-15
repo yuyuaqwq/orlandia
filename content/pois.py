@@ -22,10 +22,11 @@
 宿主侧：`game/core/pois.py` 现在只剩「加载包 + 模块别名」薄壳，见那边头注。
 """
 import importlib
-import json
 import os
 import random
 import sys
+
+from saintess_engine.records import RecordsSet
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -81,18 +82,15 @@ def _host_attr(mod: str, attr: str):
 #    导出器 = 游戏仓 `scripts/export_game_package.py:derive_pois`）
 # ============================================================
 _HERE = os.path.dirname(os.path.abspath(__file__))
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
+
+# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处
+_R = RecordsSet(_PKG_ROOT, {
+    "pois": {"sub": "content/data"},
+})
 
 
-def _read_domain(domain: str, sub: str = "data", default=None):
-    """读包内 `content/<sub>/<domain>.json`（缺文件/坏 JSON → default，不抛，与 tables.py 同款）。"""
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                            # noqa: BLE001
-        return {} if default is None else default
-
-
-_POI_ROWS: dict = _read_domain("pois")          # 房间地址 → {map, subarea, pois: [...], source}
+_POI_ROWS: dict = _R.pois.all()                 # 房间地址 → {map, subarea, pois: [...], source}
 
 # 房间地址 → 挂载的 poi id 列表（dungeon 行的自带定义 dict → 只留 id，与宿主装配后同形）
 _MOUNTED: dict = {}

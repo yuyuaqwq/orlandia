@@ -67,19 +67,30 @@ sort_table`，幂等优先），源迭代序（随机取 / 遍历 / 掉落序的
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read(sub: str, domain: str, default):
-    """读包内 `content/<sub>/<domain>.json`（缺文件 / 坏 JSON → default，不抛）。"""
-    try:
-        with open(os.path.join(_HERE, sub, domain + ".json"), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
+# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明
+# （域顶层键的声明序见下方 `_ordered(...)`：那几张表还要按**源迭代序**重排，
+#   而 `order` 只能整域覆盖，NPCS 三表是先按注入字段 `source` 过滤出的子表 —— 见 DIFF_NOTES §C）
+_R = RecordsSet(_PKG_ROOT, {
+    "npcs":           {"sub": "content/data"},
+    "quests":         {"sub": "content/data"},
+    "events":         {"sub": "content/data"},
+    "dialogues":      {"sub": "content/data"},
+    "achievements":   {"sub": "content/data"},
+    "titles":         {"sub": "content/data"},
+    "weekly_quests":  {"sub": "content/data"},
+    "trial_floors":   {"sub": "content/data"},
+    "monsters":       {"sub": "content/data"},
+    "monster_mods":   {"sub": "content/data"},
+    "monster_roster": {"sub": "content/data"},
+    "game_config":    {"sub": "content/rules"},
+})
 
 
 def _drop(ent: dict, *keys) -> dict:
@@ -477,18 +488,18 @@ _ELITE_EQUIP_DROP_ORDER = (
 # =============================================================================
 # ② 域读入（全在包内；缺文件 → {} → 下面 _ordered 立刻 raise，不静默变空表）
 # =============================================================================
-_NPCS_DOM = _read("data", "npcs", {})
-_QUEST_DOM = _read("data", "quests", {})
-_EVENT_DOM = _read("data", "events", {})
-_DLG_DOM = _read("data", "dialogues", {})
-_ACH_DOM = _read("data", "achievements", {})
-_TITLE_DOM = _read("data", "titles", {})
-_WEEKLY_DOM = _read("data", "weekly_quests", {})
-_TRIAL_DOM = _read("data", "trial_floors", {})
-_MODS_DOM = _read("data", "monster_mods", {})
-_MSKILL_DOM = _read("data", "monsters", {})
-_ROSTER_DOM = _read("data", "monster_roster", {})
-_CFG = _read("rules", "game_config", {})
+_NPCS_DOM = _R.npcs.all()
+_QUEST_DOM = _R.quests.all()
+_EVENT_DOM = _R.events.all()
+_DLG_DOM = _R.dialogues.all()
+_ACH_DOM = _R.achievements.all()
+_TITLE_DOM = _R.titles.all()
+_WEEKLY_DOM = _R.weekly_quests.all()
+_TRIAL_DOM = _R.trial_floors.all()
+_MODS_DOM = _R.monster_mods.all()
+_MSKILL_DOM = _R.monsters.all()
+_ROSTER_DOM = _R.monster_roster.all()
+_CFG = _R.game_config.all()
 
 
 # =============================================================================
@@ -580,16 +591,7 @@ REQUIRED_DOMAINS = ("npcs", "quests", "events", "dialogues", "achievements", "ti
 
 def missing_domains() -> list:
     """缺哪张域（文件不在 / 坏 JSON / 空表）—— 「静默变白板」比报错难查。"""
-    out = []
-    for dom, tbl in (("npcs", _NPCS_DOM), ("quests", _QUEST_DOM), ("events", _EVENT_DOM),
-                     ("dialogues", _DLG_DOM), ("achievements", _ACH_DOM),
-                     ("titles", _TITLE_DOM), ("weekly_quests", _WEEKLY_DOM),
-                     ("trial_floors", _TRIAL_DOM), ("monsters", _MSKILL_DOM),
-                     ("monster_mods", _MODS_DOM), ("monster_roster", _ROSTER_DOM),
-                     ("game_config", _CFG)):
-        if not isinstance(tbl, dict) or not tbl:
-            out.append(dom)
-    return out
+    return [dom for dom in REQUIRED_DOMAINS if getattr(_R, dom).missing]
 
 
 __all__ = [

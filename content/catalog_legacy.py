@@ -26,28 +26,21 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(path, default):
-    """读包内 JSON（缺文件 / 坏 JSON / 权限 → default，不抛；与 `content/tables.py` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return default
-
-
-def _read_group(domain, sub, group, default=None):
-    """取某域的**一个常量组**（缺组 → default）。"""
-    dom = _read_json(os.path.join(_HERE, sub, "%s.json" % domain), None)
-    if not isinstance(dom, dict):
-        return default
-    grp = dom.get(group)
-    return grp if isinstance(grp, dict) else default
+# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明。
+# `_ordered` 作用在**派生表 / 合表**上（`_MAPS_DOM` 的 `links`、`content.shop_stock` 再导出、…），
+# 形状的 `order` 覆盖的是域顶层键集 ⇒ 按铁律 4 原样保留（见 out/DIFF_NOTES.md §C）。
+_R = RecordsSet(_PKG_ROOT, {
+    "game_config": {"sub": "content/rules"},
+    "maps":        {"sub": "content/data"},
+    "pois":        {"sub": "content/data"},
+})
 
 
 def _missing(tbl) -> bool:
@@ -94,39 +87,39 @@ from content.tables import resolve_job as resolve_job  # noqa: F401  包内模�
 # ② 包内域读口（content/rules/game_config.json 各组；对拍全等）
 # ============================================================
 # ---- game_config.battle_config（14 名）
-BOSS_ATTACK_MULTS = _read_group("game_config", "rules", "battle_config", {}).get("BOSS_ATTACK_MULTS") or {}
-CONTROL_MECHS = _read_group("game_config", "rules", "battle_config", {}).get("CONTROL_MECHS") or ()
-DOT_ADAPT_DECAY_STEP = _read_group("game_config", "rules", "battle_config", {}).get("DOT_ADAPT_DECAY_STEP")
-DOT_BLEED_DOUBLE_HP_PCT = _read_group("game_config", "rules", "battle_config", {}).get("DOT_BLEED_DOUBLE_HP_PCT")
-DOT_DEFS = _read_group("game_config", "rules", "battle_config", {}).get("DOT_DEFS") or {}
-DOT_RESIST_CAP = _read_group("game_config", "rules", "battle_config", {}).get("DOT_RESIST_CAP")
-MECH_COMBO_STACKS = _read_group("game_config", "rules", "battle_config", {}).get("MECH_COMBO_STACKS") or ()
-MECH_FROZEN_MULT = _read_group("game_config", "rules", "battle_config", {}).get("MECH_FROZEN_MULT") or {}
-MECH_FULL_HP_CRIT = _read_group("game_config", "rules", "battle_config", {}).get("MECH_FULL_HP_CRIT") or ()
-MECH_PROC_GROUPS = _read_group("game_config", "rules", "battle_config", {}).get("MECH_PROC_GROUPS") or {}
-MECH_STACK_BONUS = _read_group("game_config", "rules", "battle_config", {}).get("MECH_STACK_BONUS") or {}
-MECH_STACK_WHITELIST = _read_group("game_config", "rules", "battle_config", {}).get("MECH_STACK_WHITELIST") or ()
-MECH_STAT_PASSIVES = _read_group("game_config", "rules", "battle_config", {}).get("MECH_STAT_PASSIVES") or {}
-SKILL_CC_WHITELIST = _read_group("game_config", "rules", "battle_config", {}).get("SKILL_CC_WHITELIST") or ()
+BOSS_ATTACK_MULTS = _R.game_config.get("battle_config", {}).get("BOSS_ATTACK_MULTS") or {}
+CONTROL_MECHS = _R.game_config.get("battle_config", {}).get("CONTROL_MECHS") or ()
+DOT_ADAPT_DECAY_STEP = _R.game_config.get("battle_config", {}).get("DOT_ADAPT_DECAY_STEP")
+DOT_BLEED_DOUBLE_HP_PCT = _R.game_config.get("battle_config", {}).get("DOT_BLEED_DOUBLE_HP_PCT")
+DOT_DEFS = _R.game_config.get("battle_config", {}).get("DOT_DEFS") or {}
+DOT_RESIST_CAP = _R.game_config.get("battle_config", {}).get("DOT_RESIST_CAP")
+MECH_COMBO_STACKS = _R.game_config.get("battle_config", {}).get("MECH_COMBO_STACKS") or ()
+MECH_FROZEN_MULT = _R.game_config.get("battle_config", {}).get("MECH_FROZEN_MULT") or {}
+MECH_FULL_HP_CRIT = _R.game_config.get("battle_config", {}).get("MECH_FULL_HP_CRIT") or ()
+MECH_PROC_GROUPS = _R.game_config.get("battle_config", {}).get("MECH_PROC_GROUPS") or {}
+MECH_STACK_BONUS = _R.game_config.get("battle_config", {}).get("MECH_STACK_BONUS") or {}
+MECH_STACK_WHITELIST = _R.game_config.get("battle_config", {}).get("MECH_STACK_WHITELIST") or ()
+MECH_STAT_PASSIVES = _R.game_config.get("battle_config", {}).get("MECH_STAT_PASSIVES") or {}
+SKILL_CC_WHITELIST = _R.game_config.get("battle_config", {}).get("SKILL_CC_WHITELIST") or ()
 
 # ---- game_config.gather_pools（3 名）
-GATHER_MAP_POOLS = _read_group("game_config", "rules", "gather_pools", {}).get("GATHER_MAP_POOLS") or {}
-GATHER_COND_POOLS = _read_group("game_config", "rules", "gather_pools", {}).get("GATHER_COND_POOLS") or {}
-MINING_DEEP_POOLS = _read_group("game_config", "rules", "gather_pools", {}).get("MINING_DEEP_POOLS") or {}
+GATHER_MAP_POOLS = _R.game_config.get("gather_pools", {}).get("GATHER_MAP_POOLS") or {}
+GATHER_COND_POOLS = _R.game_config.get("gather_pools", {}).get("GATHER_COND_POOLS") or {}
+MINING_DEEP_POOLS = _R.game_config.get("gather_pools", {}).get("MINING_DEEP_POOLS") or {}
 
 # ---- game_config.prof_config（2 名）
-PRICE_BAND = _read_group("game_config", "rules", "prof_config", {}).get("PRICE_BAND") or {}
-GATHER_MAP_MIN_LV = _read_group("game_config", "rules", "prof_config", {}).get("GATHER_MAP_MIN_LV") or []
+PRICE_BAND = _R.game_config.get("prof_config", {}).get("PRICE_BAND") or {}
+GATHER_MAP_MIN_LV = _R.game_config.get("prof_config", {}).get("GATHER_MAP_MIN_LV") or []
 
 # ---- game_config.item_tag_display（1 名）
-ITEM_TAG_DISPLAY = _read_group("game_config", "rules", "item_tag_display", {}).get("ITEM_TAG_DISPLAY") or {}
+ITEM_TAG_DISPLAY = _R.game_config.get("item_tag_display", {}).get("ITEM_TAG_DISPLAY") or {}
 
 # ---- game_config.mounts（2 名）
-MOUNT_DROP_BOSS = _read_group("game_config", "rules", "mounts", {}).get("MOUNT_DROP_BOSS") or {}
-MOUNT_DROP_ELITE = _read_group("game_config", "rules", "mounts", {}).get("MOUNT_DROP_ELITE") or {}
+MOUNT_DROP_BOSS = _R.game_config.get("mounts", {}).get("MOUNT_DROP_BOSS") or {}
+MOUNT_DROP_ELITE = _R.game_config.get("mounts", {}).get("MOUNT_DROP_ELITE") or {}
 
 # ---- game_config.signin_config（1 名）
-SIGNIN_CONFIG = _read_group("game_config", "rules", "signin_config", {}).get("SIGNIN_CONFIG") or {}
+SIGNIN_CONFIG = _R.game_config.get("signin_config", {}).get("SIGNIN_CONFIG") or {}
 
 # ============================================================
 # ③ 序/类型还原读口（域落盘字典序 → 真源插入序；注入键剥离/反折叠）
@@ -371,7 +364,7 @@ _ORDER_SUBAREA_LINKS_INDEX = ['oak_plain',
  'thunder_mine',
  'whirl_arena',
  'blacktide_opera']
-_MAPS_DOM = _read_json(os.path.join(_HERE, "data", "maps.json"), {}) or {}
+_MAPS_DOM = _R.maps.all()
 _LINKS_BUILT = {_mid: _e["links"] for _mid, _e in _MAPS_DOM.items()
                 if isinstance(_e, dict) and isinstance(_e.get("links"), dict)}
 SUBAREA_LINKS_INDEX = _ordered(_LINKS_BUILT, _ORDER_SUBAREA_LINKS_INDEX,
@@ -836,7 +829,7 @@ _ORDER_SUBAREA_POIS = ['oak_town:oak_town_1',
  'abyss_throne:abyss_throne_2',
  'cloud_sanctum:cloud_sanctum_1',
  'cloud_sanctum:cloud_sanctum_2']
-_POIS_DOM = _read_json(os.path.join(_HERE, "data", "pois.json"), {}) or {}
+_POIS_DOM = _R.pois.all()
 SUBAREA_POIS = _ordered(
     {_k: [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_r.get("pois") or [])]
      for _k, _r in _POIS_DOM.items()},
@@ -871,10 +864,10 @@ def missing_domains() -> list:
     out = []
     for grp in ("battle_config", "gather_pools", "prof_config", "item_tag_display",
                 "mounts", "signin_config"):
-        if not _read_group("game_config", "rules", grp, None):
+        if not _R.game_config.get(grp):
             out.append("rules/game_config.json:%s" % grp)
     for sub, dom in (("data", "maps"), ("data", "pois")):
-        if not _read_json(os.path.join(_HERE, sub, "%s.json" % dom), None):
+        if not getattr(_R, dom).all():
             out.append("%s/%s.json" % (sub, dom))
     return out
 

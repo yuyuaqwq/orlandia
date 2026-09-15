@@ -33,45 +33,42 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")
-_RULES_DIR = os.path.join(_HERE, "rules")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # 见习兜底职业 id（游戏仓 `game/core/constants.py:84 CLASS_NOVICE`；包内 classes 域里就是这把键）
 # 未知/脏 class_name 时面板兜底用它（见 panel.py:player_base_stats 的 v105 P1 兜底）。
 CLASS_NOVICE = "cls_novice"
 
-
-def _read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → default，不抛）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
-
-
-def _read_domain(domain: str, sub: str, default):
-    """读包内 `content/<sub>/<domain>.json`（`sub` = data|rules）。"""
-    return _read_json(os.path.join(_HERE, sub, f"{domain}.json"), default)
+# 读表口 = 引擎 records 形状：读域文件 / 键型还原（`key_type=int`）/ 缺表留痕（`missing`）收成一处
+_R = RecordsSet(_PKG_ROOT, {
+    "classes":       {"sub": "content/data"},
+    "skills":        {"sub": "content/data"},
+    "races":         {"sub": "content/data"},
+    "sets":          {"sub": "content/data"},
+    "enhance_table": {"sub": "content/data", "key_type": int},
+    "panel_rules":   {"sub": "content/rules"},
+    "job_guide":     {"sub": "content/data"},
+    "boss_phases":   {"sub": "content/data"},
+})
 
 
 # ============================================================
 # ① 已进包的域（D1/D2 就在包里，面板与战斗共用）
 # ============================================================
-CLASSES: dict = _read_domain("classes", "data", {})
-SKILLS: dict = _read_domain("skills", "data", {})
+CLASSES: dict = _R.classes.all()
+SKILLS: dict = _R.skills.all()
 
 # ============================================================
 # ② 本批新域（D3 面板批次：职业面板完整版依赖的四族数据）
 # ============================================================
-RACES: dict = _read_domain("races", "data", {})
-SETS: dict = _read_domain("sets", "data", {})
-_ENHANCE_RAW: dict = _read_domain("enhance_table", "data", {})
-_PANEL_RULES: dict = _read_domain("panel_rules", "rules", {})
+RACES: dict = _R.races.all()
+SETS: dict = _R.sets.all()
+_PANEL_RULES: dict = _R.panel_rules.all()
 
 
 def _int_keys(tbl) -> dict:
@@ -86,7 +83,7 @@ def _int_keys(tbl) -> dict:
 
 
 # 强化等级 → {rate, cost, mult}（面板读 [k]["mult"]；原文是 .get(int)）
-ENHANCE_TABLE: dict = _int_keys(_ENHANCE_RAW)
+ENHANCE_TABLE: dict = _R.enhance_table.all()
 # 转职档位 → 成长倍率（原文 .get(tier, 1.0)）
 TIER_GROWTH: dict = _int_keys(_PANEL_RULES.get("tier_growth"))
 # 分支档位 → 属性倍率（通用回退档 + 职业×分支权威表，原文都按 int 档位查）
@@ -117,7 +114,7 @@ PENE_PCT_STATS: tuple = tuple((_PANEL_RULES.get("pene_pct_stats") or {}).get("st
 #      （= 职业展示序）在域里没处存 → 在本模块显式声明 `JOB_ORDER`：多了/少了职业就
 #      `raise`（防「加职业忘了改这里」= 静默漏职业 / 一览顺序漂移）。
 # ============================================================
-_JOB_RAW: dict = _read_domain("job_guide", "data", {})
+_JOB_RAW: dict = _R.job_guide.all()
 
 
 def _job_int_tiers(tbl) -> dict:
@@ -224,11 +221,11 @@ def missing_domains() -> list:
     """缺哪张面板表（文件不在 / 坏 JSON / 空表）。空表**不抛**（沿用包内 `_read_json` 口径），
     但要有地方能点出来 —— 「静默变白板」比报错难查得多。"""
     out = []
-    for dom, sub, tbl in (("classes", "data", CLASSES), ("skills", "data", SKILLS),
-                          ("races", "data", RACES), ("sets", "data", SETS),
-                          ("enhance_table", "data", _ENHANCE_RAW),
-                          ("panel_rules", "rules", _PANEL_RULES)):
-        if not isinstance(tbl, dict) or not tbl:
+    for dom, sub, name in (("classes", "data", "classes"), ("skills", "data", "skills"),
+                           ("races", "data", "races"), ("sets", "data", "sets"),
+                           ("enhance_table", "data", "enhance_table"),
+                           ("panel_rules", "rules", "panel_rules")):
+        if getattr(_R, name).missing:
             out.append(dom)
     return out
 
@@ -244,7 +241,7 @@ def missing_domains() -> list:
 # 语义与真源逐行同义（`phase_template` 未知 id 回落 normal；`merge_phase_config` 模板为底、
 # overrides 逐键覆盖，含 `None` 值 —— `null` 是源侧合法值，不许改写成 0/""）。
 # ============================================================
-BOSS_PHASE_TEMPLATES: dict = _read_domain("boss_phases", "data", {})
+BOSS_PHASE_TEMPLATES: dict = _R.boss_phases.all()
 
 
 def phase_template(phase_id: str) -> dict:

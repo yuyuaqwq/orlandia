@@ -59,27 +59,25 @@ B13-L7（2026-09-14）。宿主 `game/core/maps.py` 已改成薄壳（本模块�
 from __future__ import annotations
 
 import importlib
-import json
 import os
 import sys
 
+from saintess_engine.records import RecordsSet
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-
-def _read_json(name: str, default):
-    """读包内 `content/data/<name>`（缺文件 / 坏 JSON → default，不抛 —— 与 `content/tables.py` 同款）。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                                        # noqa: BLE001
-        return default
+# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处（零默认值、零改写）
+_R = RecordsSet(_PKG_ROOT, {
+    "maps":     {"sub": "content/data"},
+    "subareas": {"sub": "content/data"},
+})
 
 
 # maps 域（图内形状）：{map_id: {name, roles, nodes:[{id,name,role}], topology, links?}}
-_MAPS: dict = _read_json("maps.json", {})
+_MAPS: dict = _R.maps.all()
 # subareas 域（房间内容）：{subarea_id: 源行原样 + 注入 map}
-_SUBS: dict = _read_json("subareas.json", {})
+_SUBS: dict = _R.subareas.all()
 
 # `roles` 兜底（域里每张图都带 `roles`，实测 121/121 同值 —— 取第一个非空的当兜底，防单图缺键）
 _DOM_ROLES: dict = next((e.get("roles") for e in _MAPS.values() if e.get("roles")), {})

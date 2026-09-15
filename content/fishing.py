@@ -16,10 +16,11 @@
 宿主侧：`game/core/fishing.py` 现在只剩「加载包 + 模块别名 + 源码探针」薄壳，见那边头注。
 """
 import importlib
-import json
 import os
 import random
 import sys
+
+from saintess_engine.records import RecordsSet
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -119,22 +120,20 @@ class _HostAttr:
 #    `scripts/export_domains/b9_profession.py:derive_fishing_spots / derive_fishing_pool`）
 # ============================================================
 _HERE = os.path.dirname(os.path.abspath(__file__))
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
+
+# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处
+_R = RecordsSet(_PKG_ROOT, {
+    "fishing_spots": {"sub": "content/data"},
+    "fishing_pool":  {"sub": "content/data"},
+})
 
 
-def _read_domain(domain: str, sub: str = "data"):
-    """读包内 `content/<sub>/<domain>.json`（缺文件/坏 JSON → {}，不抛，与 tables.py 同款）。"""
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                            # noqa: BLE001
-        return {}
-
-
-FISHING_SPOTS: dict = _read_domain("fishing_spots")
+FISHING_SPOTS: dict = _R.fishing_spots.all()
 # 源是 list（插入序参与抽样）→ 域里带注入字段 `seq`（1 基）→ 这里按 seq 还原成 list 并剥掉 seq
 # （剥掉后每条的字段与字段序 = 源条目原样，逐项对拍见 w1213_l5_probe.py P4）
 FISH_POOL: list = [{k: v for k, v in _e.items() if k != "seq"}
-                   for _e in sorted(_read_domain("fishing_pool").values(), key=lambda x: x["seq"])]
+                   for _e in sorted(_R.fishing_pool.all().values(), key=lambda x: x["seq"])]
 
 # ============================================================
 # ③ 宿主取件（模块级名字与真源逐名相同；正文零改动）
