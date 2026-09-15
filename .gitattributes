@@ -1,0 +1,7 @@
+# 包内容一律保持 blob 原样（LF）：不做任何行尾转换。
+#
+# 理由：Windows 主机常见 system 级 `core.autocrlf=true`，会让**新 clone** 把包内
+# LF 文件转成 CRLF —— 撞包内落盘规范（LF）与三条格式门禁
+# （commands.json CRLF/非 indent=2 · test_command_priority_sync · test_texts_specs_sync）。
+# `* -text` 让任何机器 checkout 都保持字节原样（blob 是 LF ⇒ 工作区就是 LF）。
+* -text
