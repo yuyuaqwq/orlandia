@@ -69,6 +69,8 @@
 
 from __future__ import annotations
 
+import sys
+
 from saintess_engine.events import EventBus
 
 # ★ W4（2026-09-14）：`C.HIDDEN_MONSTERS` → 包内门面（真源 `game/data/hidden_monsters.py:18`）
@@ -80,13 +82,14 @@ from . import catalog_b143 as _cat_b143
 #    · 订阅方那 8 个函数 → **包内直取**（与宿主模块级同名 import **同一对象**，
 #      证据 `out/evidence/hostface_map.txt` / `probe_c4_faces.py`）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
+_INJECTED = {}
 
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`log` / `db` / `c`）。"""
-    _WIRE.bind(**objs)
+    for k, v in (objs or {}).items():
+        if v is not None:
+            _INJECTED[k] = v
 
 
 from . import obs                                                        # noqa: E402
@@ -115,8 +118,8 @@ def _logger():
 
     未接上/取不到 → None（引擎门面默认 logger，与改造前逐字一致：原 `except Exception: return None`）。
     """
-    if "log" in _WIRE.handles():
-        return _WIRE.handle("log")
+    if "log" in _INJECTED:
+        return _INJECTED["log"]
     try:
         return obs.log()
     except Exception:                          # noqa: BLE001

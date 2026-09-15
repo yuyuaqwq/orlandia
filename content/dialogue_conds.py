@@ -30,6 +30,8 @@ from __future__ import annotations
 import json
 import os
 
+from saintess_engine.conditions import Conditions
+
 from .tables import CLASS_NOVICE      # 包内读口（真源 `C.CLASS_NOVICE`）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
@@ -56,13 +58,20 @@ def _main_quests() -> list:
     return _MAIN_QUESTS
 
 
-CONDITIONS = {}
+CONDITIONS = Conditions()
+
+
+def _bind(fn):
+    """把 Ctx 的透传字段摊回判定函数的既有位置参数（ctx / v）。"""
+    def _evaluate(ctx):
+        return fn(ctx.ctx, ctx.v)
+    return _evaluate
 
 
 def register(key):
     """条件注册装饰器。"""
     def deco(fn):
-        CONDITIONS[key] = fn
+        CONDITIONS.register(key, _bind(fn))
         return fn
     return deco
 
