@@ -72,7 +72,7 @@ import importlib
 
 from saintess_engine.wire import Wire
 
-__all__ = ["C", "bind_host", "resolve_name", "AGGREGATE_MODULES"]
+__all__ = ["C", "bind_host", "AGGREGATE_MODULES"]
 
 # ============================================================
 # ① 聚合来源（顺序 = 裁定，别随意改；改前先跑 out/probe/c_facade_identity.py）
@@ -299,11 +299,6 @@ class _Aggregate(object):
 
 
 C = _Aggregate()
-
-
-def resolve_name(name: str):
-    """按名取件（动态取名的调用点用；取不到 → AttributeError，**不静默**）。"""
-    return getattr(C, name)
 
 
 # ============================================================

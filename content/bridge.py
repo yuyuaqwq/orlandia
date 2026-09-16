@@ -31,7 +31,6 @@
 | `db.set_event_state(k, "")`（:314） / `set_event_state(k, json)`（:339） | `event_state[k] = v` | 同上（原地写回调用方的 dict）|
 | `db.delete_event_state(k)`（:337） | `event_state.pop(k, None)` | 同上 |
 | `_default_db()`（:369，`from .. import db`）| **不搬**（宿主存储层访问器）| 不传 `event_state` = 无 event_state（内部按空 dict 处理，零副作用）|
-| `apply_player_battle_start(player, actor, db)`（:188） | 第三参改 **`event_state`** | 同上（薄壳，保持旧签名语义）；传宿主 db 对象时由 `_as_event_state` 自动适配（★ B2-C3）|
 | `attach_tlog(b, ...)`（:207，读宿主 `tlog_setup` 流水开关 + sink）| ★ **B2-C3 起包内承接**：`attach_tlog()` = 注入槽 `bind_host(attach_tlog=…)` → 宿主薄壳同名函数（`sys.modules` → importlib）| 包内**不实现**流水 sink（平台件），只提供「取宿主实现并调用」的一层口 |
 
 ⚠️ 未搬（宿主侧契约）：`_default_db`（宿主存储层访问器 `from .. import db`）；`attach_tlog` 的
@@ -103,7 +102,7 @@ def _host_mod(name: str):
 # 宿主 db → event_state 协议替身（★ B2-C3：包内直取调用方也可能直接递宿主 db）
 # ------------------------------------------------------------
 # 真源 `game/services/battle_bridge.py::_EventStateView` 的**逐字搬入**：包内
-# `prepare_player_for_battle` / `apply_player_battle_start` 的第三参是普通 dict（只用到
+# `prepare_player_for_battle` 的第三参是普通 dict（只用到
 # `get / 赋值 / pop` 三动词）。宿主 db 对象（有 `get_event_state` 等）经本适配器接上同样的三动词。
 # ⚠️ 契约：本对象是 dict 子类**只为**满足包内 `isinstance(event_state, dict)` 守卫，键值**不落本对象**
 #    （`__setitem__` 已改道 db），故不持有第二份状态；若包内改用 `setdefault` / `in` / 迭代，
@@ -308,28 +307,6 @@ def build_sides(player: Optional[dict] = None, enemies: Optional[list] = None,
 # ============================================================
 # 开战仪式（旧 Battle.__init__ 的玩家侧副作用 → 命令层开战前对 player dict 处理）
 # ============================================================
-
-def apply_player_battle_start(player: dict, actor: dict, event_state: Optional[dict] = None) -> dict:
-    """把旧 Battle.__init__ 的玩家侧开战仪式结果应用到 saintess_engine actor。
-
-    ⚠️ 本函数保持旧签名/语义的薄壳（命令层调用点可能传 actor）——推荐新调用方
-    直接调 prepare_player_for_battle(player, title_bonus, event_state)（build_sides 前
-    对 player dict 做仪式，build_sides 透传即得仪式后 actor）。
-
-    ⚠️ 宿主耦合替身（真源第三参 `db` → 本包 `event_state`）：`event_state` 是调用方给的
-    普通 dict（等价宿主 event_state 存储的 get/赋值/del 三动词），本文件不读 DB。
-
-    目前实现（只做数据搬运，不触发引擎逻辑）：
-    - echo_bless/poi_buff 从 event_state 消费写入 player dict（旧引擎构造时做）→
-      actor 构造时已透传
-    - 装备词条战斗开始效果（护盾/狼嚎/奥术屏障/起手资源/套装/weapon_effects）→
-      属职业/装备层（上层模块），N5b 不复制旧 Battle 效果逻辑进桥——留 TODO 增量。
-
-    返回 actor（原地补全后同一引用）。
-    """
-    prepare_player_for_battle(player, None, _as_event_state(event_state))
-    return actor
-
 
 def apply_battle_loadout(actor: dict, title_bonus: Optional[dict] = None) -> dict:
     """开战装配序列（每个 player actor 调一次）：外部面板增幅 + 装备词条 + 职业机制。
@@ -568,6 +545,6 @@ def attach_tlog(b, *, btype: str = "monster", player=None, enemies=None, seed=No
 
 __all__ = [
     "player_to_actor", "monster_to_actor", "enemies_to_actors", "build_sides",
-    "apply_player_battle_start", "apply_battle_loadout", "prepare_player_for_battle",
+    "apply_battle_loadout", "prepare_player_for_battle",
     "sync_player_from_actor", "attach_tlog", "bind_host",
 ]
