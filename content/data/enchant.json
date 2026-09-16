@@ -120,6 +120,33 @@
       "blue": 1,
       "purple": 2,
       "orange": 2
+    },
+    "REROLL": {
+      "GOLD_TIER": "orange",
+      "MATERIAL_COUNT": 1,
+      "PITY_ROUNDS": 3,
+      "COST_GOLD_LADDER": [
+        {
+          "min_lv": 1,
+          "gold": 300
+        },
+        {
+          "min_lv": 20,
+          "gold": 600
+        },
+        {
+          "min_lv": 40,
+          "gold": 1200
+        },
+        {
+          "min_lv": 60,
+          "gold": 2400
+        },
+        {
+          "min_lv": 80,
+          "gold": 4800
+        }
+      ]
     }
   }
 }

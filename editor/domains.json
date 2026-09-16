@@ -1,4 +1,13 @@
 {
+  "cond_specs": {
+    "label": "条件声明",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🧩",
+    "owner": "package",
+    "tier": "portable"
+  },
   "skills": {
     "label": "技能",
     "kind": "data",
@@ -70,6 +79,15 @@
     "icon": "⌨️",
     "owner": "package",
     "tier": "fixed"
+  },
+  "tables": {
+    "label": "表结构",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🗄️",
+    "owner": "package",
+    "tier": "portable"
   },
   "texts": {
     "label": "文案",

@@ -6,7 +6,7 @@
 
 数据源（双份，互相强校验）：
 1. 包内声明表 `content/data/commands.json` 派生的有效表（2026-09-12 #9 收尾后 = 声明表派生）
-2. 包内运行时注册表 `pkg.command_handlers()` ∪ 平台例外键（真实注册 = 195 条）
+2. 包内运行时注册表 `pkg.command_handlers()` ∪ 平台例外键（真实注册 = 196 条）
 
 断言：
 A. 一致性：静态表键集合 == 装饰器方法名集合，且每条模式逐字相等（表漂移即失败）
@@ -197,6 +197,8 @@ REPRESENTATIVES = {
     "refine_equip": "装备重锻 弯刀",
     "calamity_forge": "炼成 铁剑",
     "enchant": "附魔", "set_view": "套装", "bestiary": "图鉴", "encyclopedia": "百科", "monster": "怪物",  # v130.3 意见#3
+    # V2 批新增指令（代表输入；『重铸』独立指令词，与『附魔』不互斥）
+    "reroll": "重铸",
     # v168 冒险手册：总入口 + 足迹
     "adventure_book": "冒险手册 物品", "footprint": "足迹",
     "titles": "称号", "inventory": "背包", "bag_filter": "背包筛选",

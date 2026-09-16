@@ -233,7 +233,7 @@ def t3_tables_agree(host: dict, pkg: dict, host_tbl: dict, pkg_tbl: dict):
     check("两份表的 priority 键集相等（%d vs %d）" % (len(host), len(pkg)),
           set(host) == set(pkg), "差集：%s" % sorted(set(host) ^ set(pkg)),
           red_keys=sorted(set(host) ^ set(pkg)))
-    check("两份表其它字段也仍然一致（195 条逐条 JSON 相等，防顺手改别的）",
+    check("两份表其它字段也仍然一致（196 条逐条 JSON 相等，防顺手改别的）",
           host_tbl == pkg_tbl,
           "条目差异：%s" % sorted(k for k in set(host_tbl) | set(pkg_tbl)
                                   if host_tbl.get(k) != pkg_tbl.get(k))[:6],

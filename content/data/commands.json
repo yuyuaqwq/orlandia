@@ -2891,6 +2891,26 @@
       "note": "负向断言 (?!商店) 让位『声望商店』。"
     }
   },
+  "reroll": {
+    "patterns": [
+      "^(?:\\[At:[^\\]]+\\]\\s*)?重铸(?:\\s*|$)"
+    ],
+    "desc": "重铸装备（整体重掷随机词条；连续 3 轮未出金，第 4 轮必出金）",
+    "category": "副业",
+    "usage": "重铸 <装备名>",
+    "guards": [
+      "player"
+    ],
+    "order": 29,
+    "params": [
+      "cmd=重铸"
+    ],
+    "bind": {
+      "handler": "content.economy_cmds:EconomyImpl.reroll",
+      "call": "messages",
+      "args": []
+    }
+  },
   "reset_attr": {
     "patterns": [
       "^(?:\\[At:[^\\]]+\\]\\s*)?洗点(?:\\s*|$)"

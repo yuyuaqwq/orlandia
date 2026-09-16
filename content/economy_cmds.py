@@ -38,6 +38,7 @@ from . import catalog_quests as _cquest
 from . import catalog_space as _cspace
 from . import catalog_b143 as _b143  # B14-3 收口名（装备品质/宝石/附魔/词条/钓鱼/世界事件表）
 from . import wild as _wild          # B14-3：`ALL_WILD` 派生读口（content/wild，PEP 562）
+from . import reroll as _reroll      # V2 批新增：『重铸』数值/规则面（content/reroll.py）
 from .panel import STAT_NAMES  # 既有读口（原 `_HostRef("STAT_NAMES")`，门禁证明与宿主面同值同序）
 from ._pkgref import HANDLES   # ★ R2（终态补债）：库路径真源 `content/persistence/handles.db_path()`
 # ★ R2（终态补债）：`db.DB_PATH` → `HANDLES.db_path()`。`db` 是宿主面 `_HostRef("db")`：
@@ -3716,6 +3717,106 @@ class EconomyImpl(CommandBase):
         yield event.plain_result(
             f"🔮 附魔成功！【{d['name']}】获得 {sn.get(stat_key, stat_key)} {val_str}{big_str}\n"
             f"(消耗 {mat_name} x1 + {rec['cost']} 金币；已用 {len(enchanted)}/{slots} 槽){_lv_msg}"
+        )
+
+    # ================= V2 批新增：『重铸 <装备名>』（唯一新增指令；现有『附魔』一行未改）=================
+    @declared("reroll")
+    @require_player()
+
+    async def reroll(self, event: AstrMessageEvent):
+        """『重铸 <装备名>』—— 花材料+金币把该装备的**随机词条整体重掷**（轮次保底 + 槽满 fail-closed）。
+
+        * 定位：走既有共享装备定位器 `self._gem_find_equip`（背包序号 / 名字子串 / 已装备槽位，
+          与强化/升级/附魔同语义）—— **不复制一份定位逻辑**，也不改『附魔』那两段内联实现。
+        * 重掷：`content/reroll.py::roll_reroll`（`roll_affixes` 公式一字不改 + 引擎计数保底）。
+        * 计数：装备个体 `item_data.reroll.count`（连续未出金轮数，出金归零）。
+        * 消耗：`ENCHANT_RECIPES` 同族材料 ×`REROLL.MATERIAL_COUNT` + 等级阶梯金币
+          （阶梯 = `content/data/enchant.json` 的 `REROLL.COST_GOLD_LADDER`）。
+        * fail-closed：无词条槽 / 词条槽已满 / 材料不足 / 金币不足 → 明确报错，**不扣任何东西**。
+        """
+        group_id, qq_id = self._uid(event)
+        raw = self._strip_cmd(event, "重铸")
+        player = self._player(group_id, qq_id)
+        item_name = (raw or "").strip()
+        if not item_name:
+            yield event.plain_result(
+                "重铸哪件装备？输入『重铸 <装备名>』(如：重铸 烈焰之刃，背包序号也可)\n"
+                "重铸会把该装备的随机词条整体重掷；连续 %d 轮未出金，第 %d 轮必出金。"
+                % (_reroll.pity_rounds(), _reroll.pity_rounds() + 1)
+            )
+            return
+        target, err = self._gem_find_equip(group_id, qq_id, player, item_name)
+        if not target:
+            yield event.plain_result(err)
+            return
+        d = target["data"]
+        quality = d.get("quality", "white")
+        qname = _b143.QUALITY.get(quality, {}).get("name", "")
+        cap = _reroll.slot_cap(quality)
+        affixes = list(d.get("affixes") or [])
+        if cap <= 0:
+            yield event.plain_result(
+                f"【{d['name']}】({qname})没有词条槽，不能重铸！只有蓝/紫/橙装备可以重铸。")
+            return
+        if len(affixes) > cap:
+            yield event.plain_result(
+                f"【{d['name']}】的词条槽已满({len(affixes)}/{cap})，无法重铸！先换一件装备吧～")
+            return
+        # 材料：沿用『附魔』同族材料一件（全族包含匹配，取第一件；复用既有匹配器）
+        items = db.get_inventory(group_id, qq_id)
+        mat_name = None
+        for _stat in _b143.ENCHANT_RECIPES:
+            mat_name = C.enchant_match_material(_stat, items)
+            if mat_name:
+                break
+        if not mat_name:
+            _kw = "/".join(sorted({kw for r in _b143.ENCHANT_RECIPES.values()
+                                   for kw in (r.get("mats") or [])}))
+            yield event.plain_result(
+                f"背包里没有重铸材料(需要含有：{_kw}的材料)！打怪掉落材料～")
+            return
+        cost = _reroll.gold_cost(d.get("lv", 1))
+        if player["gold"] < cost:
+            yield event.plain_result(f"重铸需要 {cost} 金币，你只有 {player['gold']}。")
+            return
+        # 校验全过 → 消耗材料 + 金币（材料一次命中一处堆，口径同『附魔』）
+        for it in items:
+            if it["data"].get("name") != mat_name:
+                continue
+            if db.remove_item(group_id, qq_id, it["key"], _reroll.material_count()):
+                break
+        db.update_player(group_id, qq_id, gold=player["gold"] - cost)
+        # 整体重掷 + 计数保底（出金归零）
+        rec = dict(d.get("reroll") or {})
+        streak = int(rec.get("count", 0) or 0)
+
+        def _is_gold(_aid):
+            # 「金」= 词条最高可达档 == REROLL.GOLD_TIER（数据口径见 content/reroll.py 头注）
+            return _reroll.is_gold_affix(_aid)
+
+        new_ids, hit, forced, new_streak = _reroll.roll_reroll(
+            d.get("slot", "armor"), d.get("lv", 1), quality, streak,
+            is_gold=_is_gold,
+            kind=("attack" if d.get("slot") == "weapon" else "defense"))
+        d["affixes"] = new_ids
+        rec["count"] = new_streak
+        rec["rounds"] = int(rec.get("rounds", 0) or 0) + 1
+        d["reroll"] = rec
+        if target.get("_equipped"):
+            eq = dict(player.get("equipment") or {})
+            eq[target["_equipped"]] = d
+            db.update_player(group_id, qq_id, equipment=eq)
+        else:
+            db.update_item_data(group_id, qq_id, target["key"], d)
+        _names = "、".join(
+            f"{_cit.AFFIXES.get(a, {}).get('name', a)}{'(金)' if _is_gold(a) else ''}"
+            for a in new_ids)
+        _tail = ("\n🌟 连续未出金达上限，保底触发（本轮必出金）！" if forced
+                 else ("\n✨ 本轮出金，保底计数归零！" if hit else ""))
+        yield event.plain_result(
+            f"🔁 重铸成功！【{d['name']}】随机词条整体重掷：{_names or '（无）'}\n"
+            f"(消耗 {mat_name} x{_reroll.material_count()} + {cost} 金币；"
+            f"连续未出金 {new_streak}/{_reroll.pity_rounds()} 轮){_tail}"
         )
 
     @declared("set_view")

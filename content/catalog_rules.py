@@ -179,6 +179,7 @@ GEM_DROP_RATE = placeholder("GEM_DROP_RATE")
 GEM_DROP_TIER = placeholder("GEM_DROP_TIER")
 GEM_BOSS_FIXED = placeholder("GEM_BOSS_FIXED")
 ENCHANT_MAX_VALUE = placeholder("ENCHANT_MAX_VALUE")
+REROLL = placeholder("REROLL")
 FACTION_SHOP = placeholder("FACTION_SHOP")
 FACTION_CAMPS = placeholder("FACTION_CAMPS")
 FACTION_CAMP_OPEN_LV = placeholder("FACTION_CAMP_OPEN_LV")
@@ -273,6 +274,7 @@ __all__ = [
     "GEM_DROP_TIER",
     "GEM_BOSS_FIXED",
     "ENCHANT_MAX_VALUE",
+    "REROLL",
     "AFFIX_FALLBACK",
     "AFFIX_COUNT",
     "SERIES_FIXED_AFFIX",
@@ -345,7 +347,7 @@ def _rebuild_view() -> list:
     global EVENT_WEIGHT_SUM, EXPLORE_EGG_SUM, WEAPON_TYPES, WEAPON_NAME_SUFFIX
     global EQUIP_NAME_PREFIX, EQUIP_PREFIX_FLAVOR, EQUIP_NAME_SUFFIX, AFFIX_FALLBACK
     global AFFIX_COUNT, GEM_STATS, GEM_ITEM_TYPE, GEM_REMOVE_COST
-    global GEM_DROP_RATE, GEM_DROP_TIER, GEM_BOSS_FIXED, ENCHANT_MAX_VALUE
+    global GEM_DROP_RATE, GEM_DROP_TIER, GEM_BOSS_FIXED, ENCHANT_MAX_VALUE, REROLL
     global FACTION_SHOP, FACTION_CAMPS, FACTION_CAMP_OPEN_LV, FACTION_CAMP_SWITCH_COOLDOWN
     global FACTION_CAMP_DAILY_TASKS, FACTION_CAMP_DAILY_LIMIT, FACTION_CAMP_SHOP, SUPPLY_BOX
     global EXPLORE_EGG_CHANCE, SET_THEMES, SET_CHANCE, SERIES_SETS
@@ -368,6 +370,7 @@ def _rebuild_view() -> list:
         'EQUIP_NAME_PREFIX': None, 'EQUIP_PREFIX_FLAVOR': None, 'EQUIP_NAME_SUFFIX': None, 'AFFIX_FALLBACK': None,
         'AFFIX_COUNT': None, 'GEM_STATS': None, 'GEM_ITEM_TYPE': None, 'GEM_REMOVE_COST': None,
         'GEM_DROP_RATE': None, 'GEM_DROP_TIER': None, 'GEM_BOSS_FIXED': None, 'ENCHANT_MAX_VALUE': None,
+        'REROLL': None,
         'FACTION_SHOP': None, 'FACTION_CAMPS': None, 'FACTION_CAMP_OPEN_LV': None, 'FACTION_CAMP_SWITCH_COOLDOWN': None,
         'FACTION_CAMP_DAILY_TASKS': None, 'FACTION_CAMP_DAILY_LIMIT': None, 'FACTION_CAMP_SHOP': None, 'SUPPLY_BOX': None,
         'EXPLORE_EGG_CHANCE': None, 'SET_THEMES': None, 'SET_CHANCE': None, 'SERIES_SETS': None,
@@ -463,6 +466,8 @@ def _rebuild_view() -> list:
     # ---- enchant 域（content/data/enchant.json · `enchant` 组 ← 宿主 game/data/enchant.py）----
     # ENCHANT_MAX_VALUE ← enchant.py:138（词条 → 单次附魔上限）
     ENCHANT_MAX_VALUE = _read_group("enchant", "data", "enchant", "ENCHANT_MAX_VALUE", {}) or {}
+    # REROLL ← V2 批新增（『重铸』表：保底轮次 / 金档 / 金币阶梯；与 ENCHANT_* 同域同组）
+    REROLL = _read_group("enchant", "data", "enchant", "REROLL", {}) or {}
 
     # ---- factions 域（content/data/factions.json · `factions` 组 ← 宿主 game/data/factions.py）----
     # FACTION_SHOP ← factions.py:34（阵营 → 声望商店货单）
