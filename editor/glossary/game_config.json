@@ -128,7 +128,7 @@
     },
     "pets": {
       "zh": "宠物常量",
-      "note": "（2 个常量）B14-3 新增。游戏仓 `game/data/pets.py:190/192`：`PET_MAX_LEVEL`（品种等级上限 = 30）/ `PET_SKILL_UNLOCK_LV`（战斗技能解锁等级 = 10）。**为什么在本组而不是 `pets` 域**：`pets` 域的 primary def 是「一条 = 一个品种」（`required=[key,name,quality,focus,skill_type,skill_interval,skill_value,spd]`），常量行塞不进（硬塞 = 硬造品种字段或放水 required）。品种池本体在 `pets` 域。消费端：`content/social_pet.py` / `content/settlement.py` / `content/combat_cmds.py`。 实测本组 2 张表/条。",
+      "note": "（4 个常量）游戏仓 `game/data/pets.py`：`PET_MAX_LEVEL`（品种等级上限 = 30）/ `PET_SKILL_UNLOCK_LV`（战斗技能解锁等级 = 10）/ `_PET_EGG_PRICE`（品质 → 宠物蛋价）/ `PET_EXP_GRADE`（品质 → `{per_lv, cap}` 经验加成曲线）。**为什么在本组而不是 `pets` 域**：`pets` 域的 primary def 是「一条 = 一个品种」（`required=[key,name,quality,focus,skill_type,skill_interval,skill_value,spd]`），常量行塞不进。消费端：`content/pets.py` / `content/social_pet.py` / `content/settlement.py` / `content/combat_cmds.py`。 实测本组 4 张表/条。",
       "widget": "kv",
       "group": "config"
     },
@@ -152,19 +152,19 @@
     },
     "affixes": {
       "zh": "词条池与别名",
-      "note": "（2 张索引表）B14-3 新增。游戏仓 `game/data/affixes.py`：`AFFIX_POOL_BY_QUALITY`（品质 → 可出词条 id 列表，**随机池**）/ `AFFIX_AFFINITY_CN`（玩家输入别名 → 锻造倾向词，12 键）。**词条条目本体**在 `affixes` 域。消费端：`content/economy_cmds.py`（锻造词条抽取与倾向匹配）。 实测本组 2 张表/条。",
+      "note": "（4 张表）游戏仓 `game/data/affixes.py`：`AFFIX_POOL_BY_QUALITY`（品质 → 可出词条 id 列表）/ `AFFIX_AFFINITY_CN`（玩家输入别名 → 锻造倾向词）/ `AFFIX_AFFINITY_POOLS`（锻造倾向 → 词条池，4 键）/ `SERIES_FIXED_AFFIX`（装备/系列名 → 固定词条 id 列表，622 键）。**词条条目本体**在 `affixes` 域。消费端：`content/economy_cmds.py` / `content/affix.py` / `content/drops.py`。 实测本组 4 张表/条。",
       "widget": "kv",
       "group": "config"
     },
     "fishing": {
       "zh": "垂钓常量与收藏",
-      "note": "（1 张收藏表 + 1 个常量）B14-3 新增。游戏仓 `game/data/fishing.py`：`FISH_COLLECT`（3 条收藏鱼 `{id,name,chance,spots,desc}`，`spots = null` 表示不限钓点）/ `FISH_EXP`（品质 → 垂钓经验）。**钓点表**在 `fishing_spots` 域、**鱼种池**在 `fishing_pool` 域，本组不重复。消费端：`content/economy_cmds.py` / `content/profession.py`。 实测本组 2 张表/条。",
+      "note": "（1 张收藏表 + 2 个常量）游戏仓 `game/data/fishing.py`：`FISH_COLLECT`（3 条收藏鱼 `{id,name,chance,spots,desc}`，`spots = null` 表示不限钓点）/ `FISH_EXP`（品质 → 垂钓经验）/ `FISH_QUALITY_WEIGHTS`（钓点等级 → 品质权重，**int 键** ⇒ 读口还原）。**钓点表**在 `fishing_spots` 域、**鱼种池**在 `fishing_pool` 域，本组不重复。消费端：`content/catalog_b143.py` / `content/economy_cmds.py` / `content/profession.py` / `content/quality_tiers.py`。 实测本组 3 张表/条。",
       "widget": "kv",
       "group": "config"
     },
     "pois": {
       "zh": "交互点定义表",
-      "note": "（1 张定义表）B14-3 新增。游戏仓 `game/data/pois.py:9 POIS`（83 条交互点**定义**：`{name,icon,desc,effect}`，键 = 交互点类型如 `campfire`/`shrine`/`herb_patch`）。**落点表**（哪个子区域有哪些交互点）在 `pois` 域 —— 两者形状不同（定义 vs 落点），故定义表归本组。消费端：`content/instance_cmds.py` / `content/world_cmds.py` / `content/effects/poi_effects.py`。 实测本组 1 张表/条。",
+      "note": "（1 张定义表 + 3 个文案池）游戏仓 `game/data/pois.py`：`POIS`（83 条交互点**定义**：`{name,icon,desc,effect}`）/ `NOTE_POOL`（线索文案 3 条）/ `RUNE_POOL`（图鉴线索文案 4 条）/ `SIGHT_POOL`（风景文案 5 条）。**落点表**在 `pois` 域 —— 两者形状不同（定义 vs 落点）。消费端：`content/instance_cmds.py` / `content/world_cmds.py` / `content/combat_cmds.py` / `content/effects/poi_effects.py`。 实测本组 4 张表/条。",
       "widget": "kv",
       "group": "config"
     },
@@ -177,6 +177,66 @@
     "instance_investigation": {
       "zh": "副本调查常量",
       "note": "（1 张收藏样本表）B14-3 新增。游戏仓 `game/data/instance_investigation.py:47 INVESTIGATE_COLLECT_SAMPLES`（5 个材料 id：调查点「收藏」分支的样本池）。**调查点表本体**在 `instance_investigation` 域（22 本 / 90 个点），本组不重复；同模块的三个概率常量（`INVESTIGATE_*_CHANCE`）与两个派生计数（`INVESTIGATION_COUNT`/`INVESTIGATION_INST_COUNT`）本轮不进域（非缺口名，列在导出器 `owned_elsewhere`）。消费端：`content/instance_cmds.py`。 实测本组 1 张表/条。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "daily_events": {
+      "zh": "野外图今日奇遇",
+      "note": "`DAILY_MAP_EVENTS`（20 张野外图 → 当日奇遇变体列表，每条 `{id,name,desc,effects}`）。真源 `game/data/daily_events.py:18`；消费端 `content/daily_events.py` / `content/cmds_event.py`。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "equip_roster": {
+      "zh": "装备系列套名",
+      "note": "`SERIES_SETS`（系列名 → 系列套名，38 键）。真源 `game/data/equip_roster.py:510`；消费端 `content/class_sets.py`。装备名册本体在 `equip_roster` 域。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "events": {
+      "zh": "探索彩蛋闸门",
+      "note": "`EXPLORE_EGG_CHANCE`（探索彩蛋的独立触发概率，实测 0.005）。真源 `game/data/events.py:1458`；消费端 `content/events.py`。两个事件池本体在 `events` 域。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "instances": {
+      "zh": "副本 Boss 装备掉落规则",
+      "note": "`INSTANCE_BOSS_EQUIP_DROP`（27 本副本 → `{boss_equip, boss_rate, pool, pool_rate, pity}`）。真源 `game/data/instances.py:3686`；消费端 `content/instance_cmds.py`。副本条目本体在 `instances` 域。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "props": {
+      "zh": "子区域落点道具",
+      "note": "`SUBAREA_PROPS`（`地图:子区域` → 落点道具行，315 键；行内元素是 `(prop_id, 显示名)` 或裸 prop_id）。**行内顺序 = 真源顺序**（`props` 域是反投影、行内序不复原）。真源 `game/data/props.py:606`；消费端 `content/pois.py`。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "races": {
+      "zh": "种族攻击系数",
+      "note": "`RACE_ATTACK_MULT`（性格 id → 攻击系数，2 键）。真源 `game/data/races.py:115`；消费端 `content/race_talent_display.py`。种族条目本体在 `races` 域。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "set_bonus_data": {
+      "zh": "套装件数加成",
+      "note": "`SERIES_SET_BONUS`（系列 → 2/4/5 件加成与说明，39 键）。真源 `game/data/set_bonus_data.py:35`；消费端 `content/class_sets.py`。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "sets": {
+      "zh": "套装主题与概率",
+      "note": "`SET_THEMES`（品质 → 套装主题词，3 档）/ `SET_CHANCE`（品质 → 套装出现概率，3 档）。真源 `game/data/sets.py`；消费端 `content/drops.py`。套装条目本体在 `sets` 域。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "wild_king_data": {
+      "zh": "野王常量",
+      "note": "12 个常量：时段 `WILD_KING_PERIODS`/`WILD_KING_SPAWN_HOURS`（源侧 tuple → 读口还原）、候选图、宝箱档位、上限与时长、保底券名。真源 `game/data/wild_king_data.py`；消费端 `content/wild_king.py`。野王名册本体在 `wild_king` 域。",
+      "widget": "kv",
+      "group": "config"
+    },
+    "refine_exclusive": {
+      "zh": "专属重锻配方",
+      "note": "`REFINE_EXCLUSIVE_RECIPES`（专属装备 id → 重锻配方行）。真源 `game/data/refine_exclusive.py`；逻辑函数 `merge_into()` 在 `content/refine_exclusive.py`，不进域。",
       "widget": "kv",
       "group": "config"
     }
@@ -216,7 +276,17 @@
         "fishing",
         "pois",
         "hidden_monsters",
-        "instance_investigation"
+        "instance_investigation",
+        "daily_events",
+        "equip_roster",
+        "events",
+        "instances",
+        "props",
+        "races",
+        "set_bonus_data",
+        "sets",
+        "wild_king_data",
+        "refine_exclusive"
       ]
     }
   ]

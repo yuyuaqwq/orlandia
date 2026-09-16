@@ -39,6 +39,41 @@
       "zh": "声望档位",
       "note": "实测 5 档，每档 = `[下限, 档名]`（源侧是 tuple → JSON 是 2 元 array）。**有序**：消费点按序解包取当前档。 实测 5 条。",
       "group": "reputation"
+    },
+    "FACTION_SHOP": {
+      "zh": "声望商店货单",
+      "note": "键 = 阵营 id（7 个）；值 = 货单列表，每件 `{item, tier, price?}`（物品 id / 声望门槛 / 可选覆盖价）。真源 `game/data/factions.py:34`。",
+      "group": "camp"
+    },
+    "FACTION_CAMPS": {
+      "zh": "阵营营地",
+      "note": "键 = 营地 id（4 个：holy/dragon/elf/shadow）；值 = `{name, icon, desc, buff_text}`。真源 `game/data/factions.py:76`。",
+      "group": "camp"
+    },
+    "FACTION_CAMP_OPEN_LV": {
+      "zh": "营地解锁等级",
+      "note": "实测 20。真源 `game/data/factions.py:88`。",
+      "group": "camp"
+    },
+    "FACTION_CAMP_DAILY_LIMIT": {
+      "zh": "营地日常上限",
+      "note": "每日可完成的营地日常条数（实测 2）。真源 `game/data/factions.py:92`。",
+      "group": "camp"
+    },
+    "FACTION_CAMP_SWITCH_COOLDOWN": {
+      "zh": "换阵营冷却秒",
+      "note": "实测 604800（7 天）。真源 `game/data/factions.py:95`。",
+      "group": "camp"
+    },
+    "FACTION_CAMP_SHOP": {
+      "zh": "营地商店货单",
+      "note": "实测 5 条：`{item, cost, name}`（物品 id / 售价 / 显示名）。真源 `game/data/factions.py:101`。",
+      "group": "camp"
+    },
+    "FACTION_CAMP_DAILY_TASKS": {
+      "zh": "营地日常任务",
+      "note": "实测 4 条：`{kind, item, count, name, reward}`（类型 / 物品 id / 数量 / 显示名 / 声望奖励）。真源 `game/data/factions.py:116`。",
+      "group": "camp"
     }
   },
   "groups": [
@@ -66,6 +101,20 @@
       "icon": "📜",
       "fields": [
         "CHRONICLES"
+      ]
+    },
+    {
+      "id": "camp",
+      "label": "阵营营地与货单",
+      "icon": "⛺",
+      "fields": [
+        "FACTION_SHOP",
+        "FACTION_CAMPS",
+        "FACTION_CAMP_OPEN_LV",
+        "FACTION_CAMP_DAILY_LIMIT",
+        "FACTION_CAMP_SWITCH_COOLDOWN",
+        "FACTION_CAMP_SHOP",
+        "FACTION_CAMP_DAILY_TASKS"
       ]
     }
   ]

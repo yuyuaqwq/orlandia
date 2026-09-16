@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/gems.schema.json",
   "title": "幸运宝石（gems）—— 一条 = 一张源表（阶位 / 阶名 / 孔位 / 打孔 / 传说特效 / 符文拆卸价）",
-  "description": "本域 = 宿主 `game/data/gems.py` 里**包内无域**的 6 个常量（B14-3 缺口名：`GEM_TIERS` 5 处 / `GEM_TIER_NAMES` 8 / `GEM_SOCKETS` 2 / `GEM_DRILL` 1 / `GEM_LEGENDARY_EFFECTS` 1 / `RUNE_REMOVE_COST` 2 —— 见 `content/catalog_items.py` 的「无域可依」登记）。经 `scripts/export_domains/b14_3_gaps.py:derive_gems` 单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`）—— 同 `equipment`/`factions`/`enchant`。\\n\\n⚠⚠ **int 键陷阱（本域最重要的坑，必须由包内读口还原）**：`GEM_TIERS` / `GEM_TIER_NAMES` 的键源侧是 **int 1..10**，JSON 只有字符串键。不还原的后果（消费点 `content/economy_cmds.py`）：① `GEM_TIERS.get(tier)`（tier 是 int）恒 miss → 宝石详情数值静默归零；② `sorted(GEM_TIERS)` 变 `\\\"1\\\",\\\"10\\\",\\\"2\\\"…` → 百科阶位乱序；③ `GEM_TIER_NAMES.get(tier + 1)` → 合成链永远显示「已是最高阶」。还原责任在包内读口（同 `content/config.py:int_keys()` 的先例），导出侧只按源形状搬运。\\n\\n⚠ `RUNE_REMOVE_COST`（1000/级）与 `GEM_REMOVE_COST`（500/层）同在源文件 `gems.py`，BRIEF §1(a) 把前者指定给 `runes` 域；但 `runes` 域的 primary def 要求每条有 `name`（实体），常量行塞不进 ⇒ 按**源文件同族**归本域，登记在报告 §处置表。\\n\\n**未进本域**：`GEM_BASE_NAME`/`GEM_ITEM_TYPE`/`GEM_STATS`/`GEM_REMOVE_COST`/`GEM_DROP_RATE`/`GEM_DROP_TIER`/`GEM_BOSS_FIXED`（非本轮缺口名，无 `C.<名>` 读点）。",
+  "description": "本域 = 宿主 `game/data/gems.py` 的常量表 12 张（B14-3 缺口名 `GEM_TIERS` 5 处引用 / `GEM_TIER_NAMES` 8 / `GEM_SOCKETS` 2 / `GEM_DRILL` 1 / `GEM_LEGENDARY_EFFECTS` 1 / `RUNE_REMOVE_COST` 2；`GEM_STATS`/`GEM_ITEM_TYPE`/`GEM_REMOVE_COST`/`GEM_DROP_RATE`/`GEM_DROP_TIER`/`GEM_BOSS_FIXED` 6 张由 `content/{catalog_rules,gems,catalog_legacy}.py` 读）。单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`）—— 同 `equipment`/`factions`/`enchant`。\\n\\n⚠⚠ **int 键陷阱（本域最重要的坑，必须由包内读口还原）**：`GEM_TIERS` / `GEM_TIER_NAMES` 的键源侧是 **int 1..10**，JSON 只有字符串键。不还原的后果（消费点 `content/economy_cmds.py`）：① `GEM_TIERS.get(tier)`（tier 是 int）恒 miss → 宝石详情数值静默归零；② `sorted(GEM_TIERS)` 变 `\\\"1\\\",\\\"10\\\",\\\"2\\\"…` → 百科阶位乱序；③ `GEM_TIER_NAMES.get(tier + 1)` → 合成链永远显示「已是最高阶」。还原责任在包内读口（同 `content/config.py:int_keys()` 的先例）。\\n\\n**同族的 int 键 / tuple 值**：`CONTENT/rules/game_config.json` 的 `fishing.FISH_QUALITY_WEIGHTS` 也是 int 键；`GEM_DROP_TIER` 的值源侧是 tuple，包内读口还原。",
   "x-primary": "gems_group",
   "type": "object",
   "propertyNames": {
@@ -13,6 +13,16 @@
     "$ref": "#/$defs/gems_group"
   },
   "$defs": {
+    "gem_boss_fixed_table": {
+      "type": "object",
+      "title": "指定 Boss 必掉属性表（`game/data/gems.py:62 GEM_BOSS_FIXED`）",
+      "description": "键 = Boss 名（实测 4）；值 = 必掉宝石的属性 id（如 `pene_phys`/`crit`）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "gem_drill_table": {
       "type": "object",
       "title": "打孔表（`game/data/gems.py:33 GEM_DRILL`）",
@@ -40,6 +50,42 @@
             "description": "打孔所需的锻造副业等级。"
           }
         }
+      }
+    },
+    "gem_drop_rate_table": {
+      "type": "object",
+      "title": "怪档掉落率表（`game/data/gems.py:47 GEM_DROP_RATE`）",
+      "description": "键 = 怪档（实测 4：normal/elite/field_boss/instance_boss）；值 = 掉落概率。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "gem_drop_tier_table": {
+      "type": "object",
+      "title": "怪档掉落阶区间的表（`game/data/gems.py:54 GEM_DROP_TIER`）",
+      "description": "键 = 怪档（实测 4）；值 = `[最低阶, 最高阶]`（源侧是 **tuple** → JSON 是 2 元 array，包内读口还原 tuple）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "title": "掉落阶区间 `[低, 高]`",
+        "minItems": 2,
+        "maxItems": 2,
+        "prefixItems": [
+          {
+            "type": "integer",
+            "minimum": 1,
+            "title": "最低阶"
+          },
+          {
+            "type": "integer",
+            "minimum": 1,
+            "title": "最高阶"
+          }
+        ],
+        "items": false
       }
     },
     "gem_legendary_effects_table": {
@@ -92,6 +138,16 @@
             "description": "该孔位允许的最高宝石阶（0 = 无孔）。"
           }
         }
+      }
+    },
+    "gem_stats_table": {
+      "type": "array",
+      "title": "可镶嵌属性池（`game/data/gems.py:23 GEM_STATS`）",
+      "description": "实测 23 个属性 id（hp/mp/atk/def/…）：宝石随机属性按本池抽取。顺序 = 源侧顺序。",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
       }
     },
     "gem_tier_names_table": {
@@ -168,6 +224,30 @@
           "minimum": 1,
           "title": "符文拆卸单价（`game/data/gems.py:40`）",
           "description": "拆卸手续费 = 本值 × 符文等级（实测 1000，消费点 `content/economy_cmds.py`）。"
+        },
+        "GEM_BOSS_FIXED": {
+          "$ref": "#/$defs/gem_boss_fixed_table"
+        },
+        "GEM_DROP_RATE": {
+          "$ref": "#/$defs/gem_drop_rate_table"
+        },
+        "GEM_DROP_TIER": {
+          "$ref": "#/$defs/gem_drop_tier_table"
+        },
+        "GEM_ITEM_TYPE": {
+          "type": "string",
+          "minLength": 1,
+          "title": "宝石物品类型名（`game/data/gems.py:21 GEM_ITEM_TYPE`）",
+          "description": "实测「幸运宝石」；键名 `GEM_BASE_NAME` 在 `content/catalog_legacy.py` 里读本值。"
+        },
+        "GEM_REMOVE_COST": {
+          "type": "integer",
+          "minimum": 0,
+          "title": "宝石拆卸单价（`game/data/gems.py:39 GEM_REMOVE_COST`）",
+          "description": "拆卸手续费 = 本值 × 宝石阶（实测 500）。与 `RUNE_REMOVE_COST`（符文拆卸单价）同源模块、不同表。"
+        },
+        "GEM_STATS": {
+          "$ref": "#/$defs/gem_stats_table"
         }
       }
     }

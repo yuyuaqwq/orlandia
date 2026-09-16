@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/chapters.schema.json",
   "title": "章节补给（chapters）—— 一条 = 一张源表（章节升级礼包）",
-  "description": "本域 = 宿主 `game/data/quest_add_v140.py:106 CHAPTER_PACK`（B14-3 缺口名 `CHAPTER_PACK` 1 处，消费点 `content/gameplay.py` 的升级结算发礼包）。经 `scripts/export_domains/b14_3_gaps.py:derive_chapters` 单向导出（**值原样，零注入**）。\\n\\n**为什么单开域而不并进 `quests`**（B14-3_BRIEF §1(b) 给了这个二选一）：`quests` 域的 primary def 是「一条 = 一个任务」（`required=[source,name,desc,objective,reward_exp,reward_gold]`），而本表是「一条 = 一个等级的补给包」（`lv/name/items`），**形状不同** ⇒ 并进去只能硬造任务字段或放水 required（BRIEF §2.4 禁）。\\n\\n**未进本域**（同源模块的 `QUEST_ADD` / `QUEST_MAT` / `SUPPLY_BOX`）：`QUEST_ADD` 已被 `npc_story.py:189` 判定「奖励补丁行、不在 quests 域」；三者都**没有** `C.<名>` 读点（非本轮缺口名）→ 本轮不进域，登记在报告「未做」。",
+  "description": "本域 = 宿主 `game/data/quest_add_v140.py` 的 2 张表（`CHAPTER_PACK` 1 处引用；`SUPPLY_BOX` 由 `content/cmds_event.py` 读）—— 每日/升级礼包。单向导出（**值原样，零注入**）。\\n\\n**为什么单开域而不并进 `quests`**：`quests` 域的 primary def 是「一条 = 一个任务」（`required=[source,name,desc,objective,reward_exp,reward_gold]`），而本表是「一条 = 一个等级的补给包」（`lv/name/items`），**形状不同** ⇒ 并进去只能硬造任务字段或放水 required。\\n\\n**外层键 = 源模块名**（`quest_add_v140`）：该模块的 `QUEST_ADD` / `QUEST_MAT` 是任务奖励补丁行、形状与两者都不同，不进本域。",
   "x-primary": "chapters_group",
   "type": "object",
   "propertyNames": {
@@ -63,6 +63,54 @@
       "properties": {
         "CHAPTER_PACK": {
           "$ref": "#/$defs/chapter_pack_table"
+        },
+        "SUPPLY_BOX": {
+          "$ref": "#/$defs/supply_box_table"
+        }
+      }
+    },
+    "supply_box_table": {
+      "type": "array",
+      "title": "每日补给箱（`game/data/quest_add_v140.py:121 SUPPLY_BOX`）",
+      "description": "实测 3 档：`{id, name, limit, items}`（箱 id / 显示名 / 限领口径字符串 / 物品**名**清单）。",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "title": "一档补给箱",
+        "required": [
+          "id",
+          "name",
+          "limit",
+          "items"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "箱 id"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "显示名"
+          },
+          "limit": {
+            "type": "string",
+            "minLength": 1,
+            "title": "限领口径",
+            "description": "源侧的限领口径串（如 `daily_1`/`daily3`/`weekly2_daily7`），内容侧词汇，导出不翻译。"
+          },
+          "items": {
+            "type": "array",
+            "title": "物品名清单",
+            "description": "物品**名**（不是 id）清单，按名进背包。未展开。",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
       }
     }

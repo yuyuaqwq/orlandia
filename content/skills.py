@@ -2,24 +2,24 @@
 """内容侧技能表读取（包内版）—— 逐字搬自游戏仓 `game/content_rules/skills.py`（220 行）。
 
 真源：`C:/Users/yuyu/qqbot/data/plugins/dragonfall/game/content_rules/skills.py`
-包内改动面 = **本块说明 + 下面 4 行 import/数据层 + 末尾 2 行接线别名**，14 个函数体一字不改。
+包内改动面 = **本块说明 + 下面 import/数据层（域读入）+ 末尾 2 行接线别名**，14 个函数体一字不改。
 逐字证据 = `overnight/d3_skills_verify.py`（逐行 diff + 逐字段对拍，全绿）。
 
-包内版说明（D3 技能批，2026-09-13）—— **逐字搬**，只改 import 段
+包内版说明（D3 技能批，2026-09-13）—— **逐字搬**，只改 import 段与数据层读口
 --------------------------------------------------------------
 | 真源 | 包内等价物 | 说明 |
 |---|---|---|
 | `from .. import content as C` | 下面 `class _ContentShim` + `C = _ContentShim()`（**W6 后只剩 `resolve`**） | 真源读聚合层 5 个符号（`PLAYER_SKILLS` / `BRANCH_SKILLS` / `TUTOR_SKILLS` / `SKILL_UP` + `resolve`）；W6 起 4 张表调用点直接读**本模块**同名模块级对象（shim 当年就是回指它们 = 同一个对象，值零变化），`C` 上只剩函数名句柄 `resolve` |
 | （隐式）三张源表 | `_shape_three_tables(_T.SKILLS, _T.CLASSES)` | 包内 `content/data/skills.json` 是三表**扁平化**产物（305 条，条目带 `owner_class` / `source` / `tier` / `branch`，见游戏仓 `scripts/export_game_package.py:161 derive_skills`）→ 这里按导出器追加的 4 个字段**逆折回**真源形状（`{cls:{name,skills}}` / `{cls:{name,branches:{tier:{线:{名:info}}}}}` / `{cls:{sk:info}}`），并从条目里剥掉那 4 个追加字段 —— 于是 `skill_info` 返回的 info **与真源逐字段相等**（导出器只追加、不改值，`_put` 源码可查） |
 | `from saintess_engine.battle.formulas import skill_max_level` | 同左（引擎侧纯公式，路径不变） | `skill_upgrade_cost` 用 |
-| ✅ 包内新增：`SKILL_UP` 表 | 本文件内**逐字内嵌**（AST 切片自 `game/data/skill_up.py`，305 条） | 该域**尚未进包**（`content/data/skill_up.json` 不存在，导出器暂无 `derive_skill_up`），而 `_skill_up` 必须读它；包内数据「随代码走」口径同 `content/mech/params.py` / `content/mech/class_data.py`（后者也是程序 dump 内嵌）。建域后整块搬走即可 |
+| `game/data/skill_up.py:SKILL_UP` | `content/data/skill_up.json`（`skill_up` 域）→ `saintess_engine.records` 读入本模块 `SKILL_UP` | 305 条，键值逐一等于源表；落盘外层键是**字典序**（落盘规范），消费点只按 key 取、`_skill_up_name_index()` 只按 `name`（305 个 `name` 互不相同）定位，故键序不参与取值。读不到 / 坏 JSON → 导入期 raise（技能成长是引擎 `skill_up` hook，缺表 = 全技能无声无成长） |
 
 真源读的游戏仓表（4 张）↔ 包内读口（W6 后调用点直读模块级同名对象）：
 
     PLAYER_SKILLS  ← content/data/skills.json（source == "player"，`_shape_three_tables` 逆折）
     BRANCH_SKILLS  ← content/data/skills.json（source == "branch"；tier/branch 还原嵌套）
     TUTOR_SKILLS   ← content/data/skills.json（source == "tutor"）
-    SKILL_UP       ← 本文件内嵌 `SKILL_UP`（真源 `game/data/skill_up.py`）
+    SKILL_UP       ← content/data/skill_up.json（`skill_up` 域，`Records` 读入）
     C.resolve(...) ← content/tables.py:resolve（= 游戏仓 `game/core/index.py:47`）—— 函数名句柄，保留
 
 已知差异（逐条 + 证据见 `overnight/d3-skills-port.md`）
@@ -35,9 +35,15 @@
 """
 from __future__ import annotations
 
+import os
+
 from saintess_engine.battle.formulas import skill_max_level  # noqa: F401
+from saintess_engine.records import Records
 
 from . import tables as _T
+
+_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # ============================================================
 # 数据层：包内扁平域 → 真源三表形状（原文 `from .. import content as C` 的等价物）
@@ -83,333 +89,15 @@ def _shape_three_tables(skills: dict, classes: dict) -> tuple:
 
 PLAYER_SKILLS, BRANCH_SKILLS, TUTOR_SKILLS = _shape_three_tables(_T.SKILLS, _T.CLASSES)
 
-# 技能升级成长表（每技能独立成长曲线 + 独立满级）—— 真源 `game/data/skill_up.py:SKILL_UP`
+# 技能升级成长表（每技能独立成长曲线 + 独立满级）—— 域 `content/data/skill_up.json`（305 条）
 # 字段：p=每级伤害/治疗倍率 +x%；c=每级条件倍率 +c；m=每 m 级叠层 +1；l=每级吸血比例 +2%；max=满级
 # key = 稳定 id（基础/导师技 = 技能表现存 sk_id；分支技 = sk_br_<pinyin>），每条带 name=中文名
-SKILL_UP: dict = {
-        # ============================================================
-        # v181 P0B-C 根治（方案 C，docs/REFACTOR_P0B_skill_up_dedup.md §4 Step2）：
-        #   key 从『技能显示中文名』改为『稳定 id』——中文名撞名不再互相污染配置：
-        #     · 基础/导师技：key = 技能表现存 sk_id（sk_hui_kan…），与 PLAYER_SKILLS/TUTOR_SKILLS 键一致
-        #     · 分支技：key = 生成的稳定 sk_br_<pinyin> id（与基础/导师 sk_ 前缀天然分域）
-        #   · 每条带 name=中文名（显示/校验）；同中文名多段（未来）将显式撞出（构建期自检）
-        #   · engine._skill_up 按 info 携带 id 单点查询，查不到回落中文名（防御/兼容）
-        #   · 启动自检：SKILL_UP 每 key 必须反查到一个 live 技能，孤儿直接 ImportError
-        #   · 本文件由脚本生成（scripts/gen_skill_up_p0bc.py 保留在仓内，勿手改数值）
-        #
-        #   · 撞车消解（§5.4 pinyin）：守歌(基础, 现存 sk_shou_ge) vs 收割(分支, pinyin 亦 shou_ge)
-        #     → 分支统一 sk_br_ 前缀天然分域（sk_br_shou_ge），全 305 名复核无第二撞。
-        # ============================================================
-
-        # ---------------- 基础技 PLAYER_SKILLS（key=现存 sk_id） ----------------
-        'sk_ci_ji': {'p': 12, 'max': 5, 'name': '刺击'},
-        'sk_ge_lie': {'p': 12, 'max': 5, 'name': '割裂'},
-        'sk_ji_ying': {'max': 3, 'name': '疾影'},
-        'sk_qian_xing': {'max': 3, 'name': '潜行'},
-        'sk_shuang_ren_luan_wu': {'p': 12, 'max': 5, 'name': '双刃乱舞'},
-        'sk_yan_wu_dan': {'max': 3, 'name': '烟雾弹'},
-        'sk_ying_xi': {'p': 12, 'max': 5, 'name': '影袭'},
-        'sk_zhong_jie_ge_hou': {'p': 12, 'max': 5, 'name': '终结·割喉'},
-        'sk_bing_zhui': {'p': 12, 'max': 5, 'name': '冰锥'},
-        'sk_huo_qiu_shu': {'p': 12, 'max': 5, 'name': '火球术'},
-        'sk_lei_ji': {'p': 12, 'max': 5, 'name': '雷击'},
-        'sk_shan_xian': {'max': 3, 'name': '闪现'},
-        'sk_shuang_jing_hu_ti': {'max': 3, 'name': '霜晶护体'},
-        'sk_yuan_su_yin_bao': {'p': 12, 'max': 5, 'name': '元素引爆'},
-        'sk_yun_shi_shu': {'p': 12, 'max': 5, 'name': '陨石术'},
-        'sk_zhou_yu_dan_mu': {'p': 9, 'max': 5, 'name': '骤雨弹幕'},
-        'sk_qun_ti_zhi_yu': {'p': 12, 'max': 5, 'name': '群体治愈'},
-        'sk_sheng_guang_cheng_ji': {'p': 10, 'max': 5, 'name': '圣光惩击'},
-        'sk_sheng_guang_cheng_jie': {'p': 12, 'max': 5, 'name': '圣光惩戒'},
-        'sk_sheng_guang_dan': {'p': 10, 'max': 5, 'name': '圣光弹'},
-        'sk_sheng_guang_hu_dun': {'max': 3, 'name': '圣光护盾'},
-        'sk_sheng_guang_qu_san': {'p': 12, 'max': 5, 'name': '圣光驱散'},
-        'sk_sheng_you': {'max': 3, 'name': '圣佑'},
-        'sk_xie_fu': {'p': 12, 'max': 5, 'name': '卸负'},
-        'sk_xin_yang_qi_dao': {'max': 3, 'name': '信仰祈祷'},
-        'sk_zhi_yu_shu': {'p': 12, 'max': 5, 'name': '治愈术'},
-        'sk_an_shen_qu': {'p': 12, 'max': 5, 'name': '安神曲'},
-        'sk_bo_xian': {'max': 3, 'name': '拨弦'},
-        'sk_gong_zhen': {'p': 10, 'max': 5, 'name': '共振'},
-        'sk_he_sheng': {'max': 3, 'name': '和声'},
-        'sk_ji_ge': {'max': 3, 'name': '疾歌'},
-        'sk_ji_zou_yin': {'max': 3, 'name': '疾走音'},
-        'sk_po_yin': {'p': 10, 'max': 5, 'name': '破音'},
-        'sk_shou_ge': {'max': 3, 'name': '守歌'},
-        'sk_suo_yin': {'p': 10, 'max': 5, 'name': '锁音'},
-        'sk_yin_ren': {'p': 12, 'max': 5, 'name': '音刃'},
-        'sk_zhan_ge': {'max': 3, 'name': '战歌'},
-        'sk_ce_ti': {'p': 12, 'max': 5, 'name': '侧踢'},
-        'sk_chong_quan': {'p': 12, 'max': 5, 'name': '冲拳'},
-        'sk_gang_quan': {'p': 12, 'max': 5, 'name': '钢拳'},
-        'sk_lian_zhao_san_lian': {'p': 9, 'max': 5, 'name': '连招三连'},
-        'sk_ming_xiang': {'max': 3, 'name': '冥想'},
-        'sk_tong_qiang': {'max': 3, 'name': '铜墙'},
-        'sk_zhen_di_ji': {'p': 12, 'max': 5, 'name': '震地击'},
-        'sk_zhi_quan': {'p': 12, 'max': 5, 'name': '直拳'},
-        'sk_feng_zhi_ji_zou': {'max': 3, 'name': '风之疾走'},
-        'sk_lian_she': {'p': 12, 'max': 5, 'name': '连射'},
-        'sk_lie_wang_xian_jing': {'p': 12, 'max': 5, 'name': '猎网陷阱'},
-        'sk_lie_yin_she_ji': {'p': 12, 'max': 5, 'name': '猎印射击'},
-        'sk_miao_zhun_she_ji': {'p': 12, 'max': 5, 'name': '瞄准射击'},
-        'sk_shan_bi_bu': {'max': 3, 'name': '闪避步'},
-        'sk_ying_yan_suo_ding': {'max': 3, 'name': '鹰眼锁定'},
-        'sk_zhi_ming_ju_ji': {'p': 12, 'max': 5, 'name': '致命狙击'},
-        'sk_chong_feng': {'p': 12, 'max': 5, 'name': '冲锋'},
-        'sk_hui_kan': {'p': 12, 'max': 5, 'name': '挥砍'},
-        'sk_leng_jing': {'p': 12, 'max': 5, 'name': '冷静'},
-        'sk_meng_ji': {'p': 12, 'max': 5, 'name': '猛击'},
-        'sk_po_jia_zhan': {'p': 12, 'max': 5, 'name': '破甲斩'},
-        'sk_tie_bi': {'max': 3, 'name': '铁壁'},
-        'sk_xuan_feng_zhan': {'p': 12, 'max': 5, 'name': '旋风斩'},
-        'sk_zhan_hou': {'max': 3, 'name': '战吼'},
-        # ---------------- 分支技 BRANCH_SKILLS（key=sk_br_<pinyin>） ----------------
-        'sk_br_huan_ying_lian_ci': {'p': 9, 'max': 5, 'name': '幻影连刺'},
-        'sk_br_ying_ren': {'p': 12, 'max': 5, 'name': '影刃'},
-        'sk_br_ying_fen_shen': {'max': 3, 'name': '影分身'},
-        'sk_br_an_ying_bu': {'max': 3, 'name': '暗影步'},
-        'sk_br_zhong_jie_chu_xing': {'p': 12, 'max': 5, 'name': '终结·处刑'},
-        'sk_br_lian_wu': {'p': 12, 'max': 5, 'name': '链舞'},
-        'sk_br_shuang_du_ren': {'p': 12, 'max': 5, 'name': '双毒刃'},
-        'sk_br_si_wang_biao_ji': {'max': 3, 'name': '死亡标记'},
-        'sk_br_du_ren': {'p': 12, 'max': 5, 'name': '毒刃'},
-        'sk_br_du_bao': {'p': 12, 'max': 5, 'name': '毒爆'},
-        'sk_br_cui_du_zhi_ren': {'p': 12, 'max': 5, 'name': '淬毒之刃'},
-        'sk_br_shi_gu': {'max': 1, 'name': '蚀骨'},
-        'sk_br_you_ying_lian_ci': {'p': 9, 'max': 5, 'name': '幽影连刺'},
-        'sk_br_ying_dun': {'max': 3, 'name': '影遁'},
-        'sk_br_shou_ge': {'p': 12, 'max': 5, 'name': '收割'},
-        'sk_br_an_ying_zhi_xin': {'max': 1, 'name': '暗影之心'},
-        'sk_br_an_ying_bu_ji': {'max': 1, 'name': '暗影步·极'},
-        'sk_br_an_ying_tu_xi': {'p': 12, 'max': 5, 'name': '暗影突袭'},
-        'sk_br_ju_du_zhi_chu': {'max': 1, 'name': '剧毒之触'},
-        'sk_br_du_wu_cui': {'p': 12, 'max': 5, 'name': '毒雾·淬'},
-        'sk_br_du_wu_zhang': {'max': 3, 'name': '毒雾·障'},
-        'sk_br_cui_du_zhi_xin': {'max': 1, 'name': '淬毒之心'},
-        'sk_br_cui_du_ci_sha': {'p': 12, 'max': 5, 'name': '淬毒刺杀'},
-        'sk_br_fu_shi_zhi_ren': {'p': 10, 'max': 5, 'name': '腐蚀之刃'},
-        'sk_br_wan_ying_gui_yi': {'p': 10, 'max': 4, 'name': '万影归一'},
-        'sk_br_huan_ying_wu': {'p': 9, 'max': 5, 'name': '幻影舞'},
-        'sk_br_ying_zhi_guo_du': {'max': 3, 'name': '影之国度'},
-        'sk_br_ying_wu_wu_jian': {'max': 1, 'name': '影舞·无间'},
-        'sk_br_zhong_jie_an_ying_jiao_sha': {'p': 12, 'max': 5, 'name': '终结·暗影绞杀'},
-        'sk_br_wan_du_shi_xin': {'p': 10, 'max': 5, 'name': '万毒噬心'},
-        'sk_br_wan_du_gui_zong': {'max': 1, 'name': '万毒归宗'},
-        'sk_br_ju_du_feng_bao': {'p': 12, 'max': 5, 'name': '剧毒风暴'},
-        'sk_br_du_ren_gong_ming': {'max': 1, 'name': '毒刃·共鸣'},
-        'sk_br_fu_shi': {'p': 12, 'max': 5, 'name': '腐世'},
-        'sk_br_yuan_su_qin_he': {'max': 1, 'name': '元素亲和'},
-        'sk_br_yuan_su_yan_mie': {'p': 10, 'max': 4, 'name': '元素湮灭'},
-        'sk_br_shuang_xi_lian_zhu': {'p': 12, 'max': 5, 'name': '双系连珠'},
-        'sk_br_leng_jing_hu_ti': {'max': 3, 'name': '棱镜护体'},
-        'sk_br_rong_lu_ming_xiang': {'max': 3, 'name': '熔炉冥想'},
-        'sk_br_zhi_yan': {'p': 12, 'max': 5, 'name': '织焰'},
-        'sk_br_ao_shu_dan_mu': {'p': 9, 'max': 5, 'name': '奥术弹幕'},
-        'sk_br_ao_shu_bao_po': {'p': 12, 'max': 5, 'name': '奥术爆破'},
-        'sk_br_ao_shu_zhi_jue': {'max': 1, 'name': '奥术直觉'},
-        'sk_br_ao_shu_fei_dan': {'p': 12, 'max': 5, 'name': '奥术飞弹'},
-        'sk_br_shen_du_ming_xiang': {'max': 3, 'name': '深度冥想'},
-        'sk_br_xiang_wei_pian_zhe': {'max': 3, 'name': '相位偏折'},
-        'sk_br_yuan_su_zhi_he': {'max': 1, 'name': '元素之核'},
-        'sk_br_yuan_su_tong_diao': {'max': 1, 'name': '元素同调'},
-        'sk_br_yuan_su_hong_liu': {'p': 12, 'max': 5, 'name': '元素洪流'},
-        'sk_br_yuan_su_liu_zhuan': {'max': 3, 'name': '元素流转'},
-        'sk_br_yuan_su_beng_fa': {'p': 12, 'max': 5, 'name': '元素迸发'},
-        'sk_br_huan_huo': {'max': 3, 'name': '唤火'},
-        'sk_br_ao_shu_gong_ming': {'max': 1, 'name': '奥术共鸣'},
-        'sk_br_ao_shu_li_chang': {'max': 3, 'name': '奥术力场'},
-        'sk_br_ao_shu_hong_liu': {'p': 10, 'max': 4, 'name': '奥术洪流'},
-        'sk_br_ao_shu_ju_zhen': {'max': 3, 'name': '奥术矩阵'},
-        'sk_br_ao_shu_mai_chong': {'p': 10, 'max': 4, 'name': '奥术脉冲'},
-        'sk_br_fa_shu_fan_zhi': {'max': 3, 'name': '法术反制'},
-        'sk_br_wan_xiang_tian_lei': {'p': 10, 'max': 3, 'name': '万象天雷'},
-        'sk_br_wan_xiang_feng_bao': {'p': 10, 'max': 4, 'name': '万象风暴'},
-        'sk_br_yuan_su_cai_jue': {'p': 10, 'max': 3, 'name': '元素裁决'},
-        'sk_br_yuan_su_qi_yuan': {'max': 1, 'name': '元素起源'},
-        'sk_br_huan_lei': {'max': 3, 'name': '唤雷'},
-        'sk_br_ao_shu_heng_chang': {'max': 1, 'name': '奥术恒常'},
-        'sk_br_ao_shu_yan_mie': {'p': 10, 'max': 3, 'name': '奥术湮灭'},
-        'sk_br_ao_mi_zhu_zai': {'p': 10, 'max': 3, 'name': '奥秘主宰'},
-        'sk_br_xing_jie_feng_bao': {'p': 10, 'max': 4, 'name': '星界风暴'},
-        'sk_br_zhen_zhi': {'max': 1, 'name': '真知'},
-        'sk_br_zhao_huan_ku_lou': {'max': 3, 'name': '召唤骷髅'},
-        'sk_br_mu_xue_di_yu': {'p': 12, 'max': 5, 'name': '墓穴低语'},
-        'sk_br_si_ge_dao': {'max': 3, 'name': '死歌·悼'},
-        'sk_br_ling_hun_biao_ji': {'max': 3, 'name': '灵魂标记'},
-        'sk_br_gu_shi_zu_zhou': {'p': 12, 'max': 5, 'name': '骨噬诅咒'},
-        'sk_br_hai_gu_ji_yi': {'p': 12, 'max': 5, 'name': '骸骨祭仪'},
-        'sk_br_guang_yu': {'p': 12, 'max': 5, 'name': '光愈'},
-        'sk_br_sheng_guang_hui_xiang': {'max': 1, 'name': '圣光回响'},
-        'sk_br_sheng_guang_qi_dao': {'p': 12, 'max': 5, 'name': '圣光祈祷'},
-        'sk_br_sheng_yan_shu': {'p': 12, 'max': 5, 'name': '圣言术'},
-        'sk_br_sheng_hui_di_jing': {'p': 12, 'max': 5, 'name': '圣辉涤净'},
-        'sk_br_shen_en_jiang_lin': {'p': 12, 'max': 5, 'name': '神恩降临'},
-        'sk_br_wang_ling_ji_yi': {'max': 1, 'name': '亡灵祭仪'},
-        'sk_br_wang_hun_hu_jia': {'max': 3, 'name': '亡魂护甲'},
-        'sk_br_si_wang_qi_yue': {'max': 1, 'name': '死亡契约'},
-        'sk_br_ling_hun_shou_ge': {'p': 10, 'max': 4, 'name': '灵魂收割'},
-        'sk_br_ku_lou_hai': {'max': 1, 'name': '骷髅海'},
-        'sk_br_hai_gu_hong_liu': {'p': 12, 'max': 5, 'name': '骸骨洪流'},
-        'sk_br_xin_nian_liu_zhuan': {'max': 1, 'name': '信念·流转'},
-        'sk_br_sheng_guang_bi_hu': {'max': 3, 'name': '圣光庇护'},
-        'sk_br_sheng_guang_zhu_fu': {'max': 3, 'name': '圣光祝福'},
-        'sk_br_sheng_ming_zhi_quan': {'p': 12, 'max': 5, 'name': '生命之泉'},
-        'sk_br_shen_sheng_en_dian': {'p': 12, 'max': 5, 'name': '神圣恩典'},
-        'sk_br_shen_ji': {'p': 12, 'max': 5, 'name': '神迹'},
-        'sk_br_wang_hun_zhu_zai': {'p': 10, 'max': 3, 'name': '亡魂主宰'},
-        'sk_br_wang_hun_da_jun': {'max': 3, 'name': '亡魂大军'},
-        'sk_br_si_ji_ling_yu': {'p': 12, 'max': 5, 'name': '死寂领域'},
-        'sk_br_yong_heng_an_hun': {'p': 10, 'max': 3, 'name': '永恒安魂'},
-        'sk_br_ling_hun_suo_lian': {'max': 1, 'name': '灵魂锁链'},
-        'sk_br_xin_nian_sheng_hua': {'max': 1, 'name': '信念·圣化'},
-        'sk_br_sheng_guang_zan_ge': {'p': 10, 'max': 4, 'name': '圣光赞歌'},
-        'sk_br_shu_guang': {'p': 10, 'max': 4, 'name': '曙光'},
-        'sk_br_sheng_ming_sheng_yu': {'p': 10, 'max': 4, 'name': '生命圣域'},
-        'sk_br_shen_ji_zhong_sheng': {'p': 12, 'max': 5, 'name': '神迹·重生'},
-        'sk_br_er_zhong_chang': {'max': 1, 'name': '二重唱'},
-        'sk_br_kai_xuan_zhi_ge': {'max': 3, 'name': '凯旋之歌'},
-        'sk_br_yong_tan_yu': {'p': 12, 'max': 5, 'name': '咏叹·愈'},
-        'sk_br_yong_tan_diao': {'p': 12, 'max': 5, 'name': '咏叹调'},
-        'sk_br_ji_ang_zhan_ge': {'max': 3, 'name': '激昂战歌'},
-        'sk_br_ying_xiong_zan_ge': {'max': 3, 'name': '英雄赞歌'},
-        'sk_br_ai_ge': {'p': 12, 'max': 5, 'name': '哀歌'},
-        'sk_br_an_mian_qu': {'max': 3, 'name': '安眠曲'},
-        'sk_br_bei_ming': {'p': 12, 'max': 5, 'name': '悲鸣'},
-        'sk_br_wan_ge': {'max': 3, 'name': '挽歌'},
-        'sk_br_po_sui_he_yin': {'p': 12, 'max': 5, 'name': '破碎和音'},
-        'sk_br_zhen_hun_ge': {'max': 3, 'name': '镇魂歌'},
-        'sk_br_gong_ming': {'max': 1, 'name': '共鸣'},
-        'sk_br_he_xian': {'max': 3, 'name': '和弦'},
-        'sk_br_yong_tan_sheng_yong': {'p': 12, 'max': 5, 'name': '咏叹·圣咏'},
-        'sk_br_yong_tan_hui': {'max': 3, 'name': '咏叹·辉'},
-        'sk_br_po_xiao_zhang_ge': {'p': 10, 'max': 4, 'name': '破晓长歌'},
-        'sk_br_ying_xiong_xu_shi_shi': {'max': 3, 'name': '英雄叙事诗'},
-        'sk_br_wang_zhe_wan_ge': {'p': 12, 'max': 5, 'name': '亡者挽歌'},
-        'sk_br_ai_dao_zhi_yin': {'p': 12, 'max': 5, 'name': '哀悼之音'},
-        'sk_br_an_hun_qu': {'max': 3, 'name': '安魂曲'},
-        'sk_br_wan_ge_chen': {'max': 3, 'name': '挽歌·沉'},
-        'sk_br_chen_mo_zhi_ge': {'max': 3, 'name': '沉默之歌'},
-        'sk_br_zhen_hun_an_hun': {'max': 1, 'name': '镇魂安魂'},
-        'sk_br_wan_lai_he_ming': {'max': 1, 'name': '万籁和鸣'},
-        'sk_br_yong_tan_ji': {'max': 1, 'name': '咏叹·极'},
-        'sk_br_tian_lai': {'p': 10, 'max': 3, 'name': '天籁'},
-        'sk_br_yong_heng_zan_ge': {'max': 3, 'name': '永恒赞歌'},
-        'sk_br_zhong_zhang_li_ming_song_ge': {'max': 3, 'name': '终章·黎明颂歌'},
-        'sk_br_wan_lai_ju_ji': {'p': 12, 'max': 5, 'name': '万籁俱寂'},
-        'sk_br_wan_ge_ji': {'max': 1, 'name': '挽歌·极'},
-        'sk_br_si_ji': {'p': 10, 'max': 3, 'name': '死寂'},
-        'sk_br_zhong_mo_an_hun': {'max': 3, 'name': '终末安魂'},
-        'sk_br_zhong_yan_wan_ge': {'max': 3, 'name': '终焉挽歌'},
-        'sk_br_beng_quan': {'p': 12, 'max': 5, 'name': '崩拳'},
-        'sk_br_xuan_feng_ti': {'p': 12, 'max': 5, 'name': '旋风踢'},
-        'sk_br_qi_li_bao_fa': {'p': 12, 'max': 5, 'name': '气力爆发'},
-        'sk_br_ji_feng_quan': {'p': 12, 'max': 5, 'name': '疾风拳'},
-        'sk_br_sui_lu_shi': {'p': 12, 'max': 5, 'name': '碎颅势'},
-        'sk_br_tie_shan_kao': {'max': 3, 'name': '铁山靠'},
-        'sk_br_yi_shou_wei_gong': {'max': 1, 'name': '以守为攻'},
-        'sk_br_hou_tu': {'max': 3, 'name': '厚土'},
-        'sk_br_fan_zhen': {'max': 1, 'name': '反震'},
-        'sk_br_shou_yu_zi_tai': {'max': 3, 'name': '守御姿态'},
-        'sk_br_pan_yan_shi_neng': {'p': 12, 'max': 5, 'name': '磐岩释能'},
-        'sk_br_tie_bi_quan': {'p': 12, 'max': 5, 'name': '铁壁拳'},
-        'sk_br_qi_li_zhi_xin': {'max': 1, 'name': '气力之心'},
-        'sk_br_qi_li_lie_kong': {'p': 12, 'max': 5, 'name': '气力裂空'},
-        'sk_br_po_zhan_gan_zhi': {'max': 1, 'name': '破绽感知'},
-        'sk_br_lie_yue_lian_ji': {'p': 9, 'max': 5, 'name': '裂岳连击'},
-        'sk_br_lian_huan_quan': {'p': 9, 'max': 5, 'name': '连环拳'},
-        'sk_br_zhen_she_quan': {'p': 12, 'max': 5, 'name': '震慑拳'},
-        'sk_br_fan_ji_zhi_wang': {'max': 1, 'name': '反击之王'},
-        'sk_br_da_di_zhi_fu': {'max': 1, 'name': '大地之肤'},
-        'sk_br_qi_li_shou_yu': {'max': 3, 'name': '气力守御'},
-        'sk_br_pan_yan_jia': {'max': 3, 'name': '磐岩甲'},
-        'sk_br_pan_he_bao_fa': {'p': 12, 'max': 5, 'name': '磐核爆发'},
-        'sk_br_pan_shi_zhi_xin': {'max': 1, 'name': '磐石之心'},
-        'sk_br_beng_shan': {'p': 10, 'max': 4, 'name': '崩山'},
-        'sk_br_han_yue_zhong_yan': {'p': 10, 'max': 3, 'name': '撼岳·终焉'},
-        'sk_br_wu_ying_lian_da': {'p': 9, 'max': 5, 'name': '无影连打'},
-        'sk_br_qi_li_tong_tian': {'p': 10, 'max': 4, 'name': '气力通天'},
-        'sk_br_po_zhan_ji': {'max': 1, 'name': '破绽·极'},
-        'sk_br_bu_dong_ru_shan': {'max': 1, 'name': '不动如山'},
-        'sk_br_da_di_shou_hu': {'max': 3, 'name': '大地守护'},
-        'sk_br_qi_li_wan_fa': {'p': 12, 'max': 5, 'name': '气力万法'},
-        'sk_br_pan_yan_zhen_shi': {'p': 10, 'max': 4, 'name': '磐岩·镇世'},
-        'sk_br_pan_shi_zhi_qu': {'max': 1, 'name': '磐石之躯'},
-        'sk_br_zhao_huan_teng_man_shou_wei': {'max': 3, 'name': '召唤藤蔓守卫'},
-        'sk_br_sen_yu_yin_ji': {'max': 3, 'name': '森语印记'},
-        'sk_br_cui_du_jian': {'p': 12, 'max': 5, 'name': '淬毒箭'},
-        'sk_br_jing_ji_bao': {'p': 12, 'max': 5, 'name': '荆棘爆'},
-        'sk_br_teng_man_chan_rao': {'p': 12, 'max': 5, 'name': '藤蔓缠绕'},
-        'sk_br_zhui_lie': {'p': 12, 'max': 5, 'name': '追猎'},
-        'sk_br_shuang_zhong_she_ji': {'p': 12, 'max': 5, 'name': '双重射击'},
-        'sk_br_xing_gui_suo_ding': {'max': 3, 'name': '星轨锁定'},
-        'sk_br_ji_feng_she_ji': {'p': 12, 'max': 5, 'name': '疾风射击'},
-        'sk_br_ji_feng_bu': {'max': 3, 'name': '疾风步'},
-        'sk_br_xu_li_she_ji': {'p': 12, 'max': 5, 'name': '蓄力射击'},
-        'sk_br_feng_ren_luan_wu': {'p': 9, 'max': 5, 'name': '风刃乱舞'},
-        'sk_br_ju_du_zhi_xin': {'max': 1, 'name': '剧毒之心'},
-        'sk_br_lie_sha_kuang_yan': {'p': 12, 'max': 5, 'name': '猎杀狂宴'},
-        'sk_br_chuan_xin_jian': {'p': 12, 'max': 5, 'name': '穿心箭'},
-        'sk_br_zi_ran_zhi_yan': {'max': 1, 'name': '自然之眼'},
-        'sk_br_zi_ran_hu_you': {'max': 3, 'name': '自然护佑'},
-        'sk_br_zhui_lie_zhe': {'max': 1, 'name': '追猎者'},
-        'sk_br_ji_su_she_ji': {'p': 9, 'max': 5, 'name': '急速射击'},
-        'sk_br_ji_feng_zhi_xin': {'max': 1, 'name': '疾风之心'},
-        'sk_br_chuan_yun_jian': {'p': 12, 'max': 5, 'name': '穿云箭'},
-        'sk_br_chuan_jia_she_ji': {'p': 12, 'max': 5, 'name': '穿甲射击'},
-        'sk_br_zhui_feng': {'max': 1, 'name': '追风'},
-        'sk_br_feng_zhi_ping_zhang': {'max': 3, 'name': '风之屏障'},
-        'sk_br_zhao_huan_gu_shu_shou_wei': {'max': 3, 'name': '召唤古树守卫'},
-        'sk_br_sen_zhi_gong_ming': {'max': 1, 'name': '森之共鸣'},
-        'sk_br_si_shen_zhi_jian': {'p': 10, 'max': 4, 'name': '死神之箭'},
-        'sk_br_lie_sha_shi_ke': {'max': 3, 'name': '猎杀时刻'},
-        'sk_br_zhi_ming_lian_she': {'p': 9, 'max': 5, 'name': '致命连射'},
-        'sk_br_ji_feng_ji': {'max': 1, 'name': '疾风·极'},
-        'sk_br_ji_feng_zhou_yu': {'p': 9, 'max': 5, 'name': '疾风骤雨'},
-        'sk_br_guan_ri_jian': {'p': 10, 'max': 4, 'name': '贯日箭'},
-        'sk_br_feng_bao_zhi_wu': {'p': 9, 'max': 5, 'name': '风暴之舞'},
-        'sk_br_feng_shen_jiang_lin': {'max': 3, 'name': '风神降临'},
-        'sk_br_shi_xue_zhan': {'p': 12, 'max': 5, 'name': '嗜血斩'},
-        'sk_br_nu_zhan': {'p': 12, 'max': 5, 'name': '怒斩'},
-        'sk_br_cui_xue': {'max': 1, 'name': '淬血'},
-        'sk_br_kuang_zhan_nu_hou': {'max': 3, 'name': '狂战怒吼'},
-        'sk_br_po_shi_zhan': {'p': 12, 'max': 5, 'name': '破势斩'},
-        'sk_br_lie_di_zhan': {'p': 12, 'max': 5, 'name': '裂地斩'},
-        'sk_br_chao_feng': {'max': 3, 'name': '嘲讽'},
-        'sk_br_jian_dun_bi_lei': {'max': 3, 'name': '坚盾壁垒'},
-        'sk_br_shou_hu_zi_tai': {'max': 3, 'name': '守护姿态'},
-        'sk_br_dun_ji_shi': {'p': 12, 'max': 5, 'name': '盾击·誓'},
-        'sk_br_tie_bi_shi': {'max': 3, 'name': '铁壁·誓'},
-        'sk_br_dun_zu': {'p': 12, 'max': 5, 'name': '顿足'},
-        'sk_br_nu_tao_lian_zhan': {'p': 9, 'max': 5, 'name': '怒涛连斩'},
-        'sk_br_duan_jin': {'p': 10, 'max': 4, 'name': '断筋'},
-        'sk_br_fen_tian_zhan': {'p': 12, 'max': 5, 'name': '焚天斩'},
-        'sk_br_kuang_re': {'max': 1, 'name': '狂热'},
-        'sk_br_xue_ji': {'max': 3, 'name': '血祭'},
-        'sk_br_long_xi_zhi_nu': {'p': 10, 'max': 5, 'name': '龙息之怒'},
-        'sk_br_sheng_dun': {'max': 3, 'name': '圣盾'},
-        'sk_br_jian_ren': {'max': 1, 'name': '坚韧'},
-        'sk_br_fu_chou': {'p': 12, 'max': 5, 'name': '复仇'},
-        'sk_br_zhan_hou_shou': {'max': 3, 'name': '战吼·守'},
-        'sk_br_po_cheng_chui': {'p': 10, 'max': 4, 'name': '破城锤'},
-        'sk_br_shi_yue_zhi_dun': {'max': 3, 'name': '誓约之盾'},
-        'sk_br_nu_tao_zhong_yan': {'p': 9, 'max': 5, 'name': '怒涛·终焉'},
-        'sk_br_zhan_zheng_hua_shen': {'p': 10, 'max': 3, 'name': '战争化身'},
-        'sk_br_zhan_yi_ji': {'p': 10, 'max': 3, 'name': '战意·极'},
-        'sk_br_liao_yuan_zhi_nu': {'p': 10, 'max': 4, 'name': '燎原之怒'},
-        'sk_br_xue_nu_bu_mie': {'max': 1, 'name': '血怒·不灭'},
-        'sk_br_bu_po_bi_lei': {'max': 3, 'name': '不破壁垒'},
-        'sk_br_jian_cheng_zhi_zi': {'max': 1, 'name': '坚城之姿'},
-        'sk_br_shou_hu_sheng_yu': {'max': 3, 'name': '守护圣域'},
-        'sk_br_shou_hu_shi_yan': {'max': 3, 'name': '守护誓言'},
-        'sk_br_tie_shi_bu_dong': {'max': 1, 'name': '铁誓·不动'},
-        # ---------------- 导师技 TUTOR_SKILLS（key=现存 sk_id） ----------------
-        'sk_cui_du_zhi_ren': {'p': 12, 'max': 5, 'name': '淬毒秘术'},
-        'sk_mo_li_mai_chong': {'p': 12, 'max': 5, 'name': '魔力脉冲'},
-        'sk_jiu_shu_zhi_guang': {'p': 12, 'max': 3, 'name': '救赎之光'},
-        'sk_sheng_guang_shen_pan': {'p': 12, 'max': 3, 'name': '圣光审判'},
-        'sk_beng_quan_lie': {'p': 12, 'max': 4, 'name': '裂骨击'},
-        'sk_jin_gang_ti': {'max': 3, 'name': '磐石之体'},
-    }
+_R_UP = Records(_PKG_ROOT, "skill_up", sub="content/data")
+if _R_UP.missing:
+    raise ValueError(
+        "skill_up 域读不到（%s）：技能成长表是引擎 skill_up hook 的唯一来源，"
+        "缺表 = 全技能无声无成长 —— 报错，不许静默给空表" % (_R_UP.path,))
+SKILL_UP: dict = _R_UP.all()
 
 
 

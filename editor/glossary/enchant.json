@@ -35,6 +35,11 @@
       "note": "附魔一次触发「大师之作」（额外加成）的概率（实测 0.05）。副业等级 ≥10 的消费点用 0.10，是命令层口径，不在本域。 实测取值 0.05。",
       "widget": "pct",
       "group": "crit"
+    },
+    "ENCHANT_MAX_VALUE": {
+      "zh": "单次附魔上限",
+      "note": "键 = 词条 id（实测 1：crit）；值 = 单次附魔可加的上限（实测 0.04）。真源 `game/data/enchant.py:138`。",
+      "group": "recipe"
     }
   },
   "groups": [
@@ -44,7 +49,8 @@
       "icon": "✨",
       "fields": [
         "ENCHANT_RECIPES",
-        "ENCHANT_SLOTS"
+        "ENCHANT_SLOTS",
+        "ENCHANT_MAX_VALUE"
       ]
     },
     {

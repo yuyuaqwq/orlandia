@@ -4,6 +4,11 @@
       "zh": "章节补给礼包",
       "note": "实测 10 条，一条 = 一个等级的礼包。消费点：升级结算时若跨过该等级则发 `items` 里的物品。 实测 10 条。",
       "group": "pack"
+    },
+    "SUPPLY_BOX": {
+      "zh": "每日补给箱",
+      "note": "实测 3 档：`{id, name, limit, items}`（`limit` 是限领口径串，`items` 是物品**名**清单）。真源 `game/data/quest_add_v140.py:121`。",
+      "group": "pack"
     }
   },
   "groups": [
@@ -12,7 +17,8 @@
       "label": "章节补给",
       "icon": "📦",
       "fields": [
-        "CHAPTER_PACK"
+        "CHAPTER_PACK",
+        "SUPPLY_BOX"
       ]
     }
   ]

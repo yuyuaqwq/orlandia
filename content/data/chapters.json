@@ -86,6 +86,38 @@
           "龙晶箱"
         ]
       }
+    ],
+    "SUPPLY_BOX": [
+      {
+        "id": "supply_mat",
+        "name": "每日材料箱",
+        "limit": "daily_1",
+        "items": [
+          "图纸残页",
+          "淬火石",
+          "烤肉串"
+        ]
+      },
+      {
+        "id": "supply_tool",
+        "name": "每日道具箱",
+        "limit": "daily3",
+        "items": [
+          "强化石",
+          "双倍金币符",
+          "炖菜"
+        ]
+      },
+      {
+        "id": "supply_rich",
+        "name": "每日豪华箱",
+        "limit": "weekly2_daily7",
+        "items": [
+          "白银箱",
+          "精炼强化石",
+          "幸运符"
+        ]
+      }
     ]
   }
 }

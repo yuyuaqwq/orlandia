@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/game_config.schema.json",
-  "title": "游戏配置常量（game_config）—— 一条 = 一个源模块的常量组（21 组 / 110 个成员）",
+  "title": "游戏配置常量（game_config）—— 一条 = 一个源模块的常量组（40 组 / 158 个成员）",
   "description": "一条 = **一个 `game/data/*.py` 配置模块的常量组**（外层键 = 源模块名；条目 = `{源常量名: 值原样}`）。真源 = 游戏仓 20 个「配置/常量」模块（逐个判定表见 `overnight/B9-L7-domains.md` §2），经 `scripts/export_domains/b9_l7_domains.py:derive_game_config` 单向导出。**key 口径**：外层键 = 源模块名（`^[a-z][a-z0-9_]*$`），成员键 = **源侧常量名原样**（UPPER_SNAKE，改名 = 语义漂移）；值**一字不改**（不补默认值、不改类型、不展开引用串）。已属别域的表**不在此重复**（`panel_rules` / `enhance_table` / `effect_rules` / `passive_proc` / `weekly_quests` / `trial_floors`）。三个坑：① `UPGRADE_TABLE`/`HOUSE_LEVELS`/`HOUSE_REFUND`/`ENHANCE_FAIL_DROP` 的 **int 键**落成字符串键（包内 `content/config.py:int_keys()` 还原，不还原 = `.get(3)` 恒 None）；② tuple 落成 array（按序解包/索引不受影响，判等要注意）；③ `battle_config` 里 4 张 **tuple 键**表本轮未导（JSON 键不可逆，见报告缺口）。",
   "x-primary": "config_group",
   "type": "object",
@@ -129,7 +129,7 @@
         "pets": {
           "type": "object",
           "title": "宠物常量",
-          "description": "（2 个常量）B14-3 新增。游戏仓 `game/data/pets.py:190/192`：`PET_MAX_LEVEL`（品种等级上限 = 30）/ `PET_SKILL_UNLOCK_LV`（战斗技能解锁等级 = 10）。**为什么在本组而不是 `pets` 域**：`pets` 域的 primary def 是「一条 = 一个品种」（`required=[key,name,quality,focus,skill_type,skill_interval,skill_value,spd]`），常量行塞不进（硬塞 = 硬造品种字段或放水 required）。品种池本体在 `pets` 域。消费端：`content/social_pet.py` / `content/settlement.py` / `content/combat_cmds.py`。"
+          "description": "（4 个常量）游戏仓 `game/data/pets.py`：`PET_MAX_LEVEL`（品种等级上限 = 30）/ `PET_SKILL_UNLOCK_LV`（战斗技能解锁等级 = 10）/ `_PET_EGG_PRICE`（品质 → 宠物蛋价，5 档）/ `PET_EXP_GRADE`（品质 → `{per_lv, cap}` 经验加成曲线，5 档）。**为什么在本组而不是 `pets` 域**：`pets` 域的 primary def 是「一条 = 一个品种」（`required=[key,name,quality,focus,skill_type,skill_interval,skill_value,spd]`），常量行塞不进（硬塞 = 硬造品种字段或放水 required）。品种池本体在 `pets` 域。消费端：`content/social_pet.py` / `content/settlement.py` / `content/combat_cmds.py` / `content/pets.py`。"
         },
         "maps": {
           "type": "object",
@@ -149,17 +149,17 @@
         "affixes": {
           "type": "object",
           "title": "词条池与别名",
-          "description": "（2 张索引表）B14-3 新增。游戏仓 `game/data/affixes.py`：`AFFIX_POOL_BY_QUALITY`（品质 → 可出词条 id 列表，**随机池**）/ `AFFIX_AFFINITY_CN`（玩家输入别名 → 锻造倾向词，12 键）。**词条条目本体**在 `affixes` 域。消费端：`content/economy_cmds.py`（锻造词条抽取与倾向匹配）。"
+          "description": "（4 张表）游戏仓 `game/data/affixes.py`：`AFFIX_POOL_BY_QUALITY`（品质 → 可出词条 id 列表，**随机池**）/ `AFFIX_AFFINITY_CN`（玩家输入别名 → 锻造倾向词，12 键）/ `AFFIX_AFFINITY_POOLS`（锻造倾向 → 词条池，4 键）/ `SERIES_FIXED_AFFIX`（装备/系列名 → 固定词条 id 列表，622 键）。**词条条目本体**在 `affixes` 域。消费端：`content/economy_cmds.py`（锻造词条抽取与倾向匹配）/ `content/affix.py` / `content/drops.py`。"
         },
         "fishing": {
           "type": "object",
           "title": "垂钓常量与收藏",
-          "description": "（1 张收藏表 + 1 个常量）B14-3 新增。游戏仓 `game/data/fishing.py`：`FISH_COLLECT`（3 条收藏鱼 `{id,name,chance,spots,desc}`，`spots = null` 表示不限钓点）/ `FISH_EXP`（品质 → 垂钓经验）。**钓点表**在 `fishing_spots` 域、**鱼种池**在 `fishing_pool` 域，本组不重复。消费端：`content/economy_cmds.py` / `content/profession.py`。"
+          "description": "（1 张收藏表 + 2 个常量）游戏仓 `game/data/fishing.py`：`FISH_COLLECT`（3 条收藏鱼 `{id,name,chance,spots,desc}`，`spots = null` 表示不限钓点）/ `FISH_EXP`（品质 → 垂钓经验）/ `FISH_QUALITY_WEIGHTS`（钓点等级 → 品质权重，**int 键** ⇒ 包内读口还原）。**钓点表**在 `fishing_spots` 域、**鱼种池**在 `fishing_pool` 域，本组不重复。消费端：`content/catalog_b143.py` / `content/economy_cmds.py` / `content/profession.py` / `content/quality_tiers.py`。"
         },
         "pois": {
           "type": "object",
           "title": "交互点定义表",
-          "description": "（1 张定义表）B14-3 新增。游戏仓 `game/data/pois.py:9 POIS`（83 条交互点**定义**：`{name,icon,desc,effect}`，键 = 交互点类型如 `campfire`/`shrine`/`herb_patch`）。**落点表**（哪个子区域有哪些交互点）在 `pois` 域 —— 两者形状不同（定义 vs 落点），故定义表归本组。消费端：`content/instance_cmds.py` / `content/world_cmds.py` / `content/effects/poi_effects.py`。"
+          "description": "（1 张定义表 + 3 个文案池）游戏仓 `game/data/pois.py`：`POIS`（83 条交互点**定义**：`{name,icon,desc,effect}`，键 = 交互点类型如 `campfire`/`shrine`/`herb_patch`）/ `NOTE_POOL`（note POI 线索文案 3 条）/ `RUNE_POOL`（rune POI 图鉴线索文案 4 条）/ `SIGHT_POOL`（sight POI 风景文案 5 条）。**落点表**（哪个子区域有哪些交互点）在 `pois` 域 —— 两者形状不同（定义 vs 落点），故定义表归本组。消费端：`content/instance_cmds.py` / `content/world_cmds.py` / `content/combat_cmds.py` / `content/effects/poi_effects.py`。"
         },
         "hidden_monsters": {
           "type": "object",
@@ -170,6 +170,56 @@
           "type": "object",
           "title": "副本调查常量",
           "description": "（1 张收藏样本表）B14-3 新增。游戏仓 `game/data/instance_investigation.py:47 INVESTIGATE_COLLECT_SAMPLES`（5 个材料 id：调查点「收藏」分支的样本池）。**调查点表本体**在 `instance_investigation` 域（22 本 / 90 个点），本组不重复；同模块的三个概率常量（`INVESTIGATE_*_CHANCE`）与两个派生计数（`INVESTIGATION_COUNT`/`INVESTIGATION_INST_COUNT`）本轮不进域（非缺口名，列在导出器 `owned_elsewhere`）。消费端：`content/instance_cmds.py`。"
+        },
+        "daily_events": {
+          "type": "object",
+          "title": "野外图今日奇遇",
+          "description": "（1 张表）游戏仓 `game/data/daily_events.py:18 DAILY_MAP_EVENTS`（20 张野外图 → 当日奇遇变体列表，每条 `{id,name,desc,effects}`）。消费端：`content/daily_events.py` / `content/cmds_event.py`。"
+        },
+        "equip_roster": {
+          "type": "object",
+          "title": "装备系列套名",
+          "description": "（1 张表）游戏仓 `game/data/equip_roster.py:510 SERIES_SETS`（系列名 → 系列套名，38 键）。**装备名册本体**在 `equip_roster` 域。消费端：`content/class_sets.py`。"
+        },
+        "events": {
+          "type": "object",
+          "title": "探索彩蛋闸门",
+          "description": "（1 个常量）游戏仓 `game/data/events.py:1458 EXPLORE_EGG_CHANCE`（探索彩蛋的独立触发概率，实测 0.005）。探索/彩蛋两个事件池本体在 `events` 域（按条目的 `source` 字段区分），本组不重复。消费端：`content/events.py`。"
+        },
+        "instances": {
+          "type": "object",
+          "title": "副本 Boss 装备掉落规则",
+          "description": "（1 张表）游戏仓 `game/data/instances.py:3686 INSTANCE_BOSS_EQUIP_DROP`（27 本副本 → `{boss_equip, boss_rate, pool, pool_rate, pity}`）。**副本条目本体**在 `instances` 域（该域不含掉落规则字段）。消费端：`content/instance_cmds.py`。"
+        },
+        "props": {
+          "type": "object",
+          "title": "子区域落点道具",
+          "description": "（1 张表）游戏仓 `game/data/props.py:606 SUBAREA_PROPS`（`地图:子区域` → 落点道具行，315 键；行内元素是 `(prop_id, 显示名)` 或裸 prop_id）。**行内顺序 = 真源顺序**（`props` 域是「每条 prop 列自己的 `mounts`」的反投影，同一地点多 prop 的行内序不复原）⇒ 本组按源序落盘。消费端：`content/pois.py`。"
+        },
+        "races": {
+          "type": "object",
+          "title": "种族攻击系数",
+          "description": "（1 张表）游戏仓 `game/data/races.py:115 RACE_ATTACK_MULT`（性格 id → 攻击系数，2 键）。**种族条目本体**在 `races` 域。消费端：`content/race_talent_display.py`。"
+        },
+        "set_bonus_data": {
+          "type": "object",
+          "title": "套装件数加成",
+          "description": "（1 张表）游戏仓 `game/data/set_bonus_data.py:35 SERIES_SET_BONUS`（系列 → 2/4/5 件加成与说明，39 键）。消费端：`content/class_sets.py`。"
+        },
+        "sets": {
+          "type": "object",
+          "title": "套装主题与概率",
+          "description": "（2 张表）游戏仓 `game/data/sets.py`：`SET_THEMES`（品质 → 套装主题词，3 档）/ `SET_CHANCE`（品质 → 套装出现概率，3 档）。**套装条目本体**在 `sets` 域。消费端：`content/drops.py`。"
+        },
+        "wild_king_data": {
+          "type": "object",
+          "title": "野王常量",
+          "description": "（12 个常量）游戏仓 `game/data/wild_king_data.py`：时段 `WILD_KING_PERIODS` / `WILD_KING_SPAWN_HOURS`（源侧 **tuple** ⇒ 读口还原）、候选图 `WILD_KING_MAPS`、宝箱档位 `WILD_KING_CHEST_TIERS`、上限与时长（`WILD_KING_GLOBAL_LIMIT` / `WILD_KING_PER_DAY_LIMIT` / `WILD_KING_PER_PERIOD_LIMIT` / `WILD_KING_PITY_PERIODS` / `WILD_KING_LIFETIME_SEC` / `WILD_KING_LOOT_PRIORITY_SEC` / `WILD_KING_NO_KILL_EXTRA`）、保底券名 `WILD_KING_PITY_VOUCHER_NAME`。**野王名册本体**在 `wild_king` 域。消费端：`content/wild_king.py`。"
+        },
+        "refine_exclusive": {
+          "type": "object",
+          "title": "专属重锻配方",
+          "description": "（1 张配方表）游戏仓 `game/data/refine_exclusive.py`：`REFINE_EXCLUSIVE_RECIPES`（专属装备 id → 重锻配方行）。函数 `merge_into()` 是逻辑、在 `content/refine_exclusive.py`，不进域。消费端：`content/craft.py` / `content/refine_exclusive.py`。"
         }
       }
     }

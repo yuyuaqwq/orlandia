@@ -23,8 +23,8 @@ B14-3_BRIEF §1 列的 46 个缺口名（42 个数据名 + 派生名 `ALL_WILD` 
 * 域读不到（缺文件/坏 JSON/空表）→ 返回 `{}` **不抛**（空表会在门禁上以「不等」现形）；
   域在、但键集与序声明不符 → `raise`（防「源改了、门面静默改序」）。
 * **两处类型还原**（不做 = 静默错值）：
-  ① **外层键序**：域 JSON 是字典序，真源是插入序（`_ORDER_*` 由
-     `overnight/b143_gen_facade.py` 从宿主源码导出，不手抄）；
+  ① **外层键序**：域 JSON 是字典序，真源是插入序 —— 逐张声明在 `content/data/key_order.json`
+     （形状见该域 schema），本文件按名取用（`_order()`）；
   ② **int 键**：`GEM_TIERS` / `GEM_TIER_NAMES` / `RUNE_LEVEL_ROMAN` / `HONOR_SHOP` 的键源侧是
      int，JSON 只有字符串键 → 不还原 = `.get(3)` 恒 None、`sorted()` 乱序、`tier + 1` 取不到。
 
@@ -64,8 +64,9 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明。
-# 本文件的 `_int_keys` / `_ordered` 作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后），
-# 形状的 `key_type` / `order` 只作用于域顶层键 ⇒ 按铁律 4 原样保留（见 out/DIFF_NOTES.md §C）。
+# 本文件的 `_int_keys` / `_ordered` 作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后）：
+# 形状的 `key_type` / `order` 只作用于域顶层键，组内键型与组内键序覆盖不到 ⇒ 仍由本文件还原
+# （序声明按名取 `key_order` 域，见 out/DIFF_NOTES.md §C）。
 _R = RecordsSet(_PKG_ROOT, {
     "game_config": {"sub": "content/rules"},
     "equipment":   {"sub": "content/data"},
@@ -76,6 +77,7 @@ _R = RecordsSet(_PKG_ROOT, {
     "gems":        {"sub": "content/data"},
     "guild":       {"sub": "content/data"},
     "shop":        {"sub": "content/data"},
+    "key_order":   {"sub": "content/data"},
 })
 
 
@@ -114,8 +116,8 @@ def _ordered(tbl, order, where: str):
     extra = [k for k in have if k not in set(keys)]
     if miss or extra:
         raise ValueError(
-            "catalog_b143：%s 域与序声明不一致（域缺 %d / 声明缺 %d）—— 请重跑 "
-            "overnight/b143_gen_facade.py 同步序声明。域缺 %s … 未声明 %s …"
+            "catalog_b143：%s 域与序声明不一致（域缺 %d / 声明缺 %d）—— 请同步 "
+            "content/data/key_order.json 的对应条目。域缺 %s … 未声明 %s …"
             % (where, len(miss), len(extra), miss[:5], sorted(extra)[:5]))
     return {k: tbl[k] for k in keys}
 
@@ -139,33 +141,20 @@ def _tupled_rows(rows):
 
 
 # ============================================================
-# ① 序声明（真源插入序，由 overnight/b143_gen_facade.py 从宿主源码导出）
+# ① 序声明（`content/data/key_order.json`：本模块 26 条 / 443 键，按名取用）
 # ============================================================
+_ORDERS: dict = _R.key_order.all()
 
-_ORDER_MAP_CONNECTIONS = ["abyss_altar", "abyss_gate", "abyss_throne", "ancient_battlefield", "ancient_tree", "anvil_fort", "ash_temple", "aurora_town", "black_forest", "black_tide_strait", "boar_ridge", "bone_wild", "border_castle", "cinder_mountain", "cloud_sanctum", "cloud_sea", "cold_ridge", "cold_spine_snow_trail", "coral_reef", "dawn_cathedral", "dawn_city", "deep_dragon_palace", "deep_lake", "deep_tunnel", "deer_fort", "dragon_kin", "dragon_pass", "dragon_ridge", "dragon_ridge_old_road", "dragon_roost", "dragon_tomb", "dragonborn_valley_trail", "dragonsfall_valley", "dusk_ridge_road", "dwarf_long_gallery", "elven_ruins", "ember_camp", "ember_corridor", "emerald_forest", "emerald_valley", "eye_of_storm", "forge_valley", "frost_fang", "frost_field", "frost_horn", "frost_throne", "frostwhisper_canyon", "fungus_forest", "goblin_camp", "gold_plain", "gray_dwarf", "harbor_docks", "hill_mine", "holy_trial", "ironharbor", "ironshield_hills", "ironshield_town", "jade_port", "king_road", "knight_yard", "lava_bed", "lost_library", "maple_village", "mermaid_bay", "mist_tide_passage", "mist_trench", "misty_swamp", "molten_abyss", "moon_court", "moon_gate", "moon_glade", "moon_temple", "moonshadow_wood", "nameless_harbor", "white_deer_forest", "oak_plain", "oak_town", "old_battlefield", "old_king_tomb", "pearl_city", "permafrost_field", "rainbow_cloud", "redridge_plateau", "rockfall_gorge", "sea_cave", "sea_god_temple", "secret_crypt", "shell_town", "shipwreck_graveyard", "silver_brook", "silver_river", "silver_valley", "silver_wind_road", "silverwood", "siren_nest", "sky_ladder_path", "star_song", "starlake", "starlight_terrace", "storm_cliff", "storm_plateau", "storm_sea", "storm_strait", "storm_throne", "sunken_ship", "sunset_isle", "under_dragon", "under_market", "west_ridge_wilds", "whale_domain", "white_abbey", "white_deer", "wind_city", "windmill_plain", "windvale", "winter_lake"]
-_ORDER_LEGACY_MAP_ALIAS = ["vila", "维拉镇", "白鹿城", "翡翠森林", "铁港城", "晨曦城", "月冠王庭", "霜角堡", "铁砧要塞", "龙脊山口", "橡木镇", "橡木草地", "橡木林"]
-_ORDER_HIDDEN_MAP_UNLOCK = ["lost_library", "ember_corridor"]
-_ORDER_RUNE_CRAFT_SHARDS = ["blue", "purple", "orange"]
-_ORDER_RUNE_DROP = ["blue", "purple", "orange"]
-_ORDER_RUNE_LEVEL_ROMAN = [1, 2, 3]
-_ORDER_AFFIX_AFFINITY_CN = ["攻击", "输出", "防御", "防", "生存", "元素", "元素伤害", "机动", "速度", "灵活", "穿透", "破甲"]
-_ORDER_AFFIX_POOL_BY_QUALITY = ["blue", "purple", "orange"]
-_ORDER_FISH_EXP = ["white", "green", "blue", "purple", "orange"]
-_ORDER_POIS = ["campfire", "shrine", "herb_patch", "loot_pile", "rune_stone", "fishing_spot", "note", "scenic_view", "ancient_tree_sight", "star_gazing", "merchant_camp", "ancient_altar", "bird_nest", "ice_sculpture", "dragon_bone", "shipwreck", "traveler_grave", "goblin_camp_0_chest_1", "goblin_camp_0_fire_1", "goblin_camp_1_chest_2", "goblin_camp_1_fire_2", "goblin_camp_2_corpse_1", "sea_cave_0_corpse_1", "sea_cave_0_trap_1", "sea_cave_1_chest_1", "old_king_tomb_0_rune_1", "old_king_tomb_0_trap_1", "old_king_tomb_1_rune_2", "old_king_tomb_2_mech_1", "old_king_tomb_2_chest_1", "secret_crypt_0_trap_1", "secret_crypt_0_rune_1", "secret_crypt_1_supply_1", "secret_crypt_2_chest_1", "elven_ruins_0_fire_1", "elven_ruins_1_mech_1", "elven_ruins_1_corpse_1", "ash_temple_0_fire_1", "ash_temple_1_supply_1", "ash_temple_1_trap_1", "ash_temple_2_rune_1", "abyss_gate_0_corpse_1", "abyss_gate_1_rune_1", "dragon_tomb_0_rune_1", "dragon_tomb_1_corpse_1", "dragon_tomb_2_mech_1", "deer_fort_0_mech_1", "deer_fort_0_corpse_1", "deer_fort_1_supply_1", "deer_fort_2_chest_1", "holy_trial_0_rune_1", "holy_trial_1_chest_1", "moon_temple_0_supply_1", "moon_temple_0_rune_1", "moon_temple_1_chest_1", "frost_throne_0_fire_1", "frost_throne_1_mech_1", "frost_throne_2_fire_2", "storm_throne_0_rune_1", "storm_throne_1_trap_1", "sunken_ship_0_corpse_1", "sunken_ship_1_chest_1", "sunken_ship_2_chest_2", "siren_nest_0_mech_1", "siren_nest_1_supply_1", "siren_nest_2_chest_1", "sea_god_temple_0_rune_1", "sea_god_temple_1_shell_1", "sea_god_temple_1_shell_2", "sea_god_temple_2_chest_1", "deep_dragon_palace_0_corpse_1", "deep_dragon_palace_1_chest_1", "gray_dwarf_0_corpse_1", "gray_dwarf_1_chest_1", "gray_dwarf_2_fire_1", "under_dragon_0_mech_1", "under_dragon_1_corpse_1", "eye_of_storm_0_rune_1", "eye_of_storm_1_chest_1", "abyss_throne_0_rune_1", "abyss_throne_1_trap_1", "cloud_sanctum_0_fire_1", "cloud_sanctum_1_mech_1"]
-_ORDER_HIDDEN_MONSTERS = ["e_gold_slime", "e_white_stag", "e_glimmer_fish", "e_rune_golem", "e_shadow_stalker", "e_fortune_fox", "e_forest_wolf_king", "e_swamp_croc", "e_mine_troll", "e_abbey_guardian", "e_royal_guard", "e_moon_wolf", "e_elf_sentinel", "e_frost_bear", "e_ash_salamander", "e_dragon_hatchling", "e_storm_eagle", "e_sea_serpent", "e_siren", "e_deep_angler", "e_fungus_king", "e_lava_golem", "e_ghost_knight", "e_cloud_serpent", "e_iron_bull"]
-_ORDER_QUALITY = ["white", "green", "blue", "purple", "orange"]
-_ORDER_EQUIP_SLOTS = ["weapon", "helm", "armor", "legs", "boots", "ring", "necklace"]
-_ORDER_WEAPON_FLAVOR = ["sword", "staff", "bow", "mace", "dagger", "fist", "spear", "shield"]
-_ORDER_FACTIONS = ["guild", "kingdom", "church", "elves", "dwarves", "north", "dragons"]
-_ORDER_AREA_FACTION = ["oak", "white_deer", "emerald", "misty", "goblin", "hill", "ironharbor", "seacave", "silver", "windmill", "deerfort", "maple", "dawn", "gold", "abbey", "oldtomb", "border", "silverriver", "crypt", "knight", "kingroad", "holytrial", "ironshield", "oldbattle", "moongate", "silverwood", "starlake", "mooncourt", "elvenruins", "ancienttree", "starsong", "moonglade", "emeraldvalley", "moontemple", "windvale", "moonshadow", "frosthorn", "frostfield", "anvilfort", "forgevalley", "blackforest", "cinder", "ashtemple", "abyssgate", "frostfang", "coldridge", "winterlake", "frostthrone", "aurora", "permafrost", "frostwhisper", "dragonpass", "dragonridge", "dragonroost", "ancientbattle", "dragontomb", "dragonkin", "bonewild", "stormcliff", "stormthrone", "redridge", "dragonsfall", "jade", "shell", "coral", "sunset", "stormstrait", "mermaid", "sunkenship", "siren", "nameless", "pearl", "misttrench", "whale", "shipwreck", "stormsea", "seagod", "deepdragon", "windcity", "cloudsea", "stormplateau", "eyeofstorm", "rainbow", "starlight", "cloudsanctum"]
-_ORDER_ENCHANT_RECIPES = ["atk", "matk", "def", "mdef", "hp", "spd", "crit"]
-_ORDER_ENCHANT_SLOTS = ["blue", "purple", "orange"]
-_ORDER_GEM_TIERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-_ORDER_GEM_TIER_NAMES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-_ORDER_GEM_SOCKETS = ["white", "green", "blue", "purple", "orange"]
-_ORDER_GEM_DRILL = ["blue", "purple", "orange"]
-_ORDER_GUILD_CONFIG = ["create_cost", "create_level", "sign_exp", "sign_contribute", "sign_gold", "task_exp", "task_contribute", "task_gold", "kill_task", "donate_items", "exp_bonus_per_level", "max_bonus", "vice_leader_level", "elite_level"]
-_ORDER_HONOR_SHOP = [1, 2, 3, 4, 5, 6]
+
+def _order(name: str):
+    """按名取键序声明（`key_order` 域）—— 缺条目 / 形状不对 → raise（不静默当空序）。"""
+    ent = _ORDERS.get(name)
+    keys = ent.get("keys") if isinstance(ent, dict) else None
+    if not isinstance(keys, list) or not keys:
+        raise ValueError(
+            "key_order：读不到 %r 的键序声明（域缺该条目，或形状不是 {keys: [...]}）"
+            "—— 序读不到就不许静默改成空表" % (name,))
+    return keys
 
 
 # ============================================================
@@ -181,46 +170,46 @@ def _grp(group: str) -> dict:
 
 PET_MAX_LEVEL = _grp("pets").get("PET_MAX_LEVEL")
 PET_SKILL_UNLOCK_LV = _grp("pets").get("PET_SKILL_UNLOCK_LV")
-MAP_CONNECTIONS = _ordered((_grp("maps").get("MAP_CONNECTIONS") if isinstance(_grp("maps").get("MAP_CONNECTIONS"), dict) else {}), _ORDER_MAP_CONNECTIONS, "game_config.maps")
-LEGACY_MAP_ALIAS = _ordered((_grp("maps").get("LEGACY_MAP_ALIAS") if isinstance(_grp("maps").get("LEGACY_MAP_ALIAS"), dict) else {}), _ORDER_LEGACY_MAP_ALIAS, "game_config.maps")
-HIDDEN_MAP_UNLOCK = _ordered((_grp("maps").get("HIDDEN_MAP_UNLOCK") if isinstance(_grp("maps").get("HIDDEN_MAP_UNLOCK"), dict) else {}), _ORDER_HIDDEN_MAP_UNLOCK, "game_config.maps")
+MAP_CONNECTIONS = _ordered((_grp("maps").get("MAP_CONNECTIONS") if isinstance(_grp("maps").get("MAP_CONNECTIONS"), dict) else {}), _order("map_connections"), "game_config.maps")
+LEGACY_MAP_ALIAS = _ordered((_grp("maps").get("LEGACY_MAP_ALIAS") if isinstance(_grp("maps").get("LEGACY_MAP_ALIAS"), dict) else {}), _order("legacy_map_alias"), "game_config.maps")
+HIDDEN_MAP_UNLOCK = _ordered((_grp("maps").get("HIDDEN_MAP_UNLOCK") if isinstance(_grp("maps").get("HIDDEN_MAP_UNLOCK"), dict) else {}), _order("hidden_map_unlock"), "game_config.maps")
 WORLD_EVENT_POOL = _grp("world").get("WORLD_EVENT_POOL")
 AUCTION_POOL = _grp("world").get("AUCTION_POOL")
 WORLD_BOSS_POOL = _grp("world").get("WORLD_BOSS_POOL")
-RUNE_CRAFT_SHARDS = _ordered((_grp("runes").get("RUNE_CRAFT_SHARDS") if isinstance(_grp("runes").get("RUNE_CRAFT_SHARDS"), dict) else {}), _ORDER_RUNE_CRAFT_SHARDS, "game_config.runes")
-RUNE_DROP = _ordered((_grp("runes").get("RUNE_DROP") if isinstance(_grp("runes").get("RUNE_DROP"), dict) else {}), _ORDER_RUNE_DROP, "game_config.runes")
-RUNE_LEVEL_ROMAN = _num_sorted(_ordered(_int_keys((_grp("runes").get("RUNE_LEVEL_ROMAN") if isinstance(_grp("runes").get("RUNE_LEVEL_ROMAN"), dict) else {})), _ORDER_RUNE_LEVEL_ROMAN, "game_config.runes"))
-AFFIX_AFFINITY_CN = _ordered((_grp("affixes").get("AFFIX_AFFINITY_CN") if isinstance(_grp("affixes").get("AFFIX_AFFINITY_CN"), dict) else {}), _ORDER_AFFIX_AFFINITY_CN, "game_config.affixes")
-AFFIX_POOL_BY_QUALITY = _ordered((_grp("affixes").get("AFFIX_POOL_BY_QUALITY") if isinstance(_grp("affixes").get("AFFIX_POOL_BY_QUALITY"), dict) else {}), _ORDER_AFFIX_POOL_BY_QUALITY, "game_config.affixes")
+RUNE_CRAFT_SHARDS = _ordered((_grp("runes").get("RUNE_CRAFT_SHARDS") if isinstance(_grp("runes").get("RUNE_CRAFT_SHARDS"), dict) else {}), _order("rune_craft_shards"), "game_config.runes")
+RUNE_DROP = _ordered((_grp("runes").get("RUNE_DROP") if isinstance(_grp("runes").get("RUNE_DROP"), dict) else {}), _order("rune_drop"), "game_config.runes")
+RUNE_LEVEL_ROMAN = _num_sorted(_ordered(_int_keys((_grp("runes").get("RUNE_LEVEL_ROMAN") if isinstance(_grp("runes").get("RUNE_LEVEL_ROMAN"), dict) else {})), _order("rune_level_roman"), "game_config.runes"))
+AFFIX_AFFINITY_CN = _ordered((_grp("affixes").get("AFFIX_AFFINITY_CN") if isinstance(_grp("affixes").get("AFFIX_AFFINITY_CN"), dict) else {}), _order("affix_affinity_cn"), "game_config.affixes")
+AFFIX_POOL_BY_QUALITY = _ordered((_grp("affixes").get("AFFIX_POOL_BY_QUALITY") if isinstance(_grp("affixes").get("AFFIX_POOL_BY_QUALITY"), dict) else {}), _order("affix_pool_by_quality"), "game_config.affixes")
 FISH_COLLECT = _grp("fishing").get("FISH_COLLECT")
-FISH_EXP = _ordered((_grp("fishing").get("FISH_EXP") if isinstance(_grp("fishing").get("FISH_EXP"), dict) else {}), _ORDER_FISH_EXP, "game_config.fishing")
-POIS = _ordered((_grp("pois").get("POIS") if isinstance(_grp("pois").get("POIS"), dict) else {}), _ORDER_POIS, "game_config.pois")
-HIDDEN_MONSTERS = _ordered((_grp("hidden_monsters").get("HIDDEN_MONSTERS") if isinstance(_grp("hidden_monsters").get("HIDDEN_MONSTERS"), dict) else {}), _ORDER_HIDDEN_MONSTERS, "game_config.hidden_monsters")
+FISH_EXP = _ordered((_grp("fishing").get("FISH_EXP") if isinstance(_grp("fishing").get("FISH_EXP"), dict) else {}), _order("fish_exp"), "game_config.fishing")
+POIS = _ordered((_grp("pois").get("POIS") if isinstance(_grp("pois").get("POIS"), dict) else {}), _order("pois"), "game_config.pois")
+HIDDEN_MONSTERS = _ordered((_grp("hidden_monsters").get("HIDDEN_MONSTERS") if isinstance(_grp("hidden_monsters").get("HIDDEN_MONSTERS"), dict) else {}), _order("hidden_monsters"), "game_config.hidden_monsters")
 INVESTIGATE_COLLECT_SAMPLES = _grp("instance_investigation").get("INVESTIGATE_COLLECT_SAMPLES")
-QUALITY = _ordered((_R.equipment.get("equipment", {}).get("QUALITY") if isinstance(_R.equipment.get("equipment", {}).get("QUALITY"), dict) else {}), _ORDER_QUALITY, "equipment")
-EQUIP_SLOTS = _ordered((_R.equipment.get("equipment", {}).get("EQUIP_SLOTS") if isinstance(_R.equipment.get("equipment", {}).get("EQUIP_SLOTS"), dict) else {}), _ORDER_EQUIP_SLOTS, "equipment")
-WEAPON_FLAVOR = _ordered((_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR") if isinstance(_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR"), dict) else {}), _ORDER_WEAPON_FLAVOR, "equipment")
+QUALITY = _ordered((_R.equipment.get("equipment", {}).get("QUALITY") if isinstance(_R.equipment.get("equipment", {}).get("QUALITY"), dict) else {}), _order("quality"), "equipment")
+EQUIP_SLOTS = _ordered((_R.equipment.get("equipment", {}).get("EQUIP_SLOTS") if isinstance(_R.equipment.get("equipment", {}).get("EQUIP_SLOTS"), dict) else {}), _order("equip_slots"), "equipment")
+WEAPON_FLAVOR = _ordered((_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR") if isinstance(_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR"), dict) else {}), _order("weapon_flavor"), "equipment")
 QUALITY_ORDER = _R.equipment.get("equipment", {}).get("QUALITY_ORDER")
-FACTIONS = _ordered((_R.factions.get("factions", {}).get("FACTIONS") if isinstance(_R.factions.get("factions", {}).get("FACTIONS"), dict) else {}), _ORDER_FACTIONS, "factions")
+FACTIONS = _ordered((_R.factions.get("factions", {}).get("FACTIONS") if isinstance(_R.factions.get("factions", {}).get("FACTIONS"), dict) else {}), _order("factions"), "factions")
 FACTION_ORDER = _R.factions.get("factions", {}).get("FACTION_ORDER")
-AREA_FACTION = _ordered((_R.factions.get("factions", {}).get("AREA_FACTION") if isinstance(_R.factions.get("factions", {}).get("AREA_FACTION"), dict) else {}), _ORDER_AREA_FACTION, "factions")
+AREA_FACTION = _ordered((_R.factions.get("factions", {}).get("AREA_FACTION") if isinstance(_R.factions.get("factions", {}).get("AREA_FACTION"), dict) else {}), _order("area_faction"), "factions")
 CHRONICLES = _R.factions.get("factions", {}).get("CHRONICLES")
 REPUTATION_TIERS = _tupled_rows(_R.factions.get("factions", {}).get("REPUTATION_TIERS"))
-ENCHANT_RECIPES = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES"), dict) else {}), _ORDER_ENCHANT_RECIPES, "enchant")
-ENCHANT_SLOTS = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS"), dict) else {}), _ORDER_ENCHANT_SLOTS, "enchant")
+ENCHANT_RECIPES = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES"), dict) else {}), _order("enchant_recipes"), "enchant")
+ENCHANT_SLOTS = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS"), dict) else {}), _order("enchant_slots"), "enchant")
 ENCHANT_CRIT_CHANCE = _R.enchant.get("enchant", {}).get("ENCHANT_CRIT_CHANCE")
 WISH_POOL = _R.poi_pools.get("poi_pools", {}).get("WISH_POOL")
 CAMPFIRE_FOOD_POOL = _R.poi_pools.get("poi_pools", {}).get("CAMPFIRE_FOOD_POOL")
 HERB_POOL = _R.poi_pools.get("poi_pools", {}).get("HERB_POOL")
 CHAPTER_PACK = _R.chapters.get("quest_add_v140", {}).get("CHAPTER_PACK")
-GEM_TIERS = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _ORDER_GEM_TIERS, "gems"))
-GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _ORDER_GEM_TIER_NAMES, "gems"))
-GEM_SOCKETS = _ordered((_R.gems.get("gems", {}).get("GEM_SOCKETS") if isinstance(_R.gems.get("gems", {}).get("GEM_SOCKETS"), dict) else {}), _ORDER_GEM_SOCKETS, "gems")
-GEM_DRILL = _ordered((_R.gems.get("gems", {}).get("GEM_DRILL") if isinstance(_R.gems.get("gems", {}).get("GEM_DRILL"), dict) else {}), _ORDER_GEM_DRILL, "gems")
+GEM_TIERS = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _order("gem_tiers"), "gems"))
+GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _order("gem_tier_names"), "gems"))
+GEM_SOCKETS = _ordered((_R.gems.get("gems", {}).get("GEM_SOCKETS") if isinstance(_R.gems.get("gems", {}).get("GEM_SOCKETS"), dict) else {}), _order("gem_sockets"), "gems")
+GEM_DRILL = _ordered((_R.gems.get("gems", {}).get("GEM_DRILL") if isinstance(_R.gems.get("gems", {}).get("GEM_DRILL"), dict) else {}), _order("gem_drill"), "gems")
 GEM_LEGENDARY_EFFECTS = _R.gems.get("gems", {}).get("GEM_LEGENDARY_EFFECTS")
 RUNE_REMOVE_COST = _R.gems.get("gems", {}).get("RUNE_REMOVE_COST")
-GUILD_CONFIG = _ordered((_R.guild.get("config", {}) if isinstance(_R.guild.get("config", {}), dict) else {}), _ORDER_GUILD_CONFIG, "guild")
-HONOR_SHOP = _num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _ORDER_HONOR_SHOP, "shop"))
+GUILD_CONFIG = _ordered((_R.guild.get("config", {}) if isinstance(_R.guild.get("config", {}), dict) else {}), _order("guild_config"), "guild")
+HONOR_SHOP = _num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _order("honor_shop"), "shop"))
 
 
 _REQUIRED = (
@@ -256,12 +245,9 @@ ARMOR_FAMILY_ALIAS = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY_ALIAS"
 #   逐值 + 键序对拍（对**真源模块**，非 `C`：宿主聚合层未导出这两个名，
 #   `b14_catalog_gate.py` 判「门面缺」）→ `overnight/_w12_precheck_sources.py` A/B/C/D 全 OK。
 # =============================================================================
-_ORDER_MOUNT_DROP_BOSS = ['mount_wolf', 'mount_ghost', 'mount_warhorse', 'mount_griffin']
-_ORDER_MOUNT_DROP_ELITE = ['mount_steed']
-
 RULES = _grp("rules").get("RULES")
-MOUNT_DROP_BOSS = _ordered((_grp("mounts").get("MOUNT_DROP_BOSS") if isinstance(_grp("mounts").get("MOUNT_DROP_BOSS"), dict) else {}), _ORDER_MOUNT_DROP_BOSS, "game_config.mounts")
-MOUNT_DROP_ELITE = _ordered((_grp("mounts").get("MOUNT_DROP_ELITE") if isinstance(_grp("mounts").get("MOUNT_DROP_ELITE"), dict) else {}), _ORDER_MOUNT_DROP_ELITE, "game_config.mounts")
+MOUNT_DROP_BOSS = _ordered((_grp("mounts").get("MOUNT_DROP_BOSS") if isinstance(_grp("mounts").get("MOUNT_DROP_BOSS"), dict) else {}), _order("mount_drop_boss"), "game_config.mounts")
+MOUNT_DROP_ELITE = _ordered((_grp("mounts").get("MOUNT_DROP_ELITE") if isinstance(_grp("mounts").get("MOUNT_DROP_ELITE"), dict) else {}), _order("mount_drop_elite"), "game_config.mounts")
 
 
 __all__ = [

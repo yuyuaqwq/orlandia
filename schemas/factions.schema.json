@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/factions.schema.json",
   "title": "阵营（factions）—— 一条 = 一张源表（阵营 / 枚举序 / 地图归属 / 编年史 / 声望档）",
-  "description": "本域 = 宿主 `game/data/factions.py` 里**包内无域**的 5 张表（B14-3 缺口名：`FACTIONS` 7 处 / `FACTION_ORDER` 5 / `AREA_FACTION` 4 / `CHRONICLES` 1 / `REPUTATION_TIERS` 1 —— 见 `content/quests_flow.py:34`「缺口（宿主 game/data/factions.py）」登记）。经 `scripts/export_domains/b14_3_gaps.py:derive_factions` 单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`）—— 同 `equipment` / `game_config` / `guild`。**消费口径**：`FACTION_ORDER` 是面板编号映射的**枚举序**（`world_cmds` 按 `enumerate(FACTION_ORDER, 1)` 生成「声望 1/2/3…」并反查，顺序 = 行为）；`AREA_FACTION` 是「区域 key → 阵营 id」（区域 key 指向 `maps`/`subareas` 域的 id 前缀，导出**不校验闭合**）；`REPUTATION_TIERS` 是「下限 → 档名」的**有序**档位表。\\n\\n⚠ `REPUTATION_TIERS` 源侧是 **tuple 的 list**，JSON 落成 array 的 array —— 消费端 `for _t, _n in C.REPUTATION_TIERS` 的**按序解包语义不变**（判等 tuple 的地方要自己转）。\\n\\n**未进本域**：营地族（`FACTION_SHOP`/`FACTION_CAMPS`/`FACTION_CAMP_OPEN_LV`/`FACTION_CAMP_DAILY_LIMIT`/`FACTION_CAMP_SWITCH_COOLDOWN`/`FACTION_CAMP_SHOP`/`FACTION_CAMP_DAILY_TASKS`）—— 它们**没有** `C.<名>` 读点（非本轮缺口名）。",
+  "description": "本域 = 宿主 `game/data/factions.py` 的常量表 12 张（B14-3 缺口名 `FACTIONS` 7 处引用 / `FACTION_ORDER` 5 / `AREA_FACTION` 4 / `CHRONICLES` 1 / `REPUTATION_TIERS` 1；营地族 `FACTION_SHOP`/`FACTION_CAMPS`/`FACTION_CAMP_OPEN_LV`/`FACTION_CAMP_DAILY_LIMIT`/`FACTION_CAMP_SWITCH_COOLDOWN`/`FACTION_CAMP_SHOP`/`FACTION_CAMP_DAILY_TASKS` 7 张由 `content/world_cmds.py` 读）。单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`）—— 同 `equipment` / `game_config` / `guild`。**消费口径**：`FACTION_ORDER` 是面板编号映射的**枚举序**（`world_cmds` 按 `enumerate(FACTION_ORDER, 1)` 生成「声望 1/2/3…」并反查，顺序 = 行为）；`AREA_FACTION` 是「区域 key → 阵营 id」（区域 key 指向 `maps`/`subareas` 域的 id 前缀，导出**不校验闭合**）；`REPUTATION_TIERS` 是「下限 → 档名」的**有序**档位表。\\n\\n⚠ `REPUTATION_TIERS` 源侧是 **tuple 的 list**，JSON 落成 array 的 array —— 消费端 `for _t, _n in C.REPUTATION_TIERS` 的**按序解包语义不变**（判等 tuple 的地方要自己转）。",
   "x-primary": "factions_group",
   "type": "object",
   "propertyNames": {
@@ -53,6 +53,103 @@
         }
       }
     },
+    "faction_camp_shop_table": {
+      "type": "array",
+      "title": "营地商店货单（`game/data/factions.py:101 FACTION_CAMP_SHOP`）",
+      "description": "实测 5 条：`{item, cost, name}`（物品 id / 售价 / 显示名）。",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "title": "一件货",
+        "additionalProperties": true,
+        "properties": {
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "title": "物品 id"
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "售价"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "显示名"
+          }
+        }
+      }
+    },
+    "faction_camp_tasks_table": {
+      "type": "array",
+      "title": "营地日常任务（`game/data/factions.py:116 FACTION_CAMP_DAILY_TASKS`）",
+      "description": "实测 4 条：`{kind, item, count, name, reward}`（类型 / 物品 id / 数量 / 显示名 / 声望奖励）。",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "title": "一条日常",
+        "additionalProperties": true,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "minLength": 1,
+            "title": "任务类型"
+          },
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "title": "物品 id"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "title": "数量"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "显示名"
+          },
+          "reward": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "声望奖励"
+          }
+        }
+      }
+    },
+    "faction_camps_table": {
+      "type": "object",
+      "title": "营地表（`game/data/factions.py:76 FACTION_CAMPS`）",
+      "description": "键 = 营地 id（实测 4：holy/dragon/elf/shadow）；值 = `{name, icon, desc, buff_text}`。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "title": "一个营地",
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "营地显示名"
+          },
+          "icon": {
+            "type": "string",
+            "title": "图标"
+          },
+          "desc": {
+            "type": "string",
+            "x-widget": "textarea",
+            "title": "营地说明"
+          },
+          "buff_text": {
+            "type": "string",
+            "title": "特性加成文案"
+          }
+        }
+      }
+    },
     "faction_order_table": {
       "type": "array",
       "title": "阵营枚举序（`game/data/factions.py:18 FACTION_ORDER`）",
@@ -61,6 +158,39 @@
       "items": {
         "type": "string",
         "minLength": 1
+      }
+    },
+    "faction_shop_table": {
+      "type": "object",
+      "title": "声望商店货单（`game/data/factions.py:34 FACTION_SHOP`）",
+      "description": "键 = 阵营 id（实测 7）；值 = 货单列表，每件 `{item, tier, price?}`（物品 id / 声望门槛 / 可选覆盖价）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "title": "一个阵营的货单",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "title": "一件货",
+          "additionalProperties": true,
+          "properties": {
+            "item": {
+              "type": "string",
+              "minLength": 1,
+              "title": "物品 id"
+            },
+            "tier": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "声望门槛"
+            },
+            "price": {
+              "type": "integer",
+              "minimum": 0,
+              "title": "覆盖价（可选）"
+            }
+          }
+        }
       }
     },
     "factions_group": {
@@ -84,6 +214,36 @@
         },
         "REPUTATION_TIERS": {
           "$ref": "#/$defs/reputation_tiers_table"
+        },
+        "FACTION_CAMP_DAILY_LIMIT": {
+          "type": "integer",
+          "minimum": 0,
+          "title": "营地日常上限（`game/data/factions.py:92`）",
+          "description": "每日可完成的营地日常条数（实测 2）。"
+        },
+        "FACTION_CAMP_DAILY_TASKS": {
+          "$ref": "#/$defs/faction_camp_tasks_table"
+        },
+        "FACTION_CAMP_OPEN_LV": {
+          "type": "integer",
+          "minimum": 1,
+          "title": "营地解锁等级（`game/data/factions.py:88`）",
+          "description": "玩家等级门槛（实测 20）。"
+        },
+        "FACTION_CAMP_SHOP": {
+          "$ref": "#/$defs/faction_camp_shop_table"
+        },
+        "FACTION_CAMP_SWITCH_COOLDOWN": {
+          "type": "integer",
+          "minimum": 0,
+          "title": "换阵营冷却秒（`game/data/factions.py:95`）",
+          "description": "实测 604800（7 天）。"
+        },
+        "FACTION_CAMPS": {
+          "$ref": "#/$defs/faction_camps_table"
+        },
+        "FACTION_SHOP": {
+          "$ref": "#/$defs/faction_shop_table"
         }
       }
     },

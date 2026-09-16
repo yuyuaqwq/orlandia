@@ -33,7 +33,20 @@
           "x-widget": "pct",
           "title": "大师之作概率（`game/data/enchant.py:134`）",
           "description": "附魔一次触发「大师之作」（额外加成）的概率（实测 0.05）。副业等级 ≥10 的消费点用 0.10，是命令层口径，不在本域。"
+        },
+        "ENCHANT_MAX_VALUE": {
+          "$ref": "#/$defs/enchant_max_value_table"
         }
+      }
+    },
+    "enchant_max_value_table": {
+      "type": "object",
+      "title": "单次附魔上限表（`game/data/enchant.py:138 ENCHANT_MAX_VALUE`）",
+      "description": "键 = 词条 id（实测 1：crit）；值 = 单次附魔可加的上限（实测 0.04）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
       }
     },
     "enchant_recipes_table": {

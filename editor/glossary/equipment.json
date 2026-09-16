@@ -39,6 +39,66 @@
       "zh": "品质升序",
       "note": "品质档的**迭代序**（升序，实测 5 档）。⚠ 顺序 = 行为：图鉴/统计按它枚举与计数，改序 = 改显示顺序（导出按源表原样，不排序）。 实测 5 条。",
       "group": "quality"
+    },
+    "EQUIP_NAME_PREFIX": {
+      "zh": "品质名前缀词",
+      "note": "键 = 品质档（5 档）；值 = 候选前缀词表（随机命名按位置抽）。真源 `game/data/equipment.py:166`。",
+      "group": "naming"
+    },
+    "EQUIP_NAME_SUFFIX": {
+      "zh": "部位名后缀词",
+      "note": "键 = 装备部位（7 部位）；值 = 候选后缀词表（`weapon` 一行含各武器类型词）。真源 `game/data/equipment.py:232`。",
+      "group": "naming"
+    },
+    "EQUIP_PREFIX_FLAVOR": {
+      "zh": "前缀词数值加成",
+      "note": "键 = 前缀词（22 个）；值 = `{属性 id: 加成}`（可为负，如「虚空」的 `hp: -10`）。真源 `game/data/equipment.py:207`。",
+      "group": "naming"
+    },
+    "WEAPON_NAME_SUFFIX": {
+      "zh": "武器类型名后缀词",
+      "note": "键 = 武器类型（8 型）；值 = 候选后缀词表。真源 `game/data/equipment.py:76`。",
+      "group": "naming"
+    },
+    "AFFIX_COUNT": {
+      "zh": "词条条数",
+      "note": "键 = 品质档（5 档）；值 = 条数或条数区间（`orange` 是 `[3, 4]`）。真源 `game/data/equipment.py:280`。",
+      "group": "affix"
+    },
+    "AFFIX_FALLBACK": {
+      "zh": "词条兜底数值",
+      "note": "键 = 词条 id（7 个：atk/def/matk/mdef/hp/mp/spd）；值 = 数值区间（落盘为 array）。真源 `game/data/equipment.py:293`。",
+      "group": "affix"
+    },
+    "WEAPON_TYPES": {
+      "zh": "武器类型可用职业",
+      "note": "键 = 武器类型（8 型）；值 = 可用职业名列表。消费点 `content/index_build.py`（`weapon_types` 索引）。真源 `game/data/equipment.py:49`。",
+      "group": "slots"
+    },
+    "WT_CN": {
+      "zh": "武器类型中文单字",
+      "note": "键 = 武器类型；值 = 中文单字（剑/法杖/弓/…），面板短标签。真源 `game/data/equipment.py`。",
+      "group": "slots"
+    },
+    "QUALITY_CN": {
+      "zh": "品质中文单字",
+      "note": "键 = 品质档；值 = 中文单字（白/绿/蓝/紫/橙）。真源 `game/data/equipment.py`。",
+      "group": "quality"
+    },
+    "WEAPON_DIST": {
+      "zh": "武器属性分配",
+      "note": "键 = 武器类型（8 型）；值 = `{atk, matk}` 分配权重。真源 `game/data/equipment.py`。",
+      "group": "slots"
+    },
+    "ARMOR_FAMILY": {
+      "zh": "护甲族倍率",
+      "note": "键 = 护甲族（3：heavy/leather/cloth）；值 = `{hp_mult, def_mult, mdef_mult, spd_mult}`。真源 `game/data/equipment.py`。",
+      "group": "slots"
+    },
+    "ARMOR_FAMILY_ALIAS": {
+      "zh": "护甲族别名",
+      "note": "键 = 主属性（str/vit/agi/int）；值 = 护甲族 id。真源 `game/data/equipment.py`。",
+      "group": "slots"
     }
   },
   "groups": [
@@ -48,7 +108,8 @@
       "icon": "💠",
       "fields": [
         "QUALITY",
-        "QUALITY_ORDER"
+        "QUALITY_ORDER",
+        "QUALITY_CN"
       ]
     },
     {
@@ -57,7 +118,32 @@
       "icon": "🛡",
       "fields": [
         "EQUIP_SLOTS",
-        "WEAPON_FLAVOR"
+        "WEAPON_FLAVOR",
+        "WEAPON_TYPES",
+        "WT_CN",
+        "WEAPON_DIST",
+        "ARMOR_FAMILY",
+        "ARMOR_FAMILY_ALIAS"
+      ]
+    },
+    {
+      "id": "naming",
+      "label": "随机命名与前缀",
+      "icon": "✒️",
+      "fields": [
+        "WEAPON_NAME_SUFFIX",
+        "EQUIP_NAME_PREFIX",
+        "EQUIP_NAME_SUFFIX",
+        "EQUIP_PREFIX_FLAVOR"
+      ]
+    },
+    {
+      "id": "affix",
+      "label": "词条条数与兜底",
+      "icon": "💠",
+      "fields": [
+        "AFFIX_COUNT",
+        "AFFIX_FALLBACK"
       ]
     }
   ]

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/equipment.schema.json",
   "title": "装备常量（equipment）—— 一条 = 一张源表（品质 / 装备槽 / 武器手感 / 品质序）",
-  "description": "本域 = 宿主 `game/data/equipment.py` 里**包内无域**的 4 张常量表（B14-3 缺口名：`QUALITY` 67 处引用 / `EQUIP_SLOTS` 38 / `WEAPON_FLAVOR` 5 / `QUALITY_ORDER` 3 —— 见 `content/catalog_core.py` 与 `content/catalog_items.py` 的「无域可依」登记）。经 `scripts/export_domains/b14_3_gaps.py:derive_equipment` 单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`，与 `game_config` 同型）—— 与 `game_config`（「一条 = 一个源模块的常量组」）/`guild`/`smith_stock` 同型。为什么不并进实体域：`equipment.py` 的这 4 张表**不是「一条 = 一个实体」**（喂给哪个实体域都会逼出硬造字段或放水 required）。\\n\\n**消费口径（导出不改，只登记）**：`QUALITY[档][\\\"mult\\\"]` 是装备价/强化的品质乘区、`[\\\"color\\\"]` 是面板前缀字形；`QUALITY_ORDER` 是图鉴/统计的品质**迭代序**（顺序 = 行为）；`EQUIP_SLOTS[槽]` 是面板显示的中文槽名；`WEAPON_FLAVOR[型]` 是武器类型的手感加成（`crit`/`matk`/`spd_fix` … 各型不同，均可选）+ `desc` 文案。\\n\\n**未进本域**（同源模块的其余 12 个常量：`WEAPON_TYPES`/`WEAPON_NAME_SUFFIX`/`EQUIP_NAME_PREFIX`/`EQUIP_PREFIX_FLAVOR`/`EQUIP_NAME_SUFFIX`/`AFFIX_COUNT`/`AFFIX_FALLBACK`/`QUALITY_CN`/`WT_CN`/`WEAPON_DIST`/`ARMOR_FAMILY`/`ARMOR_FAMILY_ALIAS`）—— 它们**没有** `C.<名>` 读点（非本轮缺口），进域 = 同一个域加一行（`b14_3_gaps.py:derive_equipment` 的 `rows` 元组）。",
+  "description": "本域 = 宿主 `game/data/equipment.py` 的常量表（原 B14-3 缺口名 `QUALITY` 67 处引用 / `EQUIP_SLOTS` 38 / `WEAPON_FLAVOR` 5 / `QUALITY_ORDER` 3；`WEAPON_TYPES`/`WT_CN`/`QUALITY_CN` 3 张缺口表由 `content/index_build.py` 读；`WEAPON_NAME_SUFFIX`/`EQUIP_NAME_PREFIX`/`EQUIP_PREFIX_FLAVOR`/`EQUIP_NAME_SUFFIX`/`AFFIX_FALLBACK`/`AFFIX_COUNT` 6 张由 `content/catalog_rules.py` 读）。单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`）—— 与 `game_config`（「一条 = 一个源模块的常量组」）/`guild`/`smith_stock` 同型。为什么不并进实体域：这 16 张表**不是「一条 = 一个实体」**（喂给哪个实体域都会逼出硬造字段或放水 required）。\\n\\n**消费口径（导出不改，只登记）**：`QUALITY` 是装备价/强化的品质乘区、`QUALITY_ORDER` 是图鉴/统计的品质**迭代序**（顺序 = 行为）；`EQUIP_SLOTS` 是面板中文槽名；`WEAPON_FLAVOR` 是武器手感加成 + 文案；`WEAPON_TYPES`/`WT_CN`/`QUALITY_CN`/`WEAPON_DIST`/`ARMOR_FAMILY`/`ARMOR_FAMILY_ALIAS` 是掉落/面板/装备生成的查表；`EQUIP_NAME_PREFIX`/`WEAPON_NAME_SUFFIX`/`EQUIP_NAME_SUFFIX`/`EQUIP_PREFIX_FLAVOR` 是随机命名与前缀加成；`AFFIX_COUNT`/`AFFIX_FALLBACK` 是词条条数与兜底数值区间。",
   "x-primary": "equipment_group",
   "type": "object",
   "propertyNames": {
@@ -13,6 +13,79 @@
     "$ref": "#/$defs/equipment_group"
   },
   "$defs": {
+    "affix_count_table": {
+      "type": "object",
+      "title": "词条条数表（`game/data/equipment.py:280 AFFIX_COUNT`）",
+      "description": "键 = 品质档（实测 5）；值 = 条数（整数）或条数区间（`orange` 实测 `[3, 4]`）—— 区间型按 `random.randint(*v)` 用。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "title": "条数或条数区间",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "title": "固定条数"
+          },
+          {
+            "type": "array",
+            "title": "条数区间 `[低, 高]`",
+            "minItems": 1,
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ]
+      }
+    },
+    "affix_fallback_table": {
+      "type": "object",
+      "title": "词条兜底数值表（`game/data/equipment.py:293 AFFIX_FALLBACK`）",
+      "description": "键 = 词条 id（实测 7：atk/def/matk/mdef/hp/mp/spd）；值 = 数值区间（非 tuple 消费，落盘为 array）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "title": "数值区间",
+        "minItems": 1,
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "armor_family_alias_table": {
+      "type": "object",
+      "title": "护甲族别名（`game/data/equipment.py`）",
+      "description": "键 = 主属性 id（str/vit/agi/int）；值 = 护甲族 id（heavy/leather/cloth）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "armor_family_table": {
+      "type": "object",
+      "title": "护甲族倍率（`game/data/equipment.py`）",
+      "description": "键 = 护甲族 id（实测 3：heavy/leather/cloth）；值 = 各属性倍率（`{hp_mult, def_mult, mdef_mult, spd_mult}`）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "title": "一个护甲族的倍率",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "number"
+        }
+      }
+    },
+    "cn_label_table": {
+      "type": "object",
+      "title": "id → 中文单字（`game/data/equipment.py`）",
+      "description": "键 = 品质档 / 武器类型 id；值 = 中文单字（面板短标签）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "equip_slots_table": {
       "type": "object",
       "title": "装备槽表（`game/data/equipment.py:3 EQUIP_SLOTS`）",
@@ -41,6 +114,56 @@
         },
         "QUALITY_ORDER": {
           "$ref": "#/$defs/quality_order_table"
+        },
+        "WEAPON_TYPES": {
+          "$ref": "#/$defs/word_list_table"
+        },
+        "WEAPON_NAME_SUFFIX": {
+          "$ref": "#/$defs/word_list_table"
+        },
+        "EQUIP_NAME_PREFIX": {
+          "$ref": "#/$defs/word_list_table"
+        },
+        "EQUIP_NAME_SUFFIX": {
+          "$ref": "#/$defs/word_list_table"
+        },
+        "EQUIP_PREFIX_FLAVOR": {
+          "$ref": "#/$defs/prefix_flavor_table"
+        },
+        "AFFIX_FALLBACK": {
+          "$ref": "#/$defs/affix_fallback_table"
+        },
+        "AFFIX_COUNT": {
+          "$ref": "#/$defs/affix_count_table"
+        },
+        "QUALITY_CN": {
+          "$ref": "#/$defs/cn_label_table"
+        },
+        "WT_CN": {
+          "$ref": "#/$defs/cn_label_table"
+        },
+        "WEAPON_DIST": {
+          "$ref": "#/$defs/weapon_dist_table"
+        },
+        "ARMOR_FAMILY": {
+          "$ref": "#/$defs/armor_family_table"
+        },
+        "ARMOR_FAMILY_ALIAS": {
+          "$ref": "#/$defs/armor_family_alias_table"
+        }
+      }
+    },
+    "prefix_flavor_table": {
+      "type": "object",
+      "title": "前缀词数值加成表（`game/data/equipment.py:207 EQUIP_PREFIX_FLAVOR`）",
+      "description": "键 = 名前缀词（实测 22）；值 = `{属性 id: 加成数值}`（可为负，如 `虚空` 的 `hp: -10`）。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "title": "一个前缀词的加成",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "number"
         }
       }
     },
@@ -90,6 +213,20 @@
         }
       }
     },
+    "weapon_dist_table": {
+      "type": "object",
+      "title": "武器类型分配（`game/data/equipment.py`）",
+      "description": "键 = 武器类型 id（实测 8）；值 = `{atk, matk}` 两个分配权重。",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "title": "一个武器类型的分配",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "number"
+        }
+      }
+    },
     "weapon_flavor_table": {
       "type": "object",
       "title": "武器手感表（`game/data/equipment.py:127 WEAPON_FLAVOR`）",
@@ -116,6 +253,26 @@
             "title": "加成数值",
             "description": "该武器类型的额外加成（比率或定点值，内容侧口径）。"
           }
+        }
+      }
+    },
+    "word_list_table": {
+      "type": "object",
+      "title": "键 → 词列表（`game/data/equipment.py`）",
+      "description": "键 = 品质档 / 武器类型 / 部位；值 = 候选词列表（按位置抽取）。",
+      "propertyNames": {
+        "minLength": 1,
+        "description": "内容侧词汇（品质档 / 武器类型 / 部位）。"
+      },
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "title": "词列表（有序，抽词按位置）",
+        "description": "词字符串列表；顺序 = 源侧顺序。",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

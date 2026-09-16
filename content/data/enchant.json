@@ -1,6 +1,9 @@
 {
   "enchant": {
     "ENCHANT_CRIT_CHANCE": 0.05,
+    "ENCHANT_MAX_VALUE": {
+      "crit": 0.04
+    },
     "ENCHANT_RECIPES": {
       "atk": {
         "label": "攻击",

@@ -174,6 +174,92 @@
         "desc": "龙脊山脉的半龙之民，守护古龙血脉。东境试炼提升，龙语传承图纸。"
       }
     },
+    "FACTION_CAMPS": {
+      "holy": {
+        "name": "圣辉王国",
+        "icon": "⚜️",
+        "desc": "晨曦余晖下的骑士王国，恪守秩序与圣光的誓言。",
+        "buff_text": "特性加成（二期规划）：王国要塞血量上限 +5%"
+      },
+      "dragon": {
+        "name": "龙裔部落",
+        "icon": "🐉",
+        "desc": "龙脊山脉的守序战士，血脉中流淌着古龙之魂。",
+        "buff_text": "特性加成（二期规划）：部落战士攻击 +5%"
+      },
+      "elf": {
+        "name": "精灵议会",
+        "icon": "🌿",
+        "desc": "银月林海的贤者议会，与自然和月辉同呼吸。",
+        "buff_text": "特性加成（二期规划）：议会贤者魔力 +5%"
+      },
+      "shadow": {
+        "name": "幽影教团",
+        "icon": "🌙",
+        "desc": "蛰伏于月影之下的隐秘教团，垂涎知识与暗影之力。",
+        "buff_text": "特性加成（二期规划）：教团刺客速度 +5%"
+      }
+    },
+    "FACTION_CAMP_DAILY_LIMIT": 2,
+    "FACTION_CAMP_DAILY_TASKS": [
+      {
+        "kind": "collect",
+        "item": "mat_tu_mao",
+        "count": 5,
+        "name": "献上兔毛",
+        "reward": 20
+      },
+      {
+        "kind": "collect",
+        "item": "mat_qiu_ling_lang_pi",
+        "count": 4,
+        "name": "献上丘陵狼皮",
+        "reward": 25
+      },
+      {
+        "kind": "collect",
+        "item": "mat_feng_mi",
+        "count": 3,
+        "name": "献上蜂蜜",
+        "reward": 20
+      },
+      {
+        "kind": "collect",
+        "item": "mat_ying_huo_chong",
+        "count": 5,
+        "name": "献上萤火虫",
+        "reward": 20
+      }
+    ],
+    "FACTION_CAMP_OPEN_LV": 20,
+    "FACTION_CAMP_SHOP": [
+      {
+        "item": "i_treat_l",
+        "cost": 30,
+        "name": "治疗药水(大)"
+      },
+      {
+        "item": "i_mana_l",
+        "cost": 30,
+        "name": "魔法药水(大)"
+      },
+      {
+        "item": "i_stone_upgrade",
+        "cost": 60,
+        "name": "强化石"
+      },
+      {
+        "item": "i_str_potion",
+        "cost": 80,
+        "name": "力量药剂"
+      },
+      {
+        "item": "i_scroll_teleport",
+        "cost": 120,
+        "name": "传送卷轴"
+      }
+    ],
+    "FACTION_CAMP_SWITCH_COOLDOWN": 604800,
     "FACTION_ORDER": [
       "guild",
       "kingdom",
@@ -183,6 +269,103 @@
       "north",
       "dragons"
     ],
+    "FACTION_SHOP": {
+      "guild": [
+        {
+          "item": "i_treat_l",
+          "tier": 100
+        },
+        {
+          "item": "i_mana_l",
+          "tier": 100
+        },
+        {
+          "item": "i_scroll_teleport",
+          "tier": 300,
+          "price": 400
+        }
+      ],
+      "kingdom": [
+        {
+          "item": "i_treat_l",
+          "tier": 100
+        },
+        {
+          "item": "i_holy_water",
+          "tier": 300
+        },
+        {
+          "item": "i_holy_charm",
+          "tier": 300
+        }
+      ],
+      "church": [
+        {
+          "item": "i_holy_water",
+          "tier": 100
+        },
+        {
+          "item": "i_holy_potion",
+          "tier": 300
+        },
+        {
+          "item": "i_scroll_purify",
+          "tier": 700
+        }
+      ],
+      "elves": [
+        {
+          "item": "i_elf_fruit",
+          "tier": 100
+        },
+        {
+          "item": "i_mana_l",
+          "tier": 300
+        },
+        {
+          "item": "i_moon_dew",
+          "tier": 700
+        }
+      ],
+      "dwarves": [
+        {
+          "item": "i_dwarf_liquor",
+          "tier": 100
+        },
+        {
+          "item": "i_stone_upgrade",
+          "tier": 300
+        },
+        {
+          "item": "i_stone_refine",
+          "tier": 700
+        }
+      ],
+      "north": [
+        {
+          "item": "i_meat_skewer",
+          "tier": 100
+        },
+        {
+          "item": "i_treat_l",
+          "tier": 300
+        },
+        {
+          "item": "i_scroll_escape",
+          "tier": 300
+        }
+      ],
+      "dragons": [
+        {
+          "item": "i_dragon_scale_potion",
+          "tier": 300
+        },
+        {
+          "item": "i_life_elixir",
+          "tier": 1500
+        }
+      ]
+    },
     "REPUTATION_TIERS": [
       [
         0,

@@ -1,5 +1,11 @@
 {
   "gems": {
+    "GEM_BOSS_FIXED": {
+      "裂鬃": "pene_phys",
+      "野猪王·裂鬃": "pene_phys",
+      "深海龙王·敖澜": "pene_magi",
+      "灰烬使者": "crit"
+    },
     "GEM_DRILL": {
       "blue": {
         "cost": 500,
@@ -14,12 +20,38 @@
         "craft_lv": 5
       }
     },
+    "GEM_DROP_RATE": {
+      "normal": 0.02,
+      "elite": 0.05,
+      "field_boss": 0.15,
+      "instance_boss": 0.2
+    },
+    "GEM_DROP_TIER": {
+      "normal": [
+        1,
+        6
+      ],
+      "elite": [
+        2,
+        8
+      ],
+      "field_boss": [
+        3,
+        10
+      ],
+      "instance_boss": [
+        3,
+        10
+      ]
+    },
+    "GEM_ITEM_TYPE": "幸运宝石",
     "GEM_LEGENDARY_EFFECTS": [
       "暴击连击",
       "击杀回血",
       "受击反伤",
       "开局加速"
     ],
+    "GEM_REMOVE_COST": 500,
     "GEM_SOCKETS": {
       "white": {
         "count": 0,
@@ -52,6 +84,31 @@
         "max_tier": 10
       }
     },
+    "GEM_STATS": [
+      "hp",
+      "mp",
+      "atk",
+      "def",
+      "matk",
+      "mdef",
+      "spd",
+      "crit",
+      "dodge",
+      "precise",
+      "pene_phys",
+      "pene_magi",
+      "tenacity",
+      "luck",
+      "cdr",
+      "block",
+      "lifesteal",
+      "thorns",
+      "crit_dmg",
+      "heal_power",
+      "shield_power",
+      "exp_bonus",
+      "gold_bonus"
+    ],
     "GEM_TIERS": {
       "1": {
         "name": "碎裂",

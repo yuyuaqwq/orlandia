@@ -69,6 +69,36 @@
       "zh": "符文拆卸单价",
       "note": "拆卸手续费 = 本值 × 符文等级（实测 1000，消费点 `content/economy_cmds.py`）。 实测取值 1000。",
       "group": "legend"
+    },
+    "GEM_STATS": {
+      "zh": "可镶嵌属性池",
+      "note": "实测 23 个属性 id（hp/mp/atk/…）：宝石随机属性按本池抽取，顺序 = 源侧顺序。真源 `game/data/gems.py:23`。",
+      "group": "stats"
+    },
+    "GEM_ITEM_TYPE": {
+      "zh": "宝石物品类型名",
+      "note": "实测「幸运宝石」；与 `GEM_TIER_NAMES` 拼成全名。真源 `game/data/gems.py:21`。",
+      "group": "stats"
+    },
+    "GEM_REMOVE_COST": {
+      "zh": "宝石拆卸单价",
+      "note": "拆卸手续费 = 本值 × 宝石阶（实测 500）。真源 `game/data/gems.py:39`。",
+      "group": "stats"
+    },
+    "GEM_DROP_RATE": {
+      "zh": "怪档掉落率",
+      "note": "键 = 怪档（4 档：normal/elite/field_boss/instance_boss）；值 = 掉落概率。真源 `game/data/gems.py:47`。",
+      "group": "drop"
+    },
+    "GEM_DROP_TIER": {
+      "zh": "怪档掉落阶区间",
+      "note": "键 = 怪档（4 档）；值 = `[最低阶, 最高阶]`（源侧是 tuple → 包内读口还原）。真源 `game/data/gems.py:54`。",
+      "group": "drop"
+    },
+    "GEM_BOSS_FIXED": {
+      "zh": "指定 Boss 必掉属性",
+      "note": "键 = Boss 名（4 个）；值 = 必掉宝石的属性 id（如 `pene_phys`/`crit`）。真源 `game/data/gems.py:62`。",
+      "group": "drop"
     }
   },
   "groups": [
@@ -97,6 +127,26 @@
       "fields": [
         "GEM_LEGENDARY_EFFECTS",
         "RUNE_REMOVE_COST"
+      ]
+    },
+    {
+      "id": "stats",
+      "label": "属性池与拆卸",
+      "icon": "📊",
+      "fields": [
+        "GEM_STATS",
+        "GEM_ITEM_TYPE",
+        "GEM_REMOVE_COST"
+      ]
+    },
+    {
+      "id": "drop",
+      "label": "掉落规则",
+      "icon": "🎲",
+      "fields": [
+        "GEM_DROP_RATE",
+        "GEM_DROP_TIER",
+        "GEM_BOSS_FIXED"
       ]
     }
   ]
