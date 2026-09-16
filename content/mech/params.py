@@ -209,7 +209,7 @@ def bar_prefix() -> str:
 def time_model(spd, base):
     """`time_model_fn` 供体：一次行动耗时（游戏秒）。
 
-    每次调用**活读**数据表（改 JSON 即时生效），形状分发见 `time_model.py`。
+    调用时经域读口取值（hydration 口径与仓内其它域一致：改 JSON 后由『gm_重载』生效），形状分发见 `time_model.py`。
     """
     from .time_model import action_time as _at          # 函数内导入：避开模块级环
     return _at(spd, base)
