@@ -77,7 +77,7 @@ MAX_DIFF = 3                                                    # 每条红行�
 #                                                              :1133 apply_to_actor（0 动作）
 # we_procs      ★ 宿主壳已退役（B18-REPOINT；tests 侧零引用）    :99-1436（27 动作 / 全 1484 行）  content/mech/we_procs.py
 # team_procs    ★ 宿主壳已退役（B18-REPOINT；tests 侧零引用）    :172-768（20 动作 / 全 788 行）   content/mech/team_procs.py
-# bar_procs     ★ 宿主壳已退役（B18-REPOINT；tests 侧零引用）    :94-169（4 动作）:203 apply_bar   content/mech/bar_procs.py
+# bar_procs     ★ 宿主壳已退役（B18-REPOINT；tests 侧零引用）    :203 apply_bar（4 动作 ★U1-I1 已上移引擎） content/mech/bar_procs.py
 # cond_procs    game/services/battle_cond_procs.py             :120（1 动作）:156 apply_cond       content/mech/cond_procs.py
 # element_procs ★ 宿主壳已退役（B18-REPOINT；tests 侧零引用）    :133-272（4 动作）:296 apply_elem   content/mech/element_procs.py
 # worldboss     game/services/battle_worldboss_procs.py        :27-48（1 动作；apply 未搬 :51-75） content/mech/worldboss.py
@@ -104,7 +104,7 @@ PORTS = [
     ("team_procs", None,
      ":172-768（20 个动作；全文件 :1-788）", "content/mech/team_procs.py", (), True),
     ("bar_procs", None,
-     ":94-169（4 个动作）；:203 apply_bar_procs（全文件 :1-244）", "content/mech/bar_procs.py",
+     ":203 apply_bar_procs（★U1-I1 后端口只剩装配器，0 动作）", "content/mech/bar_procs.py",
      ("apply_bar_procs",), True),
     ("cond_procs", "game/services/battle_cond_procs.py",
      ":120（1 个动作）；:156 apply_cond_procs（全文件 :1-180）", "content/mech/cond_procs.py",
@@ -187,7 +187,11 @@ EXPECT_ACTION_KEYS = {
         "team_shield", "team_ss_reduce_apply", "team_taken_reduce", "timed_vuln", "timed_vuln_apply",
     ),
     "bar_procs": (
-        "bar_gain", "bar_phase_preserve", "bar_time_settle", "passive_reflect_bar",
+        # ★ U1-I1：本族 4 动词（bar_gain / bar_phase_preserve / bar_time_settle /
+        #   passive_reflect_bar）已整块上移引擎 `saintess_engine/gauge/actions.py`
+        #   ⇒ 包内端口 = 纯装配置（0 动作，与 equip 同形）；4 个注册名由**引擎侧**
+        #   冻结门禁 `saintess_engine` 仓 `tests/test_gauge_actions_frozen.py` 逐名钉住。
+        #   本表保留 `apply_bar_procs` 装配器名断言（端口顶层必须有它，宿主调用面不消失）。
     ),
     "cond_procs": (
         "skill_cond_mult",

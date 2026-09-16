@@ -56,11 +56,15 @@ import os
 
 from saintess_engine import config
 
-# ★ import 即注册：每个族的模块顶层都有 @register_action，import 时写进引擎 ACTION_HANDLERS。
-#   少 import 一个族 = 那一族的动作在 fire() 里**静默跳过**（引擎对未注册动作不报错），
-#   所以这里**必须列全**（D2 七族 + D1 切片那 3 个）。缺哪个用
-#   `overnight/p4_d2_audit.py` 一跑就知道（它做集合同源断言 + 注册断言）。
-from .mech import bar_procs as _bar_procs        # 敌身条（4）
+# ★ 动作注册有两个来源：
+#   ① 引擎内置：敌身条族 4 动词（bar_gain / bar_time_settle / bar_phase_preserve /
+#      passive_reflect_bar）已归 `saintess_engine/gauge/actions.py`（U1-I1）——
+#      `import saintess_engine` 即注册，本文件**不再**为它们做注册 import；
+#   ② 包内各族：模块顶层有 @register_action，**import 即注册**。少 import 一个族 =
+#      那一族的动作在 fire() 里**静默跳过**（引擎对未注册动作不报错），所以这里**必须列全**
+#      （D2 余下六族 + D1 切片那 3 个）。缺哪个用 `overnight/p4_d2_audit.py` 一跑就知道
+#      （它做集合同源断言 + 注册断言）。
+from .mech import bar_procs as _bar_procs        # 敌身条**装配器**（4 动词已注册在引擎侧）
 from .mech import class_mech as _class_mech      # 职业机制兑现（39）
 from .mech import cond_procs as _cond_procs      # 技能条件乘区（1）
 from .mech import element_procs as _element_procs  # 元素反应/克制/流转（4）
@@ -181,7 +185,7 @@ def install_engine() -> None:
 
 # ★ 2026-09-13 接线（D3 skills 批）：技能链真源 = 包内 `content/skills.py`（逐字搬运物）。
 # 下面两个名字**必须保留为别名**（不能删）：包内 4 处族模块用
-#   `from ..apply import _SKILL_LOOKUP as _PKG_SKILLS`（bar_procs:240 / class_mech:2289,2339 /
+#   `from ..apply import _SKILL_LOOKUP as _PKG_SKILLS`（bar_procs:57 / class_mech:2289,2339 /
 #   element_procs:299）与 `..., skill_level_of`（cond_procs:156,189）。
 # 模块对象满足引擎的按属性访问（`.skill_info(class_name, key)` / `.skill_by_key(key)`）。
 _SKILL_LOOKUP = _skills

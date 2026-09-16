@@ -35,7 +35,9 @@ from saintess_engine import Battle as B2, make_actor, effects as EFX  # noqa: E4
 from saintess_engine.battle.effect_triggers import fire  # noqa: E402
 from saintess_engine.gauge import bar_effect_key, bar_gain# noqa: E402
 from content.mech import class_mech as CMP  # noqa: E402
-from content.mech.bar_procs import _ensure_tick  # noqa: E402  ★ B18-REPOINT：直取包内实现本体
+# ★ B18-REPOINT：直取包内实现本体；★ U1-I1：敌身条族 4 动词 + 5 助手已整块上移引擎
+#   `saintess_engine/gauge/actions.py`（包侧只剩装配器）⇒ 助手改从引擎取。
+from saintess_engine.gauge.actions import _ensure_tick  # noqa: E402
 
 PASS = 0
 FAIL = 0

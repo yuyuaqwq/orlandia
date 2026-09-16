@@ -10,7 +10,9 @@
 注册 —— **import 即注册**（由 `content/apply.py` 顶部 `from .mech import …` 触发；
 包加载器 `saintess_engine.package.load()` 以「包」的方式导入 `content`，故这里的相对导入可用）。
 
-族清单（D2 全量 96 个动作 + D1 切片 3 个 = 99 个装饰器 / 96 个唯一动词）
+族清单（D2 全量 96 个动作 + D1 切片 3 个 = 99 个装饰器 / 96 个唯一动词；
+★ U1-I1 后包内 = **95 个装饰器 / 92 个唯一动词** —— 敌身条族 4 动词已整块上移引擎
+`saintess_engine/gauge/actions.py`，注册名不变，`import saintess_engine` 即注册）
 
 | 文件 | 机制族 | 动作数 | 真源（游戏仓 `game/services/`） |
 |---|---|---:|---|
@@ -18,7 +20,7 @@
 | `class_mech.py` | 职业机制兑现 | 39 | `class_mech_proc.py` |
 | `we_procs.py` | 武器/词条特效 | 27 | `battle_we_procs.py` |
 | `team_procs.py` | 团队/面幅 | 20 | `battle_team_procs.py` |
-| `bar_procs.py` | 敌身条 | 4 | `battle_bar_procs.py` |
+| `bar_procs.py` | 敌身条（★ U1-I1 起**只剩装配器**；4 动词已归引擎） | 0 | `battle_bar_procs.py` |
 | `element_procs.py` | 元素反应/克制/流转 | 4 | `battle_element_procs.py` |
 | `cond_procs.py` | 技能条件乘区 | 1 | `battle_cond_procs.py` |
 | `worldboss.py` | 世界 Boss GM 增伤 | 1 | `battle_worldboss_procs.py` |
