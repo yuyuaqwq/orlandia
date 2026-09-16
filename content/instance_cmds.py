@@ -1392,7 +1392,10 @@ class InstanceImpl:
         配置 minions 展开为 rank1 的爪牙（属性 ×0.5、名字"XX的{minion名}"、uid 唯一、is_boss/is_elite False）。
         精英/普通怪 → 单怪阵列 [boss]。缺省无 minions → 仅 Boss。
         v121 CTB：每个敌方单位补 ct = -spd（越小越先行动）。
-        v152 绝对时刻：ct = 初始等待（BASE_DELAY/spd，即 cost，正数越大越晚行动）。"""
+        v152 绝对时刻：ct = 初始等待（= 内容侧时间模型在当前 spd 下的行动耗时，正数越大越晚行动）。
+        ★ V3：公式形状/参数归内容侧（`content/rules/game_config.json` 的
+        `formula_skeleton.TIME_MODEL`；构造点 `content/mech/time_model.py`）——
+        旧注释写的 `BASE_DELAY/spd`（线性旧模型）与实现早已不符，此处已改。"""
         from saintess_engine.battle.schedule import initial_ct as _ict
         boss = boss or {}
         if not boss:
@@ -2413,7 +2416,8 @@ class InstanceImpl:
                 "spd": player_final_stats(p["class_name"], p["level"], p.get("equipment", {}),
                                             p.get("class_tier", 0), p.get("attributes"),
                                             p.get("evolve_path", 0), None, p.get("race")).get("spd", 0),
-                # v152 绝对时刻：玩家快照 ct = 初始等待（BASE_DELAY/spd，正数越大越晚行动）
+                # v152 绝对时刻：玩家快照 ct = 初始等待（= 内容侧时间模型在当前 spd 下的
+                # 行动耗时，正数越大越晚行动）。★ V3：形状/参数归内容侧（见 _instance_build_enemy_array）
                 "ct": _ict(player_final_stats(p["class_name"], p["level"], p.get("equipment", {}),
                                             p.get("class_tier", 0), p.get("attributes"),
                                             p.get("evolve_path", 0), None, p.get("race")).get("spd", 0)),

@@ -92,7 +92,7 @@
     },
     "formula_skeleton": {
       "zh": "公式骨架数值",
-      "note": "`FORMULA_SKELETON`（9 组参数）：exp 兜底、怪物 exp/gold 斜率与补偿、技能成长默认值、技能点定价、副业经验曲线、装备暴击/项链 mdef 修正、boss 旧减速曲线。**只有数值**，公式结构在宿主引擎。⚠ `boss_atk_legacy.seg` 是 tuple 的 tuple → array。",
+      "note": "`FORMULA_SKELETON`（9 组 + V4 新增 7 组战斗落地常量 = 16 组 + V3 时间模型 `time_model` = 17 组）：exp 兜底、怪物 exp/gold 斜率与补偿、技能成长默认值、技能点定价、副业经验曲线、装备暴击/项链 mdef 修正、boss 旧减速曲线；V4（2026-09-16）下沉的引擎写死值 = `shield_default_pct`（护盾兜底）、`block`（格挡 cap/reduce）、`heal_down`（禁疗 per_stack/cap）、`anti_heal`（重伤 cap）、`reduce`（减伤 default_pct/cap）、`gauge`（敌身条 max 缺省）、`skill_max_level`（技能满级默认）。V3（2026-09-16）下沉 **CTB 时间模型 `time_model`**：**这里既有数值也有公式形状**（`shape`: sqrt/linear/flat + `spd_ref`/`cast`/`spd_cap`）—— 引擎侧已零公式、零时间常量，行动耗时由内容侧装配；其余段仍是「只有数值，公式结构在宿主引擎」。⚠ `boss_atk_legacy.seg` 是 tuple 的 tuple → array。",
       "widget": "kv",
       "group": "config"
     },

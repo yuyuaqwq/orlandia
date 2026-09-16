@@ -15,6 +15,9 @@ v181.P2B），外加唯一函数 `prof_exp_need`。宿主 `game/core/constants.p
      该门禁本身就是这两份的漂移守卫。
   ③ `prof_exp_need` 内 `from ..data import FORMULA_SKELETON` → `宿主面取件("data", "FORMULA_SKELETON")`
      （表在宿主数据层；包内 `content/mech/params.py::FORMULA_SKELETON` 是**子集**，只留引擎读的两段）。
+  ④ V3（2026-09-16）**删整块 CTB 行动耗时死常量**（`BASE_DELAY` / `SPD_CT_CAP` / `SPD_REF` /
+     `CAST_*` 共 10 个，全包零消费）：公式形状 + 参数改由包内数据单源给
+     （`content/rules/game_config.json` → `formula_skeleton.TIME_MODEL`）。见下方原址注释。
 
 缺口（报告登记）：`FORMULA_SKELETON`（宿主句柄，待 B14）；其余常量（约 50 个）是纯值，随本文件
 进包后宿主只剩再导出——`scripts/export_game_package.py:684/:2511` 读 `game.core.constants` 的
@@ -174,16 +177,18 @@ SKILL_PMULT_CAP = 6.0                      # 技能伤害倍率连乘上限（ba
 # （保留对外名字），core 各模块也从这里 import——消除 core → battle 反向依赖。
 BUFF_TURNS = 3        # 增益默认持续刻
 DEBUFF_TURNS = 2      # 减益默认持续刻
-# v121 CTB 行动时间轴：全局行动消耗常量
-# v152 鱼鱼拍板：总耗时 = 行动间隔（BASE_DELAY/spd）+ 固定动作耗时。
-# BASE_DELAY=40 经 sim 标定：普通怪战斗 ~49s（60s 内），紧凑不拖沓。
-# （旧 100 在新模型下战斗拖到 113s 太长；40 平衡节奏与速度差稀释）
-BASE_DELAY = 40.0     # 行动间隔基数（v152 标定：40 保持战斗节奏）
-SPD_CT_CAP = 80.0     # 参与 ct 计算的 spd 软上限（min(spd, cap)）
-# v154 鱼鱼拍板：速度影响自己的出招(cast)和收招(recovery)，出招跑完=命中。
-# 恢复间隔取消——总行动周期 = 出招 + 收招，速度收益全部收敛到动作快慢。
-# SPD_REF = 基准速度：速度 50 时动作耗时 = 数据基础值；>50 变快，<50 变慢。
-SPD_REF = 50.0        # v154 基准速度（= v152 参考档）
+# v121 CTB 行动时间轴：全局刻度常量 ACT_TICK（= 1 刻 = 1 时刻 = 1 游戏秒）。
+#
+# ★ V3（2026-09-16）**行动耗时**常量整块清除：BASE_DELAY / SPD_CT_CAP / SPD_REF /
+#   CAST_ATK / CAST_SKILL / CAST_ITEM / CAST_FOOD / CAST_DEFEND / CAST_FLEE /
+#   CAST_PET_SKILL —— 它们全包零消费点（死常量），且注释口径与引擎实现**矛盾**
+#   （v152 旧模型「间隔 + 固定耗时」/ 线性 `SPD_REF/spd` vs 引擎当时的开方实现）。
+#   现「一次行动耗时多少」= **内容侧数据单源**：
+#     `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`
+#     （形状 + 参数；读口 `content/catalog_rules.py::time_model()`）
+#     → 形状构造点 `content/mech/time_model.py`
+#     → 引擎注入面 `time_model_fn` / `action_base_fn`（`content/apply.py::install_engine`）
+#   引擎侧已零公式、零时间常量；本文件不再留第二份数值。
 # v152 CTB 彻底化：刻 → 时刻。ACT_TICK = 1 刻对应的全局时刻数。
 # 鱼鱼拍板（2026-08-31）：1 刻 = 1 游戏秒（对齐秒，玩家直观）。
 # 所有"持续 N 刻 / CD N 刻"换算为 N × ACT_TICK = N 时刻 = N 游戏秒。
@@ -193,15 +198,6 @@ from .mech.we_data import ACT_TICK  # noqa: E402  1 刻 = 1.0 时刻 = 1 游戏�
 #   本文件不再留第二份；宿主薄壳**另留一份字面量** `ACT_TICK = 1.0`，因为
 #   `tests/test_package_mech_ports.py:256` TABLES 用 AST 静态读宿主文件模块级字面量与
 #   包内 we_data 对拍（宿主改纯再导出 → 该门禁报「取不到」）——该门禁即两份的漂移守卫。
-# v154：CAST_* 语义从"固定动作耗时"改为"基准耗时"（速度 50 时 = 该值）。
-# 实际耗时 = 基准耗时 × (SPD_REF / 实际速度)；速度 50 时 = 基准值。
-CAST_ATK = 1.0        # 普攻基准耗时（1 秒 @spd50）
-CAST_SKILL = 1.6      # 技能基准耗时（1.6 秒 @spd50，出手更慢）
-CAST_ITEM = 1.0       # 道具基准耗时（1 秒 @spd50）
-CAST_FOOD = 1.0       # 食物基准耗时（1 秒 @spd50）
-CAST_DEFEND = 0.6     # 防御基准耗时（0.6 秒 @spd50，快动作）
-CAST_FLEE = 2.0       # 逃跑基准耗时（2 秒 @spd50，慢，易被打断）
-CAST_PET_SKILL = 0.8  # 宠物技能基准耗时（0.8 秒 @spd50，出手快）——v154 宠物独立读条
 
 # ================= v138.2 异常体系五律（docs/COMBAT_ENRICH_v138.md §二） =================
 # 借鉴《云海猎团》04 章 M4.2「九态异常：积蓄-触发-衰减」三律，加固现有毒/灼烧/流血 DOT：

@@ -87,6 +87,39 @@ content/obs.py           日志/流水取用口（唯一入口，fail-closed）
 
 ---
 
+## 二·五、CTB 时间模型（V3 起：公式形状 + 参数在包内，引擎零公式）
+
+一次行动耗时（`actor.ct` 推进多少）**不再是引擎常量**。引擎只留机制
+（谁 `ct` 小谁先动、行动后 `ct = now + 本次耗时`），形状与数值全在本包：
+
+```text
+content/rules/game_config.json
+  └─ formula_skeleton → FORMULA_SKELETON → time_model   ← 参数真源（编辑器可改）
+        { "shape": "sqrt", "spd_ref": 50.0,
+          "cast": {"attack": 1.0, "skill": 1.6, "defend": 0.6, "item": 1.0},
+          "spd_cap": null }                              # null = 不截断
+
+content/catalog_rules.py::time_model()                   ← 域读口（函数读口：热重载即生效）
+content/mech/time_model.py                               ← 形状构造函数（sqrt / linear / flat）
+content/mech/params.py::time_model / action_base         ← 引擎 hook 供体（只转发）
+content/apply.py::install_engine()                       ← 挂 time_model_fn / action_base_fn
+```
+
+| shape | 公式（`s = max(spd, 1)`；给了正 `spd_cap` 则 `s = min(s, spd_cap)`） |
+|---|---|
+| `sqrt` | `base × sqrt(spd_ref / s)`（奥兰迪亚现值：速度收益递减） |
+| `linear` | `base × (spd_ref / s)` |
+| `flat` | `base`（不随速度变） |
+
+改法：只改 `content/rules/game_config.json` 的 `time_model` 段 →
+跑 `gm_重载资料表`（`reload_all_sets()` + `rebuild_views()`）即生效，**引擎一行不改**。
+取值/公式形状归内容侧；读注入面与构造器接口归引擎。
+
+⚠️ **不要**再去改引擎 `battle/schedule.py` 加公式，也不要在本包 `content/constants.py`
+另立一份时间常量（那正是 V3 删掉的 `BASE_DELAY` / `SPD_REF` / `CAST_*` 死常量，V3 起不许长回来）。
+
+---
+
 ## 三、落盘规范（手改必须照此，否则门禁红）
 
 ```text

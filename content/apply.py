@@ -124,7 +124,7 @@ def install_engine() -> None:
 
     ⚠️ 两张规则表走 **`config.load_game_rules(P)`**（P = `content/mech/params.py`，带
     `EFFECT_RULES` / `EFFECT_ACTIONS` 两个属性）——**不要**写
-    `config.mount(effect_rules=…)`：`mount` 只认 `config._HOOKS` 里那 13 个名字，
+    `config.mount(effect_rules=…)`：`mount` 只认 `config._HOOKS` 里那 15 个名字，
     表名不在名单里 → **静默丢弃**（分析报告 §1.3 实测复现：`get_effect_rules()` 仍是空表，
     且不报错）。脚手架模板踩的正是这个坑（G2）。
     """
@@ -151,6 +151,13 @@ def install_engine() -> None:
         skill_flat_fn=P.skill_flat,
         skill_up_fn=_skills.skill_up,          # 技能成长（包内 skill_up.py 逐字搬入）
         skill_level_of_fn=_skills.skill_level_of,
+        # ★ V3：CTB 时间模型（一次行动耗时的公式形状 + 参数）下沉到内容侧 ——
+        #   引擎 `battle/schedule.py` 只留机制（谁 ct 小谁先动、行动后推进 ct），
+        #   形状与数值经这两条 hook 注入。数据单源 = `content/rules/game_config.json`
+        #   → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（读口 `catalog_rules.time_model()`）；
+        #   形状构造点 = `content/mech/time_model.py`；本文件只做 hook 挂载。
+        time_model_fn=P.time_model,            # fn(spd, base) -> float（一次行动耗时，游戏秒）
+        action_base_fn=P.action_base,          # fn(action) -> float（行动类别 → 基准耗时）
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
     config.load_game_rules(P)

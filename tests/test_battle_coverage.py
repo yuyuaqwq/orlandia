@@ -147,9 +147,11 @@ def test_schedule_tools():
     t = SC.action_time(50)
     check("action_time spd50 = 1.0", abs(t - 1.0) < 1e-9, f"t={t}")
     check("action_time spd100 = 0.707", abs(SC.action_time(100) - 0.7071) < 0.01)
-    check("action_base_of defend", SC.action_base_of("defend") == SC.CAST_DEFEND)
-    check("action_base_of skill", SC.action_base_of("skill") == SC.CAST_SKILL)
-    check("action_base_of default=atk", SC.action_base_of("x") == SC.CAST_ATK)
+    # ★ V3：引擎侧已无 CAST_* 常量（时间模型下沉内容侧）——基准耗时经注入面取，
+    #   内容侧装配值仍是 defend=0.6 / skill=1.6 / 其他（attack）=1.0（行为零变化）。
+    check("action_base_of defend", SC.action_base_of("defend") == 0.6)
+    check("action_base_of skill", SC.action_base_of("skill") == 1.6)
+    check("action_base_of default=atk", SC.action_base_of("x") == 1.0)
 
 
 def test_serialize_helpers():

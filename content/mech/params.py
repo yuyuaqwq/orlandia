@@ -8,6 +8,12 @@
 第二波才给它们建域（编辑器可改）。本文件**只做取值，不改形状** —— 键名/嵌套与游戏仓
 真源逐字一致，将来建域时整块搬到 `<域>.json` 即可。
 
+★ V3（2026-09-16）：**CTB 时间模型（一次行动耗时的公式形状 + 参数）已从引擎下沉到本包**，
+且**不再住在本文件** —— 单源 = `content/rules/game_config.json` →
+`formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（读口 `content/catalog_rules.py::time_model()`，
+形状构造点 `content/mech/time_model.py`）。本文件只留两个 hook 供体
+（`time_model` / `action_base`，见文件末尾）做转发。
+
 本文件同时充当 `config.load_game_rules(module)` 的**规则模块**（`EFFECT_RULES` /
 `EFFECT_ACTIONS` 两个属性）—— 见 `content/apply.py: install_engine()`。
 其中 `EFFECT_ACTIONS`（名词→动词表）**不在这里定义**：2026-09-13 单源归位后真源 = 包内
@@ -20,7 +26,9 @@
 |---|---|---|
 | `KIND_NAMES`          | `game/bootstrap.py:117 _kinds()`（值 = `saintess_engine.kinds.K_*`） | 全量（5 值，引擎词表就 5 个） |
 | `BASIC_FALLBACK`      | `game/bootstrap.py:123 _basic_fallback()` | 全量 |
+| `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON` + **V4 下沉段** | **子集 + 新增**：引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）来自游戏仓真源；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬。**V4（2026-09-16）新增 7 组战斗落地常量**（原文写死在引擎字面量，谱系 = 引擎原值、非游戏仓 data）：`shield_default_pct` / `block` / `heal_down` / `anti_heal` / `reduce` / `gauge` / `skill_max_level` —— 内容真源 = 包内 `content/rules/game_config.json` 同组（逐值相等由 `tests/test_v4_formula_skeleton.py` 钉住） |
 | `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON` | **子集**：只留引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬 |
+| `time_model`（供体函数） | `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（**包内真源**；V3 下沉，无宿主对应物） | 全量（`shape` / `spd_ref` / `cast` / `spd_cap` 四键，读口 `catalog_rules.time_model()`） |
 | `SKILL_FLAT`          | `game/data/skill_up.py:SKILL_FLAT_BASE/_PER_PLAYER_LV/_PER_SKILL_LV` | 全量（3 常量） |
 | `TIER_GROWTH`         | `game/data/battle_config.py:379` | 全量（4 个档位；切片面板公式用） |
 | `LINEAR_STATS`        | `game/data/base_growth.py:PLAYER_BASE_GROWTH["linear_stats"]` | 全量（7 键） |
@@ -72,6 +80,21 @@ BASIC_FALLBACK = {"name": "攻击", "kind": KIND_NAMES["phys"], "exprs": ["atk*1
 # ============================================================
 # ③ 公式骨架参数表（引擎 saintess_engine/battle/formulas.py 的读点）
 #    ← game/data/formula_skeleton.py（只搬引擎读的两段；见文件头真源对照表）
+#    ★ V4（2026-09-16）：引擎侧最后 7 处「写死游戏数值」下沉到此表 —— 除下面两个历史段
+#      （skill_growth / skill_learn_cost，谱系 = 游戏仓 data/formula_skeleton.py）外，
+#      新增 7 组「战斗落地常量」段（谱系 = 引擎原字面量，数值 = 原状逐值相等）：
+#        shield_default_pct  护盾兜底 = int(max_hp × pct)（原 effects.py 字面量 0.20）
+#                            · 另一读点 actions.py `shield_pct` 缺省（同值 0.20）
+#        block               格挡：cap=概率上限（原 0.40）/ reduce=命中减免比例（原 0.5）
+#        heal_down           禁疗：per_stack=每层（原 0.10）/ cap=上限（原 0.50）
+#        anti_heal           重伤：cap=上限（原 0.80）
+#        reduce              减伤兜底：default_pct（原 0.20）/ cap=clamp 上限（原 0.9）
+#        gauge               敌身条 `max` 缺省上限（原 gauge/__init__.py 字面量 100）
+#        skill_max_level     技能满级默认（原 formulas.py:SKILL_MAX_LEVEL = 5）
+#    ⚠️ 与 `content/rules/game_config.json` 的 `formula_skeleton.FORMULA_SKELETON` 是
+#      **同值两端**（JSON 是内容真源 / 本表是引擎挂载面）。`pkg/tests/test_v4_formula_skeleton.py`
+#      钉住逐值相等（改一处忘另一处 → 门禁红）。
+#    ⚠️ 引擎「未装配」路径不读本表，走 formulas.py `_NEUTRAL_SKELETON` 的中性值。
 # ============================================================
 FORMULA_SKELETON = {
     "skill_growth": {
@@ -84,6 +107,14 @@ FORMULA_SKELETON = {
         "lifesteal_per_lv_divisor": 100,  # F9 l 配值单位 %：l/100 每级
     },
     "skill_learn_cost": {"divisor": 6, "base": 2},   # F15 技能点定价 cost = need_lv//divisor + base
+    # ---- V4：战斗落地常量（引擎原字面量下沉；值 = 原状）----
+    "shield_default_pct": 0.20,                       # 护盾兜底（V4）
+    "block": {"cap": 0.40, "reduce": 0.5},            # 格挡上限 / 命中减免（V4）
+    "heal_down": {"per_stack": 0.10, "cap": 0.50},    # 禁疗每层 / 上限（V4）
+    "anti_heal": {"cap": 0.80},                       # 重伤上限（V4）
+    "reduce": {"default_pct": 0.20, "cap": 0.9},      # 减伤兜底 / clamp 上限（V4）
+    "gauge": {"default_max": 100},                    # 敌身条 max 缺省（V4）
+    "skill_max_level": 5,                             # 技能满级默认（V4）
 }
 
 # ④ 技能基础值常量 ← game/data/skill_up.py（v156 保底伤害模型）
@@ -161,3 +192,30 @@ def mech_cfg(name: str) -> dict:
 def bar_prefix() -> str:
     """`bar_prefix_fn` 供体。"""
     return BAR_STATE_PREFIX
+
+
+# ============================================================
+# CTB 时间模型（V3：行动耗时公式下沉到内容侧）—— hook 供体
+# ------------------------------------------------------------
+# 引擎 `battle/schedule.py` 只留机制（谁 ct 小谁先动、行动后推进 ct），
+# 「一次行动耗时多少」走本包注入面：
+#     time_model_fn  `fn(spd, base) -> float`
+#     action_base_fn `fn(action) -> float`
+# 形状 + 参数 = `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`
+# （单源；读口 `content/catalog_rules.py::time_model()`；构造点见 `time_model.py`）。
+# 本文件只做转发 —— **不在这里留第二份数值**。
+# ============================================================
+
+def time_model(spd, base):
+    """`time_model_fn` 供体：一次行动耗时（游戏秒）。
+
+    每次调用**活读**数据表（改 JSON 即时生效），形状分发见 `time_model.py`。
+    """
+    from .time_model import action_time as _at          # 函数内导入：避开模块级环
+    return _at(spd, base)
+
+
+def action_base(action: str) -> float:
+    """`action_base_fn` 供体：行动类别（通用键）→ 基准耗时（活读数据表）。"""
+    from .time_model import action_base as _ab
+    return _ab(action)

@@ -16,6 +16,7 @@
 ① **包内域 JSON**（这是真域，编辑器可改）——
    `EFFECT_RULES`(`rules/effect_rules.json`) · `BAR_STATE_PREFIX`(`rules/game_config.json`
    `battle_rules` 组) · `FORMULA_SKELETON`(同文件 `formula_skeleton` 组) ·
+   `time_model()`(同组 `TIME_MODEL` 子键的函数读口：CTB 行动耗时的形状 + 参数) ·
    `FIELD_TIER_MULT`(同文件 `stat_templates` 组) · `DROP_POOLS`(`data/drop_pools.json`) ·
    `PLAYER_BASE_GROWTH`(`rules/panel_rules.json` 的 `base_growth` 组，**tuple 还原**) ·
    `equipment` / `gems` / `enchant` / `factions` / `chapters`（常量组域）·
@@ -144,6 +145,19 @@ from .catalog_b143 import FISH_COLLECT                             # noqa: E402
 EFFECT_RULES = placeholder("EFFECT_RULES")
 BAR_STATE_PREFIX = placeholder("BAR_STATE_PREFIX")
 FORMULA_SKELETON = placeholder("FORMULA_SKELETON")
+
+
+def time_model() -> dict:
+    """CTB 时间模型参数表（`rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`）。
+
+    形状 + 参数（`shape` / `spd_ref` / `cast` / `spd_cap`）；**函数读口**（不是模块级常量）：
+    它是 `FORMULA_SKELETON` 的切片，而父表在热重载时**就地更新**（`_rebuild_view`），
+    存副本会指到旧子 dict。每次现取 = 永远与父表同步。
+    """
+    _fs = FORMULA_SKELETON
+    return (_fs.get("time_model") or {}) if isinstance(_fs, dict) else {}
+
+
 FIELD_TIER_MULT = placeholder("FIELD_TIER_MULT")
 DROP_POOLS = placeholder("DROP_POOLS")
 _BASE_GROWTH = placeholder("_BASE_GROWTH")
@@ -220,7 +234,7 @@ MONSTER_ROLE_MODS: dict = _read_group("game_config", "rules", "stat_templates", 
 
 
 __all__ = [
-    "EFFECT_RULES", "BAR_STATE_PREFIX", "FORMULA_SKELETON", "FIELD_TIER_MULT",
+    "EFFECT_RULES", "BAR_STATE_PREFIX", "FORMULA_SKELETON", "time_model", "FIELD_TIER_MULT",
     "DROP_POOLS", "PLAYER_BASE_GROWTH",
     "EVENT_WEIGHT_SUM", "EXPLORE_EGG_SUM",
     "EXPLORE_EGG_CHANCE",
@@ -383,6 +397,13 @@ def _rebuild_view() -> list:
     if isinstance(FORMULA_SKELETON.get("boss_atk_legacy"), dict):     # ← tuple 行还原
         FORMULA_SKELETON["boss_atk_legacy"]["seg"] = _tupled_rows(
             FORMULA_SKELETON["boss_atk_legacy"].get("seg"))
+
+    # rules/game_config.json -> formula_skeleton 组的 **TIME_MODEL** 子键
+    # （CTB「一次行动耗时」的形状 + 参数；**不再是宿主编译期常量** —— 引擎侧
+    # `battle/schedule.py` 已零公式，只转发；形状构造函数见 content/mech/time_model.py）。
+    # ⚠️ 这是 FORMULA_SKELETON 的**切片** ⇒ 不存模块级副本（热重载就地更新父表时
+    #    副本会指到旧子 dict）。读口 = 下方函数 time_model()（每次现取，永远同步）。
+    pass
 
     # rules/game_config.json -> stat_templates 组（每档值 = tuple 行列表 → 还原）
     FIELD_TIER_MULT = {k: _tupled_rows(v) for k, v in (

@@ -99,7 +99,7 @@
         "formula_skeleton": {
           "type": "object",
           "title": "公式骨架数值",
-          "description": "（1 张参数表）游戏仓 `game/data/formula_skeleton.py:22 FORMULA_SKELETON`（9 组）：exp 超 100 级兜底、怪物 exp/gold 的线性斜率与战斗拉长补偿、技能成长默认值（p/c/m/l 斜率与系数）、技能点定价、副业经验曲线 a/b、装备暴击与项链 mdef 修正、boss 旧减速曲线。**这里只有数值**；公式结构（分支/截断序/随机）仍在宿主 `core/engine`（引擎执行器）。⚠ `boss_atk_legacy.seg` 源侧是 tuple 的 tuple。"
+      "description": "（1 张参数表）游戏仓 `game/data/formula_skeleton.py:22 FORMULA_SKELETON`（9 组）+ **V4 下沉 7 组**（2026-09-16）+ **V3 下沉时间段 `time_model`**（2026-09-16）：exp 超 100 级兜底、怪物 exp/gold 的线性斜率与战斗拉长补偿、技能成长默认值（p/c/m/l 斜率与系数）、技能点定价、副业经验曲线 a/b、装备暴击与项链 mdef 修正、boss 旧减速曲线；V4 新增 = `shield_default_pct`（护盾兜底比例，两种写法：effects 兜底 / shield_pct 缺省）、`block`（格挡概率上限 cap + 命中减免 reduce）、`heal_down`（禁疗每层 per_stack + 上限 cap）、`anti_heal`（重伤上限 cap）、`reduce`（减伤兜底 default_pct + clamp 上限 cap）、`gauge`（敌身条 max 缺省上限 default_max）、`skill_max_level`（技能满级默认，SKILL_UP 条目的 max 优先）。★ `time_model`（V3）= CTB 行动耗时模型，**结构也可配**：`{shape: sqrt|linear|flat, spd_ref, cast:{attack,skill,defend,item}, spd_cap}`；读口 `content/catalog_rules.py::time_model()`，构造点 `content/mech/time_model.py`，引擎侧 `battle/schedule.py` 已零公式（只转发注入面）。除 `time_model` 外**只有数值**；公式结构（分支/截断序/随机）仍在宿主 `core/engine`（引擎执行器）；引擎未装配时走 `_NEUTRAL_SKELETON` 同语义中性值。⚠ `boss_atk_legacy.seg` 源侧是 tuple 的 tuple。"
         },
         "stat_templates": {
           "type": "object",
