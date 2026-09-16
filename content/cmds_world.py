@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-"""包内世界域命令（`content/cmds_world.py`）—— 『任务』面板 + 包侧等待型副业守卫。
+"""包内世界域命令（`content/cmds_world.py`）—— 『任务』面板（世界域唯一真逻辑命令）。
 
-本模块现在只剩两件事
+本模块现在只剩一件事
 --------------------
-1. `quest_view`（『任务』）—— 世界域里唯一**含真逻辑**的一条命令：主线/支线分页面板要自己
-   拼行并落 `content/texts.py` 的渲染点，不是「取参 + 调实现体」能表达的；
-2. `_no_prof_waiting` —— 包侧守卫（等待型副业互斥），登记进 `content/guards.py::GUARDS`。
+`quest_view`（『任务』）—— 世界域里唯一**含真逻辑**的一条命令：主线/支线分页面板要自己
+拼行并落 `content/texts.py` 的渲染点，不是「取参 + 调实现体」能表达的。
+
+> ★ S1：本模块原有一个 `_no_prof_waiting`（等待型副业互斥守卫的**第二份**实现，
+> `_GUARDS.setdefault("no_prof_waiting", …)` 注册）—— 因为 `content/guards.py` 在
+> import 期已经登记了同名守卫（`GUARDS.update({...})`），`setdefault` 恒为 no-op，
+> 那一份是**死副本**。按「本包约定只允许一处」删掉，守卫唯一真源 = `content/guards.py`。
 
 其余世界域命令由**声明式绑定**接管：`content/data/commands.json` 的 `bind` 直接点名实现体
 （`content.world_cmds:<名>`）+ 调用模式 + 取参槽位，命令层薄壳与本地驱动助手
@@ -27,9 +31,6 @@ async generator（`yield event.plain_result(...)`），由引擎按 `bind.call` 
 """
 from __future__ import annotations
 
-import time
-
-from . import catalog_life as _cat_life
 from . import texts as T
 from . import world_cmds as _WC
 from .catalog_quests import MAIN_QUESTS, NPCS, SIDE_QUESTS
@@ -37,7 +38,6 @@ from .catalog_space import MAP_BY_ID
 from .cmds_env import shell as _shell
 # B14 口径：数据面走包内门面（不新增 `C.<数据名>` 读点；实测与宿主 `C` 逐对象同一）
 from .commands import register
-from .guards import GUARDS as _GUARDS
 from .wild import ALL_WILD
 from .world_cmds import db, _DAILY_META_KEYS   # B2-W2：清死 import（C/_host_attr 全仓零调用点）
 
@@ -52,27 +52,7 @@ def _svc(name):
 
 
 # ============================================================
-# ② 包侧守卫：等待型副业互斥（本线自己的段；`content/guards.py` 别人段一字未改）
-# ============================================================
-def _no_prof_waiting(env, player=None):
-    """等待型副业（垂钓/采集/挖掘）进行中 → 拦截（判定 + 措辞逐字 = 宿主旧
-    `game/commands/base.py::no_prof_waiting` 装饰器）。返回非空 = 拦截并当作回话。"""
-    shell = _shell(env)
-    st = shell._prof_wait_state(env.group_id, env.uid) if shell is not None else None
-    if st and st["finish"] > int(time.time()):
-        left = st["finish"] - int(time.time())
-        tname = _cat_life.PROF_WAIT_BASE.get(st["type"], (0, 0, "副业"))[2]
-        return ("⏳ 你还在%s呢，再有 %d 秒完成！(完成后自动入包)\n"
-                "💡 等待期间可以『背包』『属性』『任务』，但移动/探索/战斗要等%s结束～"
-                % (tname, left, tname))
-    return None
-
-
-_GUARDS.setdefault("no_prof_waiting", _no_prof_waiting)
-
-
-# ============================================================
-# ③ 『任务』面板口径（原宿主 world.py 模块级两处，随 quest_view 一起进包）
+# ② 『任务』面板口径（原宿主 world.py 模块级两处，随 quest_view 一起进包）
 # ============================================================
 def _kill_prog_count(obj, prog):
     """v105 M19 P2：击杀进度聚合读——兼容旧存档老 key（v95.7 之前进度记
@@ -94,7 +74,7 @@ _OBJ_PROGRESS_LINES = {
 
 
 # ============================================================
-# ④ 『任务』面板（原宿主 world.py:390-580 **逐字搬入**；渲染点 = 包内 T.text/T.static）
+# ③ 『任务』面板（原宿主 world.py:390-580 **逐字搬入**；渲染点 = 包内 T.text/T.static）
 # ============================================================
 @register("quest_view", guards=("hook:player",), params=("cmd=任务", "page"))
 def quest_view(env) -> list:
@@ -290,6 +270,6 @@ def quest_view(env) -> list:
 
 
 # ============================================================
-# ⑤ 其余 35 条：既有实现在 `content/world_cmds.py`，本模块只做「守卫 + 取参 + 登记」
+# ④ 其余 35 条：既有实现在 `content/world_cmds.py`，本模块只做「守卫 + 取参 + 登记」
 # ============================================================
 # 形参口径 = 宿主改造前逐条调用点（`_WC.<名>(self, event[, group_id, qq_id[, player]])`）。

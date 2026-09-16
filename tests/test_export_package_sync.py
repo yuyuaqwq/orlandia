@@ -57,7 +57,9 @@ PKG_DIR = _paths.PKG_ROOT
 #: 与 `texts` 域的数据文件 `texts.json`（导出投影）配对；真源/投影关系由
 #: `tests/test_texts_specs_sync.py` 钉住）。
 AUX_FILES = {"text_specs.json": "文案规格表（非域表；真源=包内，宿主那份是构建期镜像）",
-             "tables.json": "存档表结构声明（非域表；包内真源，由引擎 `saintess_engine.store` 装载建表）"}
+             "tables.json": "存档表结构声明（非域表；包内真源，由引擎 `saintess_engine.store` 装载建表）",
+             "cond_specs.json": "声明式条件表（非域表；S4 起为包内真源 —— 由 `content/cond_specs.py` "
+                                "读口供给，引擎 `saintess_engine.conditions.declarative` 通用装配）"}
 
 DATA_DIR = os.path.join(PKG_DIR, "content", "data")
 RULES_DIR = os.path.join(PKG_DIR, "content", "rules")

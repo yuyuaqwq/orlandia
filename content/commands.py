@@ -61,6 +61,8 @@ import os
 
 from saintess_engine.command import CommandRegistry, CommandSpec, bind_handler, load_table
 
+from .cmds_env import shell as _shell
+
 __all__ = ["COMMANDS", "REGISTRY", "register", "bind",
            "text", "static", "raw", "render_panel",
            "DECLARATION_PATH", "load_declared_bindings", "BOUND_KEYS"]
@@ -226,8 +228,8 @@ DECLARATION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 
 def _bind_lead(env):
-    """声明式绑定的前导实参：宿主壳对象（见 `content/cmds_env.py` 的所有权说明）。"""
-    return ((env.state or {}).get("shell"),)
+    """声明式绑定的前导实参：宿主壳对象（取件单点 = `content/cmds_env.py::shell`）。"""
+    return (_shell(env),)
 
 
 def load_declared_bindings() -> tuple:

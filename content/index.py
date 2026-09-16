@@ -13,23 +13,23 @@
   `build_index(...)` 调用也落在它上面 —— 写入语义与改前「包内写、宿主读同一只字典」等价）。
   **不再有「读宿主 data」的路径**。
 
-兼容面（宿主薄壳 `game/core/index.py` 仍在调，签名/行为保持）
-----------------------------------------------------------
-* `bind_host(data=…)`：保留。**主构建路径不碰它**——唯一消费者是
-  `_host_data()`，只给 3 张**无域缺口表**（`WEAPON_TYPES` / `WT_CN` / `QUALITY_CN`）兜底，
-  见 `content/index_build.py` 头注「缺口」与报告 `overnight/_w1_index_to_pkg.md`。
+兼容面（签名保持，取件面已收口）
+--------------------------------
+* `bind_host(...)`：保留（老调用方按老签名调不炸）。**索引构建完全不碰它** —— S3 探针实测
+  `content/index_build.py::GAP_SOURCES` = `{'WEAPON_TYPES': 'domain:equipment', 'WT_CN':
+  'facade:content.catalog_b143', 'QUALITY_CN': 'facade:content.catalog_b143'}`，17/17 张表
+  全部来自包内；原 `_host_data()` 三级兜底的第 ③ 级（宿主 `game.data`）与
+  宿主 `_INDEXES` 同一只子 dict 的兼容镜像（同名函数）**在终态都是死路** —— S3 已删
+  （终态 `data` 句柄 = `content.catalog_legacy`，既无 3 张缺口表、也无 `_INDEXES`）。
+  `index_build._gap_tables()` 仍保留 `_host_getter` 形参（缺省 `None` = 不启用该级）。
 * `content/index_build.py::GAP_SOURCES` 记录每张缺口表的实际来源（探针/报告取证用）。
 
 ⚠️ `pypinyin` 是第三方纯计算库（无 IO/无宿主知识）—— 包内直接用，与宿主同源同版本。
 """
 from __future__ import annotations
 
-import sys
-
 from pypinyin import lazy_pinyin
 
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
@@ -39,34 +39,12 @@ _BUILT = False
 
 
 def bind_host(**objs):
-    """宿主替身注入（幂等）——键 = 模块名（`data`）。
+    """宿主替身注入（幂等）——兼容注入口，保留旧签名不让老调用方 import 炸。
 
-    兼容注入口：宿主薄壳 `game/core/index.py` 仍按老签名调它（不让宿主 import 炸）。
-    **索引构建不依赖它**（15/17 张表全部来自包内）；只有「无域缺口表」在包内无源时才经它兜底。
+    **索引构建不依赖它**：17/17 张表全部来自包内（`content/index_build.py::GAP_SOURCES`
+    实测 = `domain:equipment` / `facade:content.catalog_b143`，无 `host:*`）。
     """
     _WIRE.bind(**objs)
-
-
-def _data_mod():
-    """宿主 `data` 模块句柄（决策项 U1；接口表第 9 行冻结机制 = 注入名 `data`）。"""
-    if "data" in _WIRE.handles():
-        return _WIRE.handle("data")
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.data" % prefix)
-        if m is not None:
-            return m
-    raise RuntimeError("index：宿主 `data` 句柄未注入（宿主薄壳 bind_host(data=…) 负责）——拒绝静默空跑")
-
-
-def _host_data():
-    """宿主 `data` 模块 —— **只给「无域缺口表」兜底 + 宿主兼容镜像**（`index_build._gap_tables` 第 ③ 级、
-    `_mirror_to_host`）。主构建路径（15/17 张表）的**取值**完全不碰宿主；宿主不可导入 → 抛，
-    调用处各自吞掉（缺口表 → `missing`；镜像 → 跳过）。
-
-    决策项 U1（接口表第 9 行）：`game.data` 与 `game.content.py` 谁是真源**不在本波裁定**；
-    本波只落**机制** = 注入句柄 `data`（宿主薄壳 `game/core/index.py:28` 注入）→ `sys.modules`
-    已加载的宿主 `data`（**不 import 宿主模块树**）→ 抛（不静默空跑）。"""
-    return _data_mod()
 
 
 def _indexes() -> dict:
@@ -79,29 +57,8 @@ def _indexes() -> dict:
     if not _BUILT:
         _BUILT = True
         from . import index_build as _index_build
-        _index_build.build_into(_INDEXES, _host_getter=_host_data)
+        _index_build.build_into(_INDEXES)
     return _INDEXES
-
-
-def _mirror_to_host(table_name: str) -> None:
-    """宿主兼容镜像（写入方向，宿主不在就跳过）—— 为什么必须有、为什么是**同一对象**：
-
-    宿主 `game/data/_assembly.py:179-278` 混用两种写法：`build_index(...)` 建表之后
-    **直接对 `_INDEXES[...]` 下标读写**（`:193` 写 quality、`:203` 又要 `build_index("weapon_types",…)`、
-    `:204/:205` 用 `dict(WT_CN)` 覆盖该表的两个子键、`:252/:260/:268/:278` 写 monsters/fish/npcs/shop_weapons）。
-    改前两处指向**同一只 dict**；产物搬到包内 dict 后若不同步，宿主 `:204` 会 `KeyError: 'weapon_types'`，
-    而且 `:203` 的裸 `build_index` 会**覆盖掉包内已建好的那把（含 WT_CN 覆盖）**、`:204` 又修不回来
-    （实测症状：`C.display("weapon_types","sword")` 由 `剑` 退化成 `sword`）。
-
-    所以镜像写的是**同一只子 dict 对象**（不是拷贝）：宿主随后的子键覆盖 (`:204/:205`) 就落在包内那份上，
-    与改前「一只 dict」的语义逐字等价。宿主删掉后这里静默跳过 —— `resolve/display` 不依赖它。
-    """
-    try:
-        host_dict = getattr(_host_data(), "_INDEXES", None)
-        if isinstance(host_dict, dict):
-            host_dict[table_name] = _INDEXES[table_name]
-    except Exception:                                        # noqa: BLE001
-        pass
 
 
 def pinyin_id(name: str) -> str:
@@ -142,7 +99,6 @@ def build_index(table_name: str, table: dict, prefix: str = "", name_field: str 
         n2i[nm] = eid
         i2n[eid] = nm
     _indexes()[table_name] = {"name_to_id": n2i, "id_to_name": i2n}
-    _mirror_to_host(table_name)          # 宿主兼容镜像（宿主 `_assembly` 仍直接下标读写宿主 dict）
 
 
 def resolve(table_name: str, name_or_id: str):

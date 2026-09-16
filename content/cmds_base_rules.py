@@ -68,6 +68,7 @@ from . import catalog_life as _cat_life
 from . import catalog_space as _cat_space
 from . import guards as _guards
 from . import wild as _wild
+from .cmds_env import shell_state as _shell_state
 from .item_templates import TIPS
 from .panel import STAT_NAMES
 from .persistence import update_player
@@ -98,13 +99,15 @@ class _LegacyShellEnv:
     """旧通道（宿主壳 `self` + AstrBot `event`）→ 引擎 `Env` 口径的**最小适配**。
 
     只为把宿主装饰器接到包侧守卫（`content/guards.py::no_prof_waiting`）的入参形状上：
-    该守卫只读 `state["shell"]` / `group_id` / `uid` / `clock` 四个字段（其余字段给同形默认值，
+    该守卫只读 `state`（宿主壳**所在的注入字典**，键名的唯一出处 = `content/cmds_env.py`）/
+    `group_id` / `uid` / `clock` 四个字段（其余字段给同形默认值，
     与 `_host_bridge.run` 造的 `Env` 同口径：uid/group_id 转 str、clock = `time.time`）。
+    ★ S1：`state` 的**键名**不在本文件写死 —— 走单点 `content/cmds_env.py::shell_state()`。
     """
 
     def __init__(self, shell, event):
         group_id, qq_id = shell._uid(event)
-        self.state = {"shell": shell}
+        self.state = _shell_state(shell)
         self.group_id = str(group_id)
         self.uid = str(qq_id)
         self.clock = time.time

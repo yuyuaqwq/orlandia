@@ -98,6 +98,8 @@ from .catalog_space import MAP_BY_ID            # 真源 `C.MAP_BY_ID`
 from . import obs                          # noqa: E402  包内唯一 LOG/tlog 取用口（fail-closed）
 from .index import display as _index_display   # noqa: E402  `C.display` → 包内直取（同一对象）
 from ._pkgref import DB as db              # noqa: E402  `from .. import db` 的包内等价物
+from saintess_engine.conditions.declarative import bind_spec   # S4：声明式条目装配
+from .cond_specs import load as _load_specs
 
 
 # v140 波2：3 个新条件类型注册（数据已有零消费点或最小接线）
@@ -117,10 +119,13 @@ def _register_cond(key):
     return deco
 
 
-@_register_cond("blueprints_learned")
-def _c_blueprints_learned(player, stats, profs, extra, cond):
-    """已学习图纸数（v140 波2：读 players.learned_blueprints 长度，数据已有零消费点）"""
-    return len(player.get("learned_blueprints") or []) >= cond.get("value", 0)
+# ★ S4 数据化：`blueprints_learned` / `chests_opened` 两条形状固定，判定搬进
+#   `content/data/cond_specs.json`（此处只保留登记动作，注册表与签名不变）。
+_S4_DECL = _load_specs("achievement")
+for _k in ("blueprints_learned", "chests_opened"):
+    if _COND_CHECKS is not None:
+        _COND_CHECKS.register(_k, bind_spec(
+            _S4_DECL[_k], ("player", "stats", "profs", "extra", "cond")))
 
 
 @_register_cond("quests_done")
@@ -140,13 +145,6 @@ def _c_quests_done(player, stats, profs, extra, cond):
         if isinstance(_s, dict) and _s.get("status") == "done":
             done += 1
     return done >= cond.get("value", 0)
-
-
-@_register_cond("chests_opened")
-def _c_chests_opened(player, stats, profs, extra, cond):
-    """累计开启宝箱数（v140 波2：读 stats.chests_opened——stats 新列 +
-    item_templates.py tpl_open_chest 一行 bump 接线；无列时 get 兜底 0 不报错）"""
-    return int(stats.get("chests_opened", 0) or 0) >= cond.get("value", 0)
 
 
 def _bestiary_kills(qq_id, keyword) -> int:

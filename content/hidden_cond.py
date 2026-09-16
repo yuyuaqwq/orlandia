@@ -24,6 +24,10 @@
 等价证据：`overnight/w1213_b13l3_snap.py`（E4–E9：关键词表 / 6 图位图 / 全 cond × 上下文矩阵 /
 未知 cond 按 any / 注册即生效 + 可撤销）· `overnight/W-B13-L3-events-dialogue.md`。
 """
+from saintess_engine.conditions.declarative import compile_specs
+from .cond_specs import load as _load_specs
+
+
 # 地图 ID 关键词 → 环境分类（历史实现直接写在 combat.py，v98.3 数据化）
 ENV_KEYWORDS = {
     "forest": ("forest", "wood", "glade"),
@@ -46,6 +50,12 @@ def register(name):
     return deco
 
 
+# ★ S4 数据化：6 条环境判定（恒真 / 位图取真值 / 位图与夜）搬进
+#   `content/data/cond_specs.json`；`CONDITIONS` 仍是同一个 dict（未知 cond 按 any
+#   的既有口径一字未改）。
+CONDITIONS.update(compile_specs(_load_specs("hidden")))
+
+
 class HiddenCtx:
     """隐藏怪环境判定上下文。envs 为 {环境名: bool} 预计算位图。"""
 
@@ -65,36 +75,6 @@ def envs_of(mid: str) -> dict:
 
 
 # ================= 条件实现 =================
-
-@register("any")
-def _c_any(ctx):
-    return True
-
-
-@register("forest_night")
-def _c_forest_night(ctx):
-    return ctx.env("forest") and ctx.is_night
-
-
-@register("forest")
-def _c_forest(ctx):
-    return ctx.env("forest")
-
-
-@register("water")
-def _c_water(ctx):
-    return ctx.env("water")
-
-
-@register("ruin")
-def _c_ruin(ctx):
-    return ctx.env("ruin")
-
-
-@register("night_any")
-def _c_night_any(ctx):
-    return ctx.is_night
-
 
 def check_cond(cond: str, ctx) -> bool:
     """cond 名 → 判定；未知 cond 按 any 处理（与原实现一致：其他走无限制）。"""

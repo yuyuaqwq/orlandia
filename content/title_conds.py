@@ -115,11 +115,19 @@ from . import wild as _wild                     # 真源 `C.ALL_WILD`（`core/wi
 import re
 
 from saintess_engine.conditions import Conditions
+from saintess_engine.conditions.declarative import register_specs
+from .cond_specs import load as _load_specs
 
 CONDITIONS = Conditions()
 
 # 条件注册装饰器（引擎同名方法；判定函数签名 fn(ctx) 与引擎调用约定一致）
 register = CONDITIONS.register
+
+# ★ S4 数据化：下面这些条目的判定形状固定（常量比较 / 步链取值 / 布尔组合 /
+#   计数阈值），正文已搬进 `content/data/cond_specs.json`（引擎侧只用
+#   `saintess_engine.conditions.declarative` 的通用算子装配）。
+#   保留在下方代码里的条目都带真逻辑（跨域联查 / 运行期取数 / 引擎没有的算子）。
+register_specs(CONDITIONS.register, _load_specs("title"))
 
 
 class TitleCtx:
@@ -154,51 +162,6 @@ def _t_novice(ctx):
     return True
 
 
-@register("lv10")
-def _t_lv10(ctx):
-    return ctx._focus.get("level", 0) >= 10
-
-
-@register("lv20")
-def _t_lv20(ctx):
-    return ctx._focus.get("level", 0) >= 20
-
-
-@register("lv30")
-def _t_lv30(ctx):
-    return ctx._focus.get("level", 0) >= 30
-
-
-@register("kill10")
-def _t_kill10(ctx):
-    return ctx.stats.get("kills", 0) >= 10
-
-
-@register("kill100")
-def _t_kill100(ctx):
-    return ctx.stats.get("kills", 0) >= 100
-
-
-@register("kill500")
-def _t_kill500(ctx):
-    return ctx.stats.get("kills", 0) >= 500
-
-
-@register("elite5")
-def _t_elite5(ctx):
-    return ctx.stats.get("elite_kills", 0) >= 5
-
-
-@register("boss1")
-def _t_boss1(ctx):
-    return ctx.stats.get("boss_kills", 0) >= 1
-
-
-@register("boss3")
-def _t_boss3(ctx):
-    return ctx.stats.get("boss_kills", 0) >= 3
-
-
 @register("rep_honor")
 def _t_rep_honor(ctx):
     return any(C.faction_reputation_tier(v) in ("崇敬", "崇拜") for v in ctx.rep.values())
@@ -207,16 +170,6 @@ def _t_rep_honor(ctx):
 @register("rep_legend")
 def _t_rep_legend(ctx):
     return any(C.faction_reputation_tier(v) == "崇拜" for v in ctx.rep.values())
-
-
-@register("quest10")
-def _t_quest10(ctx):
-    return len(ctx.quests.get("completed_main", [])) >= 10
-
-
-@register("wealthy")
-def _t_wealthy(ctx):
-    return ctx._focus.get("gold", 0) >= 5000
 
 
 @register("explorer")
@@ -252,17 +205,6 @@ def _t_hidden(ctx):
     if not hidden:
         return False
     return any(v in hidden for v in visited)
-
-
-@register("final")
-def _t_final(ctx):
-    return ctx.quests.get("main_quest") is None and len(ctx.quests.get("completed_main", [])) >= 10
-
-
-@register("iron_adventurer")
-def _t_iron_adventurer(ctx):
-    """铁牌冒险者（v140 q1_6 主线奖励）：完成第一杯麦酒（q1_6 在 completed_main）。"""
-    return "q1_6" in (ctx.quests.get("completed_main") or [])
 
 
 @register("fish_king")
@@ -304,41 +246,6 @@ def _t_nightwalker(ctx):
     return _side_done(ctx, "s18") and _has_flag(ctx, "s18_branch_dark")
 
 
-@register("guifan_seal")
-def _t_guifan_seal(ctx):
-    return _side_done(ctx, "s27")
-
-
-@register("dragon_warden")
-def _t_dragon_warden(ctx):
-    return _side_done(ctx, "s33")
-
-
-@register("gourmet")
-def _t_gourmet(ctx):
-    return _side_done(ctx, "s56")
-
-
-@register("herb_friend")
-def _t_herb_friend(ctx):
-    return _side_done(ctx, "s60")
-
-
-@register("treasure_hunter")
-def _t_treasure_hunter(ctx):
-    return _side_done(ctx, "s64")
-
-
-@register("furry_friend")
-def _t_furry_friend(ctx):
-    return _side_done(ctx, "s69")
-
-
-@register("merchant_friend")
-def _t_merchant_friend(ctx):
-    return _side_done(ctx, "s74")
-
-
 @register("just_enforcer")
 def _t_just_enforcer(ctx):
     return _side_done(ctx, "s78") and _has_flag(ctx, "s78_branch_justice")
@@ -347,56 +254,6 @@ def _t_just_enforcer(ctx):
 @register("shadow_friend")
 def _t_shadow_friend(ctx):
     return _side_done(ctx, "s78") and _has_flag(ctx, "s78_branch_mercy")
-
-
-@register("dusk_detective")
-def _t_dusk_detective(ctx):
-    return _side_done(ctx, "s79")
-
-
-@register("peacemaker")
-def _t_peacemaker(ctx):
-    return _side_done(ctx, "s84")
-
-
-@register("guide")
-def _t_guide(ctx):
-    return _side_done(ctx, "s89")
-
-
-@register("night_rain")
-def _t_night_rain(ctx):
-    return _side_done(ctx, "hq5_3")
-
-
-@register("goose_messenger")
-def _t_goose_messenger(ctx):
-    return _side_done(ctx, "hq7_3")
-
-
-@register("forge_son")
-def _t_forge_son(ctx):
-    return _side_done(ctx, "hq8_4")
-
-
-@register("graveyard_warden")
-def _t_graveyard_warden(ctx):
-    return _side_done(ctx, "hq6_3")
-
-
-@register("fishing_legend")
-def _t_fishing_legend(ctx):
-    return _side_done(ctx, "s95")
-
-
-@register("late_messenger")
-def _t_late_messenger(ctx):
-    return _side_done(ctx, "s100")
-
-
-@register("season_gardener")
-def _t_season_gardener(ctx):
-    return _side_done(ctx, "s106")
 
 
 def check_pro_title(tid: str, ctx) -> bool:
@@ -413,37 +270,3 @@ def check_pro_title(tid: str, ctx) -> bool:
 # ================= v140 波3.6：资源向称号条件（方案 3.9，6 个） =================
 # 条件口径与 achievements.py prof_count 一致（stats 计数），效果消费点见 titles.py effect 字段
 
-@register("res_forge_master")
-def _t_res_forge_master(ctx):
-    """锻造大师（锻造体力-1）：锻造 ≥100 件装备。"""
-    return ctx.stats.get("craft_count", 0) >= 100
-
-
-@register("res_gather_expert")
-def _t_res_gather_expert(ctx):
-    """采集高手（采集品质+10%）：累计采集 ≥500 次。"""
-    return ctx.stats.get("gather_count", 0) >= 500
-
-
-@register("res_treasure_hunter")
-def _t_res_treasure_hunter(ctx):
-    """寻宝猎人（宝藏发现率+2%）：开启 ≥50 个宝箱。"""
-    return ctx.stats.get("chests_opened", 0) >= 50
-
-
-@register("res_fishing_legend")
-def _t_res_fishing_legend(ctx):
-    """垂钓传说·资源（稀有鱼+5%）：累计垂钓 ≥500 次。"""
-    return ctx.stats.get("fish_count", 0) >= 500
-
-
-@register("res_alchemy_master")
-def _t_res_alchemy_master(ctx):
-    """炼金大师（炼金产物+1）：累计炼金 ≥50 次。"""
-    return ctx.stats.get("alchemy_count", 0) >= 50
-
-
-@register("res_food_king")
-def _t_res_food_king(ctx):
-    """美食之王（食物效果+10%）：累计烹饪 ≥50 次。"""
-    return ctx.stats.get("cook_count", 0) >= 50

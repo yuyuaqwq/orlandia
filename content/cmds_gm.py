@@ -12,7 +12,7 @@ v104.1 M24 语义，含两条逐字提示语）。本模块把它接到**守卫*
 宿主里**不再有**「取 uid → 判权限 → 分支回话」这段业务分支（旧宿主每条命令开头 4 行）。
 
 宿主面（**过渡期**，I2：包内不 import 宿主，只经下面几个口取件；宿主壳对象经
-`env.state["shell"]` 透传，与 tower 的 `_open_tower_battle` 同款）：
+`content/cmds_env.py::shell(env)` 取，与 tower 的 `_open_tower_battle` 同款）：
   * 身份判定能力：`shell._is_gm(qq_id)` / `shell._gm_whitelist()`（真源在宿主共享
     `game/commands/base.py`，本批禁改 → 经能力口取；判定策略仍在包内 `gm_auth`）；
   * 停服状态：`shell._server_down()` / `shell._server_down_msg()`（同上，base.py 真源）；

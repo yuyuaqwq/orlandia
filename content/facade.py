@@ -428,7 +428,10 @@ _BIND_SLOTS = (
     ("content.index", ("data",)),
     ("content.instance_cmds", ("C", "db", "T", "player_final_stats", "resolve_drop", "ACT_TICK")),
     ("content.item_templates", ("content",)),
-    ("content.maps", ("data", "db")),
+    # S3：`content.maps` 的宿主镜像口（`data` 句柄）已随宿主镜像残留一并删除
+    # （终态 `data` → `content.catalog_legacy`，本就没有 `ENCY_*`/`MONSTER_LOCS` ⇒ 镜像恒为空跑），
+    # 只留存档半边 `db`（探索计数用）。
+    ("content.maps", ("db",)),
     ("content.misc_cmds", ("db",)),
     ("content.mounts", ("data",)),
     ("content.party", ("db", "c", "content", "panel_stats")),

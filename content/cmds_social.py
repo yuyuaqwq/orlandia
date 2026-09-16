@@ -23,7 +23,7 @@ B9-L3 / B12-L1 / B12-L4 已经把社交域**大部分实现体**搬进包内，�
 宿主替身口（包内不 import 宿主，I2）
 -----------------------------------
 `C` / `db` / `_host_attr` 直接复用 `content/social_cmds.py` 的替身口（与 `cmds_world.py`
-复用 `world_cmds` 的替身口同款）；宿主壳对象经 `env.state["shell"]` 取（桥接层透传），
+复用 `world_cmds` 的替身口同款）；宿主壳对象经 `content/cmds_env.py::shell(env)` 取（桥接层透传），
 用于**平台/命令层能力**：`_strip_cmd` / `_parse_page` / `_page_items` / `_tip` /
 `_record_list_state` / `_player` / `_broadcast` / `_instance_battle_for` / `_unlock_battle`。
 用宿主壳同名方法（而不是另写一份）是**逐字节不变**的要求：`_strip_cmd` 要带

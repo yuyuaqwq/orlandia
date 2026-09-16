@@ -1,0 +1,1512 @@
+{
+  "achievement": {
+    "apprentice": {
+      "left": {
+        "arg": {
+          "field": [
+            {
+              "key": "player"
+            },
+            {
+              "default": [],
+              "key": "apprentices",
+              "or": []
+            }
+          ]
+        },
+        "op": "len"
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "blueprints_learned": {
+      "left": {
+        "arg": {
+          "field": [
+            {
+              "key": "player"
+            },
+            {
+              "default": null,
+              "key": "learned_blueprints",
+              "or": []
+            }
+          ]
+        },
+        "op": "len"
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "boss": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "boss_kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "chests_opened": {
+      "left": {
+        "arg": {
+          "field": [
+            {
+              "key": "stats"
+            },
+            {
+              "default": 0,
+              "key": "chests_opened"
+            }
+          ]
+        },
+        "op": "int"
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "collect_fish": {
+      "left": {
+        "field": [
+          {
+            "key": "extra"
+          },
+          {
+            "default": null,
+            "key": "collect_fish"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": null,
+            "key": "key"
+          }
+        ]
+      }
+    },
+    "elite": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "elite_kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "event_all": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "world_events"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "evolve": {
+      "left": {
+        "field": [
+          {
+            "key": "player"
+          },
+          {
+            "default": 0,
+            "key": "class_tier"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "faction": {
+      "arg": {
+        "field": [
+          {
+            "default": null,
+            "key": "player",
+            "or": {}
+          },
+          {
+            "default": null,
+            "key": "faction"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "fish_king": {
+      "arg": {
+        "field": [
+          {
+            "key": "extra"
+          },
+          {
+            "default": null,
+            "key": "fish_king"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "flawless": {
+      "arg": {
+        "field": [
+          {
+            "key": "extra"
+          },
+          {
+            "default": null,
+            "key": "flawless"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "hidden_class": {
+      "elem": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": null,
+            "key": "key"
+          }
+        ]
+      },
+      "op": "contains",
+      "seq": {
+        "field": [
+          {
+            "default": null,
+            "key": "player",
+            "or": {}
+          },
+          {
+            "default": [],
+            "key": "hidden_class_unlock"
+          }
+        ]
+      }
+    },
+    "hidden_class_lv": {
+      "args": [
+        {
+          "left": {
+            "field": [
+              {
+                "default": null,
+                "key": "player",
+                "or": {}
+              },
+              {
+                "default": null,
+                "key": "class_name"
+              }
+            ]
+          },
+          "op": "eq",
+          "right": {
+            "field": [
+              {
+                "key": "cond"
+              },
+              {
+                "default": null,
+                "key": "key"
+              }
+            ]
+          }
+        },
+        {
+          "left": {
+            "field": [
+              {
+                "default": null,
+                "key": "player",
+                "or": {}
+              },
+              {
+                "default": 0,
+                "key": "level"
+              }
+            ]
+          },
+          "op": "ge",
+          "right": {
+            "field": [
+              {
+                "key": "cond"
+              },
+              {
+                "default": 0,
+                "key": "value"
+              }
+            ]
+          }
+        }
+      ],
+      "op": "and"
+    },
+    "inst_all8": {
+      "left": {
+        "arg": {
+          "field": [
+            {
+              "key": "extra"
+            },
+            {
+              "default": [],
+              "key": "inst_ids",
+              "or": []
+            }
+          ]
+        },
+        "op": "len"
+      },
+      "op": "ge",
+      "right": {
+        "const": 8
+      }
+    },
+    "inst_clear": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "inst_clears"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "learned": {
+      "left": {
+        "arg": {
+          "field": [
+            {
+              "key": "player"
+            },
+            {
+              "default": [],
+              "key": "learned_skills",
+              "or": []
+            }
+          ]
+        },
+        "op": "len"
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "level": {
+      "left": {
+        "field": [
+          {
+            "key": "player"
+          },
+          {
+            "default": 0,
+            "key": "level"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "party": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "party_count"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "registered": {
+      "arg": {
+        "field": [
+          {
+            "key": "player"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "wish_met": {
+      "arg": {
+        "field": [
+          {
+            "key": "extra"
+          },
+          {
+            "default": null,
+            "key": "wish_met"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "world_event": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "world_events"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "field": [
+          {
+            "key": "cond"
+          },
+          {
+            "default": 0,
+            "key": "value"
+          }
+        ]
+      }
+    },
+    "worldboss": {
+      "arg": {
+        "field": [
+          {
+            "key": "extra"
+          },
+          {
+            "default": null,
+            "key": "worldboss"
+          }
+        ]
+      },
+      "op": "truthy"
+    }
+  },
+  "dialogue": {
+    "apprentice": {
+      "elem": {
+        "field": [
+          {
+            "key": "v"
+          }
+        ]
+      },
+      "op": "contains",
+      "seq": {
+        "field": [
+          {
+            "key": "ctx"
+          },
+          {
+            "default": null,
+            "key": "apprentices",
+            "or": []
+          }
+        ]
+      }
+    },
+    "not_apprentice": {
+      "arg": {
+        "elem": {
+          "field": [
+            {
+              "key": "v"
+            }
+          ]
+        },
+        "op": "contains",
+        "seq": {
+          "field": [
+            {
+              "key": "ctx"
+            },
+            {
+              "default": null,
+              "key": "apprentices",
+              "or": []
+            }
+          ]
+        }
+      },
+      "op": "not"
+    }
+  },
+  "gather": {
+    "morning": {
+      "left": {
+        "field": [
+          {
+            "key": "period"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "morning"
+      }
+    },
+    "night": {
+      "left": {
+        "field": [
+          {
+            "key": "period"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "night"
+      }
+    },
+    "rain": {
+      "left": {
+        "field": [
+          {
+            "key": "weather"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "rain"
+      }
+    },
+    "winter": {
+      "left": {
+        "field": [
+          {
+            "key": "season"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "winter"
+      }
+    }
+  },
+  "hidden": {
+    "any": {
+      "const": true
+    },
+    "forest": {
+      "arg": {
+        "field": [
+          {
+            "key": "envs"
+          },
+          {
+            "default": null,
+            "key": "forest"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "forest_night": {
+      "args": [
+        {
+          "arg": {
+            "field": [
+              {
+                "key": "envs"
+              },
+              {
+                "default": null,
+                "key": "forest"
+              }
+            ]
+          },
+          "op": "truthy"
+        },
+        {
+          "field": [
+            {
+              "key": "is_night"
+            }
+          ]
+        }
+      ],
+      "op": "and"
+    },
+    "night_any": {
+      "field": [
+        {
+          "key": "is_night"
+        }
+      ]
+    },
+    "ruin": {
+      "arg": {
+        "field": [
+          {
+            "key": "envs"
+          },
+          {
+            "default": null,
+            "key": "ruin"
+          }
+        ]
+      },
+      "op": "truthy"
+    },
+    "water": {
+      "arg": {
+        "field": [
+          {
+            "key": "envs"
+          },
+          {
+            "default": null,
+            "key": "water"
+          }
+        ]
+      },
+      "op": "truthy"
+    }
+  },
+  "title": {
+    "boss1": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "boss_kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 1
+      }
+    },
+    "boss3": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "boss_kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 3
+      }
+    },
+    "dragon_warden": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s33"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "dusk_detective": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s79"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "elite5": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "elite_kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 5
+      }
+    },
+    "final": {
+      "args": [
+        {
+          "left": {
+            "field": [
+              {
+                "key": "quests"
+              },
+              {
+                "default": null,
+                "key": "main_quest"
+              }
+            ]
+          },
+          "op": "eq",
+          "right": {
+            "const": null
+          }
+        },
+        {
+          "left": {
+            "arg": {
+              "field": [
+                {
+                  "key": "quests"
+                },
+                {
+                  "default": [],
+                  "key": "completed_main"
+                }
+              ]
+            },
+            "op": "len"
+          },
+          "op": "ge",
+          "right": {
+            "const": 10
+          }
+        }
+      ],
+      "op": "and"
+    },
+    "fishing_legend": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s95"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "forge_son": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "hq8_4"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "furry_friend": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s69"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "goose_messenger": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "hq7_3"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "gourmet": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s56"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "graveyard_warden": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "hq6_3"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "guide": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s89"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "guifan_seal": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s27"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "herb_friend": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s60"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "iron_adventurer": {
+      "elem": {
+        "const": "q1_6"
+      },
+      "op": "contains",
+      "seq": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "completed_main",
+            "or": []
+          }
+        ]
+      }
+    },
+    "kill10": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 10
+      }
+    },
+    "kill100": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 100
+      }
+    },
+    "kill500": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "kills"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 500
+      }
+    },
+    "late_messenger": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s100"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "lv10": {
+      "left": {
+        "field": [
+          {
+            "key": "_focus"
+          },
+          {
+            "default": 0,
+            "key": "level"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 10
+      }
+    },
+    "lv20": {
+      "left": {
+        "field": [
+          {
+            "key": "_focus"
+          },
+          {
+            "default": 0,
+            "key": "level"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 20
+      }
+    },
+    "lv30": {
+      "left": {
+        "field": [
+          {
+            "key": "_focus"
+          },
+          {
+            "default": 0,
+            "key": "level"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 30
+      }
+    },
+    "merchant_friend": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s74"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "night_rain": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "hq5_3"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "peacemaker": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s84"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "quest10": {
+      "left": {
+        "arg": {
+          "field": [
+            {
+              "key": "quests"
+            },
+            {
+              "default": [],
+              "key": "completed_main"
+            }
+          ]
+        },
+        "op": "len"
+      },
+      "op": "ge",
+      "right": {
+        "const": 10
+      }
+    },
+    "res_alchemy_master": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "alchemy_count"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 50
+      }
+    },
+    "res_fishing_legend": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "fish_count"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 500
+      }
+    },
+    "res_food_king": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "cook_count"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 50
+      }
+    },
+    "res_forge_master": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "craft_count"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 100
+      }
+    },
+    "res_gather_expert": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "gather_count"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 500
+      }
+    },
+    "res_treasure_hunter": {
+      "left": {
+        "field": [
+          {
+            "key": "stats"
+          },
+          {
+            "default": 0,
+            "key": "chests_opened"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 50
+      }
+    },
+    "season_gardener": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s106"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "treasure_hunter": {
+      "left": {
+        "field": [
+          {
+            "key": "quests"
+          },
+          {
+            "default": null,
+            "key": "side",
+            "or": {}
+          },
+          {
+            "default": {},
+            "key": "s64"
+          },
+          {
+            "default": null,
+            "key": "status"
+          }
+        ]
+      },
+      "op": "eq",
+      "right": {
+        "const": "done"
+      }
+    },
+    "wealthy": {
+      "left": {
+        "field": [
+          {
+            "key": "_focus"
+          },
+          {
+            "default": 0,
+            "key": "gold"
+          }
+        ]
+      },
+      "op": "ge",
+      "right": {
+        "const": 5000
+      }
+    }
+  }
+}

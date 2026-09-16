@@ -32,8 +32,7 @@ PKG_ROOT = os.path.dirname(TESTS_DIR)
 FRAMEWORK_ENV = "GWEN_FRAMEWORK_DIR"
 HOST_ENV = "GWEN_HOST_DIR"
 _FRAMEWORK_CANDIDATES = ("../framework", "../..", "../framework-engine", "framework")
-#:   `../..` 覆盖两种真实布局：部署（`<plugin>/framework/games/<pkg>` → 祖父 = `<plugin>/framework`）
-#:   与引擎仓（`<eng>/games/<pkg>` → 祖父 = 引擎根）。判据仍用 `_has_engine()`，不认空目录。
+#:   `../..` 覆盖部署布局（<plugin>/framework/games/<pkg> → 祖父）与引擎仓布局。
 
 
 def _has_engine(root: str) -> bool:
@@ -69,8 +68,7 @@ def find_engine_root() -> str:
         lines.append("!!   - %-28s -> %s  [%s]"
                      % (label, root, "有" if os.path.isdir(root) else "无此目录"))
     lines.append("!! 修法：设 %s=<引擎框架仓根>，或把引擎仓放到包仓的 ../framework / "
-                 "../.. （祖父，部署布局即 <plugin>/framework）/ ../framework-engine / ./framework。"
-                 % FRAMEWORK_ENV)
+                 "../framework-engine / ./framework。" % FRAMEWORK_ENV)
     lines.append("!" * 78)
     raise RuntimeError("\n".join(lines))
 

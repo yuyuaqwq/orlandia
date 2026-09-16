@@ -12,8 +12,8 @@
    调用点用函数内 import，与原 `_host_*("core.drops", …)` 的「调用时解析」同刻）。
 2. 开战装配（`Battle` + `battle_bridge` + `db.save_battle` + 单进程锁 + 阵型面板 =
    「必须认识活人世界」）→ 宿主壳对象上的可选能力 `_open_tower_battle`，由桥接层经
-   `env.state["shell"]` 透传（与 B18a 的 `ctx.cap("_open_tower_battle")` 同源；P2 后由引擎
-   Host 的能力口取代）。缺能力 → `None`（与真源 try/except 同效）。
+   `content/cmds_env.py::shell(env)` 取（与 B18a 的 `ctx.cap("_open_tower_battle")` 同源；
+   P2 后由引擎 Host 的能力口取代）。缺能力 → `None`（与真源 try/except 同效）。
 
 行为逐字节不变；证据 = `overnight/W-B18-样板.md` 的 62 场景快照（sha256 改前 = 改后）。
 """

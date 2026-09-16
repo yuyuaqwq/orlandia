@@ -21,6 +21,9 @@ from __future__ import annotations
 
 __all__ = ["GUARDS", "NO_PLAYER_HINT", "player"]
 
+#: ★ S1：宿主面键名的**唯一出处** = `content/cmds_env.py`（本模块不再自写一份取件）
+from .cmds_env import shell as _shell
+
 #: 「玩家档不存在」的拦截回话（逐字 = 宿主 `base.REGISTER_HINT`）
 NO_PLAYER_HINT = "你还没有角色！输入『注册 <名字> <性别> [种族]』创建吧～"
 
@@ -43,8 +46,9 @@ GUARDS = {"player": player}
 # 本段收的是宿主两个**非 player** 守卫的「判定 + 文案」（策略属内容）：
 #   · `battle`          = 旧宿主 `saintess_engine.command.require_battle`（文案 = `battle_none_hint`）
 #   · `no_prof_waiting` = 旧宿主 `game/commands/base.py::no_prof_waiting`（等待型副业互斥）
-# 两者判定都要「活人世界」（battle_state 行 / 副业等待状态）→ 经 `env.state["shell"]`
-# （宿主壳对象，桥接层注入的过渡能力口，与 `content/cmds_tower.py` 同源）取件；
+# 两者判定都要「活人世界」（battle_state 行 / 副业等待状态）→ 经 `content/cmds_env.py::shell(env)`
+# 取宿主壳对象（桥接层注入的过渡能力口，与 `content/cmds_tower.py` 同源；★ S1：键名只在
+# cmds_env.py 写死一处，本模块只是取件方）；
 # **文案与分支逐字 = 旧装饰器**，故改造前后玩家看到的整句一字不差。
 #
 # 备注：`battle` 用**包侧同名钩子**（`hook:battle`）而非引擎内置名 —— 与样板选
@@ -53,11 +57,6 @@ GUARDS = {"player": player}
 
 #: 「不在战斗中」的拦截回话（逐字 = 宿主 `CommandBase.battle_none_hint`，`require_battle` 的 hint 为空）
 BATTLE_NONE_HINT = "你附近没有敌人！输入『探索』寻找敌人～"
-
-
-def _shell(env):
-    """宿主壳对象（桥接层经 `env.state["shell"]` 注入）——过渡能力口；无 → None。"""
-    return (env.state or {}).get("shell")
 
 
 def _now(env) -> int:
@@ -114,11 +113,12 @@ def gm(env, player=None):
     * **判定唯一真源** = `content/gm.py::gm_auth`（v104.1 M24：白名单为空 ⇒ 默认拒绝一切
       GM 指令），本函数只负责「从哪拿身份」这一件事；
     * 身份来源 = 宿主共享 `game/commands/base.py` 的 `_is_gm` / `_gm_whitelist`（本批禁改），
-      经 `env.state["shell"]` 这个过渡期能力口取（与 tower 的 `_open_tower_battle` 同款）；
+      经 `content/cmds_env.py::shell(env)` 这个过渡期能力口取（与 tower 的
+      `_open_tower_battle` 同款）；
     * 缺宿主身份能力（编辑器/独立运行）→ **fail-closed**：按「白名单为空」处理，
       回话仍是包内那条（不静默放行）。
     """
-    shell = (getattr(env, "state", None) or {}).get("shell")
+    shell = _shell(env)
     is_gm = getattr(shell, "_is_gm", None)
     wl = getattr(shell, "_gm_whitelist", None)
     if not callable(is_gm) or not callable(wl):

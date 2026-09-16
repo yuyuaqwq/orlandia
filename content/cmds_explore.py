@@ -8,8 +8,8 @@
   数据 = `content/data/exploration.json`）；到访状态 = 包内存档层
   `content/persistence/world.py::get_visited_subareas(qq_id)`（B17 已归包；宿主 `db.get_visited_subareas`
   就是它的同名转发）—— **包内直连，不经宿主**。
-* 面板底部随机提示：取**宿主壳同款** `_tip("explore")`（`Env.state["shell"]` 透传的可选能力口，
-  与 `cmds_tower._open_tower_battle` 同源）—— 保证提示池对象与随机流逐字同源；
+* 面板底部随机提示：取**宿主壳同款** `_tip("explore")`（`content/cmds_env.py::shell(env)`
+  透传的可选能力口，与 `cmds_tower._open_tower_battle` 同源）—— 保证提示池对象与随机流逐字同源；
   无宿主壳（编辑器试玩）→ 回退包内同源提示池 `content/item_templates.TIPS`。
 
 行为逐字节不变（面板行序 / 分隔线宽度 / 百分比取整 / 隐藏点括号 = 改造前逐行）；证据 =
@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 from . import exploration as _EX
+from .cmds_env import shell as _shell
 from .commands import register
 from .persistence.world import get_visited_subareas
 
@@ -26,7 +27,7 @@ SEP = "━━━━━━━━━━━━━━"
 
 def _tip(env, cat: str) -> str:
     """面板底部提示 —— 宿主壳 `_tip` 优先（同池同随机流）；无壳 → 包内同源 TIPS 池。"""
-    shell = (getattr(env, "state", None) or {}).get("shell")
+    shell = _shell(env)
     fn = getattr(shell, "_tip", None)
     if callable(fn):
         return fn(cat)

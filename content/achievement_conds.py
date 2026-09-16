@@ -137,6 +137,8 @@ from .catalog_items import EQUIP_ROSTER            # W6：真源 `_host_attr("da
 from .catalog_quests import MAIN_QUESTS            # W6：真源 `_host_attr("data", …)`（门禁 OK，含键序）
 
 from saintess_engine.conditions import Conditions      # 引擎条件注册表
+from saintess_engine.conditions.declarative import register_specs
+from .cond_specs import load as _load_specs
 
 COND_CHECKS = Conditions()
 
@@ -149,37 +151,17 @@ def register(key):
     return deco
 
 
+# ★ S4 数据化：形状固定的条件类型（阈值比较 / 真值 / 成员 / 计数）已搬进
+#   `content/data/cond_specs.json`；`cond` 里的阈值仍由成就数据给，签名不变。
+register_specs(COND_CHECKS.register, _load_specs("achievement"),
+               names=("player", "stats", "profs", "extra", "cond"))
+
+
 def _value(cond):
     return cond.get("value", 0)
 
 
 # ================= 角色成长类 =================
-
-@register("registered")
-def _c_registered(player, stats, profs, extra, cond):
-    """已注册角色"""
-    return bool(player)
-
-
-@register("level")
-def _c_level(player, stats, profs, extra, cond):
-    """达到等级"""
-    return player.get("level", 0) >= _value(cond)
-
-
-@register("evolve")
-def _c_evolve(player, stats, profs, extra, cond):
-    """转职阶数（v110 审计修复：原判 evolve_path——该字段只存分支序号(1/2)，
-    导致 ach_evolve3 永不可达、ach_evolve2 被 30 级一转防御分支误解锁；
-    改判 class_tier 档位（1/2/3 = 一/二/三转），隐藏线 60/75/90 档同步成立）"""
-    return player.get("class_tier", 0) >= _value(cond)
-
-
-@register("learned")
-def _c_learned(player, stats, profs, extra, cond):
-    """学习技能数"""
-    return len(player.get("learned_skills", []) or []) >= _value(cond)
-
 
 @register("learned_all")
 def _c_learned_all(player, stats, profs, extra, cond):
@@ -228,18 +210,6 @@ def _c_branch_skills(player, stats, profs, extra, cond):
     return len(learned & names) >= _value(cond)
 
 
-@register("hidden_class")
-def _c_hidden_class(player, stats, profs, extra, cond):
-    """解锁隐藏职业"""
-    return cond.get("key") in (player or {}).get("hidden_class_unlock", [])
-
-
-@register("hidden_class_lv")
-def _c_hidden_class_lv(player, stats, profs, extra, cond):
-    """隐藏职业达到等级"""
-    return (player or {}).get("class_name") == cond.get("key") and (player or {}).get("level", 0) >= cond.get("value", 0)
-
-
 # ================= 战斗统计类 =================
 
 @register("kills")
@@ -248,18 +218,6 @@ def _c_kills(player, stats, profs, extra, cond):
     if cond.get("no_death"):
         return stats.get("kills", 0) >= _value(cond) and stats.get("deaths", 0) == 0
     return stats.get("kills", 0) >= _value(cond)
-
-
-@register("elite")
-def _c_elite(player, stats, profs, extra, cond):
-    """精英击杀数"""
-    return stats.get("elite_kills", 0) >= _value(cond)
-
-
-@register("boss")
-def _c_boss(player, stats, profs, extra, cond):
-    """Boss 击杀数"""
-    return stats.get("boss_kills", 0) >= _value(cond)
 
 
 @register("kills_type")
@@ -289,12 +247,6 @@ def _c_prof_any10(player, stats, profs, extra, cond):
 def _c_prof_count(player, stats, profs, extra, cond):
     """副业次数统计"""
     return stats.get(cond["key"], 0) >= _value(cond)
-
-
-@register("apprentice")
-def _c_apprentice(player, stats, profs, extra, cond):
-    """收徒数"""
-    return len(player.get("apprentices", []) or []) >= _value(cond)
 
 
 @register("set_has")
@@ -347,28 +299,10 @@ def _c_hidden_area(player, stats, profs, extra, cond):
         return False
 
 
-@register("inst_clear")
-def _c_inst_clear(player, stats, profs, extra, cond):
-    """副本通关数"""
-    return stats.get("inst_clears", 0) >= _value(cond)
-
-
 @register("inst_id")
 def _c_inst_id(player, stats, profs, extra, cond):
     """通关指定副本"""
     return bool(extra.get("inst_ids", set()) and cond.get("inst") in extra["inst_ids"])
-
-
-@register("inst_all8")
-def _c_inst_all8(player, stats, profs, extra, cond):
-    """通关全部 8 副本"""
-    return len(extra.get("inst_ids", set()) or set()) >= 8
-
-
-@register("flawless")
-def _c_flawless(player, stats, profs, extra, cond):
-    """无伤通关（extra）"""
-    return bool(extra.get("flawless"))
 
 
 # ================= 图鉴/收集类 =================
@@ -412,12 +346,6 @@ def _c_hidden_monsters_all(player, stats, profs, extra, cond):
 
 # ================= 社交/公会类 =================
 
-@register("party")
-def _c_party(player, stats, profs, extra, cond):
-    """组队次数"""
-    return stats.get("party_count", 0) >= _value(cond)
-
-
 @register("guild")
 def _c_guild(player, stats, profs, extra, cond):
     """加入公会"""
@@ -429,13 +357,6 @@ def _c_guild_lv(player, stats, profs, extra, cond):
     """公会等级"""
     g = db.guild_get_by_member(player["qq_id"])
     return bool(g) and int(g.get("level", 0) or 0) >= _value(cond)
-
-
-@register("faction")
-def _c_faction(player, stats, profs, extra, cond):
-    """v116 解锁（原国战延迟恒 False）：已加入某可选阵营（players.faction 非空）。
-    加入阵营命令『加入阵营 <编号>』写 players.faction（见 world.py camp_join）。"""
-    return bool((player or {}).get("faction"))
 
 
 def _faction_contribute(player, extra):
@@ -474,43 +395,6 @@ def _c_faction_rank1(player, stats, profs, extra, cond):
 
 
 # ================= 世界事件/活动类 =================
-
-@register("world_event")
-def _c_world_event(player, stats, profs, extra, cond):
-    """参与世界事件数"""
-    return stats.get("world_events", 0) >= _value(cond)
-
-
-@register("event_all")
-def _c_event_all(player, stats, profs, extra, cond):
-    """世界事件深度参与（v105 M18 P1-4 修复：原恒 False，现接 stats.world_events，
-    由 combat.py 世界事件期间战斗结算 bump，与 world_event 条件共用计数）"""
-    return stats.get("world_events", 0) >= _value(cond)
-
-
-@register("fish_king")
-def _c_fish_king(player, stats, profs, extra, cond):
-    """钓到鱼王（extra）"""
-    return bool(extra.get("fish_king"))
-
-
-@register("collect_fish")
-def _c_collect_fish(player, stats, profs, extra, cond):
-    """钓到指定鱼（extra）"""
-    return extra.get("collect_fish") == cond.get("key")
-
-
-@register("wish_met")
-def _c_wish_met(player, stats, profs, extra, cond):
-    """许愿实现（extra）"""
-    return bool(extra.get("wish_met"))
-
-
-@register("worldboss")
-def _c_worldboss(player, stats, profs, extra, cond):
-    """参与世界 Boss（extra）"""
-    return bool(extra.get("worldboss"))
-
 
 # ================= 任务/剧情类 =================
 

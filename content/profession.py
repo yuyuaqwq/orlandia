@@ -63,6 +63,8 @@ from . import obs
 #   时钟 = 墙上时钟整数秒）。
 from saintess_engine.clock import wall
 from saintess_engine.produce import Job, Jobs
+from saintess_engine.conditions.declarative import compile_specs
+from .cond_specs import load as _load_specs
 # ★ W2b（2026-09-15）：读表口 `C` 改指**包内真源**（逐名惰性解析）。
 #   为什么不是 `from .facade import C`（实测，不是偏好 —— 全量 newly-red 证据）：
 #     `facade.C` 的 `_namespace()` **首次访问即冻结**（`ns.setdefault` 快照），而旧写法
@@ -242,12 +244,10 @@ MINING_FATIGUE_RECOVER = 600    # 距上次挖掘超过 600s（10 分钟）计�
 # v125.2 fail-closed：限定采集条件词注册表（GATHER_COND_POOLS 条件串 split('+') 后的词）。
 # 判定统一走注册表：未收录词 → 本条不命中 + 告警日志（防拼写错误被静默放行造成
 # 语义反转——旧实现未知词 ok 保持 True，新增 "fog" 等词反而必出）。
-_GATHER_COND_CHECKERS = {
-    "night": lambda period, season, weather: period == "night",
-    "morning": lambda period, season, weather: period == "morning",
-    "winter": lambda period, season, weather: season == "winter",
-    "rain": lambda period, season, weather: weather == "rain",
-}
+# ★ S4 数据化：四个条件词的判定式（都是「某字段 == 常量」）搬进
+#   `content/data/cond_specs.json`；键集与三参调用口径都不变。
+_GATHER_COND_CHECKERS = compile_specs(_load_specs("gather"),
+                                      names=("period", "season", "weather"))
 
 # v125.2 启动校验：GATHER_COND_POOLS 全部条件词必须 ∈ 注册表（数据拼写错误启动即暴露，
 # 与 data/__init__.py B4 池 id 校验同款 fail-fast 风格）

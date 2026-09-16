@@ -69,6 +69,8 @@ def _read_domain(domain: str, sub: str = "data", default=None):
 # 宿主替身口（存储层 + 发放函数）—— 引擎 wire 形状
 # ============================================================
 from saintess_engine.wire import Wire, WireMissing
+# ★ S1：文本收集替身 + async generator 收集循环 = **引擎通用件**（原先这里有一份本地 `_Sink`）
+from saintess_engine.command import TextSink, collect_messages
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
@@ -475,17 +477,13 @@ async def action_hidden_evolve(world, group_id, qq_id, player, npc_id, action):
             _tgt = _cur + 1  # 下一阶都不够 → 交给 generic 报等级不足
         tier = _tgt
 
-    class _Sink:
-        """收集 _evolve_hidden_generic 的 plain_result 文本（event 只用于输出）"""
-        def __init__(self):
-            self.lines = []
-        def plain_result(self, text):
-            self.lines.append(text)
-            return text
-
-    sink = _Sink()
-    async for _ in world._evolve_hidden_generic(sink, group_id, qq_id, player, cls_id, tier, path):
-        pass
+    # ★ S1：原先这里有一份**本地收集替身类**（收 `plain_result` 文本）+ `async for …: pass`
+    #   手写驱动 —— 两者都是**平台无关的通用形状**，已收进引擎（`saintess_engine.command`）。
+    #   改动只有「换件」：`TextSink.plain_result` 与旧 `_Sink` 逐字同义（收进 `lines` 并返回文本），
+    #   `collect_messages` 就是 `async for …: pass` 的引擎形状（同样把生成器驱动到取空）。
+    sink = TextSink(None)
+    await collect_messages(world._evolve_hidden_generic(
+        sink, group_id, qq_id, player, cls_id, tier, path))
     return sink.lines
 
 

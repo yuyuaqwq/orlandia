@@ -8,6 +8,7 @@
 `_messages` 也各抄一遍（同形不同源 = 迟早分叉）。现在只有本模块知道「宿主面藏在哪」：
 
     shell(env)      宿主壳对象（桥接层经 `env.state["shell"]` 注入）—— 包内取宿主面的唯一口
+    shell_state(sh) 宿主壳对象 → `Env.state` 注入字典（**「键名 = shell」的唯一出处**）
     event(env)      实现体看到的「平台事件」= 引擎 `TextSink`（`plain_result` 收成一行）
     messages(agen)  async generator → `list[str]`（每条 = 一次 `yield` = 一条消息）
 
@@ -24,12 +25,21 @@ from __future__ import annotations
 
 from saintess_engine.command import TextSink, collect_messages
 
-__all__ = ["shell", "event", "messages"]
+__all__ = ["shell", "shell_state", "event", "messages"]
 
 
 def shell(env):
     """宿主壳对象（桥接层经 `env.state["shell"]` 注入）——包内取宿主面的**唯一**口。"""
     return (env.state or {}).get("shell")
+
+
+def shell_state(shell) -> dict:
+    """宿主壳对象 → `Env.state` 注入字典（**「宿主面藏在哪个键」的唯一出处**）。
+
+    生产者一侧（包内旧通道适配器 `content/cmds_base_rules.py::_LegacyShellEnv`）也走这里，
+    于是「键名 = `shell`」在全包只有本模块写死过一次。
+    """
+    return {"shell": shell}
 
 
 def event(env):

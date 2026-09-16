@@ -31,6 +31,8 @@ import json
 import os
 
 from saintess_engine.conditions import Conditions
+from saintess_engine.conditions.declarative import register_specs
+from .cond_specs import load as _load_specs
 
 from .tables import CLASS_NOVICE      # 包内读口（真源 `C.CLASS_NOVICE`）
 
@@ -67,6 +69,11 @@ def register(key):
         CONDITIONS.register(key, fn)
         return fn
     return deco
+
+
+# ★ S4 数据化：`apprentice` / `not_apprentice`（成员判定）搬进
+#   `content/data/cond_specs.json`；两参签名 `fn(ctx, v)` 由 names 绑定保持。
+register_specs(CONDITIONS.register, _load_specs("dialogue"), names=("ctx", "v"))
 
 
 def _quest_state(quests, qid: str, status, ctx=None) -> bool:
@@ -184,18 +191,6 @@ def _c_quest_any_active(ctx, v):
     """当前存在任意进行中主线（对话树指引用）"""
     quests = ctx.get("quests") or {}
     return bool(quests.get("main_quest"))
-
-
-@register("apprentice")
-def _c_apprentice(ctx, v):
-    """已拜师该副业"""
-    return v in (ctx.get("apprentices") or [])
-
-
-@register("not_apprentice")
-def _c_not_apprentice(ctx, v):
-    """未拜师该副业（拜师选项只在未拜师时显示）"""
-    return v not in (ctx.get("apprentices") or [])
 
 
 @register("is_novice")
