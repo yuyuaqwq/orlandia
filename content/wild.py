@@ -7,6 +7,9 @@
 #   `_wild_tables()` 改读包内 `npcs` 域（经 `catalog_quests` 的保序门面，序表在那边显式声明），
 #   宿主句柄清零；本模块此后 `import` 不碰 `game.data`（见 ② 与 `overnight/_w8_wild_daily_events.md`）。
 # 宿主同名文件 = 薄壳（指向本模块，见那边的头注）。
+# ★ U1-I4 L4（2026-09-14）：在场**手算派生**换引擎形状 `saintess_engine.presence`
+#   （`day_slot`/`day_hit`/`guarded_roll`/`cooldown_ok`/`merge_tables`），对外签名与返回一字不改；
+#   私有 `_day_hash` 删除。行为安全网 = `tests/test_u1i4_presence_frozen.py`（门禁②，25 段冻结）。
 # ==============================================================================
 """奥兰迪亚·余烬纪年 核心 - wild.py（18 章野外 NPC 判定引擎，2026-08-06）
 
@@ -36,6 +39,13 @@ from .timed_events import register_timed, set_timed                       # 包�
 #    取不到**大声抛**（绝不静默空跑）。
 # ============================================================
 from saintess_engine.wire import Wire
+# ============================================================
+# ①′ 在场形状（U1-I4 L4）：当天定位 / 概率阈值 / 保底 / 冷却 / 合表 —— **手算派生**换成引擎纯函数。
+#    取值与业务语义（`roam` 桶、`appear` 盐、`chance`、保底 7、冷却 1800、`inst_stage` 6 条）
+#    全部留在本文件；引擎零字段知识、不认日历、不掷骰（`rng` 由这里注入）。
+# ============================================================
+from saintess_engine.presence import (day_slot, day_hit, guarded_roll,   # noqa: F401
+                                      cooldown_ok, merge_tables)
 _WIRE = Wire()
 
 
@@ -123,12 +133,14 @@ def _ALL_WILD() -> dict:
     ★ B16-W8：源在包内 ⇒ 取值与「谁先触发」解耦，恒为 63。改前两张表走宿主句柄，
     而宿主 `HIDDEN_NPCS` 是**会被装配期就地 update 的同一只字典**，`game.*` 回退路径下
     实测取到过 69（并入后）。
+
+    ★ U1-I4 L4：合表改走引擎 `merge_tables`（保序新 dict，`exclude` 内的键在**每一张**表里
+    都跳过）—— 与原先的 `{**a, **b}` + 字典推导**同口径**，行为由门禁② 网格逐格证明。
     """
     global _ALL_WILD_CACHE
     if _ALL_WILD_CACHE is None:
-        _ALL_WILD_CACHE = {**_WILD_NPCS_47,
-                           **{k: v for k, v in _HIDDEN_NPCS_22.items()
-                              if k not in _INST_STAGE_IDS}}
+        _ALL_WILD_CACHE = merge_tables(_WILD_NPCS_47, _HIDDEN_NPCS_22,
+                                       exclude=_INST_STAGE_IDS)
     return _ALL_WILD_CACHE
 
 
@@ -159,17 +171,12 @@ WILD_META_KEY = "wildmeta_{gid}_{qid}"
 MISS_GUARANTEE = 7  # 连续 7 次条件满足未遇 → 必出
 
 
-def _day_hash(seed: int, salt: str = "") -> int:
-    h = seed * 2654435761 + (sum(ord(c) for c in salt) if salt else 0)
-    return h & 0x7FFFFFFF
-
-
 def npc_map_id(npc_id: str, npc: dict, now: datetime.date | None = None) -> str | None:
     """NPC 当天所在地图：roam 用日期哈希定位，否则返回固定 map"""
     roam = npc.get("roam")
     if roam:
         now = now or datetime.date.today()
-        return roam[_day_hash(now.toordinal(), npc_id) % len(roam)]
+        return roam[day_slot(now.toordinal(), len(roam), salt=npc_id)]
     return npc.get("map")
 
 
@@ -297,7 +304,11 @@ def met_wild(group_id: str, qq_id: str) -> list:
 
 
 def _roll_random(npc_id: str, npc: dict, group_id: str, qq_id: str) -> bool:
-    """随机性判定：cycle 硬条件 + chance 概率(含保底)。返回是否出现。"""
+    """随机性判定：cycle 硬条件 + chance 概率(含保底)。返回是否出现。
+
+    保底/掷骰算术由引擎 `guarded_roll` 给（`cleared=True` = 保底那一路，由本处清计数）；
+    命中路径**不清** miss —— 清点在 `roll_wild_encounter` 的命中副作用里（口径分歧 ⑪）。
+    """
     cycle = npc.get("cycle")
     if cycle and datetime.date.today().toordinal() % cycle != 0:
         return False
@@ -306,13 +317,15 @@ def _roll_random(npc_id: str, npc: dict, group_id: str, qq_id: str) -> bool:
         return True
     meta = _get_meta(group_id, qq_id)
     miss = meta.get("miss", {}).get(npc_id, 0)
-    if miss >= MISS_GUARANTEE:
+    hit, miss_after, cleared = guarded_roll(miss, guarantee=MISS_GUARANTEE,
+                                            chance=chance, rng=random.random)
+    if cleared:
         meta.setdefault("miss", {}).pop(npc_id, None)  # 保底必出 = 本次遇到，清计数
         _save_meta(group_id, qq_id, meta)
         return True  # 保底：连续 7 次未遇必出
-    if random.random() < chance:
+    if hit:
         return True
-    meta.setdefault("miss", {})[npc_id] = miss + 1
+    meta.setdefault("miss", {})[npc_id] = miss_after
     _save_meta(group_id, qq_id, meta)
     return False
 
@@ -343,7 +356,7 @@ def roll_wild_encounter(group_id: str, qq_id: str, player: dict, map_id: str):
             continue
         # 30 分钟冷却（偶遇过的不立刻重复出现）
         last = meta.get("last", {}).get(nid, 0)
-        if last and now - last < 1800:
+        if not cooldown_ok(last, now, 1800):
             continue
         if not _roll_random(nid, npc, group_id, qq_id):
             continue
@@ -394,7 +407,7 @@ def town_npc_day_sa(npc_id: str, npc: dict, home_sa: str, now: datetime.date | N
     if not roam:
         return home_sa
     now = now or datetime.date.today()
-    return roam[_day_hash(now.toordinal(), npc_id) % len(roam)]
+    return roam[day_slot(now.toordinal(), len(roam), salt=npc_id)]
 
 
 def town_npc_visible(npc_id: str, npc: dict, sa_id: str, now: datetime.date | None = None) -> bool:
@@ -423,7 +436,7 @@ def town_npc_visible(npc_id: str, npc: dict, sa_id: str, now: datetime.date | No
     # C 随机出现（appear ∈ (0,1]，日期哈希全服一致）
     app = npc.get("appear")
     if app is not None and app < 1.0:
-        if _day_hash(now.toordinal(), npc_id + ":appear") % 100 >= int(app * 100):
+        if day_hit(now.toordinal(), salt=npc_id + ":appear", rate=app):
             return False
     # B 游走：今天在这才可见
     if town_npc_day_sa(npc_id, npc, sa_id, now) != sa_id:
@@ -442,4 +455,4 @@ def town_npc_dialogue(npc_id: str, npc: dict, base: str, now: datetime.date | No
     if not lines or len(lines) < 2:
         return base
     now = now or datetime.date.today()
-    return lines[_day_hash(now.toordinal(), npc_id + ":line") % len(lines)]
+    return lines[day_slot(now.toordinal(), len(lines), salt=npc_id + ":line")]
