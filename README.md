@@ -62,23 +62,26 @@ done
 ## 二、包里有什么
 
 ```text
-content/data/*.json     68 个域表（当前合计 9361 条）
-content/rules/*.json     5 个规则表
-content/*.py           115 个包内实现
+content/data/*.json     70 个域表（当前合计 9270 条）
+content/rules/*.json     5 个规则表（175 条）
+content/*.py           115 个包内实现（另有 content/{mech,flow,persistence,effects}/ 41 个分族模块）
 editor/domains.json     域声明（含 owner / tier）—— **域清单的真源在这里**
-editor/glossary/*.json  70 个域的词表（字段中文名 / 分组 / 控件随包走，第 3 层）
-schemas/*.json          70 个域 schema
+editor/glossary/*.json  71 个域的词表（字段中文名 / 分组 / 控件随包走，第 3 层）
+schemas/*.json          71 个域 schema
 game.json               包清单（id / engine 版本 / domains / entry / bind 声明）
 ```
 
 ★ **域清单以 `editor/domains.json` 为真源**（本文不重复列表，避免过期）；条数随开发变化，用门禁核：
-`python scripts/verify_package_coverage.py --check` →
-最近一次 **域 73 个 / 条目合计 9361 / 失败 0**。
+在**宿主仓**跑 `python scripts/verify_package_coverage.py --check`（该工具在宿主，不在包仓）→
+最近一次（2026-09-17 实测）**域 75 个 / 条目合计 9445 / 失败 0**。
+
+> 口径：域 = `content/data/*.json`（70）+ `content/rules/*.json`（5）；条目 = 每个域文件**顶层键数**之和
+> （9270 + 175 = 9445，与上条门禁输出同值）。
 
 **包内实现的分层**（与引擎的契约）：
 
 ```text
-content/cmds_*.py        命令实现（194 条声明的 handler 落点）
+content/cmds_*.py        命令实现（196 条声明的 handler 落点）
 content/flow/            流程（副本战斗/结算/周常进度…）
 content/persistence/     存档层的表结构与 CRUD（只吃宿主注入的句柄：db_path / clock / log / tlog / grant_reward）
 content/facade.py        聚合门面 `C`（惰性聚合句柄）+ `bind_host(**inject)`（应答 game.json 的 bind 声明）
