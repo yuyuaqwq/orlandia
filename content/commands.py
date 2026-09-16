@@ -20,6 +20,19 @@
     text/static/raw             # 面板节点写法（行序一眼可见）
     render_panel(...)           # 节点 → **已渲染文本段**（渲染点唯一 = 包内 `content/texts.py`）
 
+声明表点名实现体（`content/data/commands.json` 的 `bind`）
+---------------------------------------------------------
+一条命令除了在 Python 里 `@register` / `@bind`，还可以**只在声明表里点实现体**：
+
+    "短名": {"patterns": [...], "guards": ["player"],
+             "bind": {"handler": "content.<模块>:<函数>", "call": "run",
+                      "args": ["group_id", "uid", "player"]}}
+
+`bind.call` 只有 `run` / `messages` / `sync` 三种，`bind.args` 只有 `group_id` / `uid` /
+`player` 三个槽位（引擎 `saintess_engine.command.binding`）；取参、驱动、文本收集替身都在引擎，
+包内不再写「取参 + 调实现体」的薄壳。本模块的 `load_declared_bindings()` 负责**包侧两件约定**
+（守卫名加 `hook:` 前缀、`run`/`sync` 产物过 `render_panel`）并在 import 期登记。
+
 两处用同一批登记
 ----------------
 `REGISTRY` 是引擎形状的登记面（`handler_of` / `is_async` / `binding_of` / `audit_handlers`）；
@@ -44,10 +57,13 @@ handler 只吃引擎 `Env`（`uid` / `group_id` / `player` / `text` / `save` / `
 """
 from __future__ import annotations
 
-from saintess_engine.command import CommandRegistry
+import os
+
+from saintess_engine.command import CommandRegistry, CommandSpec, bind_handler, load_table
 
 __all__ = ["COMMANDS", "REGISTRY", "register", "bind",
-           "text", "static", "raw", "render_panel"]
+           "text", "static", "raw", "render_panel",
+           "DECLARATION_PATH", "load_declared_bindings", "BOUND_KEYS"]
 
 #: 命令表：key（= 宿主声明表 `command_specs.json` 的 key）→ 声明项
 COMMANDS: dict = {}
@@ -199,3 +215,53 @@ def load_domain_modules():
 
 
 LOADED_DOMAIN_MODULES = load_domain_modules()
+
+
+# ============================================================
+# 声明表里的 `bind` 条目 → 处理器（**包内不写薄壳**）
+# ============================================================
+#: 声明真源（宿主编译期镜像与它同源；引擎 `Package.command_declarations()` 也读它）
+DECLARATION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "data", "commands.json")
+
+
+def _bind_lead(env):
+    """声明式绑定的前导实参：宿主壳对象（见 `content/cmds_env.py` 的所有权说明）。"""
+    return ((env.state or {}).get("shell"),)
+
+
+def load_declared_bindings() -> tuple:
+    """把声明表里带 `bind` 的条目登记成处理器，返回被登记的 key（升序）。
+
+    一条 `bind` = 「实现体 + 调用模式 + 取参槽位」；调用帧、文本收集替身、驱动、取参
+    全由引擎 `bind_handler()` 负责 —— 本函数只做**包侧的两件约定**：
+
+    * 守卫名加 `hook:` 前缀（声明表写 `"player"`，包侧判定的真源是 `content/guards.py::GUARDS`）；
+    * `run` / `sync` 模式的产出与 `@register` 同口径（过一遍 `render_panel`，空行段折叠），
+      `messages` 模式原样交（= 旧的 `@bind` 族逐段回话口径）。
+
+    fail-closed：`bind` 形状由 `CommandSpec.from_dict` 校验，实现体解析由 `bind_handler()`
+    负责，**任一处不合规都在 import 期抛错**（绝不静默少一条指令）。
+    """
+    table = load_table(DECLARATION_PATH)
+    bound = []
+    for key in sorted(table):
+        entry = table[key]
+        if not isinstance(entry, dict) or not entry.get("bind"):
+            continue
+        spec = CommandSpec.from_dict(dict(entry, key=key))
+        fn = bind_handler(spec.bind, lead=_bind_lead,
+                          where="%s[%s]" % (os.path.basename(DECLARATION_PATH), key))
+        guards = tuple("hook:" + str(g) for g in (entry.get("guards") or ()))
+        params = tuple(entry.get("params") or ())
+        if spec.bind.call in ("run", "sync"):
+            # 与 `register()` 逐字同形（lambda + 默认参数）—— 漂移自检按名解包时要穿过它
+            _declare(key, (lambda env, _fn=fn: render_panel(_fn(env), env)), guards, params)
+        else:
+            _declare(key, fn, guards, params)
+        bound.append(key)
+    return tuple(bound)
+
+
+#: 由声明表 `bind` 登记的 key（其余 key 仍由各 `cmds_<域>.py` 的装饰器登记）
+BOUND_KEYS = load_declared_bindings()

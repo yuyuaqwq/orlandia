@@ -44,6 +44,7 @@ from .commands import register
 from . import achievements as _ach
 from . import index as _idx
 from ._pkgref import DB as db
+from .cmds_env import shell as _shell
 
 __all__ = ["help_cmd", "game_tip", "signin", "achievements", "feedback_cmd"]
 
@@ -82,16 +83,6 @@ def _drops():
             if _DROPS is None:
                 raise RuntimeError("cmds_misc：core.drops 取不到（%s）——拒绝静默空跑" % (last,))
     return _DROPS
-
-
-
-
-def _shell(env):
-    """取宿主壳（过渡期能力口）——缺了直接抛，不静默空跑。"""
-    shell = (getattr(env, "state", None) or {}).get("shell")
-    if shell is None:
-        raise RuntimeError("misc 命令缺宿主壳（env.state['shell']）——包内实现取不到取参/提示口")
-    return shell
 
 
 def _log():

@@ -21,13 +21,9 @@ from __future__ import annotations
 
 from .commands import register
 from .flow import tower_progress as _TP
+from .cmds_env import shell as _shell
 
 _SEP = "━━━━━━━━━━━━"
-
-
-def _shell(env):
-    """宿主壳对象（桥接层经 `env.state["shell"]` 注入）——可选能力面；无 → None。"""
-    return (env.state or {}).get("shell")
 
 
 def _tower_start(d: dict) -> str:

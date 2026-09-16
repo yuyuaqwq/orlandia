@@ -107,9 +107,9 @@ async def main():
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         out = []
         # ★ P5F-REPOINT: 原第二侧读宿主壳 `game/commands/economy.py`（随删壳批消失）
-        #   → 包内**登记面** `content/cmds_economy.py`（第一侧仍是实现面 economy_cmds.py）。
-        for p in (os.path.join(base, "content", "economy_cmds.py"),
-                  os.path.join(base, "content", "cmds_economy.py")):
+        #   → 包内**实现面** `content/economy_cmds.py`。登记面薄壳 `content/cmds_economy.py`
+        #   已随声明式绑定迁删（`bind` 直接点名实现体），故这里只剩实现面一侧。
+        for p in (os.path.join(base, "content", "economy_cmds.py"),):
             if os.path.isfile(p):
                 with open(p, encoding="utf-8") as f:
                     out.append(f.read())

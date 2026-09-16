@@ -51,6 +51,7 @@ from ._pkgref import PkgModule
 #   现按包内真源逐个改直取（表 = 模块级；函数 = 惰性句柄，取件时机不变）。
 from .catalog_life import ECON_CONFIG            # 真源 `C.ECON_CONFIG`（catalog_life 门面）
 from .catalog_core import GUILD_EXP_BASE         # 真源 `C.GUILD_EXP_BASE`
+from .cmds_env import shell as _shell
 _C_INDEX = PkgModule("content.index")            # 真源 `C.display`
 _C_ACH = PkgModule("content.achievements")       # 真源 `C.check_achievements`
 
@@ -58,11 +59,6 @@ _C_ACH = PkgModule("content.achievements")       # 真源 `C.check_achievements`
 # ============================================================
 # ① 取件口（env → 改造前命令体的实参）
 # ============================================================
-def _shell(env):
-    """宿主壳对象（桥接层经 `env.state["shell"]` 注入）——包内取宿主面的**唯一**口。"""
-    return (env.state or {}).get("shell")
-
-
 def _gsd(name):
     """宿主 `game/services/guild.py` 上的一个名字 —— 真源 `_GSD.<name>` 的同义替身。
 

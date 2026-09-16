@@ -55,6 +55,7 @@ from .persistence.handles import _HostMod as _HostMod
 from .tables import display as _display
 
 from ._pkgref import DB as _db
+from .cmds_env import shell as _shell
 
 
 class _CHost:
@@ -73,11 +74,6 @@ class _Host:
         self.player_final_stats = _player_final_stats
         tb = getattr(shell, "_title_bonus", None)
         self.title_bonus = tb if callable(tb) else (lambda group_id, qq_id: {})
-
-
-def _shell(env):
-    """宿主壳对象（桥接层经 `env.state["shell"]` 注入）——包内取宿主面的**唯一**口。"""
-    return (env.state or {}).get("shell")
 
 
 def _host(env) -> "_Host":

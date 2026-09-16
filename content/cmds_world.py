@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
-"""包内世界域命令（`content/cmds_world.py`）—— 36 条世界命令的守卫/取参/业务/**渲染**。
+"""包内世界域命令（`content/cmds_world.py`）—— 『任务』面板 + 包侧等待型副业守卫。
 
-终态形状（真源 = `overnight/B18_TERMINAL_SHAPE.md` §1.2；B18-L1）：宿主
-`game/commands/world.py` 每条命令只剩 `@declared("<key>")` + `_BRIDGE.run(self, "<key>", event)`
-一行转发；守卫声明（`hook:player` = 包侧 `content/guards.py::GUARDS["player"]`）、
-`hook:no_prof_waiting`（本线追加，见 §②）、取参、分支业务、面板行序与**渲染**全在本模块。
-宿主里**零** 文案调用点（目标 `grep -c 'T\.text\|T\.static' game/commands/world.py` = 0）。
+本模块现在只剩两件事
+--------------------
+1. `quest_view`（『任务』）—— 世界域里唯一**含真逻辑**的一条命令：主线/支线分页面板要自己
+   拼行并落 `content/texts.py` 的渲染点，不是「取参 + 调实现体」能表达的；
+2. `_no_prof_waiting` —— 包侧守卫（等待型副业互斥），登记进 `content/guards.py::GUARDS`。
 
-本模块与既有实现体的关系（搬家不是重写）
-----------------------------------------
-`content/world_cmds.py`（4207 行，B9 线2 已逐字搬包，**本线一字未改**）持有 103 个历史形状的
-async generator（`yield event.plain_result(...)`）；本模块提供**过渡期适配件**把它们的产出收成
-终态要的 `list[str]`（实现体改成同步直返后适配件一并删除）：
+其余世界域命令由**声明式绑定**接管：`content/data/commands.json` 的 `bind` 直接点名实现体
+（`content.world_cmds:<名>`）+ 调用模式 + 取参槽位，命令层薄壳与本地驱动助手
+（`_Say` / `_resume` / `_drain` / `_run`）已删 —— 驱动与文本收集替身收进引擎
+`saintess_engine.command.binding`，宿主取件口收进 `content/cmds_env.py`。
 
-    _Say     平台事件最小替身：`plain_result(文本)` → 已渲染行；`message_str` 读写落在替身自身
-             （裸数字转投『物品详情』『前往』依赖这一语义），其余属性/方法原样代理真事件
-             （`stop_event()` 等副作用照旧）。形状 = `content/cmds_player.py::_Say`（L4 定形）。
-    _resume  驱动一个协程到「本次产出」；`await` 出去的协程**递归驱动后回送**（本线必须：
-             `world_cmds.talk_choice` 会 `await self._apply_talk_action_async(...)`）。
-             真挂起（I/O await）→ `RuntimeError`（fail-closed，不静默吞）。
-    _drain   同步取空 async generator → 产出（已渲染行）列表。
+实现体真源仍是 `content/world_cmds.py`（B9 线2 逐字搬包，**一字未改**）：历史形状的
+async generator（`yield event.plain_result(...)`），由引擎按 `bind.call` 驱动。
 
 ⚠️ 两条与**宿主/包内落点**有关的登记（不是本模块的活）
   * `_instance_gate_block` 已在 `content/world_cmds.py`（P5E「壳去逻辑」批从宿主壳
@@ -28,22 +22,20 @@ async generator（`yield event.plain_result(...)`）；本模块提供**过渡�
   * `quest_view` 在本模块 —— `daily.*` 渲染点随之进包，`tests/test_texts_table.py`
     的 WIRED 表按「周常」先例补上包内文件。
 
-包内不 import 宿主（I2）：宿主壳对象经 `env.state["shell"]` 取（桥接层透传），
+包内不 import 宿主（I2）：宿主壳对象经 `content/cmds_env.py::shell(env)` 取（桥接层透传），
 `content/world_cmds.py` 侧既有的「宿主替身口」（`_host_attr` / `_HostMod` / `C` / `db`）一字未动。
-
-行为逐字节不变；证据 = `overnight/W-B18-L1.md` 的 174 项三分支快照（sha256 改前 = 改后）。
 """
 from __future__ import annotations
 
-import inspect
 import time
 
 from . import catalog_life as _cat_life
 from . import texts as T
 from . import world_cmds as _WC
-# B14 口径：数据面走包内门面（不新增 `C.<数据名>` 读点；实测与宿主 `C` 逐对象同一）
 from .catalog_quests import MAIN_QUESTS, NPCS, SIDE_QUESTS
 from .catalog_space import MAP_BY_ID
+from .cmds_env import shell as _shell
+# B14 口径：数据面走包内门面（不新增 `C.<数据名>` 读点；实测与宿主 `C` 逐对象同一）
 from .commands import register
 from .guards import GUARDS as _GUARDS
 from .wild import ALL_WILD
@@ -51,81 +43,8 @@ from .world_cmds import db, _DAILY_META_KEYS   # B2-W2：清死 import（C/_host
 
 
 # ============================================================
-# ① 过渡期适配件（见模块头注：只服务「实现体仍是 async generator」这一件事）
+# ① 宿主服务取件（`services.quests` 上的常量/函数）
 # ============================================================
-
-class _Say:
-    """`env.raw`（平台事件）的最小替身：`plain_result` → 已渲染行；其余原样代理。"""
-
-    def __init__(self, ev):
-        object.__setattr__(self, "_ev", ev)
-        object.__setattr__(self, "lines", [])
-        object.__setattr__(self, "message_str", getattr(ev, "message_str", "") or "")
-
-    def plain_result(self, text):
-        """把「一行文本」收起来 —— 玩家可见文案的落点由包内决定（此处只有行内容）。"""
-        self.lines.append(text)
-        return text
-
-    def get_message_str(self):
-        """改写后的消息以本替身为准（裸数字转投下一跳：物品详情 / 前往）。"""
-        return self.message_str
-
-    def __getattr__(self, name):
-        return getattr(object.__getattribute__(self, "_ev"), name)
-
-    def __setattr__(self, name, value):
-        if name in ("message_str", "lines"):
-            object.__setattr__(self, name, value)
-        else:                                   # 转发期 `message_str` 等语义逐字保留
-            setattr(object.__getattribute__(self, "_ev"), name, value)
-
-
-def _resume(coro):
-    """驱动一个协程到「本次产出」，返回其 yield 值。
-
-    * `await <协程>` → 递归驱动内层后把结果回送（本线 `talk_choice` 需要）；
-    * 内层异常按 await 语义注入回外层；
-    * 真挂起（`yield` 出非可等待对象 / 需要事件循环的 Future）→ `RuntimeError`。
-    """
-    to_send, to_throw = None, None
-    while True:
-        try:
-            item = coro.throw(to_throw) if to_throw is not None else coro.send(to_send)
-        except StopIteration as si:             # 本次产出（async generator 的 yield 值）
-            return si.value
-        if not inspect.isawaitable(item):
-            raise RuntimeError("cmds_world：实现体真挂起（yield %r）——本驱动器只跑纯协程链" % (item,))
-        if not hasattr(item, "send"):
-            raise RuntimeError("cmds_world：实现体 await 了需要事件循环的对象（%s）" % type(item).__name__)
-        try:
-            to_send, to_throw = _resume(item), None
-        except BaseException as exc:            # noqa: BLE001（按 await 语义回注）
-            to_send, to_throw = None, exc
-
-
-def _drain(agen) -> list:
-    """同步取空「纯协程链的 async generator」→ 产出（已渲染行）列表。"""
-    out = []
-    while True:
-        try:
-            out.append(_resume(agen.__anext__()))
-        except StopAsyncIteration:
-            return out
-
-
-def _shell(env):
-    """宿主壳对象（桥接层经 `env.state["shell"]` 注入）——包内取宿主面的**唯一**口。"""
-    return (env.state or {}).get("shell")
-
-
-def _run(env, fn, *args) -> list:
-    """跑一条既有实现体（`content/world_cmds.<fn>`）并同步取空 → 已渲染行。"""
-    say = _Say(env.raw)
-    out = _drain(fn(_shell(env), say, *args))
-    return out or say.lines
-
-
 def _svc(name):
     """宿主 `services.quests` 上的常量/函数（真源写法 `from ..services.quests import X`）。"""
     from . import profession_quests as _pq
@@ -374,218 +293,3 @@ def quest_view(env) -> list:
 # ⑤ 其余 35 条：既有实现在 `content/world_cmds.py`，本模块只做「守卫 + 取参 + 登记」
 # ============================================================
 # 形参口径 = 宿主改造前逐条调用点（`_WC.<名>(self, event[, group_id, qq_id[, player]])`）。
-
-@register("deed_view", guards=("hook:player",), params=("cmd=地契",))
-def deed_view(env) -> list:
-    """『地契』：房产查看 / 升级入口。"""
-    return _run(env, _WC.deed_view, env.group_id, env.uid, env.player)
-
-
-@register("deed_buy", guards=("hook:player",), params=("cmd=买房",))
-def deed_buy(env) -> list:
-    """『买房 <编号>』：购入地皮。"""
-    return _run(env, _WC.deed_buy, env.group_id, env.uid, env.player)
-
-
-@register("deed_sell", guards=("hook:player",), params=("cmd=卖房",))
-def deed_sell(env) -> list:
-    """『卖房』：退契返还。"""
-    return _run(env, _WC.deed_sell, env.group_id, env.uid, env.player)
-
-
-@register("go_home", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=回家",))
-def go_home(env) -> list:
-    """『回家』：进入自己的宅邸。"""
-    return _run(env, _WC.go_home, env.group_id, env.uid, env.player)
-
-
-@register("go_out", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=出门",))
-def go_out(env) -> list:
-    """『出门』：从宅邸返回城镇。"""
-    return _run(env, _WC.go_out, env.group_id, env.uid, env.player)
-
-
-@register("visit_home", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=拜访",))
-def visit_home(env) -> list:
-    """『拜访 <玩家>』：串门（对方宅邸）。"""
-    return _run(env, _WC.visit_home, env.group_id, env.uid, env.player)
-
-
-@register("home_storage", guards=("hook:player",), params=("cmd=仓库",))
-def home_storage(env) -> list:
-    """『仓库』：宅邸仓库（存/取）。"""
-    return _run(env, _WC.home_storage, env.group_id, env.uid, env.player)
-
-
-@register("home_storage_take", guards=("hook:player",), params=("cmd=取出",))
-def home_storage_take(env) -> list:
-    """『取出 <物品>』：从仓库取回。"""
-    return _run(env, _WC.home_storage_take, env.group_id, env.uid, env.player)
-
-
-@register("map_view", guards=("hook:player",), params=("cmd=地图",))
-def map_view(env) -> list:
-    """『地图』：当前地图总览（可前往 / 设施 / NPC）。"""
-    return _run(env, _WC.map_view, env.group_id, env.uid, env.player)
-
-
-@register("region_view", guards=("hook:player",), params=("cmd=区域",))
-def region_view(env) -> list:
-    """『区域』：当前区域可前往总览（v167.1）。"""
-    return _run(env, _WC.region_view, env.group_id, env.uid, env.player)
-
-
-@register("location_view", guards=("hook:player",), params=("cmd=位置",))
-def location_view(env) -> list:
-    """『位置』：精简位置面板（v128）。"""
-    return _run(env, _WC.location_view, env.group_id, env.uid, env.player)
-
-
-@register("hurry_view", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=赶路",))
-def hurry_view(env) -> list:
-    """『赶路』：赶路模式（v128）。"""
-    return _run(env, _WC.hurry_view, env.group_id, env.uid, env.player)
-
-
-@register("back_cmd", guards=("hook:player",), params=("cmd=返回",))
-def back_cmd(env) -> list:
-    """『返回 <地名>』：O74 返回提示。"""
-    return _run(env, _WC.back_cmd, env.group_id, env.uid)
-
-
-@register("ask_way", guards=("hook:player",), params=("cmd=问路",))
-def ask_way(env) -> list:
-    """『问路 <地名>』：O115 路线指引。"""
-    return _run(env, _WC.ask_way, env.group_id, env.uid, env.player)
-
-
-@register("move", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=前往", "page"))
-def move(env) -> list:
-    """『前往 <地名/序号>』『移动 <地名>』：移动 / 跨图 / 撞怪开战。"""
-    return _run(env, _WC.move, env.group_id, env.uid)
-
-
-@register("portal_view", guards=("hook:player",), params=("cmd=祭坛",))
-def portal_view(env) -> list:
-    """『祭坛』『方碑』：旅者方碑面板。"""
-    return _run(env, _WC.portal_view, env.group_id, env.uid, env.player)
-
-
-@register("portal_activate", guards=("hook:player",), params=("cmd=激活祭坛",))
-def portal_activate(env) -> list:
-    """『激活祭坛 [地名]』『激活』：激活方碑。"""
-    return _run(env, _WC.portal_activate, env.group_id, env.uid, env.player)
-
-
-@register("portal_travel", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=传送",))
-def portal_travel(env) -> list:
-    """『传送 <地名>』：付费传送（未激活则激活）。"""
-    return _run(env, _WC.portal_travel, env.group_id, env.uid)
-
-
-@register("quest_accept", guards=("hook:player",), params=("cmd=接取",))
-def quest_accept(env) -> list:
-    """『接取 [任务名/序号]』：主线/支线接取。"""
-    return _run(env, _WC.quest_accept, env.group_id, env.uid)
-
-
-@register("quest_abandon", params=("cmd=放弃",))
-def quest_abandon(env) -> list:
-    """『放弃 <序号>』：放弃支线/每日任务（主线不可弃）。"""
-    return _run(env, _WC.quest_abandon, env.group_id, env.uid)
-
-
-@register("daily", guards=("hook:player",), params=("cmd=每日",))
-def daily(env) -> list:
-    """『每日』：每日任务面板（含红名守卫）。"""
-    return _run(env, _WC.daily, env.group_id, env.uid, env.player)
-
-
-@register("time_cmd", guards=("hook:player",), params=("cmd=时间",))
-def time_cmd(env) -> list:
-    """『时间』：游戏内时段/天气。"""
-    return _run(env, _WC.time_cmd, env.group_id, env.uid, env.player)
-
-
-@register("wild_notes", guards=("hook:player",), params=("cmd=见闻录",))
-def wild_notes(env) -> list:
-    """『见闻录』：野外 NPC 见闻记录。"""
-    return _run(env, _WC.wild_notes, env.group_id, env.uid, env.player)
-
-
-@register("npc_quick_dialog", params=("cmd=<裸数字>",))
-def npc_quick_dialog(env) -> list:
-    """裸数字消费链：对话树选项 > 物品查看 > 移动模式 > 放行快捷指令（priority=100 在宿主声明）。"""
-    return _run(env, _WC.npc_quick_dialog, env.group_id, env.uid)
-
-
-@register("interact_prop", guards=("hook:player", "hook:no_prof_waiting"), params=("cmd=交互",))
-def interact_prop(env) -> list:
-    """『交互 [目标]』：场景可互动物。"""
-    return _run(env, _WC.interact_prop, env.group_id, env.uid)
-
-
-@register("talk_choice", guards=("hook:player",), params=("cmd=对话",))
-def talk_choice(env) -> list:
-    """『对话 [NPC/序号]』『找 <NPC>』：对话树（含异步动作链）。"""
-    return _run(env, _WC.talk_choice, env.group_id, env.uid, env.player)
-
-
-@register("turn_in", guards=("hook:player",), params=("cmd=交付任务",))
-def turn_in(env) -> list:
-    """『交付任务 [任务名]』：交任务结算。"""
-    return _run(env, _WC.turn_in, env.group_id, env.uid, env.player)
-
-
-@register("rest_camp", guards=("hook:player",), params=("cmd=休息",))
-def rest_camp(env) -> list:
-    """『休息』：篝火/野外休息。"""
-    return _run(env, _WC.rest_camp, env.group_id, env.uid, env.player)
-
-
-@register("rest", guards=("hook:player",), params=("cmd=住宿",))
-def rest(env) -> list:
-    """『住宿』：旅店恢复。"""
-    return _run(env, _WC.rest, env.group_id, env.uid, env.player)
-
-
-@register("reputation", guards=("hook:player",), params=("cmd=声望",))
-def reputation(env) -> list:
-    """『声望』：声望面板。"""
-    return _run(env, _WC.reputation, env.group_id, env.uid, env.player)
-
-
-@register("rep_shop", guards=("hook:player",), params=("cmd=声望商店",))
-def rep_shop(env) -> list:
-    """『声望商店 [页] [序号]』：声望兑换。"""
-    return _run(env, _WC.rep_shop)
-
-
-@register("camp_join", guards=("hook:player",), params=("cmd=加入阵营",))
-def camp_join(env) -> list:
-    """『加入阵营 <编号>』：阵营国战。"""
-    return _run(env, _WC.camp_join)
-
-
-@register("camp_task", guards=("hook:player",), params=("cmd=阵营任务",))
-def camp_task(env) -> list:
-    """『阵营任务』：阵营日常。"""
-    return _run(env, _WC.camp_task)
-
-
-@register("camp_shop", guards=("hook:player",), params=("cmd=阵营商店",))
-def camp_shop(env) -> list:
-    """『阵营商店 <编号>』：阵营商店。"""
-    return _run(env, _WC.camp_shop)
-
-
-@register("camp_rank", guards=("hook:player",), params=("cmd=阵营排行",))
-def camp_rank(env) -> list:
-    """『阵营排行』：阵营战功榜。"""
-    return _run(env, _WC.camp_rank)
-
-
-@register("chronicle", guards=("hook:player",), params=("cmd=编年史",))
-def chronicle(env) -> list:
-    """『编年史』：主线章节回顾。"""
-    return _run(env, _WC.chronicle, env.group_id, env.uid, env.player)
