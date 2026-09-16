@@ -87,7 +87,7 @@ class _HostRef:
 def bind_host(**kw):
     """登记宿主面（幂等；**首绑优先**）。
 
-    ⚠️ 双模块树（`docs/ENGINE_CONTENT_SPLIT_PLAN.md §8-R2`）：本仓并存
+    ⚠️ 双模块树（`docs/archive/ENGINE_CONTENT_SPLIT_PLAN.md §8-R2`）：本仓并存
     `game.*` 与 `data.plugins.dragonfall.game.*` 两套 import 路径（同一份文件的两个模块
     对象），而包 `content.*` 是**单例**——两个树的壳都会绑一次，对象不同但内容同源。
     因此这里**首绑优先**：后续不同对象只记进 `_CONFLICTS`（`conflicts()` 可查），不抛

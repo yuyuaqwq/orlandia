@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""内容侧玩家面板公式（S5：自 `game/engine.py` 拆出，docs/ENGINE_CONTENT_SPLIT_PLAN.md §6.4）。
+"""内容侧玩家面板公式（S5：自 `game/engine.py` 拆出，docs/archive/ENGINE_CONTENT_SPLIT_PLAN.md §6.4）。
 
 读《奥兰迪亚》专属表 / 职业名（B14-2 L5：读口 = 包内 `content/tables.py`）：
   - `tables.CLASSES` / `tables.CLASS_NOVICE` / `tables.RACES` / `tables.SETS` / `tables.ENHANCE_TABLE`

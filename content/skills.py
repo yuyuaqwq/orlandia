@@ -38,7 +38,7 @@ from __future__ import annotations
 import os
 
 from saintess_engine.battle.formulas import skill_max_level  # noqa: F401
-from saintess_engine.records import records_from_domain
+from saintess_engine.records import Records
 
 from . import tables as _T
 
@@ -92,8 +92,7 @@ PLAYER_SKILLS, BRANCH_SKILLS, TUTOR_SKILLS = _shape_three_tables(_T.SKILLS, _T.C
 # 技能升级成长表（每技能独立成长曲线 + 独立满级）—— 域 `content/data/skill_up.json`（305 条）
 # 字段：p=每级伤害/治疗倍率 +x%；c=每级条件倍率 +c；m=每 m 级叠层 +1；l=每级吸血比例 +2%；max=满级
 # key = 稳定 id（基础/导师技 = 技能表现存 sk_id；分支技 = sk_br_<pinyin>），每条带 name=中文名
-# S2 ②：域元数据唯一源 = 包内 `editor/domains.json`（落点由声明的 `kind` 派生，不再手抄 `sub`）
-_R_UP = records_from_domain(_PKG_ROOT, "skill_up")
+_R_UP = Records(_PKG_ROOT, "skill_up", sub="content/data")
 if _R_UP.missing:
     raise ValueError(
         "skill_up 域读不到（%s）：技能成长表是引擎 skill_up hook 的唯一来源，"
@@ -276,7 +275,7 @@ def _skill_up(info: dict | None) -> dict:
     怪技能（MONSTER_SKILLS，无 lv）即使 name 与玩家技能撞名（圣光弹/雷击/龙爪等 14 个）
     也不会误配玩家成长曲线（v180 P4 删默认成长后，撞名怪技能曾吃到玩家同名配置 p=10~12）。
 
-    v181 P0B-C（方案 C，docs/REFACTOR_P0B_skill_up_dedup.md §4 Step2）：
+    v181 P0B-C（方案 C，docs/archive/REFACTOR_P0B_skill_up_dedup.md §4 Step2）：
     SKILL_UP key 已从中文名改为稳定 id（基础/导师 = 技能表现存 sk_id；分支 = sk_br_<pinyin>），
     每条条目带 name=中文名。skill_info 返回的 info 不带 id 字段（三表查询链只给 info dict），
     故在此用 info['name'] 经『中文名→id』索引反查稳定 id 后按 id 查表；查不到（无配置/防御）

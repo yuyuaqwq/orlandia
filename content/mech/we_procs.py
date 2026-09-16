@@ -1015,7 +1015,7 @@ def we_amp_consume(battle, caster, target, params, logs):
 # ============================================================
 # combo 系武器特效（M-W2s：novice_hunt_combo 暴击叠层 + combo_end 连段暴伤）
 # ============================================================
-# 旧语义（REFACTOR_v181P4_N9A_weapon_gap_plan.md §4.1，_we_executors 388-395 +
+# 旧语义（docs/archive/REFACTOR_v181P4_N9A_weapon_gap_plan.md §4.1，_we_executors 388-395 +
 # battle.py 2586-2631）：
 #   novice_hunt_combo（猎影之牙）：暴击命中 → stacks[novice_combo] +1（cap 5），
 #     每层连击率 +8%——消费点在连击判定（直读叠层，非本执行器）

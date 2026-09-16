@@ -5,11 +5,11 @@
     python tests/test_schema_validate.py      # 全绿 exit 0；失败 exit 1
 也可被 pytest 收集（函数名 test_*）。
 
-锁定基线（2026-09-11，见 docs/DATA_SCHEMA_AUDIT.md）：
+锁定基线（2026-09-11，见 docs/archive/DATA_SCHEMA_AUDIT.md）：
     现网违规 = 5   （skills 3 / items 2 / 其余 0）
     现网提醒 = 19
 若这里是红的：要么数据被改了（真违规），要么 battle_rules.py 被并行重构改了 →
-先看 docs/DATA_SCHEMA_AUDIT.md §4 与 schema/README.md『维护规则』再决定改数据还是改 schema。
+先看 docs/archive/DATA_SCHEMA_AUDIT.md §4 与 schema/README.md『维护规则』再决定改数据还是改 schema。
 """
 import importlib.util
 import json
@@ -26,7 +26,7 @@ PKG_ROOT = _paths.PKG_ROOT         # 包根（内容真源）
 SCHEMA_DIR = os.path.join(PLUGIN_DIR, "schema")
 PYTHON = sys.executable
 
-# 现网基线（数字来源：docs/DATA_SCHEMA_AUDIT.md，python schema/validate.py）
+# 现网基线（数字来源：docs/archive/DATA_SCHEMA_AUDIT.md，python schema/validate.py）
 # 2026-09-11：首轮审计发现的 5 条违规**已全部修复**（3 skills accuracy/crit 类型 + 2 items
 # 图纸缺 roster_id）→ 现网违规基线 = 0；下方 test_former_violations_are_fixed 作回归守卫。
 BASELINE_ERRORS = {"skills": 0, "monsters": 0, "affixes": 0,
@@ -192,7 +192,7 @@ def test_live_data_violations_match_baseline():
     detail = {d: len(i["errors"]) for d, i in res["domains"].items()}
     assert detail == BASELINE_ERRORS, (
         f"现网违规基线漂移: 期望 {BASELINE_ERRORS} 实际 {detail}\n"
-        "→ 见 docs/DATA_SCHEMA_AUDIT.md §3/§5；确认是数据 bug 还是 schema 该放宽")
+        "→ 见 docs/archive/DATA_SCHEMA_AUDIT.md §3/§5；确认是数据 bug 还是 schema 该放宽")
     assert res["totals"]["errors"] == BASELINE_ERRORS_TOTAL, res["totals"]
     assert res["totals"]["warnings"] == BASELINE_WARNINGS_TOTAL, \
         f"提醒数漂移: {res['totals']}（警告不拦门禁，但报告要同步）"

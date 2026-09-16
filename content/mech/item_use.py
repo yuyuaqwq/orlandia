@@ -7,7 +7,7 @@ saintess_engine actor 效果。核心不变式：效果全部落到 saintess_eng
 （landing.heal_actor / effects.apply_effects / actor 容器直写），
 引擎零道具名词。
 
-架构（docs/REFACTOR_v181P4_N5B5a_use_item_design.md §1/§2）：
+架构（docs/archive/REFACTOR_v181P4_N5B5a_use_item_design.md §1/§2）：
     economy.use() 副本/野外战斗内分支
       → action_override 回调 (battle, action, actor, payload, target)
       → 本模块 translate(battle, actor, payload)

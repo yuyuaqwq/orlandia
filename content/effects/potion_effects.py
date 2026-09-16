@@ -489,7 +489,7 @@ def eff_summon(battle, player, value):
     saintess_engine 侧尚无随从装配（Battle.add_actor 只做注册/索引/排程，不含随从
     属性缩放与守卫装配）。本 handler 在 saintess_engine 下不可达——战斗内 summon 类
     在 commands/battle_item_use.can_translate 白名单外，使用前即被拦并提示
-    「战斗内效果未迁移」。复活路径见 docs/REFACTOR_v181_GAP_CLOSURE_PLAN.md
+    「战斗内效果未迁移」。复活路径见 docs/archive/REFACTOR_v181_GAP_CLOSURE_PLAN.md
     §2（随从线）与 §5（收尾项）。
     """
     return "🧪 召唤类消耗品尚未接入战斗结算，没有生效！"

@@ -5,7 +5,7 @@ saintess_engine 包外（引擎零知识——本模块 import 引擎/数据，�
 （N8 事件总线消费）+ effects period 周期声明（schedule 时间驱动每刻跳），
 使 17 种战斗料理效果在 saintess_engine 战斗中生效（N10-B7 缺口补完）。
 
-架构对齐 docs/DESIGN_N10B7_food_effects.md + services/battle_equip_proc.py
+架构对齐 docs/archive/DESIGN_N10B7_food_effects.md + services/battle_equip_proc.py
 （affix 迁移先例）：
 - 命中/受击/乘区触发类 → actor["triggers"] = {事件: [效果 dict]}，效果 dict
   复用 we_* 扩展动作（we_affix_dot/defdown/bonus/element/counter/reflect/

@@ -1836,7 +1836,7 @@ def _travel_ambush(self, player: dict, target_map: dict, group_id=None, qq_id=No
     """移动撞怪判定：返回撞到的怪物 dict 或 None——v181 P4-8 已下沉 travel.travel_ambush。
 
     生物趋避利害/副本分支/v130.7 越级线性档位逐行等价随迁；撞怪档位双轨
-    （core/constants.MOVE_ENCOUNTER_CHANCE）本批先搬后统一，见 docs/REFACTOR_P4_services.md §P4-8。
+    （core/constants.MOVE_ENCOUNTER_CHANCE）本批先搬后统一，见 docs/archive/REFACTOR_P4_services.md §P4-8。
     """
     from .travel import travel_ambush
     return travel_ambush(player, target_map, group_id, qq_id,

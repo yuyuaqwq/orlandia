@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """v137 副本彻底重构：副本地图化验收测试。
 
-覆盖（对应 docs/INSTANCE_MAP_UNIFY_v137.md §五 验收标准）：
+覆盖（对应 docs/archive/INSTANCE_MAP_UNIFY_v137.md §五 验收标准）：
 1. 开本 → 落副本第 1 子区域（cur_map=副本图 id, cur_subarea=入口房间），输出含环境描述+可前往
 2. 副本图 dungeon.no_exit=True：『地图』不显示野外连接/传送
 3. SUBAREAS[inst_id] 房间数 = 设计值（哥布林营地 3 房），房间名贴合主题

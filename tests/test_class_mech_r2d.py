@@ -2,7 +2,7 @@
 """职业机制装配层 R2d 测试（v181.M）——职业基底资源攒取渠道（事件型）。
 
 跑法：python tests/test_class_mech_r2d.py（exit=0 全绿）
-覆盖（现网核实结论见 docs/REFACTOR_v181_CLASS_MECH_ASSEMBLY.md『M-R2d 渠道装配设计』§1）：
+覆盖（现网核实结论见 docs/archive/REFACTOR_v181_CLASS_MECH_ASSEMBLY.md『M-R2d 渠道装配设计』§1）：
   1. 装配：牧师 apply_class_mech → triggers.act_cast（heal_cast kind=治疗 gain2）+
      triggers.on_taken（taken gain1）；非牧师（战士/游侠）无 faith 渠道（start_classes 防白拿）
   2. 治疗施放攒：牧师 do_skill kind=治疗 → effects.faith 0→2（真实 do_skill 全链）

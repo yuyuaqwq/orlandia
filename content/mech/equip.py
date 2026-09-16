@@ -56,7 +56,7 @@ saintess_engine 包外（引擎零知识——引擎不 import 本模块，本�
 职责：把玩家装备的 weapon_effect / affix 数据 → actor["triggers"] 声明
 （N8 事件总线消费），使装备特效在 saintess_engine 战斗中生效。
 
-架构（docs/REFACTOR_v181P4_N9_migration.md §2）：
+架构（docs/archive/REFACTOR_v181P4_N9_migration.md §2）：
 - 效果源 = actor["triggers"] = {事件: [效果 dict]}，效果 dict 两种形态：
   ① 纯动词（引擎原生能力）：shield/buff/state_add/control/heal/...
   ② 族扩展动作（复杂机制，ACTION_HANDLERS 扩展注册）：type="we_xxx"
@@ -66,7 +66,7 @@ saintess_engine 包外（引擎零知识——引擎不 import 本模块，本�
 
 N9 批次：第一批 = battle_start 起手类纯动词 key（proc_shield 起手 2 +
 proc_buff 起手 6），验证「读表 → 事件映射 → triggers 装配 → 引擎 fire」管线。
-后续批按 docs/REFACTOR_v181P4_N9_migration.md §3 铺开。
+后续批按 docs/archive/REFACTOR_v181P4_N9_migration.md §3 铺开。
 '''
 
 包内依赖（全部包内份）
@@ -114,7 +114,7 @@ _EVENT_MAP = {
     "enemy_act": ("act_done",),
     # 以下旧时机 saintess_engine 无 1:1 点位，第一批不迁（后续批次/上层处理）：
     # taken_after / turn_end / passive（这三个名字**全仓无消费者**，属死名）；
-    # dot_taken 于 2026-09-13 补映射 → "dot_tick"（对齐 docs/REFACTOR_v181P4_N9_migration.md:61 的
+    # dot_taken 于 2026-09-13 补映射 → "dot_tick"（对齐 docs/archive/REFACTOR_v181P4_N9_migration.md:61 的
     # N9 迁移表；当前无数据使用，零行为影响，防将来补数据时又变成"装了不生效"）。
     "dot_taken": ("dot_tick",),
 }
@@ -208,7 +208,7 @@ def equipped_weapon_keys(actor: dict) -> list:
 # ============================================================
 # affix 词条装配（N9.7：AFFIXES 76 → 分档）
 # ============================================================
-# 分档结论（docs/REFACTOR_v181P4_N9_7_affix_migration.md）：
+# 分档结论（docs/archive/REFACTOR_v181P4_N9_7_affix_migration.md）：
 # - A1 stat 型 26：装备生成时已折算进 item.stats → saintess_engine 面板自动含，装配层跳过
 # - B 事件型：trigger 映射 saintess_engine 事件 → 翻译成效果声明（此文件翻译器）
 # - 资源型 R4（N9.7e）：res+gain+on 事件 gain 型 10 条已装（we_affix_res_gain）

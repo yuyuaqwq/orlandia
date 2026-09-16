@@ -3,7 +3,7 @@
 
 跑法：python tests/test_battle_n10_b7_food.py（w1 内）
 
-设计：docs/DESIGN_N10B7_food_effects.md
+设计：docs/archive/DESIGN_N10B7_food_effects.md
 - 吃料理（foodfx payload）→ battle_item_use.translate → actor["triggers"] 装配
   + effects period 周期声明（回春/冥想/晨曦）→ skill_hit/on_taken/dmg_calc/taken_calc
   事件 fire 消费（we_* 扩展动作执行）

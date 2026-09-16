@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """S7 单一装配入口验收（★ P5C-REPOINT 后：观测/调用口 = 包内 `content/apply.py`）。
 
-规格：docs/ENGINE_CONTENT_SPLIT_PLAN.md §6.6（apply_game_content 收敛）+ §7 S7。
+规格：docs/archive/ENGINE_CONTENT_SPLIT_PLAN.md §6.6（apply_game_content 收敛）+ §7 S7。
 本测试守住三条契约：
 
   A 接口      —— 入口存在、单参可调、返回原 actor

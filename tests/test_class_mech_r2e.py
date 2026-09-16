@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""v181.M-R2e 引擎扩展验收（方案 docs/REFACTOR_v181_M_R2e_engine_ext_plan.md，鱼鱼已批）。
+"""v181.M-R2e 引擎扩展验收（方案 docs/archive/REFACTOR_v181_M_R2e_engine_ext_plan.md，鱼鱼已批）。
 
 覆盖：
   A affix 动态 cap：

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """N5b4-5a I2 验收：saintess_engine 道具翻译器（game/commands/battle_item_use.py）。
 
-覆盖（对齐设计 docs/REFACTOR_v181P4_N5B5a_use_item_design.md §2/§3）：
+覆盖（对齐设计 docs/archive/REFACTOR_v181P4_N5B5a_use_item_design.md §2/§3）：
 - heal 纯数字（半身人 race item_effect 加成）
 - mana:N / hm:hp,mp 双恢复
 - buff:k1,k2 → EFFECT_ACTIONS 查表（actor.buffs 结构化条目）

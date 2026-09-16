@@ -2,7 +2,7 @@
 """v181.M-passive P1 测试——被动 proc 系统样板（插件形态：声明表 + 装配 + 通用动作）。
 
 跑法：python tests/test_passive_p1.py（exit=0 全绿）
-覆盖（方案 docs/REFACTOR_v181_PASSIVE_PROC_PLAN.md）：
+覆盖（方案 docs/archive/REFACTOR_v181_PASSIVE_PROC_PLAN.md）：
   1. 装配：法师学奥术共鸣（被动 proc=arcane_resonance）→ dmg_calc 触发器（judge+参数化）
   2. 触发：施放 mech=arcane 技能（奥术弹幕）→ 伤害 ×1.15（dmg_calc 乘区）
   3. 负向：非 arcane 技能（无 mech）不触发被动乘区

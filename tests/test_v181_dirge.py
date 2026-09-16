@@ -3,7 +3,7 @@
 
 设计权威 = docs/CLASS_MECHANICS_v153.md §七「吟游诗人 — 驻留旋律」B 线
 （挽歌者 › 安魂歌者 › 镇魂挽者，L1106-1140）；落地范围 = docs/
-REFACTOR_v181_GAP_CLOSURE_PLAN.md §3「挽歌 2 项」+ §4 步 4。
+docs/archive/REFACTOR_v181_GAP_CLOSURE_PLAN.md §3「挽歌 2 项」+ §4 步 4。
 旧语义权威（死代码，只读对齐）= game/core/battle_mech.py `_melody_apply_e_buffs` /
 `_m_melody_finale`（git 379a792^）+ game/core/passive_procs.py `dirge_debuffs` /
 `dirge_ctrl_up` 两 handler。

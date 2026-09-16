@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """v181 add_actor：引擎运行期 actor 注册公开 API 验证。
 
-覆盖 docs/REFACTOR_v181_GAP_CLOSURE_PLAN.md §2 选项 B 的 6 条验收：
+覆盖 docs/archive/REFACTOR_v181_GAP_CLOSURE_PLAN.md §2 选项 B 的 6 条验收：
 1. append 语义（默认入 sides 尾部）
 2. front 语义（插队首 = 前排挡刀位）
 3. 新 actor 建 _skill_index（否则 auto_act 技能静默空放）

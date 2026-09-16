@@ -367,7 +367,7 @@ class InstanceImpl:
             _set_instance_st(_wid, st)
 
     # ---------------- v137 『加入战斗』：同队伍成员并入正在进行中的副本战斗 ----------------
-    # 设计依据：docs/RESEARCH_join_battle.md §四.2/§五/§九（CTB 播种 = 参考点 + 自身 cost；
+    # 设计依据：docs/archive/RESEARCH_join_battle.md §四.2/§五/§九（CTB 播种 = 参考点 + 自身 cost；
     # 战斗结束/PVP/满员/重复/0血/异地拒绝；只改状态不推进行动轴）。
     # 本期范围：仅支持『副本战斗』（battle 存队长名下，st["type"]=="instance"）；
     # 野外同场战斗（方案 B 队长键）与『副本锁拆分为战斗锁+副本锁』留待后续 Phase。
@@ -448,7 +448,7 @@ class InstanceImpl:
             "defending": False,
             "charging": None,
         }
-        # 5. CTB 播种（RESEARCH_join_battle.md §四.2）：参考点 = min(存活敌方 ct, 存活玩家 ct)，
+        # 5. CTB 播种（docs/archive/RESEARCH_join_battle.md §四.2）：参考点 = min(存活敌方 ct, 存活玩家 ct)，
         #    新玩家 ct = 参考点 + 自身 _ct_cost(spd) —— 入场有代价、不抢当前行动窗口。
         try:
             ref = None

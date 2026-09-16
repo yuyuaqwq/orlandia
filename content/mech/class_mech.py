@@ -2216,7 +2216,7 @@ def _effect_rules() -> dict:
 # v181.M-R2d：职业资源攒取渠道（事件型）——装配与动作
 # ============================================================
 # 渠道时机名 → (saintess_engine 事件, 附加过滤参数)。语义源 = EFFECT_RULES 资源条目 channels
-# 声明 + docs/REFACTOR_v181_CLASS_MECH_ASSEMBLY.md『M-R2d 渠道装配设计』§2.2：
+# 声明 + docs/archive/REFACTOR_v181_CLASS_MECH_ASSEMBLY.md『M-R2d 渠道装配设计』§2.2：
 #   heal_cast 治疗「施放」与「命中」同刻 → act_cast + kind=治疗（同 R4 holy_echo 折中；
 #   每技能施放 fire 1 次，无多目标重复）；普攻（basic 经 do_skill）也 fire act_cast 但
 #   kind=物理 → kind 过滤天然排除，不会误攒。

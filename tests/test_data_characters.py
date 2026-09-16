@@ -50,7 +50,7 @@ def main():
     # v181.M-R2c：原 data/core_resources.py 退役（git rm）——『资源注册完整性』闸迁移：
     #   CORE_RESOURCE_GUIDE（6 职业 cid→key/desc）+ EFFECT_RULES（key 均注册 name+cap）
     #   + EXTRA_RESOURCE_GUIDE（歌者副资源 resonance/echo {name,max,desc} 全量；vow 随 v139
-    #   未实装退役，设计值留档 docs/REFACTOR_v181_CLASS_MECH_ASSEMBLY.md『v139 形态层设计留档』章）
+    #   未实装退役，设计值留档 docs/archive/REFACTOR_v181_CLASS_MECH_ASSEMBLY.md『v139 形态层设计留档』章）
     check("资源注册完整性：CORE_RESOURCE_GUIDE 6 职业，key 全在 EFFECT_RULES(name+cap)",
           len(_CRG) == 6
           and all(_CRG[c].get("key") in _ER_RULES

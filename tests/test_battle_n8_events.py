@@ -15,7 +15,7 @@
 - threshold：状态层数变化后
 - phase/player_low/pv_broken：N9 上层 fire（声明全集，无引擎点位）
 
-语义（DESIGN_effect_system_v2.md Part 3.3/4）：
+语义（docs/archive/DESIGN_effect_system_v2.md Part 3.3/4）：
 - 效果源 = actor["triggers"] = {事件: [效果名词 dict, ...]}（引擎零知识）
 - fire(ctx)：caster 缺省 = 声明者自己；target = 事件目标
 - 名词效果经 EFFECT_ACTIONS 翻译成动词执行
