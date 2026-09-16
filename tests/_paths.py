@@ -31,7 +31,9 @@ PKG_ROOT = os.path.dirname(TESTS_DIR)
 
 FRAMEWORK_ENV = "GWEN_FRAMEWORK_DIR"
 HOST_ENV = "GWEN_HOST_DIR"
-_FRAMEWORK_CANDIDATES = ("../framework", "../framework-engine", "framework")
+_FRAMEWORK_CANDIDATES = ("../framework", "../..", "../framework-engine", "framework")
+#:   `../..` 覆盖两种真实布局：部署（`<plugin>/framework/games/<pkg>` → 祖父 = `<plugin>/framework`）
+#:   与引擎仓（`<eng>/games/<pkg>` → 祖父 = 引擎根）。判据仍用 `_has_engine()`，不认空目录。
 
 
 def _has_engine(root: str) -> bool:
@@ -67,7 +69,8 @@ def find_engine_root() -> str:
         lines.append("!!   - %-28s -> %s  [%s]"
                      % (label, root, "有" if os.path.isdir(root) else "无此目录"))
     lines.append("!! 修法：设 %s=<引擎框架仓根>，或把引擎仓放到包仓的 ../framework / "
-                 "../framework-engine / ./framework。" % FRAMEWORK_ENV)
+                 "../.. （祖父，部署布局即 <plugin>/framework）/ ../framework-engine / ./framework。"
+                 % FRAMEWORK_ENV)
     lines.append("!" * 78)
     raise RuntimeError("\n".join(lines))
 
@@ -103,9 +106,20 @@ ENGINE_ROOT = find_engine_root()
 HOST_ROOT = find_host_root(ENGINE_ROOT)
 
 #: 包根优先（`content.*` 归包内真源）；其后引擎根（`saintess_engine`）、宿主壳根（`host`）。
+#:
+#: ★ T8（2026-09-16）：**无条件置前**（原来是「不在 sys.path 才 insert」）。
+#:   翻车点（实测：部署布局下 `test_v1302e_setview.py` 报
+#:   `ModuleNotFoundError: No module named 'host.shell'`）：
+#:   全量跑器为宿主自留件把 `<plugin>` 与 `<plugin>/framework` 摆进了 PYTHONPATH
+#:   ⇒ 这两个根「已在 sys.path」⇒ 旧写法跳过 insert ⇒ 它们留在 PYTHONPATH 的原位置，
+#:   而测试自己又 `sys.path.insert(0, os.path.abspath("."))`（cwd = 工作区根）
+#:   ⇒ 工作区根排在 `<plugin>` 前面 ⇒ `import host` 命中 `<ws>/host/__init__.py`
+#:   （= 宿主仓目录本身，是个包）而不是 `<plugin>/host/`（真宿主壳）⇒ `host.shell` 不存在。
+#:   与 `_engine_harness.py` 的 R4 修复同一课：**路径装配点必须把四个根无条件摆到最前**。
 for _p in (HOST_ROOT, ENGINE_ROOT, PKG_ROOT, TESTS_DIR):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+    if _p in sys.path:
+        sys.path.remove(_p)
+    sys.path.insert(0, _p)
 
 __all__ = ["TESTS_DIR", "PKG_ROOT", "ENGINE_ROOT", "HOST_ROOT",
            "find_engine_root", "find_host_root", "FRAMEWORK_ENV", "HOST_ENV"]

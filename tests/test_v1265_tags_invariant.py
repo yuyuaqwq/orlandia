@@ -276,9 +276,11 @@ async def main():
     db.update_player("g1", "w3", apprentices=["gather"], cur_map="oak_plain",
                      cur_subarea="oak_plain_3", stamina=0)
     db.activate_prof("g1", "w3", "gather")
-    db.set_event_state("prof_wait_w3", json.dumps(
-        {"finish": int(__import__("time").time()) - 1, "type": "gather",
-         "spot_map": "oak_plain"}))
+    # 旧轮 = 到点未收取的引擎作业（`prof_jobs_{qq}` 作业表，到点仍留在队列里）
+    _past = int(__import__("time").time()) - 1
+    db.set_event_state("prof_jobs_w3", json.dumps(
+        [{"kind": "gather", "started_at": _past - 1, "ends_at": _past,
+          "payload": {"spot_map": "oak_plain"}}], ensure_ascii=False))
     out11 = await cmd(m, "gather", "g1", "w3", "采集")
     check("输出含旧轮结算播报", "采集完成" in out11, out11)
     check("输出含体力不足提示", "体力不足" in out11, out11)

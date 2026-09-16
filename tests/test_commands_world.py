@@ -140,16 +140,15 @@ async def main():
     out = await cmd(m, "gather", "g1", "w1", "采集")
     check("等待中采集互斥拦截", "还在垂钓" in out, out[:120])
     # v55 等待制：把完成时间改成过去 → 惰性结算 + 自动开新轮
-    # v127.5：等待存储已收编进 timed_events 引擎（timed_events_{qq} → key "prof_wait"），
-    # 回拨完成时间改为直接写引擎存储：data.finish 与 expire 同时置到过去（到点被引擎 lazy 清）。
+    # 等待存储 = 引擎 produce 作业表：event_state 键 `prof_jobs_{qq}`，
+    # 值 = `[{"kind","started_at","ends_at","payload"}, …]`。回拨完成时间 = 把当前作业的
+    # `ends_at` 改到过去（到点未收取的作业留在队列里，靠收取时结算）。
     st = m._prof_wait_state("g1", "w1")
-    st["finish"] = int(time.time()) - 1
-    db.set_event_state(f"timed_events_w1", json.dumps(
-        {"prof_wait": {"type": st["type"], "expire": st["finish"],
-                       "data": {"finish": st["finish"], "type": st["type"],
-                                "spot": st.get("spot"), "spot_map": st.get("spot_map")}}},
+    _past = int(time.time()) - 1
+    db.set_event_state("prof_jobs_w1", json.dumps([{
+        "kind": st["type"], "started_at": _past - 1, "ends_at": _past,
+        "payload": {k: v for k, v in st.items() if k not in ("finish", "type")}}],
         ensure_ascii=False))
-    db.set_event_state(m._prof_wait_key("g1", "w1"), "")  # 清历史遗留键，防 residual 误读串台
     out = await cmd(m, "fishing", "g1", "w1", "垂钓")
     check("垂钓到期结算+自动开新", ("钓上来" in out or "钓上了" in out or "垃圾" in out or "宝物" in out or "鱼王" in out) and "开始垂钓" in out, out[:200])
     # v55 等待制：清状态后采集正常开轮

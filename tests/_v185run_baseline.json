@@ -1,0 +1,2248 @@
+{
+ "build_state": [
+  {
+   "keys": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "snap": {
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "inst_stages": [
+     {
+      "monsters": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [],
+        []
+       ]
+      ],
+      "name": "L1"
+     }
+    ],
+    "mode": "map",
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_chest_1",
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_cleared": false,
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "m_goblin_guard",
+      "哥布林守卫",
+      "tank",
+      15,
+      [],
+      []
+     ]
+    ]
+   },
+   "tag": "有怪层"
+  },
+  {
+   "keys": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "snap": {
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "inst_stages": [
+     {
+      "boss": [
+       "b_warden",
+       "守望者",
+       "boss",
+       20,
+       [],
+       []
+      ],
+      "name": "L1"
+     }
+    ],
+    "mode": "map",
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_chest_1",
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_cleared": false,
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "b_warden",
+      "守望者",
+      "boss",
+      20,
+      [],
+      []
+     ]
+    ]
+   },
+   "tag": "单层Boss房"
+  },
+  {
+   "keys": [
+    "alive",
+    "boss",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "players",
+    "resources_pool",
+    "rooms",
+    "round",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "threat",
+    "turn",
+    "turn_time",
+    "type"
+   ],
+   "snap": {
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "inst_stages": [],
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_chest_1",
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_cleared": false,
+    "stage_idx": 0,
+    "stage_pending": []
+   },
+   "tag": "无stages老副本"
+  }
+ ],
+ "room_clear": {
+  "msgs": "💥 房间怪 受到 1 点伤害，倒下了！\n  玩家：经验 +1，拾取材料 兽肉 ×1\n  玩家：🏆 成就解锁：初试锋芒！(完成首次战斗)\n      🎁 经验+100、兽肉×3（『成就 领取』领取）\n  玩家：🏆 成就解锁：初出茅庐！(注册角色)\n      🎁 草药×2（『成就 领取』领取）\n  玩家：🏆 成就解锁：崭露头角！(达到 10 级)\n      🎁 铁矿石×2（『成就 领取』领取）\n  玩家：🏆 成就解锁：名声鹊起！(达到 20 级)\n      🎁 精铁×2（『成就 领取』领取）\n  玩家：🏆 成就解锁：小有名气！(达到 30 级)\n      🎁 木箱×1（『成就 领取』领取）\n  玩家：🏆 成就解锁：资深冒险者！(达到 40 级)\n      🎁 淬火石×2（『成就 领取』领取）\n  玩家：🏆 成就解锁：大陆精英！(达到 50 级)\n      🎁 白银箱×1（『成就 领取』领取）\n  玩家：🏆 成就解锁：传奇之路！(达到 60 级)\n      🎁 白银箱×1、图纸残页×1（『成就 领取』领取）\n━━━━━━━━━━━━\n✅ 【misty_swamp_1】的敌人被肃清了！\n🗺️ 【哥布林营地】\n哥布林营地，传说中的危险之地，唯有勇者敢于踏入。\n💡 输入『副本 哥布林营地』开启挑战（组队副本，等级/人数校验）\n━━━━━━━━━━━━\n📍 当前位置：哥布林营地\n📮 可前往：\n  🧭 出城需先到『入口栅栏』\n💡 『前往 <序号>』切换位置\n━━━━━━━━━━━━\n🚪 副本内 · 无出口（没有通往外面的路）\n🐾 此房怪物已肃清。\n💰 副本资源池剩余：0 金币\n💡 清完敌人『深入』下一层推进\n━━━━━━━━━━━━\n🧭 副本内可继续探索/移动，或『副本』查看进度！",
+  "st": {
+   "boss": null,
+   "enemies": [],
+   "enemy": null,
+   "mode": "map",
+   "over": false,
+   "pets": {},
+   "rooms": {
+    "goblin_camp_1": {
+     "boss_alive": false,
+     "monsters_left": [],
+     "pois_left": []
+    }
+   },
+   "stage_cleared": true,
+   "stage_idx": 0,
+   "stage_pending": []
+  }
+ },
+ "steps": [
+  {
+   "out": "",
+   "st": {},
+   "st_has": [],
+   "tag": "00-初始"
+  },
+  {
+   "out": "👺 【哥布林营地】副本开启！你踏入了这片区域。\n━━━━━━━━━━━━\n🗺️ 【哥布林营地 · 入口栅栏】\n歪斜的木栅栏围出营地外围，兽皮晾在栏上，篝火堆散落四周。守卫在缺口处探头张望，臭味与叫嚷声扑面而来。\n━━━━━━━━━━━━\n📍 当前位置：入口栅栏\n📮 可前往：\n  ●1. 篝火营地\n  \n🔎 可探索触发：\n  ●📦 生锈的铁箱 ●🔥 将熄的篝火\n\n✨ 可交互场景：\n  ●1. 🪨 哥布林营地界碑\n\n🐾 此地的怪物 (Lv.15-16)：\n  哥布林守卫 Lv.15±1\n  哥布林萨满 Lv.16±1\n\n💡 『探索』遇怪，『前往 <序号>』赶路\n━━━━━━━━━━━━\n🚪 副本内 · 无出口（没有通往外面的路）\n🐾 此房怪物剩余：哥布林守卫、哥布林萨满（『探索』高概率遭遇）\n🔎 此房可调查：生锈的铁箱、将熄的篝火(『调查 <名称>』)\n💰 副本资源池剩余：424 金币 · 哥布林铁片×3、咕噜皇冠×1\n💡 副本激战中，『角色』了解队友\n━━━━━━━━━━━━\n🕐 单人挑战：战士·坦克\n💡 清完敌人『深入』下一层推进\n⏳ 副本内『移动』由队长带队；『探索』『调查』各人自由进行，遇怪全队合并进同一场战斗！\n📖 商路旁的营地还冒着劫掠后的烟，翻倒的货车旁散落着没来得及搬走的货物。行会的悬赏令在怀里发烫——今晚，该让哥布林酋长·咕噜尝尝被讨伐的滋味了。",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_chest_1",
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "m_goblin_guard",
+      "哥布林守卫",
+      "tank",
+      15,
+      [
+       "ms_dun_ji"
+      ],
+      [
+       "哥布林铁片"
+      ]
+     ],
+     [
+      "m_goblin_shaman",
+      "哥布林萨满",
+      "healer",
+      16,
+      [
+       "ms_zhi_liao",
+       "ms_du_wu"
+      ],
+      [
+       "萨满图腾"
+      ]
+     ]
+    ]
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "01-开本"
+  },
+  {
+   "out": "🗺️ 【哥布林营地 · 入口栅栏】\n歪斜的木栅栏围出营地外围，兽皮晾在栏上，篝火堆散落四周。守卫在缺口处探头张望，臭味与叫嚷声扑面而来。\n━━━━━━━━━━━━\n📍 当前位置：入口栅栏\n📮 可前往：\n  ●1. 篝火营地\n  \n🔎 可探索触发：\n  ●📦 生锈的铁箱 ●🔥 将熄的篝火\n\n✨ 可交互场景：\n  ●1. 🪨 哥布林营地界碑\n\n🐾 此地的怪物 (Lv.15-16)：\n  哥布林守卫 Lv.15±1\n  哥布林萨满 Lv.16±1\n\n💡 『探索』遇怪，『前往 <序号>』赶路\n━━━━━━━━━━━━\n🚪 副本内 · 无出口（没有通往外面的路）\n🐾 此房怪物剩余：哥布林守卫、哥布林萨满（『探索』高概率遭遇）\n🔎 此房可调查：生锈的铁箱、将熄的篝火(『调查 <名称>』)\n💰 副本资源池剩余：424 金币 · 哥布林铁片×3、咕噜皇冠×1\n💡 单人副本直接『副本 <名字>』开本",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_chest_1",
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "m_goblin_guard",
+      "哥布林守卫",
+      "tank",
+      15,
+      [
+       "ms_dun_ji"
+      ],
+      [
+       "哥布林铁片"
+      ]
+     ],
+     [
+      "m_goblin_shaman",
+      "哥布林萨满",
+      "healer",
+      16,
+      [
+       "ms_zhi_liao",
+       "ms_du_wu"
+      ],
+      [
+       "萨满图腾"
+      ]
+     ]
+    ]
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "02-副本地图"
+  },
+  {
+   "out": "📦 生锈的铁箱：\n💰 你从生锈的铁箱里摸出了 50 金币！\n🎒 拾取：哥布林铁片",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "m_goblin_guard",
+      "哥布林守卫",
+      "tank",
+      15,
+      [
+       "ms_dun_ji"
+      ],
+      [
+       "哥布林铁片"
+      ]
+     ],
+     [
+      "m_goblin_shaman",
+      "哥布林萨满",
+      "healer",
+      16,
+      [
+       "ms_zhi_liao",
+       "ms_du_wu"
+      ],
+      [
+       "萨满图腾"
+      ]
+     ]
+    ]
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "02b-调查铁箱"
+  },
+  {
+   "out": "当前层的敌人还没肃清！『探索』找到它们～",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "m_goblin_guard",
+      "哥布林守卫",
+      "tank",
+      15,
+      [
+       "ms_dun_ji"
+      ],
+      [
+       "哥布林铁片"
+      ]
+     ],
+     [
+      "m_goblin_shaman",
+      "哥布林萨满",
+      "healer",
+      16,
+      [
+       "ms_zhi_liao",
+       "ms_du_wu"
+      ],
+      [
+       "萨满图腾"
+      ]
+     ]
+    ]
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "03-深入未清层"
+  },
+  {
+   "out": "副本内请使用『移动 <房间>』推进（队长带队）～『副本地图』查看可前往房间。",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": []
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "03b-清层后深入#1"
+  },
+  {
+   "out": "副本内请使用『移动 <房间>』推进（队长带队）～『副本地图』查看可前往房间。",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": []
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "03b-清层后深入#2"
+  },
+  {
+   "out": "副本内请使用『移动 <房间>』推进（队长带队）～『副本地图』查看可前往房间。",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": []
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "03b-清层后深入#3"
+  },
+  {
+   "out": "格式：『调查 <目标>』，如『调查 宝箱』『调查 篝火』～（『副本地图』查看当前层可调查目标）",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": []
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "04-调查"
+  },
+  {
+   "out": "🏳️ 你要从【哥布林营地】撤退吗？\n⚠️ 撤退 = 放弃当前进度（已拿的战利品保留，但层数/机关进度清空，重新开本从头打）！\n💡 确认请回复『确认撤退』；反悔就继续冒险吧～",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": []
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "05-撤退一次"
+  },
+  {
+   "out": "🏳️ 你们放弃了【哥布林营地】的进度，回到了入口。\n📌 已拿到的战利品保留在背包；想再挑战就重新『副本 哥布林营地』从头开始吧！",
+   "st": {},
+   "st_has": [],
+   "tag": "06-确认撤退"
+  },
+  {
+   "out": "👺 【哥布林营地】副本开启！你踏入了这片区域。\n━━━━━━━━━━━━\n🗺️ 【哥布林营地 · 入口栅栏】\n歪斜的木栅栏围出营地外围，兽皮晾在栏上，篝火堆散落四周。守卫在缺口处探头张望，臭味与叫嚷声扑面而来。\n━━━━━━━━━━━━\n📍 当前位置：入口栅栏\n📮 可前往：\n  ●1. 篝火营地\n  \n🔎 可探索触发：\n  ●📦 生锈的铁箱 ●🔥 将熄的篝火\n\n✨ 可交互场景：\n  ●1. 🪨 哥布林营地界碑\n\n🐾 此地的怪物 (Lv.15-16)：\n  哥布林守卫 Lv.15±1\n  哥布林萨满 Lv.16±1\n\n💡 『对话 <名字>』聊天，『探索』冒险\n━━━━━━━━━━━━\n🚪 副本内 · 无出口（没有通往外面的路）\n🐾 此房怪物剩余：哥布林守卫、哥布林萨满（『探索』高概率遭遇）\n🔎 此房可调查：生锈的铁箱、将熄的篝火(『调查 <名称>』)\n💰 副本资源池剩余：424 金币 · 哥布林铁片×3、咕噜皇冠×1\n💡 备好钥匙，『副本 <名字>』进入\n━━━━━━━━━━━━\n🕐 单人挑战：战士·坦克\n💡 专注战斗！『副本』查看进度\n⏳ 副本内『移动』由队长带队；『探索』『调查』各人自由进行，遇怪全队合并进同一场战斗！\n📖 商路旁的营地还冒着劫掠后的烟，翻倒的货车旁散落着没来得及搬走的货物。行会的悬赏令在怀里发烫——今晚，该让哥布林酋长·咕噜尝尝被讨伐的滋味了。",
+   "st": {
+    "alive": {
+     "qcap1": true
+    },
+    "boss": null,
+    "enemies": [],
+    "enemy": null,
+    "leader": "qcap1",
+    "members": [
+     "qcap1"
+    ],
+    "mode": "map",
+    "over": false,
+    "resources_pool": {
+     "equip_left": [],
+     "gold_left": 424,
+     "mats_left": {
+      "咕噜皇冠": 1,
+      "哥布林铁片": 3
+     }
+    },
+    "rooms": {
+     "goblin_camp_1": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_guard",
+        "哥布林守卫",
+        "tank",
+        15,
+        [
+         "ms_dun_ji"
+        ],
+        [
+         "哥布林铁片"
+        ]
+       ],
+       [
+        "m_goblin_shaman",
+        "哥布林萨满",
+        "healer",
+        16,
+        [
+         "ms_zhi_liao",
+         "ms_du_wu"
+        ],
+        [
+         "萨满图腾"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_0_chest_1",
+       "goblin_camp_0_fire_1"
+      ]
+     },
+     "goblin_camp_2": {
+      "_is_boss": false,
+      "boss_alive": false,
+      "monsters_left": [
+       [
+        "m_goblin_berserker",
+        "哥布林狂战士",
+        "dps",
+        18,
+        [
+         "ms_lian_zhan"
+        ],
+        [
+         "狂战士腰带"
+        ]
+       ],
+       [
+        "e_goblin_berserker",
+        "哥布林狂战士",
+        "elite",
+        18,
+        [
+         "ms_kuang_bao",
+         "ms_lian_zhan"
+        ],
+        [
+         "哥布林徽记"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_1_chest_2",
+       "goblin_camp_1_fire_2"
+      ]
+     },
+     "goblin_camp_3": {
+      "_is_boss": true,
+      "boss_alive": true,
+      "monsters_left": [
+       [
+        "b_goblin_chief",
+        "哥布林酋长·咕噜",
+        "boss",
+        20,
+        [
+         "ms_lian_zhan",
+         "ms_lve_duo_h_ling",
+         "ms_zhao_huan",
+         "ms_nu_hou"
+        ],
+        [
+         "咕噜皇冠"
+        ]
+       ]
+      ],
+      "pois_left": [
+       "goblin_camp_2_corpse_1"
+      ]
+     }
+    },
+    "stage_idx": 0,
+    "stage_pending": [
+     [
+      "m_goblin_guard",
+      "哥布林守卫",
+      "tank",
+      15,
+      [
+       "ms_dun_ji"
+      ],
+      [
+       "哥布林铁片"
+      ]
+     ],
+     [
+      "m_goblin_shaman",
+      "哥布林萨满",
+      "healer",
+      16,
+      [
+       "ms_zhi_liao",
+       "ms_du_wu"
+      ],
+      [
+       "萨满图腾"
+      ]
+     ]
+    ]
+   },
+   "st_has": [
+    "alive",
+    "boss",
+    "boss_buff_next",
+    "contribution",
+    "dot_pending",
+    "enemies",
+    "enemy",
+    "inst_id",
+    "inst_stages",
+    "leader",
+    "members",
+    "mode",
+    "over",
+    "p_buffs",
+    "p_defending",
+    "p_food_effects",
+    "p_hot",
+    "pets",
+    "players",
+    "poi_unlocks",
+    "resources_pool",
+    "rooms",
+    "round",
+    "skip_elite_next",
+    "skip_wave_next",
+    "stage_cleared",
+    "stage_idx",
+    "stage_pending",
+    "stage_pois",
+    "stage_secret_cleared",
+    "stage_secret_found",
+    "turn",
+    "type"
+   ],
+   "tag": "07-开本2"
+  },
+  {
+   "out": "🏳️ 你带着战利品离开了哥布林营地。冒险者的旅途还在继续～",
+   "st": {},
+   "st_has": [],
+   "tag": "08-离开副本"
+  }
+ ]
+}

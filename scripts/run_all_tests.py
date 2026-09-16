@@ -54,7 +54,18 @@ SHIM_DIR = os.path.join(TESTS_DIR, "shim_astrbot")
 # 引擎根 / 宿主壳根：单点发现（`tests/_paths.py`；缺失即醒目报错，不静默跳过）
 if TESTS_DIR not in sys.path:
     sys.path.insert(0, TESTS_DIR)
-import _paths  # noqa: E402
+try:
+    import _paths  # noqa: E402
+except Exception as _exc:  # noqa: BLE001
+    # ★ T8：**不许把「tests 目录没了」表现成普通 traceback / 0 个测试跑绿** ——
+    #   包仓 tests 是内容侧真源，目录缺失/被改名/被清空一律醒目报错 + 退非零。
+    print("!" * 78, flush=True)
+    print("!! 包仓 tests 真源不可用：无法从 %s 导入 `_paths`（路径装配单点）。" % TESTS_DIR,
+          flush=True)
+    print("!! 目录缺失 / 被改名 / 被清空 —— 拒绝继续（绝不当「0 个测试=全绿」）。", flush=True)
+    print("!! 原始异常：%s: %s" % (type(_exc).__name__, _exc), flush=True)
+    print("!" * 78, flush=True)
+    raise SystemExit(1)
 ENGINE_ROOT = _paths.ENGINE_ROOT
 HOST_ROOT = _paths.HOST_ROOT
 
@@ -65,6 +76,13 @@ HOST_ROOT = _paths.HOST_ROOT
 SERIAL_SLOT = {
     "test_v101_28_food_hot.py",
     "test_v1023_life_prof.py",
+    # ★ T8：**写包内磁盘真源**的文件必须与「读同一份真源」的文件错开 ——
+    #   `test_gm_reload.py` 会改写 `content/rules/effect_rules.json` 再 `finally` 还原
+    #   （它就是测「改盘 → 重载」）。并行跑时 `test_export_package_sync.py` 的落盘规范
+    #   检查会读到**写了一半**的文件 ⇒ 偶发红
+    #   （实测：宿主全量入口 `❌ content/rules/effect_rules.json:['无末尾换行','JSON 坏']`，
+    #    单跑 3/3 绿、包仓跑器同池偶发）。
+    "test_gm_reload.py",
 }
 
 # 退役探针：P2C 族化迁移期 OLD==NEW 差分验证工具。迁移完成（旧 handler 从 HEAD 删除）后
@@ -240,6 +258,16 @@ def _run_framework_tests(base_env):
 def main():
     fail_fast, serial_mode, real_astrbot, jobs, only, skips = _parse_args(sys.argv[1:])
     serial_files, parallel_files = _collect_files(only, skips)
+    # ★ T8：**不许把「0 个测试」当全绿** —— 包仓 tests 是内容侧真源，目录缺失/被改名/
+    #   被 --skip 全跳时，旧行为会打印「文件: 0 个，通过 0，失败 0」并 exit 0（假绿）。
+    #   这里改成醒目报错 + 退非零（与宿主跑器同口径）。
+    if not only and not serial_files and not parallel_files:
+        print("!" * 78, flush=True)
+        print("!! 没有枚举到任何测试文件：%s" % TESTS_DIR, flush=True)
+        print("!! （目录缺失 / 被改名 / 全被 --skip 跳过）——拒绝当「0 个测试=全绿」。", flush=True)
+        print("!! 修法：确认包仓 tests/ 在位且含 test_*.py。", flush=True)
+        print("!" * 78, flush=True)
+        return 1
     if serial_mode:
         parallel_files, serial_files = [], serial_files + parallel_files
     if skips:
