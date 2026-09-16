@@ -1,0 +1,1083 @@
+{
+  "tables": [
+    {
+      "name": "players",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "class_name",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "level",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "gold",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "hp",
+          "type": "INTEGER"
+        },
+        {
+          "name": "mp",
+          "type": "INTEGER"
+        },
+        {
+          "name": "max_hp",
+          "type": "INTEGER"
+        },
+        {
+          "name": "max_mp",
+          "type": "INTEGER"
+        },
+        {
+          "name": "cur_map",
+          "type": "TEXT",
+          "default": "vila"
+        },
+        {
+          "name": "cur_subarea",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "equipment",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "skills",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "class_tier",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "attr_pts",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "attributes",
+          "type": "TEXT",
+          "default": "{\"str\":0,\"agi\":0,\"int\":0,\"vit\":0}"
+        },
+        {
+          "name": "skill_points",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "learned_skills",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "hidden_class_unlock",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "shortcuts",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "evolve_path",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "skill_levels",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "learned_blueprints",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "lucky_until",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "stamina",
+          "type": "INTEGER",
+          "default": 100
+        },
+        {
+          "name": "stamina_ts",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "created_at",
+          "type": "INTEGER"
+        },
+        {
+          "name": "last_active",
+          "type": "INTEGER"
+        },
+        {
+          "name": "race",
+          "type": "TEXT",
+          "default": "human"
+        },
+        {
+          "name": "gender",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "faction",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "battle_prefs",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "investigate_date",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "investigate_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "portals",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "skill_bar",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "skill_spent",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "explore_wandering",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "mounts",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "equipped_title",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "deed_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "world_id",
+          "type": "TEXT",
+          "default": "mainland"
+        },
+        {
+          "name": "apprentices",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "deed",
+          "type": "TEXT",
+          "default": ""
+        }
+      ]
+    },
+    {
+      "name": "inventory",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "item_key",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "item_data",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "count",
+          "type": "INTEGER",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "name": "quests",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "main_quest",
+          "type": "TEXT"
+        },
+        {
+          "name": "main_status",
+          "type": "TEXT",
+          "default": "pending"
+        },
+        {
+          "name": "main_progress",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "daily",
+          "type": "TEXT",
+          "default": "{}"
+        },
+        {
+          "name": "completed_main",
+          "type": "TEXT",
+          "default": "[]"
+        },
+        {
+          "name": "side",
+          "type": "TEXT",
+          "default": "{}"
+        }
+      ]
+    },
+    {
+      "name": "battle_state",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "monster",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "updated_at",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "achievements",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "ach_key",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "progress",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "claimed",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "stats",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "kills",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "elite_kills",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "boss_kills",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "deaths",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "day_kills",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "day_date",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "visited_areas",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "inst_clears",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "party_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "fish_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "gather_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "mine_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "cook_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "alchemy_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "craft_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "enhance_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "enchant_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "world_events",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "catch_collect",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "chests_opened",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "reputation",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "faction",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "points",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "signin",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "last_date",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "streak",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "total",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "props_use",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "used",
+          "type": "TEXT",
+          "default": "{}"
+        }
+      ]
+    },
+    {
+      "name": "fishing",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "total",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "bestiary",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "monster",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "kills",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "visited",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "map_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "name": "visited_subareas",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "map_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "sa_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "first_at",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "player_groups",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "group_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "first_seen",
+          "type": "INTEGER"
+        },
+        {
+          "name": "last_active",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "possessed",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "item_key",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "got_at",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "world_event",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "pk": true
+        },
+        {
+          "name": "etype",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "starts_at",
+          "type": "INTEGER"
+        },
+        {
+          "name": "ends_at",
+          "type": "INTEGER"
+        },
+        {
+          "name": "data",
+          "type": "TEXT",
+          "default": "{}"
+        }
+      ]
+    },
+    {
+      "name": "event_state",
+      "columns": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "value",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "market",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER PRIMARY KEY AUTOINCREMENT"
+        },
+        {
+          "name": "group_id",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "seller",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "item_key",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "item_data",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "price",
+          "type": "INTEGER",
+          "notnull": true
+        },
+        {
+          "name": "listed_at",
+          "type": "INTEGER"
+        },
+        {
+          "name": "map_id",
+          "type": "TEXT",
+          "default": ""
+        }
+      ]
+    },
+    {
+      "name": "party",
+      "columns": [
+        {
+          "name": "group_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "leader",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "member",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "guilds",
+      "columns": [
+        {
+          "name": "gid",
+          "type": "INTEGER PRIMARY KEY AUTOINCREMENT"
+        },
+        {
+          "name": "name",
+          "type": "TEXT UNIQUE",
+          "notnull": true
+        },
+        {
+          "name": "leader",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "icon",
+          "type": "TEXT",
+          "default": "🏰"
+        },
+        {
+          "name": "desc",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "level",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "created_at",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "guild_members",
+      "columns": [
+        {
+          "name": "gid",
+          "type": "INTEGER",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "role",
+          "type": "TEXT",
+          "default": "member"
+        },
+        {
+          "name": "joined_at",
+          "type": "INTEGER"
+        },
+        {
+          "name": "contribute",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "sign_date",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "task_date",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "task_progress",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "pets",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "pet_key",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "level",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "satiety",
+          "type": "INTEGER",
+          "default": 100
+        },
+        {
+          "name": "bond",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "last_sat_time",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "pet_dex",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "pet_key",
+          "type": "TEXT",
+          "pk": true,
+          "notnull": true
+        },
+        {
+          "name": "hatched",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "feedback",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER PRIMARY KEY AUTOINCREMENT"
+        },
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "group_id",
+          "type": "TEXT",
+          "default": ""
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "default": "new"
+        },
+        {
+          "name": "reply",
+          "type": "TEXT",
+          "default": ""
+        }
+      ]
+    },
+    {
+      "name": "professions",
+      "columns": [
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "gather_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "gather_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "mining_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "mining_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "fishing_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "fishing_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "alchemy_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "alchemy_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "craft_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "craft_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "cooking_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "cooking_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "enhance_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "enhance_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "enchant_lv",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "enchant_exp",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "fish_king",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "explore_wandering",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "activated",
+          "type": "TEXT",
+          "default": "[]"
+        }
+      ]
+    },
+    {
+      "name": "identity_map",
+      "columns": [
+        {
+          "name": "openid",
+          "type": "TEXT",
+          "pk": true
+        },
+        {
+          "name": "qq_id",
+          "type": "TEXT",
+          "notnull": true
+        },
+        {
+          "name": "platform",
+          "type": "TEXT",
+          "default": "qq_official"
+        },
+        {
+          "name": "bind_time",
+          "type": "INTEGER",
+          "default": 0
+        }
+      ],
+      "migrations": [
+        "CREATE INDEX IF NOT EXISTS idx_identity_qq ON identity_map(qq_id)"
+      ]
+    }
+  ]
+}

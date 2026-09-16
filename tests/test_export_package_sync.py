@@ -56,7 +56,8 @@ PKG_DIR = _paths.PKG_ROOT
 #: 且不要求落盘规范（它们由各自机制维护）。第一条 = 文案规格表（P4′-B 后在包内，
 #: 与 `texts` 域的数据文件 `texts.json`（导出投影）配对；真源/投影关系由
 #: `tests/test_texts_specs_sync.py` 钉住）。
-AUX_FILES = {"text_specs.json": "文案规格表（非域表；真源=包内，宿主那份是构建期镜像）"}
+AUX_FILES = {"text_specs.json": "文案规格表（非域表；真源=包内，宿主那份是构建期镜像）",
+             "tables.json": "存档表结构声明（非域表；包内真源，由引擎 `saintess_engine.store` 装载建表）"}
 
 DATA_DIR = os.path.join(PKG_DIR, "content", "data")
 RULES_DIR = os.path.join(PKG_DIR, "content", "rules")
