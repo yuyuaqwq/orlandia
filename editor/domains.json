@@ -80,15 +80,6 @@
     "owner": "package",
     "tier": "fixed"
   },
-  "tables": {
-    "label": "表结构",
-    "kind": "data",
-    "schema": null,
-    "primary": null,
-    "icon": "🗄️",
-    "owner": "package",
-    "tier": "portable"
-  },
   "texts": {
     "label": "文案",
     "kind": "data",
