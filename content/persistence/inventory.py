@@ -13,12 +13,20 @@
 
 **注入面**：`content/persistence/handles.py`（`bind(db_path=…, clock=…, flush_log=…, lock=…)`）；
 宿主装配点 = `game/store/store_factory.py`。纯包环境（编辑器）需注入自己的句柄 —— 见 B19/B20 接点。
+
+★ U1-I2（堆叠形状上移）：**同 key 件数合并 / 个体记录 FIFO+上限 / 加减 / 计数 / JSON 进出**这套
+形状已归引擎 `saintess_engine.container.stack`（本层不再手写合并与截断）。本层只留**取值与个体化策略**：
+`_slim` / `_class_attrs` / `_hydrate` / `_key_to_id` / `_snapshot_one` / `FISH_TAGS_MAX` / uuid 图鉴归一；
+内容侧的**个体记录字段名**（`item_data["tags"]`）在 `_STACK_MARKS` 一处绑给引擎。
+对外签名、返回与落盘字节一字未改（冻结比对门禁 `tests/test_u1i2_container_stack_frozen.py`）。
 """
 import json
 import time
 from .handles import _connect, _lock, atomic, clock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
+# ★ U1-I2：堆叠容器形状（引擎给形状；本层给字段名 / 上限 / 可堆叠判据）
+from saintess_engine.container import Stack, trim_records
 
 """奥兰迪亚·余烬纪年存储层 - inventory
 
@@ -105,30 +113,38 @@ def _slim(item_key, item_data, tag=None):
     return d
 
 
+# ==================== U1-I2 堆叠容器形状：内容侧绑定（唯一一处） ====================
+# 引擎 `saintess_engine.container.stack` 零知识、零默认值：**个体记录字段名**与**件数上限**
+# 都是本游戏的内容侧取值，在这里显式绑上去。`social.py` / `world.py` 复用同一下移后的
+# `_trim_individuals`（实现单源在引擎，签名对外一字不改）。
+_STACK_MARKS = "tags"
+
+
+def _empty_stack():
+    """空堆叠容器（引擎形状 + 本游戏字段名 / 个体记录上限）。"""
+    return Stack((), marks=_STACK_MARKS, cap=FISH_TAGS_MAX)
+
+
+def _row_stack(row, item_key):
+    """DB 单格 → 单格堆叠容器（引擎形状 + 本游戏字段名 / 个体记录上限）。"""
+    return Stack(({"key": item_key, "count": row["count"],
+                   "data": json.loads(row["item_data"])},),
+                 marks=_STACK_MARKS, cap=FISH_TAGS_MAX)
+
+
 def _trim_individuals(data, consumed):
     """v126.3 扣 count 后同步截断 tags（FIFO：先扣的先删个体标记）。
+
+    ★ U1-I2：形状已下移至引擎 `saintess_engine.container.stack.trim_records`；
+    本函数只绑定内容侧字段名（`_STACK_MARKS`），**签名/返回/调用点一字不改**
+    （`social.py` / `world.py` / `sell_item_atomic` 都走这里，实现单源）。
 
     返回新 item_data：
       - 带 tags 的对象 → 截断后剩余；截空移除 tags key（有 count 无个体，按原价兜底）
       - 裸数组（防御）→ 包对象截断
       - 非个体数据 → 原样
     """
-    tags = None
-    if isinstance(data, dict):
-        tags = data.get("tags")
-    elif isinstance(data, list):
-        tags = data
-    if not tags:
-        return data
-    rest = tags[consumed:]
-    if isinstance(data, list):
-        return {"tags": rest} if rest else {}
-    out = dict(data)
-    if rest:
-        out["tags"] = rest
-    else:
-        out.pop("tags", None)
-    return out
+    return trim_records(data, consumed, marks=_STACK_MARKS)
 
 
 def _migrate_upgrade_lv(d: dict) -> dict:
@@ -348,6 +364,8 @@ def add_item(group_id, qq_id, item_key, item_data: dict, count=1, tag: dict | No
     截断），count 恒 >= len(tags)。
     v126.3 瘦身：存储时类属性不落库（_slim），个体属性存 item_data["tags"] 对象包装，
     读取时 _hydrate 水合补全类属性。
+    ★ U1-I2 形状：合并/累加由引擎堆叠容器算（`Stack.add`：新格 / 同 key 件数相加 /
+    并个体记录 + 上限丢最旧；`merge=stackable`）。本层只给取值（slim / stackable）与落库。
     """
     if not isinstance(count, int) or isinstance(count, bool) or count <= 0 or count > 9999999:
         # F1 P1-3：数量非法（<=0 / 超大）直接拒绝，防负资产/内存膨胀
@@ -362,40 +380,33 @@ def add_item(group_id, qq_id, item_key, item_data: dict, count=1, tag: dict | No
                 "SELECT count, item_data FROM inventory WHERE qq_id=? AND item_key=?",
                 (qq_id, item_key),
             ).fetchone()
-            if row and stackable:
-                if isinstance(slim, dict) and slim.get("tags") is not None:
-                    # 堆叠 + 个体数据：合并 tags 数组（上限截断丢最旧）
-                    _old = json.loads(row["item_data"])
-                    _old_tags = _old.get("tags", []) if isinstance(_old, dict) else (
-                        _old if isinstance(_old, list) else [])
-                    _new_tags = (_old_tags + slim["tags"])[-FISH_TAGS_MAX:]
-                    # v126.4 审计 P2：合并只写 {"tags": ...} 会丢 _slim 为配置未命中
-                    # 动态物品保留的类属性兜底 → 保留 slim 的非 tags 字段（正常配置命中时为空）
-                    _merged = {k: v for k, v in slim.items() if k != "tags"}
-                    _merged["tags"] = _new_tags
-                    conn.execute(
-                        "UPDATE inventory SET count=count+?, item_data=? WHERE qq_id=? AND item_key=?",
-                        (count, json.dumps(_merged, ensure_ascii=False), qq_id, item_key),
-                    )
-                else:
-                    conn.execute(
-                        "UPDATE inventory SET count=count+? WHERE qq_id=? AND item_key=?",
-                        (count, qq_id, item_key),
-                    )
-            elif row:
-                # v110 审计修复：同 key 已存在且不可堆叠（如重复 uuid 场景）——
-                # 原裸 INSERT 撞主键抛 sqlite3.IntegrityError，公共函数应设防，退化累加
-                conn.execute(
-                    "UPDATE inventory SET count=count+? WHERE qq_id=? AND item_key=?",
-                    (count, qq_id, item_key),
-                )
-            else:
+            if row is None:
+                # 新格：容器给出该格的 data/count（= slim / count），随后落库
+                entry = _empty_stack().add(item_key, count, slim, merge=stackable).get(item_key)
                 # v168 冒险手册：物品首次入包（新格 INSERT）→ 记曾拥有（永久）
                 record_possessed_conn(conn, qq_id, item_key, item_data)
                 conn.execute(
                     "INSERT INTO inventory (qq_id, item_key, item_data, count) VALUES (?,?,?,?)",
-                    (qq_id, item_key, json.dumps(slim, ensure_ascii=False), count),
+                    (qq_id, item_key, json.dumps(entry["data"], ensure_ascii=False),
+                     entry["count"]),
                 )
+            else:
+                st = _row_stack(row, item_key)
+                before = st.get(item_key)["data"]
+                entry = st.add(item_key, count, slim, merge=stackable).get(item_key)
+                if entry["data"] is before:
+                    # 未并个体记录（含不可堆叠退化累加）：data 原样 —— 连历史落盘字节都不动
+                    conn.execute(
+                        "UPDATE inventory SET count=? WHERE qq_id=? AND item_key=?",
+                        (entry["count"], qq_id, item_key),
+                    )
+                else:
+                    # 堆叠 + 个体数据：合并 tags 数组（上限截断丢最旧），写回引擎算出的 data
+                    conn.execute(
+                        "UPDATE inventory SET count=?, item_data=? WHERE qq_id=? AND item_key=?",
+                        (entry["count"], json.dumps(entry["data"], ensure_ascii=False),
+                         qq_id, item_key),
+                    )
             conn.commit()
         finally:
             conn.close()
@@ -419,7 +430,11 @@ def get_inventory(group_id, qq_id):
             conn.close()
 
 def count_item(group_id, qq_id, name):
-    """按物品名称/ID 统计背包中数量(材料类，key 为 mat_名称)"""
+    """按物品名称/ID 统计背包中数量(材料类，key 为 mat_名称)
+
+    ★ U1-I2 形状：把全部格装成引擎堆叠容器，按谓词累计件数（`Stack.count_where`）；
+    谓词里的水合与键归一仍是本层的取值。
+    """
     kid = _key_to_id(name)
     with _lock:
         conn = _connect()
@@ -428,16 +443,18 @@ def count_item(group_id, qq_id, name):
                 "SELECT item_key, item_data, count FROM inventory WHERE qq_id=?",
                 (qq_id,),
             ).fetchall()
-            total = 0
-            for r in rows:
-                d = _hydrate(r["item_key"], json.loads(r["item_data"]))
-                if d.get("name") == name or r["item_key"] == kid:
-                    total += r["count"]
-            return total
+            st = Stack(({"key": r["item_key"], "count": r["count"],
+                         "data": json.loads(r["item_data"])} for r in rows),
+                       marks=_STACK_MARKS, cap=FISH_TAGS_MAX)
+            return st.count_where(
+                lambda k, d: _hydrate(k, d).get("name") == name or k == kid)
         finally:
             conn.close()
 
 def remove_item(group_id, qq_id, item_key, count=1):
+    """★ U1-I2 形状：扣件由引擎堆叠容器算（`Stack.take`：不足 → 整格消失；
+    否则件数相减 + 个体记录 FIFO 从头截断）。本层只做校验与落库。
+    """
     if not isinstance(count, int) or isinstance(count, bool) or count <= 0 or count > 9999999:
         # F1 P1-3：非法数量直接拒绝（<=0 会误删整堆或增库存；超大 count 有溢出/DoS 面）
         return False
@@ -451,17 +468,19 @@ def remove_item(group_id, qq_id, item_key, count=1):
             ).fetchone()
             if not row:
                 return False
-            if row["count"] <= count:
+            left = _row_stack(row, item_key).take(item_key, count)[0]
+            entry = left.get(item_key)
+            if entry is None:
                 conn.execute(
                     "DELETE FROM inventory WHERE qq_id=? AND item_key=?",
                     (qq_id, item_key),
                 )
             else:
                 # v126.2/126.3 同步截断个体数组（FIFO：先扣的先删个体标记，count >= len(tags) 恒成立）
-                _new = _trim_individuals(json.loads(row["item_data"]), count)
                 conn.execute(
-                    "UPDATE inventory SET count=count-?, item_data=? WHERE qq_id=? AND item_key=?",
-                    (count, json.dumps(_new, ensure_ascii=False), qq_id, item_key),
+                    "UPDATE inventory SET count=?, item_data=? WHERE qq_id=? AND item_key=?",
+                    (entry["count"], json.dumps(entry["data"], ensure_ascii=False),
+                     qq_id, item_key),
                 )
             conn.commit()
             return True
@@ -525,7 +544,12 @@ __all__ = [
     "_lock",
     "atomic",
     "C",
+    "Stack",
+    "trim_records",
     "FISH_TAGS_MAX",
+    "_STACK_MARKS",
+    "_empty_stack",
+    "_row_stack",
     "_snapshot_one",
     "_CLASS_FIELDS",
     "_class_attrs",
