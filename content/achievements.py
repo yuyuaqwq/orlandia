@@ -99,6 +99,7 @@ from . import obs                          # noqa: E402  包内唯一 LOG/tlog �
 from .index import display as _index_display   # noqa: E402  `C.display` → 包内直取（同一对象）
 from ._pkgref import DB as db              # noqa: E402  `from .. import db` 的包内等价物
 from saintess_engine.conditions.declarative import bind_spec   # S4：声明式条目装配
+from saintess_engine.collect import TierBoard
 from .cond_specs import load as _load_specs
 
 
@@ -287,6 +288,25 @@ def check_achievements(group_id, qq_id, player=None, extra=None) -> list:
         return []
 
 
+def _has_claimable_reward(a) -> bool:
+    """该成就是否带可发奖励（经验 / 金币 / 物品）—— 与真源 `claim_achievement_rewards` 同判据。"""
+    rw = a.get("reward") or {}
+    return bool(rw.get("exp", 0) or rw.get("gold", 0) or rw.get("items"))
+
+
+def _claim_board(rows, claimed) -> TierBoard:
+    """待领档位状态机（引擎 `collect.TierBoard`）：达成 = 该 id 已解锁；可领 = 带奖励。
+
+    `claim(a)` 幂等（`READY` 才记入，已领/未达成/无物可领一律 `False` 且不碰集合）。
+    """
+    unlocked = {r["ach_key"] for r in rows}
+    return TierBoard(ACHIEVEMENTS,
+                     claimed=claimed,
+                     key=lambda a: a["id"],
+                     reached=lambda a: a["id"] in unlocked,
+                     claimable=_has_claimable_reward)
+
+
 def claim_achievement_rewards(group_id, qq_id) -> tuple:
     """领取全部待领取的成就奖励(经验/金币/物品)。返回 (lines, err) 供命令输出。
 
@@ -295,6 +315,7 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
     v140 波2（成就/称号/收藏资源化 3.9）：reward 新增 items 物品奖励
     （{item_key: count}），与经验/金币一同发放——db.add_item 入包，
     物品 key 走 _key_to_id 兼容中文名；发放失败静默跳过（物品缺失不影响其他奖励）。
+    ★ U1-I3：筛选「可领档位」改走引擎收集形状 `collect.TierBoard.claim()`（幂等 + 不可重领）。
     """
     from .gameplay_rules import check_player_level_up
     from .stat_bonus import stat_bonus
@@ -303,15 +324,15 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
         pending = [r for r in rows if not r.get("claimed")]
         if not pending:
             return [], "没有待领取的成就奖励～"
-        # 过滤出真正带奖励的待领成就
+        # 过滤出真正带奖励的待领成就（引擎三态机：READY 才可领，领过/没奖励不再是 READY）
+        board = _claim_board(rows, {r["ach_key"] for r in rows if r.get("claimed")})
         claimable = []
         for r in pending:
             a = next((x for x in ACHIEVEMENTS if x["id"] == r["ach_key"]), None)
             # v105.xx P0 修复：原 `if a and X or Y` 优先级错误——a=None（如 inst_clear_* 记录
             # 不在 ACHIEVEMENTS 中）时 `or` 右侧仍求值 a.get() → AttributeError 崩溃。
             # 显式括号：a 为 None 时短路，不进入。
-            if a and (((a.get("reward") or {}).get("exp", 0)) or ((a.get("reward") or {}).get("gold", 0))
-                      or ((a.get("reward") or {}).get("items"))):
+            if a is not None and board.claim(a):
                 claimable.append(a)
         if not claimable:
             # 没有奖励的成就直接标记已领取，避免永久挂起

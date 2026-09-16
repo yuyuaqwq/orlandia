@@ -37,6 +37,7 @@ from .catalog_rules import SUPPLY_BOX as _SUPPLY_BOX
 from .commands import register
 from .persistence.inventory import add_item
 from .persistence.world import get_event_state, set_event_state
+from saintess_engine.periodic import PeriodCounter
 
 
 def _fx_label(effects: dict) -> str:
@@ -209,6 +210,15 @@ def _grant_items(env, items) -> list:
     return got
 
 
+def _supply_counter(period_key) -> PeriodCounter:
+    """补给箱限额计数（引擎周期形状 `periodic.PeriodCounter`）。
+
+    存储面 = 包内 event_state 读写口；**周期键由调用方拼**（引擎不认识键结构与日历）——
+    键格式保持原样，老档「今天/本周已经领过」的判定逐字节不变。
+    """
+    return PeriodCounter(get_event_state, set_event_state, period_key)
+
+
 def _claim_supply_box(env) -> list:
     """领取每日补给箱（SUPPLY_BOX 3 档，限额用 event_state 记日期/周）。
 
@@ -216,6 +226,9 @@ def _claim_supply_box(env) -> list:
     - supply_mat 材料箱：每日 1 个
     - supply_tool 道具箱：每日 1 个（原设计累计 3 个每日任务，简化按日限）
     - supply_rich 豪华箱：每周 ≤2 个（原设计累计 7 个每日任务，简化按周限）
+
+    限额判定走引擎周期形状（`PeriodCounter`：首次触达 / 计数 + 上限）；
+    `daily_1` 与 `daily3` 两档原本逐字相同（都是每日 1 个），合并为同一条 —— 键/上限/文案不变。
     """
     qq_id = env.uid
     today = datetime.date.today().isoformat()
@@ -230,27 +243,21 @@ def _claim_supply_box(env) -> list:
         bid = box.get("id", "")
         limit = box.get("limit", "")
         # 限额判定
-        if limit == "daily_1":
-            key = f"supply_{bid}_{qq_id}_{today}"
-            if get_event_state(key):
+        if limit in ("daily_1", "daily3"):
+            _daily = _supply_counter(f"supply_{bid}_{qq_id}_{today}")
+            if not _daily.first_touch():
                 lines.append(T.text("supply.daily_done", name=box.get("name", bid)))
                 continue
-            set_event_state(key, "1")
-        elif limit == "daily3":
-            key = f"supply_{bid}_{qq_id}_{today}"
-            if get_event_state(key):
-                lines.append(T.text("supply.daily_done", name=box.get("name", bid)))
-                continue
-            set_event_state(key, "1")
+            _daily.consume(cap=1)
         elif limit == "weekly2_daily7":
             # 每周 ≤2：数本周已领次数
-            wk = f"supply_{bid}_{qq_id}_wk_{monday}"
-            cnt = int(get_event_state(wk) or 0)
+            _weekly = _supply_counter(f"supply_{bid}_{qq_id}_wk_{monday}")
+            cnt = _weekly.used()
             if cnt >= 2:
                 lines.append(T.text("supply.weekly_done", name=box.get("name", bid),
                                     cnt=cnt))
                 continue
-            set_event_state(wk, str(cnt + 1))
+            _weekly.consume(cap=2)
         else:
             continue
         # 发放

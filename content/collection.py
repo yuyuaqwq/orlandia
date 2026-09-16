@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import os
 
+from saintess_engine.collect import Tally
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
@@ -68,10 +69,13 @@ def entry_collected(entry, inv_names, best_names) -> bool:
 
 
 def book_progress(book, inv_names, best_names) -> tuple:
-    """返回 `(已收集数, 总条目数)` —— 判定口径见本文件头。"""
-    rows = entries(book)
-    got = sum(1 for e in rows if entry_collected(e, inv_names, best_names))
-    return got, len(rows)
+    """返回 `(已收集数, 总条目数)` —— 判定口径见本文件头。
+
+    ★ U1-I3：N/M 计数走引擎收集形状 `collect.Tally`（构造即绑定判据，读时现算）；
+    判据本体 `entry_collected` 仍是本模块的内容口径（key/name 命中两套名字集合），一字未改。
+    """
+    return Tally(entries(book),
+                 hit=lambda e: entry_collected(e, inv_names, best_names)).progress()
 
 
 # ============================================================

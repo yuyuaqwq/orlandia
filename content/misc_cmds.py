@@ -39,6 +39,10 @@ SIGNIN_CONFIG，属 L7 域批次）、成就表（`C.ACHIEVEMENTS`，源列表�
 第四个入参 `luck_mat` = 幸运符的材料键（见上「宿主给」那条）。
 
 不改语义：命中 / 分支 / 阈值 / 文案一字未动；随机流与真源逐位一致（整条签到只 `random.random()` 一次）。
+
+★ U1-I3：本模块里的两处「手写形状」改走引擎 —— 意见箱频控 = `periodic.Cooldown`
+（末次触达时刻 + 窗口；键与存档口径不变），成就面板的三态 = `collect.TierBoard` +
+N/M 进度 = `collect.Tally`（达成/可领判据由本模块给）。文案与行序逐字节不变。
 """
 from __future__ import annotations
 
@@ -69,6 +73,8 @@ def _read_json(path: str, default):
 # 宿主替身口（存储层）—— 引擎 wire 形状
 # ============================================================
 from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.collect import CLAIMED, LOCKED, READY, Tally, TierBoard
+from saintess_engine.periodic import Cooldown
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
@@ -399,6 +405,25 @@ def signin_start(group_id, qq_id, today: str, yesterday: str, cfg: dict, luck_ma
 ACH_CATS = ["战斗", "成长", "探索", "副业", "社交", "隐藏"]
 # 奖励 key → 中文（真源 `_RW_CN`）
 _RW_CN = {"exp": "经验", "gold": "金币"}
+# 档位三态（引擎 `collect` 形状的通用标识）→ 面板标记（措辞是本内容侧的口径）
+_TIER_MARK = {LOCKED: "⬜", READY: "🎁", CLAIMED: "✅"}
+
+
+def _ach_tally(rows, unlocked) -> Tally:
+    """N/M 进度（引擎 `collect.Tally`）：一条算数当且仅当它的 id 已解锁。"""
+    return Tally(rows, hit=lambda a: a["id"] in unlocked)
+
+
+def _ach_board(table, unlocked, claimed) -> TierBoard:
+    """成就档位状态机（引擎 `collect.TierBoard`）：达成 = 已解锁；可领 = 该项配了奖励。
+
+    `claimed` 由调用方给（面板路径只读；领取路径同一形状的 `claim()` 会就地记入）。
+    """
+    return TierBoard(table,
+                     claimed=claimed,
+                     key=lambda a: a["id"],
+                     reached=lambda a: a["id"] in unlocked,
+                     claimable=lambda a: bool(a.get("reward")))
 
 
 def achievement_panel(raw: str, table, unlocked, claimed, points: int) -> list:
@@ -407,6 +432,9 @@ def achievement_panel(raw: str, table, unlocked, claimed, points: int) -> list:
     `table` = 成就表（`[{id,cat,name,desc,cond,points,reward,…}]`，**源列表序** —— 分类明细的
     渲染顺序即它）；`unlocked`/`claimed` = 已解锁 / 已领取的成就 id 集合（宿主从 DB 取）；
     `points` = 成就点（宿主 core 算）。返回行列表（宿主还要补 "" + 底部随机提示行）。
+
+    档位三态（未达成 / 可领 / 已领）走引擎收集形状 `collect.TierBoard`：
+    达成判据 = 已解锁，可领判据 = 该项配了奖励；三态 → 面板标记的映射见 `_TIER_MARK`。
     """
     cat = raw if raw in ACH_CATS else ""
     achs = [a for a in table if (not cat or a["cat"] == cat)]
@@ -416,15 +444,16 @@ def achievement_panel(raw: str, table, unlocked, claimed, points: int) -> list:
         title = "🏅 【成就】"
     total_all = len(table)
     got_all = len(unlocked)
-    pending_cnt = len([a for a in table
-                       if a["id"] in unlocked and a["id"] not in claimed and a.get("reward")])
+    board = _ach_board(table, unlocked, claimed)
+    pending_cnt = board.pending()
     lines = [title, "━━━━━━━━━━━━"]
     if pending_cnt:
         lines.append("🎁 %d 个成就奖励待领取！『成就 领取』一键领取" % pending_cnt)
     if cat:
-        lines.append("解锁 %d/%d 个" % (sum(1 for a in achs if a["id"] in unlocked), len(achs)))
+        got_c, total_c = _ach_tally(achs, unlocked).progress()
+        lines.append("解锁 %d/%d 个" % (got_c, total_c))
         for a in achs:
-            mark = "✅" if a["id"] in unlocked else "⬜"
+            mark = _TIER_MARK[board.state(a)]
             rw = a.get("reward") or {}
             # v105 M18 P3：奖励 key 显示中文（经验/金币），对齐解锁提示 _reward_txt
             # v140 波2：items 物品奖励也显示（《物品名》×N）
@@ -436,16 +465,14 @@ def achievement_panel(raw: str, table, unlocked, claimed, points: int) -> list:
                 else:
                     rw_parts.append("%s+%s" % (_RW_CN.get(k, k), v))
             rw_txt = "（%s）" % "、".join(rw_parts) if rw_parts else ""
-            if a["id"] in unlocked and a["id"] not in claimed and rw:
-                mark = "🎁"
             lines.append("%s %s：%s%s" % (mark, a["name"], a["desc"], rw_txt))
     else:
         lines.append("总进度：%d/%d　🏆 成就点：%s" % (got_all, total_all, points))
         for c in ACH_CATS:
             sub = [a for a in table if a["cat"] == c]
-            got_c = sum(1 for a in sub if a["id"] in unlocked)
+            got_c, total_c = _ach_tally(sub, unlocked).progress()
             lines.append("%s %s：%d/%d(『成就 %s』查看明细)"
-                         % ("✅" if got_c == len(sub) else "⬜", c, got_c, len(sub), c))
+                         % ("✅" if got_c == total_c else "⬜", c, got_c, total_c, c))
     return lines
 
 
@@ -470,21 +497,28 @@ def _fb_cd_key(qq_id) -> str:
     return "fb_cd_%s" % qq_id
 
 
+def _fb_cd(qq_id) -> Cooldown:
+    """意见箱频控（引擎周期形状 `periodic.Cooldown`：末次触达时刻 + 窗口）。
+
+    存储面 = 包内 event_state 读写口；**键由本模块拼**（存档口径，逐字节不变）；
+    `now` 由调用方给（引擎不读钟）。
+    """
+    return Cooldown(db.get_event_state, db.set_event_state, _fb_cd_key(qq_id),
+                    window=FEEDBACK_CD_SECONDS)
+
+
 def feedback_precheck(args: str, qq_id, now_ts: float):
     """意见箱前置校验（真源 :401-416 逐行等价）：返回拒绝文案；放行 → `None`。
 
-    频控读 `event_state`（`fb_cd_<qq>`）；读失败/值坏 → 视为「没提过」（真源同款 try/except）。
+    频控读 `event_state`（`fb_cd_<qq>`）；读失败/值坏 → 视为「没提过」（真源同款宽容口径，
+    由引擎 `Cooldown.last()` 的坏值兜底承担）。
     """
     if not args:
         return MSG_EMPTY
     if len(args) > FEEDBACK_MAX_LEN:
         return MSG_TOO_LONG
     # q11 低风险项：同 qq 30 秒内限 1 条（意见箱防刷屏），沿用 event_state 存末次提交时间戳
-    try:
-        _last_ts = float(db.get_event_state(_fb_cd_key(qq_id)) or 0)
-    except (TypeError, ValueError):
-        _last_ts = 0.0
-    if now_ts - _last_ts < FEEDBACK_CD_SECONDS:
+    if not _fb_cd(qq_id).ready(now_ts):
         return MSG_TOO_FAST
     return None
 
@@ -493,7 +527,7 @@ def feedback_submit(group_id, qq_id, args: str, now_ts: float) -> dict:
     """入库 + 记频控时间戳 + 回执文案（真源 :417-425 逐行等价；异常**不吞**，调用方记日志 + 回执）。"""
     fid = db.add_feedback(qq_id, group_id, args)
     # 持续成功的频控：仅成功后更新时间戳，避免失败的尝试锁住玩家再次提交
-    db.set_event_state(_fb_cd_key(qq_id), str(now_ts))
+    _fb_cd(qq_id).touch(now_ts)
     text = ("📮 收到你的意见啦！(编号 #%s)\n「%s」\n\n"
             "我会整理给鱼鱼看的，感谢你让这个世界变得更好✂️" % (fid, args))
     return {"fid": fid, "text": text}

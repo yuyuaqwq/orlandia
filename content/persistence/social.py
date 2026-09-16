@@ -17,6 +17,7 @@
 import json
 import sqlite3
 import time
+from saintess_engine.periodic import Streak
 from .handles import _connect, _lock, atomic, clock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
@@ -81,6 +82,20 @@ def save_signin(group_id, qq_id, last_date, streak, total):
             conn.close()
 
 
+# ★ U1-I3：连续段规则 = 引擎周期形状 `periodic.Streak`（引擎不认识日历：
+# 「上一周期」由调用方按自己的周期口径算好传进来，这里就是 yesterday）。
+# `claim_terms()` 交出规则里的两个常量；下面的 SQL 文本由它们拼出，**与搬运前逐字节相同**。
+_SIGNIN_STREAK = Streak()
+_SIGNIN_CLAIM_SQL = (
+    "UPDATE signin SET "
+    "last_date=?, "
+    "streak=CASE WHEN last_date=? THEN streak+%d ELSE %d END, "
+    "total=total+1 "
+    "WHERE qq_id=? AND last_date<>?"
+    % _SIGNIN_STREAK.claim_terms()
+)
+
+
 def signin_claim(group_id, qq_id, today, yesterday):
     """F1 P1-4：原子签到认领（防并发重领）。
 
@@ -89,6 +104,11 @@ def signin_claim(group_id, qq_id, today, yesterday):
     已等于 today → rowcount=0 → 返回 claimed=False。比命令层「读判断→发金子→再 save」非原子。
     返回 (claimed, streak, total)；claimed=False 时 streak/total 为 None。
     行为零变化：认领成功后的奖励发放仍由命令层执行。
+
+    ★ U1-I3：连续段（streak）规则改由引擎周期形状 `periodic.Streak` 单一给出
+    （「紧接上一周期 → +step，否则归 reset_to」）；本函数沿用**原样的条件 UPDATE**
+    （`WHERE last_date<>?` + `streak=CASE …`），SQL 文本逐字节不变 —— 事务与并发正确性
+    一个字都没动，引擎只交出规则里的两个常量（`claim_terms()`）。
     """
     with atomic() as conn:
         # 确保行存在（老档无 signin 行也自愈），再条件更新
@@ -96,14 +116,7 @@ def signin_claim(group_id, qq_id, today, yesterday):
             "INSERT OR IGNORE INTO signin (qq_id, last_date, streak, total) VALUES (?,?,?,0)",
             (qq_id, "", 0),
         )
-        cur = conn.execute(
-            "UPDATE signin SET "
-            "last_date=?, "
-            "streak=CASE WHEN last_date=? THEN streak+1 ELSE 1 END, "
-            "total=total+1 "
-            "WHERE qq_id=? AND last_date<>?",
-            (today, yesterday, qq_id, today),
-        )
+        cur = conn.execute(_SIGNIN_CLAIM_SQL, (today, yesterday, qq_id, today))
         if cur.rowcount == 0:
             return False, None, None
         row = conn.execute("SELECT streak, total FROM signin WHERE qq_id=?", (qq_id,)).fetchone()

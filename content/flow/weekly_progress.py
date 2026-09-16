@@ -60,6 +60,7 @@ from .. import config as _CFG
 # ============================================================
 # 宿主替身口（① 存储层 / 发放函数）
 # ============================================================
+from saintess_engine.periodic import PeriodSlot
 from saintess_engine.wire import Wire
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
@@ -207,9 +208,18 @@ def _week_key(qq_id) -> str:
     return f"weekly_{qq_id}_{y}-W{w:02d}"
 
 
+def _week_slot(qq_id) -> PeriodSlot:
+    """本周状态格（引擎周期形状 `periodic.PeriodSlot`：周期键 → 一格值）。
+
+    存储面 = 宿主存储层的 event_state 读写口；**周期键仍由本模块拼**（键格式是存档口径，
+    逐字节不变）——「本周期」怎么算、键长什么样是内容侧的事，引擎不认识日历。
+    """
+    return PeriodSlot(db.get_event_state, db.set_event_state, _week_key(qq_id))
+
+
 def _week_state(qq_id):
     """读取本周状态（无记录返回 None）。"""
-    raw = db.get_event_state(_week_key(qq_id))
+    raw = _week_slot(qq_id).read()
     if not raw:
         return None
     try:
@@ -224,7 +234,7 @@ def _week_state(qq_id):
 
 
 def _save_week_state(qq_id, st):
-    db.set_event_state(_week_key(qq_id), json.dumps(st, ensure_ascii=False))
+    _week_slot(qq_id).write(json.dumps(st, ensure_ascii=False))
 
 
 def _grant_rewards(group_id, qq_id, exp, gold):
