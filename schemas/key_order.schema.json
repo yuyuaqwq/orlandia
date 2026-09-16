@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/key_order.schema.json",
   "title": "键序声明（key_order）—— 一条 = 一张表的源迭代序",
-  "description": "本域 = 域表**读不回来的那部分顺序**：`content/data|rules/*.json` 的外层键按字典序落盘（导出契约 `sort_table`，幂等优先），源侧迭代序（`random.choice` 抽签 / 遍历 / 掉落序的语义）在域里没有落点，于是在这里逐张显式声明。\\n\\n**形状**：一条 = 一张表的键序；`keys` 数组的**下标就是源迭代序**（不是升序、不是集合）。\\n\\n消费者（两条都按名取用，键集不符即 raise，不静默改序）：`content/catalog_quests.py` 的 13 条（npcs 三表 / dialogues / achievements / quests 三表 / events 两池 / monsters / monster_mods / elite_equip_drop）与 `content/catalog_b143.py` 的 26 条（`game_config` 各组常量 / equipment / factions / enchant / poi_pools / gems / guild / shop 的组内键序）。\\n\\n实测 39 条 / 1904 键。`rune_level_roman` / `gem_tiers` / `gem_tier_names` / `honor_shop` 四条的元素是 **int**（源侧键就是 int，读口 `_int_keys` 还原后按它排序）。",
+  "description": "本域 = 域表**读不回来的那部分顺序**：`content/data|rules/*.json` 的外层键按字典序落盘（导出契约 `sort_table`，幂等优先），源侧迭代序（`random.choice` 抽签 / 遍历 / 掉落序的语义）在域里没有落点，于是在这里逐张显式声明。\\n\\n**形状**：一条 = 一张表的键序；`keys` 数组的**下标就是源迭代序**（不是升序、不是集合）。\\n\\n消费者（都按名取用 —— 经引擎装载口 `saintess_engine.records.orders_of`，键集不符即 raise，不静默改序）：`content/catalog_quests.py` 的 13 条（npcs 三表 / dialogues / achievements / quests 三表 / events 两池 / monsters / monster_mods / elite_equip_drop）· `content/catalog_b143.py` 的 26 条（`game_config` 各组常量 / equipment / factions / enchant / poi_pools / gems / guild / shop 的组内键序）· **S2 ① 清尾搬入的 29 条**（`catalog_legacy` 6 · `catalog_items` 10 · `catalog_rules` 1 · `catalog_life` 12；原先内嵌在各模块里的序字面量，共 3,462 键）。\\n\\n实测 **68 条 / 5,366 键**。`rune_level_roman` / `gem_tiers` / `gem_tier_names` / `honor_shop` 四条的元素是 **int**（源侧键就是 int，读口 `_int_keys` 还原后按它排序）。",
   "x-primary": "key_order_entry",
   "type": "object",
   "propertyNames": {

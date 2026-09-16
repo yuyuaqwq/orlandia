@@ -63,29 +63,21 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明
+# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明；
+# **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
+# 落点由声明的 `kind` 派生；声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默）。
 # （域顶层键的声明序见下方 `_ordered(...)`：那几张表还要按**源迭代序**重排，
 #   而 `order` 只能整域覆盖，NPCS 三表是先按注入字段 `source` 过滤出的子表 —— 见 DIFF_NOTES §C）
-_R = RecordsSet(_PKG_ROOT, {
-    "npcs":           {"sub": "content/data"},
-    "quests":         {"sub": "content/data"},
-    "events":         {"sub": "content/data"},
-    "dialogues":      {"sub": "content/data"},
-    "achievements":   {"sub": "content/data"},
-    "titles":         {"sub": "content/data"},
-    "weekly_quests":  {"sub": "content/data"},
-    "trial_floors":   {"sub": "content/data"},
-    "monsters":       {"sub": "content/data"},
-    "monster_mods":   {"sub": "content/data"},
-    "monster_roster": {"sub": "content/data"},
-    "game_config":    {"sub": "content/rules"},
-    "key_order":      {"sub": "content/data"},
-})
+_R = set_from_domains(_PKG_ROOT, (
+    "npcs", "quests", "events", "dialogues", "achievements", "titles",
+    "weekly_quests", "trial_floors", "monsters", "monster_mods",
+    "monster_roster", "game_config", "key_order",
+))
 
 
 def _drop(ent: dict, *keys) -> dict:

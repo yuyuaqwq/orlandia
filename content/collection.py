@@ -30,16 +30,14 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处（零默认值、零改写）
-_R = RecordsSet(_PKG_ROOT, {
-    "collection_books": {"sub": "content/data"},
-    "items":            {"sub": "content/data"},
-})
+# 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
+# （S2 ②：只声明「我要哪些域」，落点由声明的 `kind` 派生；缺项/缺文件即报错，不静默空表）
+_R = set_from_domains(_PKG_ROOT, ("collection_books", "items"))
 
 
 # ============================================================

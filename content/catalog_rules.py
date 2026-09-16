@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import orders_of, set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -96,108 +96,29 @@ def _int_keys(tbl) -> dict:
 
 
 # ============================================================
-# 序声明（真源**插入序**；由 `overnight/w2_gen_catalog_rules.py` 从宿主运行时表 dump）
+# 序声明（真源**插入序**）——**唯一源** = `content/data/key_order.json`（`key_order` 域）
+# S2 ①：本文件原先内嵌的 85 行序字面量已搬进该域，「值 + 类型 + 序」与搬前逐元素对拍相等。
+# 读不到即 raise（**不静默空序 / 不静默改序**）。
 # ============================================================
-_ORDER_EFFECT_RULES = ['zhan_yi',
- 'fury',
- 'lian_duan',
- 'shadow_dance',
- 'rage',
- 'dragon_mark',
- 'chi',
- 'arcane',
- 'melody_atk',
- 'melody_atk_matk',
- 'melody_spd',
- 'melody_def',
- 'melody_finale_atk',
- 'melody_finale_crit',
- 'melody_e_atk',
- 'melody_e_spd',
- 'melody_e_spd_hit',
- 'melody_e_all',
- 'melody_e_fin_atk',
- 'melody_e_fin_spd',
- 'melody_e_fin_all',
- 'energy',
- 'faith',
- 'cp',
- 'element',
- 'shield',
- 'guard_core',
- 'guard_stance',
- 'hunt_mark',
- 'soul_mark',
- 'curse',
- 'burn',
- 'bleed',
- 'poison',
- 'corros',
- 'fire_mark',
- 'ice_mark',
- 'thunder_mark',
- 'wind_mark',
- 'blaze',
- 'ember',
- 'blood_trace',
- 'heal_down',
- 'death_guard',
- 'rune_amp',
- 'eternal_codex',
- 'time_staff',
- 'thunder_weave',
- 'sage_amp',
- 'randuin_weary',
- 'ice_vein',
- 'affix_bleed',
- 'atk_up',
- 'atk_up_big',
- 'atk_up_small',
- 'def_up',
- 'spd_up',
- 'spd_up_small',
- 'crit_up',
- 'crit_up_big',
- 'crit_up_small',
- 'dodge_up',
- 'block_up',
- 'all_up_atk',
- 'all_up_def',
- 'all_up_matk',
- 'all_up_spd',
- 'all_up_crit',
- 'dodge_up_big',
- 'matk_up',
- 'matk_up_pot',
- 'matk_up_strong',
- 'food_atk_up',
- 'food_def_up',
- 'food_spd_up',
- 'food_spd_up_small',
- 'food_matk_up',
- 'food_crit_up',
- 'stun',
- 'freeze',
- 'sleep',
- 'silence',
- 'spd_down',
- 'reduce',
- 'holy_weaken']
+
+
+def _order(name: str) -> list:
+    """按名取包内序声明（引擎装载口 `orders_of`，落点由包内域声明派生）。"""
+    return orders_of(_PKG_ROOT, name, domain="key_order")
+
+
+_ORDER_EFFECT_RULES = _order("effect_rules")
 
 # ============================================================
 # 域读表口（引擎 records 形状）—— 序声明齐了才建（`order=` 要用它）
+# **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
+# 落点由声明的 `kind` 派生；声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默）。
 # ============================================================
-_R = RecordsSet(_PKG_ROOT, {
-    "game_config":  {"sub": "content/rules"},
-    "effect_rules": {"sub": "content/rules", "order": _ORDER_EFFECT_RULES},
-    "drop_pools":   {"sub": "content/data"},
-    "panel_rules":  {"sub": "content/rules"},
-    "events":       {"sub": "content/data"},
-    "equipment":    {"sub": "content/data"},
-    "gems":         {"sub": "content/data"},
-    "enchant":      {"sub": "content/data"},
-    "factions":     {"sub": "content/data"},
-    "chapters":     {"sub": "content/data"},
+_R = set_from_domains(_PKG_ROOT, (
+    "game_config", "effect_rules", "drop_pools", "panel_rules",
+    "events", "equipment", "gems", "enchant", "factions", "chapters",
+), overrides={
+    "effect_rules": {"order": _ORDER_EFFECT_RULES},   # 85 条声明序（key_order 域 effect_rules）
 })
 
 

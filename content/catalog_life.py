@@ -56,22 +56,18 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import orders_of, set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明（本文件的域顶层键无声明序）
-_R = RecordsSet(_PKG_ROOT, {
-    "game_config":   {"sub": "content/rules"},
-    "craft":         {"sub": "content/data"},
-    "alchemy":       {"sub": "content/data"},
-    "cooking":       {"sub": "content/data"},
-    "fishing_spots": {"sub": "content/data"},
-    "fishing_pool":  {"sub": "content/data"},
-    "shop":          {"sub": "content/data"},
-    "pets":          {"sub": "content/data"},
-})
+# 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明（本文件的域顶层键无声明序）。
+# **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
+# 落点由声明的 `kind` 派生；声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默）。
+_R = set_from_domains(_PKG_ROOT, (
+    "game_config", "craft", "alchemy", "cooking",
+    "fishing_spots", "fishing_pool", "shop", "pets",
+))
 
 
 def _int_keys(tbl) -> dict:
@@ -95,142 +91,42 @@ def _pick(tbl, field: str) -> dict:
     return {k: v[field] for k, v in (tbl or {}).items() if field in v}
 
 
+# ---- 序声明读口：**唯一源** = `content/data/key_order.json`（`key_order` 域）----
+# S2 ①：本文件原先内嵌的 12 张序字面量（`__B14D_ORDERS_BEGIN__` 段）已搬进该域，
+# 「值 + 类型 + 序」与搬前逐元素对拍相等；读不到即 raise（**不静默空序**）。
+def _order(name: str) -> list:
+    """按名取包内序声明（引擎装载口 `orders_of`，落点由包内域声明派生）。"""
+    return orders_of(_PKG_ROOT, name, domain="key_order")
+
+
 # ============================================================
 # ① 顺序声明 —— 真源插入序（域落盘是字典序，序只能显式带出）
 #    字面量由 `overnight/_b14d_gen_orders.py` 从真源生成；本文件不手抄。
 # ============================================================
 # __B14D_ORDERS_BEGIN__
-_ORDER_CRAFT_RECIPES = """
-rec_ao_la_sheng_yin rec_ao_lan_zhi_zhu rec_bai_lu_pi_jia rec_bei_feng_zhang_gong rec_cang_qiong_hu_tui rec_cang_qiong_tou_kui rec_cang_qiong_xiang_lian rec_cang_qiong_zhi_qiang
-rec_chao_xi_fa_zhang rec_chen_xi_fa_zhang rec_chen_xi_zhi_guan rec_chuan_zhang_mao rec_gu_lu_de_huang_guan rec_di_di_zhang_xue rec_fu_wen_jie_zhi rec_gu_wang_jian
-rec_hai_dao_xue rec_hai_feng_zhang_gong rec_hai_shen_hu_tui rec_hai_shen_jie_zhi rec_hai_shen_san_cha_ji rec_hai_shen_xiang_lian rec_hai_shen_zhang_xue rec_he_er_jia_de_ji_qi
-rec_hei_yao_hu_tui rec_hei_yao_xiong_jia rec_jin_gou_wan_dao rec_jing_ling_lian_jia rec_jiu_pi_xue rec_lan_ge_zhi_lei rec_lie_gong rec_lie_lu_gong
-rec_long_ji_da_jian rec_long_lin_hai_jia rec_long_lin_hu_tui rec_long_lin_tou_kui rec_long_lin_xiong_jia rec_long_yan_xiang_lian rec_long_yu_fa_zhang rec_long_yu_sheng_jian
-rec_long_zhao_shou_tao rec_mao_xing_jie_zhi rec_mo_luo_zhi_guan rec_mu_ying_zhi_ren rec_pi_jia rec_qi_shi_tou_kui rec_qi_shi_zhang_xue rec_rong_lu_xiang_lian
-rec_rong_yan_fa_zhang rec_shen_pan_zhi_lian rec_shen_yuan_tou_kui rec_shen_yuan_xiang_lian rec_shen_yuan_zhan_ren rec_sheng_dian_zhan_chui rec_sheng_guang_hu_fu rec_sheng_guang_hu_tui
-rec_sheng_guang_xiong_jia rec_sheng_guang_zhang_jian rec_sheng_cai_chang_jian rec_sheng_guang_fa_zhang rec_sheng_guang_lie_gong rec_sheng_guang_zhan_chui rec_sheng_guang_zhan_kui rec_sheng_guang_zhan_tui
-rec_sheng_guang_zhong_jia rec_sheng_guang_zhong_xue rec_shuang_lang_hu_tui rec_shuang_lang_tou_kui rec_shuang_lang_zhang_jian rec_shuang_yuan_zhang_xue rec_shui_shou_duan_ren rec_shui_shou_hu_tui
-rec_shui_shou_jia_ke rec_tie_jian rec_tie_zhen_xiong_jia rec_tie_zhen_zhan_chui rec_wan_dao rec_wang_dou_zhang_gong rec_wang_guo_hui_jie rec_xiang_mu_duan_gun
-rec_xiang_mu_dun rec_xiang_mu_hu_tui rec_xing_chen_zhi_jie rec_xing_chen_zhui_shi rec_xing_chen_hu_tui rec_xing_chen_chang_pao rec_xing_chen_fa_zhang rec_hui_jin_zhi_kui
-rec_hui_jin_zhan_xue rec_hui_jin_hu_tui rec_hui_jin_kai_jia rec_hui_jin_chang_jian rec_hui_jin_zhi_dun rec_xing_guang_fa_zhang rec_xing_hui_zhang_xue rec_xing_yu_xiang_lian
-rec_xue_tu_fa_zhang rec_xue_tu_zhi_zhang rec_yin_ye_fa_zhang rec_yue_guan_tou_kui rec_yue_guang_duan_ren rec_yue_hua_jie_zhi rec_yue_yu_hu_tui rec_yue_yu_zhang_gong
-rec_yue_zhi_xue rec_yun_wen_xiong_jia rec_zhen_zhu_tou_guan rec_zhen_zhu_xiang_lian rec_yin_ling_tou_kui rec_yin_ling_xiong_jia rec_yin_ling_zhan_xue rec_yin_ling_xiang_lian
-rec_yin_ling_hu_tui rec_yin_ling_zhang rec_yin_ling_duan_ren rec_shi_yue_quan_zhang rec_shi_yue_sheng_guan rec_shi_yue_fa_yi rec_shi_yue_sheng_xue rec_fei_cui_pi_jia
-rec_fei_cui_hu_tui rec_fei_cui_tou_kui rec_fei_cui_zhan_xue rec_fei_cui_xiang_lian rec_mi_wu_xiong_jia rec_mi_wu_zhan_xue rec_mi_wu_dou_mao rec_mi_wu_xiang_lian
-rec_lie_feng_chang_gong rec_ji_feng_chang_gong rec_lie_zong_liao_ya rec_tie_ya_lang_pi_jia rec_lei_ming_long_lin_dun rec_jin_he_zhi_xin_zhang rec_mu_ying_long_hun_jian rec_he_er_jia_jing_zhu
-rec_lan_ge_lei_zheng rec_gu_wang_jian_zhen rec_lei_ming_jin_shou rec_feng_bao_cang_qiong rec_yong_dong_shuang_hui rec_hui_ai_tie_zhen rec_hei_yuan_zhan_ren rec_long_gong_yuan_xiang
-rec_sheng_guang_yue_jia rec_lan_ge_hai_xiang rec_yao_sai_bei_feng rec_long_yu_chuan_jian rec_ye_xing_pi_feng rec_rong_lu_zhi_xin rec_xue_shi_zhan_jian rec_xue_shi_zhan_jia
-rec_yu_jin_jun_tuan_jian rec_yu_jin_jun_tuan_kui rec_yu_jin_jun_tuan_jia rec_yu_jin_jun_tuan_xue rec_yuan_su_shi_tu_fa_zhang rec_yuan_su_shi_tu_zhi_guan rec_yuan_su_shi_tu_chang_pao rec_yuan_su_shi_tu_zhui_shi
-rec_shi_zhi_ling_zhu_mi_yi rec_shi_zhi_ling_zhu_shi_jie rec_xun_lin_chang_pi_feng rec_xun_lin_chang_gong rec_lie_shou_chang_gong rec_lie_shou_pi_mao rec_lie_shou_pi_jia rec_lie_shou_chang_xue
-rec_ri_mian_quan_zhang rec_ri_mian_sheng_guan rec_ri_mian_fa_yi rec_ri_mian_sheng_xue rec_ye_dao_quan_zhang rec_ye_dao_dou_mao rec_ye_dao_fa_yi rec_ye_dao_zhi_jie
-rec_ying_sha_zhi_ren rec_ying_sha_mian_jin rec_ying_sha_pi_yi rec_ying_sha_hu_tui rec_ying_sha_qing_xue rec_xu_shi_quan_tao rec_xu_shi_shu_dai rec_po_zhu_quan_tao
-rec_po_zhu_wu_pao rec_po_zhu_hu_tui rec_po_zhu_bu_xue rec_tiepichangjian rec_tiepitoukui rec_tiepixiongjia rec_tiepihutui rec_tiepizhanxue
-rec_jingtiezhanjian rec_jingtietoukui rec_jingtiexiongjia rec_jingtiehutui rec_jingtiezhanxue rec_bailianchangjian rec_bailiantoukui rec_bailianxiongjia
-rec_bailianhutui rec_bailianzhanxue rec_jianxifazhang rec_xuetufamao rec_xuetuchangpao rec_xuetuhutui rec_xuetufaxue rec_fuwenfazhang
-rec_fuwenfamao rec_fuwenchangpao rec_fuwenhutui rec_fuwenfaxue rec_mifafazhang rec_mifafamao rec_mifachangpao rec_mifahutui
-rec_mifafaxue rec_buyiquanzhang rec_buyishengguan rec_buyifayi rec_buyihutui rec_buyishengxue rec_zhufuquanzhang rec_zhufushengguan
-rec_zhufufayi rec_zhufuhutui rec_zhufushengxue rec_shengtangquanzhang rec_shengtangshengguan rec_shengtangfayi rec_shengtanghutui rec_shengtangshengxue
-rec_lie_shou_duan_gong rec_lie_shou_xin_pi_mao rec_lie_shou_xin_pi_jia rec_lie_shou_hu_tui rec_lie_shou_xin_chang_xue rec_feng_xing_chang_gong30 rec_feng_xing_pi_mao rec_feng_xing_pi_jia
-rec_feng_xing_hu_tui rec_feng_xing_chang_xue rec_an_ye_chang_gong rec_an_ye_pi_mao rec_an_ye_pi_jia rec_an_ye_hu_tui rec_an_ye_chang_xue rec_qing_ying_bi_shou
-rec_qing_ying_mian_jin rec_qing_ying_pi_yi rec_qing_ying_hu_tui rec_qing_ying_qing_xue rec_ye_xing_bi_shou rec_ye_xing_mian_jin rec_ye_xing_pi_yi rec_ye_xing_hu_tui
-rec_ye_xing_qing_xue rec_yin_ying_bi_shou rec_yin_ying_mian_jin rec_yin_ying_pi_yi rec_yin_ying_hu_tui rec_yin_ying_qing_xue rec_xing_zhe_quan_tao rec_xing_zhe_shu_fa_dai
-rec_xing_zhe_wu_dou_pao rec_xing_zhe_hu_tui rec_xing_zhe_bu_xue rec_shi_quan_quan_tao rec_shi_quan_shu_fa_dai rec_shi_quan_wu_dou_pao rec_shi_quan_hu_tui rec_shi_quan_bu_xue
-rec_bi_chui_quan_tao rec_bi_chui_shu_fa_dai rec_bi_chui_wu_dou_pao rec_bi_chui_hu_tui rec_bi_chui_bu_xue rec_hu_lin_bai_lu_xiong_jia rec_hu_lin_bai_lu_hu_tui rec_hu_lin_bai_lu_zhi_xue
-rec_du_kou_chen_xi_xiong_jia rec_du_kou_chen_xi_hu_tui rec_du_kou_chen_xi_zhi_xue rec_xun_lin_yue_yu_xiong_jia rec_xun_lin_yue_yu_hu_tui rec_xun_lin_yue_yu_zhi_xue rec_shuang_lie_long_ji_xiong_jia rec_shuang_lie_long_ji_hu_tui
-rec_shuang_lie_long_ji_zhi_xue rec_long_yi_feng_yi_xiong_jia rec_long_yi_feng_yi_hu_tui rec_long_yi_feng_yi_zhi_xue rec_lie_feng_pi_feng rec_lie_feng_hu_tui rec_lie_feng_zhi_xue rec_chen_lu_jie_zhi
-rec_chen_lu_xiang_lian rec_lie_hu_dou_mao rec_lie_hu_jia_ke rec_lie_hu_chang_xue rec_xiang_mu_fu_ji rec_bai_lu_hu_fu rec_chun_cao_shou_huan rec_ye_ying_xiong_zhen
-rec_chao_xi_zhi_huan rec_chao_xi_diao_zhui rec_mao_lian_hu_wan rec_chuan_zhang_de_wang_yuan_jing rec_hai_dao_yan_zhao rec_hang_hai_dou_peng rec_shen_yuan_zhi_mao rec_deng_ta_zhi_guang
-rec_shui_shou_jie_jie_zhi rec_chao_xi_zhi_xue rec_tie_gang_hui_zhang rec_chen_xi_zhi_jie rec_rong_yan_hu_shou rec_rong_yan_hu_tui rec_rong_yan_zhi_xue rec_yue_ying_dou_peng
-rec_xing_hui_jie_zhi rec_xing_hui_diao_zhui rec_fei_cui_zhi_xin rec_fei_cui_hu_fu rec_ji_feng_hu_shou rec_ji_feng_zhi_xue rec_yue_yu_zhi_jie rec_jing_ling_pi_feng
-rec_shuang_jiao_zhan_huan rec_shuang_jiao_diao_zhui rec_shuang_jiao_pi_feng rec_han_shuang_zhi_jie rec_bei_feng_hu_fu rec_long_lin_shou_huan rec_long_ji_hui_ji rec_lie_shou_dou_peng
-rec_lie_shou_zhi_xue rec_tie_bi_hu_fu rec_xing_huo_jie_zhi rec_cang_lang_zhi_zhua rec_feng_bao_zhi_yan rec_feng_bao_diao_zhui rec_cang_qiong_zhi_yi rec_cang_qiong_zhi_xue
-rec_long_yi_hu_fu rec_long_yi_jie_zhi rec_tian_qiong_zhi_guan rec_xing_guang_xiang_lian rec_feng_shen_zhi_huan rec_lei_guang_hui_zhang rec_mi_yin_shou_zhuo rec_shou_wang_zhe_hu_fu
-rec_lv_ren_zhi_dun rec_xing_huo_fa_zhang rec_xue_tu_zhi_xue_ren rec_lie_ying_zhi_ya rec_cui_feng_zhi_gong rec_mi_wu_hu_tui rec_tie_bi_xiong_jia rec_tie_gang_zhan_ren
-rec_lei_ting_zhi_huan rec_zhu_feng_chang_gong rec_mi_guang_diao_zhui rec_tie_gang_yuan_dun rec_shuang_yu_fa_zhang rec_shi_xin_quan_tao rec_mi_fa_dian_ji_zhi_zhang rec_xue_chao_duan_ren
-rec_zhu_huo_tou_kui rec_sui_bing_chang_gong rec_ye_xiao_shuang_bi rec_sheng_guang_zhu_fu_zhi_huan rec_sheng_guang_bi_hu_zhi_dun rec_sheng_guang_xun_li_zhan_xue rec_sheng_guang_zhi_wo rec_sheng_guang_shao_bing_tou_kui
-rec_sheng_guang_shen_pan_zhi_ren rec_sheng_guang_zhui_lie_chang_gong rec_sheng_guang_yuan_zheng_hu_tui rec_sheng_guang_qi_dao_fa_zhang rec_yue_yu_feng_xing_zhe_zhi_xue rec_sheng_guang_xun_dao_zhe_xiong_jia rec_yue_yu_ying_xi_xiong_jia rec_hui_jin_quan_tao
-rec_tie_bi_zhong_zhuang_zhan_xue rec_yue_yu_ci_ke_bi_shou rec_yue_yu_ye_xiao_tou_kui rec_yue_yu_yue_ying_hu_tui rec_yue_yu_yue_hua_zhi_jie rec_xue_hen_shuang_ci rec_tie_bi_zhan_jia rec_tie_bi_wei_shu_tou_kui
-rec_tie_bi_bi_lei_zhi_dun rec_tie_bi_jun_tuan_tui_jia rec_yue_yu_yin_yue_chang_gong rec_yue_yu_mi_yi_fa_zhang rec_yue_yu_hui_yue_xiang_lian rec_tie_bi_jun_tuan_jian rec_shuang_lang_xue_xue rec_hai_shen_bo_wen_jia
-rec_shuang_lang_zhan_ren rec_yan_quan_lie_ji rec_xing_hui_fa_zhang rec_hai_shen_zhi_dun rec_hai_shen_zhen_zhu_lian rec_shuang_lang_tui_jia rec_shuang_yu_chang_gong rec_shuang_lang_lie_gong
-rec_xing_hui_fa_guan rec_shuang_lang_bing_jia rec_xing_hui_chang_pao rec_po_yue_ju_jian rec_sui_yue_quan rec_lie_yu_chang_gong rec_shi_long_quan_tao rec_you_ying_duan_ren
-rec_xing_chen_zhi_xue rec_jing_lei_zhan_gong rec_sheng_hui_fa_yi rec_huan_ying_chang_gong rec_cang_qiong_hu_jia rec_han_yue_quan_tao rec_cui_du_han_ren rec_lie_kong_zhan_gong
-rec_sheng_yu_quan_zhang rec_da_xian_zhe_hu_tui
-"""
-_ORDER_CRAFT_RECIPE_ALIASES = """
-rec_tie_jian rec_xue_tu_fa_zhang rec_lie_gong
-"""
-_ORDER_ALCHEMY_RECIPES = """
-al_zhi_liao_yao_shui al_mo_li_yao_shui al_qiang_hua_shi al_hui_cheng_juan_zhou al_qiang_xiao_zhi_liao al_qiang_xiao_mo_li al_xing_yun_hu_fu al_jing_lian_qiang_hua_shi
-al_zhu_fu_fu_shi al_gao_ji_qiang_hua_shi al_purify_jing_xu_cao al_purify_hai_zao al_purify_zhen_zhu_bei al_purify_lang_pi al_purify_yue_lang_mao_pi al_purify_xue_lang_pi
-al_gong_ji_yao_shui al_fang_yu_yao_shui al_chao_ji_zhi_liao_yao_shui al_chao_ji_mo_li_yao_shui al_su_du_yao_shui al_bao_ji_yao_shui al_jiao_ren_zhi_lei al_long_xian_yao_ji
-al_yue_lu_jing_hua al_shen_yuan_yao_ji al_xing_tie_qiang_hua_ji al_zhen_zhu_ming_mu al_shen_yuan_hui_xiang al_cai_hong_yao_ji al_lei_jing_yao_ji al_long_gu_yao_ji
-al_ying_guang_yu_er al_jin_he_qiang_hua al_long_gong_jing_lian al_feng_bao_lei_yao al_yun_nu_bao_ji al_long_lin_tie_bi al_ji_qi_shen_yuan al_shi_lu_qiang_hua
-al_shi_lian_ji_feng al_lan_ge_ming_mu al_hei_yuan_fu_wen_xiang al_long_gong_fu_wen_xiang al_yue_guang_an_shen_ji al_bai_shi_sheng_hui_yao_ji al_wei_xiao_zhi_liao al_qing_xiao_zhi_liao
-al_quan_xiao_yao_shui al_ao_shu_yao_ji al_man_li_yao_ji al_feng_ling_yao_ji al_xue_tu_he_ji al_long_xue_yao_shui al_zhi_yu_juan_zhou al_po_jia_yao_ji
-al_yan_bi_yao_ji al_chuan_jia_yao_ji al_rui_mu_yao_ji al_xun_jie_yao_ji al_jing_ji_yao_ji al_mao_xian_zhe_he_ji al_gao_ji_quan_xiao al_sheng_guang_yao_shui
-al_kuang_bao_yao_ji al_zhan_hou_yao_ji al_shi_xue_yao_ji al_xing_yun_yao_ji al_kuang_nu_yao_ji al_zhi_ming_yao_ji al_yan_dun_yao_ji al_ying_bu_yao_ji
-al_zhan_dou_he_ji al_man_xue_lie_jiu al_chao_ji_quan_xiao al_sheng_hui_zhi_liao al_sheng_dun_yao_ji al_bu_dong_yao_ji al_kuang_zhan_shi_yao_ji al_xing_huo_yao_ji
-al_mi_fa_yao_ji al_po_fa_yao_ji al_long_li_yao_ji al_sheng_xian_yao_ji al_yuan_zheng_he_ji al_shen_yu_yao_shui al_zhan_shen_yao_ji al_si_shen_yao_ji
-al_xu_kong_yao_ji al_zhan_sheng_yao_ji al_sheng_xian_da_yao
-"""
-_ORDER_COOKING_RECIPES = """
-cook_slime_jelly cook_skewer cook_gold_feast cook_snake_soup cook_wolf_jerky cook_eagle_egg cook_ash_pancake cook_sacred_bread
-cook_deer_cheese cook_pirate_stew cook_moon_cake cook_seafood_chowder cook_snowwolf_steak cook_royal_roast cook_royal_soup cook_dragon_egg_pancake
-cook_night_mushroom_soup cook_moon_tea cook_aurora_honey cook_dragon_blood_hotpot cook_thunder_skewer cook_storm_chowder cook_glow_shark_soup cook_dough_bait
-cook_blood_bait cook_v117_dragon_relic_pancake cook_v117_storm_eye_chowder cook_v117_permafrost_steak cook_v117_helga_royal_roast cook_v117_ghost_ship_stew cook_v117_dwarf_stone_ale cook_v117_ember_ash_pancake
-cook_xiang_cao_kao_shou_rou cook_jin_guo_ye_zhu_pai_pai cook_yin_ling_li_er cook_tie_lu_mian_bao cook_cao_yao_cha cook_feng_mi_bing cook_shu_mi_tang cook_ye_feng_mi
-cook_yang_mai_zhou cook_yin_yue_guo_dong cook_jing_ling_guo_jiang cook_feng_mi_cha cook_yue_gui_cha cook_jin_bo_tian_dian cook_xun_lu_gan cook_kao_niao_rou
-cook_yan_ju_kao_yu cook_rong_yan_dan cook_kuang_gong_dun_rou cook_mo_gu_tang cook_jin_huo_la_jiao cook_bing_shuang_jiang_guo cook_zhang_yu_shao cook_hua_mi_jiu
-cook_wu_gang_ka_fei cook_sheng_tang_jing_shui cook_xing_jun_liang
-"""
-_ORDER_FISHING_SPOTS = """
-oak_plain starlake harbor_docks silver_river misty_swamp frost_horn mist_trench whale_domain
-storm_sea deep_lake rainbow_cloud
-"""
-_ORDER_SHOP_WEAPONS = """
-oak_town maple_village white_deer ironharbor silver_brook dawn_city ironshield_town jade_port
-shell_town moon_gate star_song moon_court nameless_harbor pearl_city frost_horn anvil_fort
-cold_ridge aurora_town deep_tunnel under_market dragon_pass dragon_kin ember_camp wind_city
-"""
-_ORDER_SHOP_EQUIP = """
-oak_town white_deer ironharbor dawn_city jade_port ironshield_town
-"""
-_ORDER_SHOP_SMITH_MATERIALS = """
-oak_town white_deer ironharbor ironshield_town dawn_city anvil_fort
-"""
-_ORDER_SHOP_SUBAREA_ITEMS = """
-oak_town_5 oak_town_4 oak_town_3 white_deer_6 white_deer_5 white_deer_7 white_deer_8 white_deer_3
-white_deer_4 ironharbor_5 ironharbor_6 ironharbor_8 ironharbor_4 ironharbor_9 ironharbor_10 silver_brook_3
-silver_brook_4 silver_brook_2 maple_village_4 dawn_city_3 dawn_city_5 ironshield_town_3 ironshield_town_2 moon_gate_2
-moon_gate_3 moon_court_3 star_song_2 star_song_3 frost_horn_3 frost_horn_5 anvil_fort_2 anvil_fort_3
-cold_ridge_1 cold_ridge_2 cold_ridge_3 aurora_town_4 dragon_pass_2 dragon_kin_3 jade_port_2 jade_port_3
-shell_town_1 shell_town_2 shell_town_3 nameless_harbor_2 nameless_harbor_3 pearl_city_2 pearl_city_3 pearl_city_4
-pearl_city_5 deep_tunnel_2 deep_tunnel_3 under_market_1 under_market_2 under_market_3 ember_camp_2 ember_camp_1
-ember_camp_4 wind_city_2
-"""
-_ORDER_SUBAREA_KIND = """
-anvil_fort_2 anvil_fort_3 aurora_town_4 black_forest_4 cold_ridge_1 cold_ridge_2 cold_ridge_3 dawn_city_3
-dawn_city_5 deep_tunnel_2 deep_tunnel_3 dragon_kin_3 dragon_pass_2 dwarf_long_gallery_5 ember_camp_1 ember_camp_2
-ember_camp_4 frost_horn_3 frost_horn_5 harbor_docks_1 ironharbor_4 ironharbor_5 ironharbor_6 ironharbor_8
-ironharbor_9 ironharbor_10 ironshield_town_2 ironshield_town_3 jade_port_2 jade_port_3 jade_port_dock maple_village_4
-moon_court_3 moon_gate_2 moon_gate_3 nameless_harbor_2 nameless_harbor_3 oak_plain_5 oak_town_3 oak_town_4
-oak_town_5 pearl_city_2 pearl_city_3 pearl_city_4 pearl_city_5 shell_town_1 shell_town_2 shell_town_3
-silver_brook_2 silver_brook_3 silver_brook_4 star_song_2 star_song_3 under_market_1 under_market_2 under_market_3
-under_market_mouth white_deer_3 white_deer_4 white_deer_5 white_deer_6 white_deer_7 white_deer_8 wind_city_2
-"""
-_ORDER_PET_POOL = """
-pet_wolf pet_turtle pet_cat pet_rabbit pet_dove pet_fox pet_salamander pet_panther
-pet_starswift pet_drake pet_bat pet_armadillo pet_thunderbird pet_griffin pet_starbutterfly pet_moonfox
-"""
-_ORDER_PET_EGG_ROLL = """
-pet_wolf pet_salamander pet_fox pet_cat pet_panther pet_bat pet_armadillo pet_drake
-pet_thunderbird pet_griffin
-"""
+_ORDER_CRAFT_RECIPES = _order("craft")
+_ORDER_CRAFT_RECIPE_ALIASES = _order("craft_aliases")
+_ORDER_ALCHEMY_RECIPES = _order("alchemy")
+_ORDER_COOKING_RECIPES = _order("cooking")
+_ORDER_FISHING_SPOTS = _order("fishing_spots")
+_ORDER_SHOP_WEAPONS = _order("shop_weapons")
+_ORDER_SHOP_EQUIP = _order("shop_equip")
+_ORDER_SHOP_SMITH_MATERIALS = _order("shop_smith_materials")
+_ORDER_SHOP_SUBAREA_ITEMS = _order("shop_subarea_items")
+_ORDER_SUBAREA_KIND = _order("subarea_kind")
+_ORDER_PET_POOL = _order("pet_pool")
+_ORDER_PET_EGG_ROLL = _order("pet_egg_roll")
 # __B14D_ORDERS_END__
 
 
-def _order_list(block: str) -> list:
-    """顺序声明块 → 键列表（空白分隔；`#` 起头到行尾为注释）。"""
+def _order_list(block) -> list:
+    """顺序声明 → 键列表。
+
+    S2 ① 起声明来自 `key_order` 域（已经是 list）；旧的「空白分隔三引号块」写法仍收
+    （`#` 起头到行尾为注释），两种形态给出同一份键列表。
+    """
+    if isinstance(block, (list, tuple)):
+        return list(block)
     out: list = []
     for line in (block or "").splitlines():
         line = line.split("#", 1)[0].strip()

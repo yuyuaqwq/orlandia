@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -44,16 +44,14 @@ _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 # 未知/脏 class_name 时面板兜底用它（见 panel.py:player_base_stats 的 v105 P1 兜底）。
 CLASS_NOVICE = "cls_novice"
 
-# 读表口 = 引擎 records 形状：读域文件 / 键型还原（`key_type=int`）/ 缺表留痕（`missing`）收成一处
-_R = RecordsSet(_PKG_ROOT, {
-    "classes":       {"sub": "content/data"},
-    "skills":        {"sub": "content/data"},
-    "races":         {"sub": "content/data"},
-    "sets":          {"sub": "content/data"},
-    "enhance_table": {"sub": "content/data", "key_type": int},
-    "panel_rules":   {"sub": "content/rules"},
-    "job_guide":     {"sub": "content/data"},
-    "boss_phases":   {"sub": "content/data"},
+# 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
+# （S2 ②：只声明「我要哪些域」+ 自己的派生参数（`key_type`），落点由声明的 `kind` 派生；
+#   缺项/缺文件/声明与磁盘不符 → 装载期报错，不静默空表）
+_R = set_from_domains(_PKG_ROOT, (
+    "classes", "skills", "races", "sets", "enhance_table", "panel_rules",
+    "job_guide", "boss_phases",
+), overrides={
+    "enhance_table": {"key_type": int},          # int 键还原（JSON 只有字符串键）
 })
 
 

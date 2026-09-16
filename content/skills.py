@@ -38,7 +38,7 @@ from __future__ import annotations
 import os
 
 from saintess_engine.battle.formulas import skill_max_level  # noqa: F401
-from saintess_engine.records import Records
+from saintess_engine.records import records_from_domain
 
 from . import tables as _T
 
@@ -92,7 +92,8 @@ PLAYER_SKILLS, BRANCH_SKILLS, TUTOR_SKILLS = _shape_three_tables(_T.SKILLS, _T.C
 # 技能升级成长表（每技能独立成长曲线 + 独立满级）—— 域 `content/data/skill_up.json`（305 条）
 # 字段：p=每级伤害/治疗倍率 +x%；c=每级条件倍率 +c；m=每 m 级叠层 +1；l=每级吸血比例 +2%；max=满级
 # key = 稳定 id（基础/导师技 = 技能表现存 sk_id；分支技 = sk_br_<pinyin>），每条带 name=中文名
-_R_UP = Records(_PKG_ROOT, "skill_up", sub="content/data")
+# S2 ②：域元数据唯一源 = 包内 `editor/domains.json`（落点由声明的 `kind` 派生，不再手抄 `sub`）
+_R_UP = records_from_domain(_PKG_ROOT, "skill_up")
 if _R_UP.missing:
     raise ValueError(
         "skill_up 域读不到（%s）：技能成长表是引擎 skill_up hook 的唯一来源，"

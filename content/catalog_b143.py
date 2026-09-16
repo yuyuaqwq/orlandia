@@ -58,27 +58,21 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明。
+# **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
+# 落点由声明的 `kind` 派生；声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默）。
 # 本文件的 `_int_keys` / `_ordered` 作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后）：
 # 形状的 `key_type` / `order` 只作用于域顶层键，组内键型与组内键序覆盖不到 ⇒ 仍由本文件还原
 # （序声明按名取 `key_order` 域，见 out/DIFF_NOTES.md §C）。
-_R = RecordsSet(_PKG_ROOT, {
-    "game_config": {"sub": "content/rules"},
-    "equipment":   {"sub": "content/data"},
-    "factions":    {"sub": "content/data"},
-    "enchant":     {"sub": "content/data"},
-    "poi_pools":   {"sub": "content/data"},
-    "chapters":    {"sub": "content/data"},
-    "gems":        {"sub": "content/data"},
-    "guild":       {"sub": "content/data"},
-    "shop":        {"sub": "content/data"},
-    "key_order":   {"sub": "content/data"},
-})
+_R = set_from_domains(_PKG_ROOT, (
+    "game_config", "equipment", "factions", "enchant", "poi_pools",
+    "chapters", "gems", "guild", "shop", "key_order",
+))
 
 
 def _missing(table) -> bool:

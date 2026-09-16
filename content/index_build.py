@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>/
@@ -55,10 +55,9 @@ GAP_TABLES = ("WEAPON_TYPES", "WT_CN", "QUALITY_CN")
 GAP_SOURCES: dict = {}
 
 
-# 读表口 = 引擎 records 形状：`content/data/<域>.json` → 只读资料表（缺文件 / 坏 JSON → 空表 + 留痕）
-_R = RecordsSet(_PKG_ROOT, {
-    "equipment": {"sub": "content/data"},
-})
+# 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
+# （S2 ②：只声明「我要哪些域」，落点由声明的 `kind` 派生；缺项/缺文件即报错，不静默空表）
+_R = set_from_domains(_PKG_ROOT, ("equipment",))
 
 
 def _gap_tables(_host_getter=None, _B143=None, _CI=None, _CC=None) -> dict:

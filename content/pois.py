@@ -23,7 +23,7 @@
 """
 import os
 import random
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -46,18 +46,18 @@ def bind_host(**objs):
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处
-_R = RecordsSet(_PKG_ROOT, {
-    "pois": {"sub": "content/data"},
-})
+# 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
+# （S2 ②：只声明「我要哪些域」，落点由声明的 `kind` 派生；缺项/缺文件即报错，不静默空表）
+_R = set_from_domains(_PKG_ROOT, ("pois",))
 
 
 _POI_ROWS: dict = _R.pois.all()                 # 房间地址 → {map, subarea, pois: [...], source}
 
 # 房间地址 → 挂载的 poi id 列表（dungeon 行的自带定义 dict → 只留 id，与宿主装配后同形）
-_MOUNTED: dict = {}
-for _k, _row in _POI_ROWS.items():
-    _MOUNTED[_k] = [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_row.get("pois") or [])]
+# S2 ③：**映射改由引擎 records 建**（`Records.into`：逐条变换、保序保键、不丢条目），
+# 本模块不再手写 for 循环（逐元素对拍见 out/raw/task3_index_after.json）。
+_MOUNTED: dict = _R.pois.into(
+    lambda _row: [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_row.get("pois") or [])])
 
 
 def subarea_pois(map_id: str, subarea_id: str) -> list:

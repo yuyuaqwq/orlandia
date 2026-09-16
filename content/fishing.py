@@ -17,7 +17,7 @@
 """
 import os
 import random
-from saintess_engine.records import RecordsSet
+from saintess_engine.records import set_from_domains
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -40,11 +40,9 @@ def bind_host(**objs):
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
-# 读表口 = 引擎 records 形状：读域文件 / 缺表留痕（`missing`）收成一处
-_R = RecordsSet(_PKG_ROOT, {
-    "fishing_spots": {"sub": "content/data"},
-    "fishing_pool":  {"sub": "content/data"},
-})
+# 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
+# （S2 ②：只声明「我要哪些域」，落点由声明的 `kind` 派生；缺项/缺文件即报错，不静默空表）
+_R = set_from_domains(_PKG_ROOT, ("fishing_spots", "fishing_pool"))
 
 
 FISHING_SPOTS: dict = _R.fishing_spots.all()
