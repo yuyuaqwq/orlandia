@@ -58,7 +58,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import orders_of, records_from_domain, set_from_domains
+from saintess_engine.records import apply_replacements, orders_of, placeholder, records_from_domain, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -120,18 +120,71 @@ _R = set_from_domains(_PKG_ROOT, (
 })
 
 # 未剥视图：`RUNE_CRAFT` / `_rune_conflicts` 要读条目里的 `craft` / `conflicts`
-_RUNES_RAW = records_from_domain(_PKG_ROOT, "runes").all()
+def _runes_build() -> dict:
+    out: dict = {}
+    for rid, ent in _R.runes.all().items():
+        e = dict(ent)                                       # 副本（形状的表只读，不得就地改）
+        if e.get("lvl") is not None:                        # int 键还原（不做 = 符文数值恒 0）
+            e["lvl"] = _int_keys(e["lvl"])
+        out[rid] = e
+    return out
 
-_GAME_CONFIG: dict = _R.game_config.all()
-_CFG_ENHANCE: dict = dict(_GAME_CONFIG.get("enhance") or {})
-_CFG_UPGRADE: dict = dict(_GAME_CONFIG.get("upgrade") or {})
-_CFG_REFINE: dict = dict(_GAME_CONFIG.get("refine") or {})
+
+def _rune_conflicts() -> list:
+    """真源 `RUNE_CONFLICTS`（3 对，**无向对**）← 域里每条符文的 `conflicts` 字段。
+
+    规则：按真源符文插入序遍历，每遇到一条「未被收过的无向对」收一次，方向取遍历时那条符文
+    的 effect（实测与真源逐位相同：`[[burn,freeze],[barrier,thorns],[scavenger,exp_bless]]`）。
+    域侧是对称标注（互相都写），所以「首见即收」正好等价于真源的声明序。
+    """
+    out: list = []
+    seen: set = set()
+    for rid in _ORDER_RUNES:
+        ent = _RUNES_RAW.get(rid) or {}
+        eff = (RUNES.get(rid) or {}).get("effect")
+        for other in (ent.get("conflicts") or []):
+            pair = frozenset((eff, other))
+            if pair in seen:
+                continue
+            seen.add(pair)
+            out.append([eff, other])
+    return out
 
 
+_RUNES_RAW = placeholder("_RUNES_RAW")
+_GAME_CONFIG = placeholder("_GAME_CONFIG")
+_CFG_ENHANCE = placeholder("_CFG_ENHANCE")
+_CFG_UPGRADE = placeholder("_CFG_UPGRADE")
+_CFG_REFINE = placeholder("_CFG_REFINE")
+MATERIALS = placeholder("MATERIALS")
+ITEMS = placeholder("ITEMS")
+MATERIALS_BY_NAME = placeholder("MATERIALS_BY_NAME")
+EQUIP_ROSTER = placeholder("EQUIP_ROSTER")
+EQUIP_ROSTER_BY_NAME = placeholder("EQUIP_ROSTER_BY_NAME")
+RUNES = placeholder("RUNES")
+RUNE_CRAFT = placeholder("RUNE_CRAFT")
+_EFFECT_NAMES_BY_KEY = placeholder("_EFFECT_NAMES_BY_KEY")
+RUNE_EFFECT_NAMES = placeholder("RUNE_EFFECT_NAMES")
+RUNE_CONFLICTS = placeholder("RUNE_CONFLICTS")
+_RUNE_SHARD_NAME = placeholder("_RUNE_SHARD_NAME")
+_RUNE_SHARD_HITS = placeholder("_RUNE_SHARD_HITS")
+RUNE_SHARD_KEY = placeholder("RUNE_SHARD_KEY")
+AFFIXES = placeholder("AFFIXES")
+SETS = placeholder("SETS")
+LEGENDARY_EFFECTS = placeholder("LEGENDARY_EFFECTS")
+PROPS = placeholder("PROPS")
+ENHANCE_TABLE = placeholder("ENHANCE_TABLE")
+MAX_ENHANCE = placeholder("MAX_ENHANCE")
+ENHANCE_FAIL_DROP = placeholder("ENHANCE_FAIL_DROP")
+ENHANCE_SMITH_MAPS = placeholder("ENHANCE_SMITH_MAPS")
+UPGRADE_TABLE = placeholder("UPGRADE_TABLE")
+UPGRADE_STONE = placeholder("UPGRADE_STONE")
+UPGRADE_STAMINA = placeholder("UPGRADE_STAMINA")
+UPGRADE_MATERIAL_CN = placeholder("UPGRADE_MATERIAL_CN")
+REFINE_RECIPES = placeholder("REFINE_RECIPES")
+_CFG_REFINE_EXCLUSIVE = placeholder("_CFG_REFINE_EXCLUSIVE")
+REFINE_EXCLUSIVE_RECIPES = placeholder("REFINE_EXCLUSIVE_RECIPES")
 
-# ============================================================
-# ③b 两个键型小工具（形状覆盖不到的嵌套/数值序变换）
-# ============================================================
 def _int_keys(tbl) -> dict:
     """字符串键 → int 键（非整数键**原样保留**，不静默丢）。"""
     out: dict = {}
@@ -174,37 +227,6 @@ def missing_domains() -> list:
 # 不靠前缀猜（`i_stone_*` / `item_*` 7 个不是 `mat_` 开头）—— 由 `_ORDER_MATERIALS` /
 # `_ORDER_ITEMS_REST` 两段声明给出（生成自真源插入序，带集合守卫）。
 # ============================================================
-MATERIALS: dict = {k: _R.items.all()[k] for k in _ORDER_MATERIALS}   # 已按声明序排好 + 集合守卫
-ITEMS: dict = dict(_R.items.all())
-
-# 名字 → 材料条目（真源 `items.py:3054 {_m["name"]: _m for _m in MATERIALS.values()}`；值序 = MATERIALS 序）
-MATERIALS_BY_NAME: dict = {v["name"]: v for v in MATERIALS.values() if isinstance(v, dict) and v.get("name")}
-
-
-# ============================================================
-# ⑤ 装备名册（`EQUIP_ROSTER` / `EQUIP_ROSTER_BY_NAME`）
-# ------------------------------------------------------------
-# 真源 `game/data/equip_roster.py:15 EQUIP_ROSTER`（687）。域条目多两个**导出期注入**字段
-# （`series_set` ← `SERIES_SETS`、`fixed_affixes` ← `SERIES_FIXED_AFFIX`）→ 必须剥，否则逐条不等。
-# `EQUIP_ROSTER_BY_NAME`（:1048 `setdefault(name, []).append(id)`）= 名字 → [id]（686 键 / 687 id，
-# 重名 1 处「精铁短杖」）—— S2 ③：**索引本体改由引擎 records 建**（`Records.index_of`：
-# 重名收全、值序 = 表序、缺字段/None/非映射不参与并留痕），本模块不再手写一遍
-# `setdefault(...).append(...)`（同一件事两处实现 = 改一处漏一处）。
-# ============================================================
-EQUIP_ROSTER: dict = _R.equip_roster.all()
-
-EQUIP_ROSTER_BY_NAME: dict = _R.equip_roster.index_of("name")
-
-
-# ============================================================
-# ⑥ 符文（`RUNES` / `RUNE_CRAFT` / `RUNE_EFFECT_NAMES` / `RUNE_CONFLICTS` / `RUNE_SHARD_KEY`）
-# ------------------------------------------------------------
-# 真源 `game/data/runes.py`：`RUNES`（16，`lvl` 是 **int 键**）+ 常量段 `RUNE_CONFLICTS`（3 对）/
-# `RUNE_DROP` / `RUNE_EFFECT_NAMES` / `RUNE_LEVEL_ROMAN` / `RUNE_CRAFT` / `RUNE_CRAFT_SHARDS` /
-# `RUNE_SHARD_KEY`。域 `runes.json` 把 `RUNE_CRAFT` 折成条目 `craft` 字段、`RUNE_CONFLICTS`
-# 折成对称的条目 `conflicts` 字段 → 两张表都由剥出来的值重建（序由真源插入序声明给出）。
-# `RUNE_DROP` / `RUNE_LEVEL_ROMAN` / `RUNE_CRAFT_SHARDS` **无域** → 缺口，不提供。
-# ============================================================
 def _runes_build() -> dict:
     out: dict = {}
     for rid, ent in _R.runes.all().items():
@@ -213,22 +235,6 @@ def _runes_build() -> dict:
             e["lvl"] = _int_keys(e["lvl"])
         out[rid] = e
     return out
-
-
-RUNES: dict = _runes_build()
-
-# 符文制作配方（真源 `RUNE_CRAFT`，序 = 真源插入序）
-RUNE_CRAFT: dict = {
-    rid: dict(_RUNES_RAW[rid]["craft"])
-    for rid in _ORDER_RUNE_CRAFT if rid in _RUNES_RAW and "craft" in _RUNES_RAW[rid]
-}
-
-# 效果 key → 中文名（真源 `RUNE_EFFECT_NAMES`；值 = `RUNES[*]["name"]`，实测 16/16 逐条相等）
-_EFFECT_NAMES_BY_KEY: dict = {v["effect"]: v.get("name") for v in RUNES.values() if isinstance(v, dict)}
-RUNE_EFFECT_NAMES: dict = {
-    eff: _EFFECT_NAMES_BY_KEY[eff]
-    for eff in _ORDER_RUNE_EFFECT_NAMES if eff in _EFFECT_NAMES_BY_KEY
-}
 
 
 def _rune_conflicts() -> list:
@@ -252,61 +258,40 @@ def _rune_conflicts() -> list:
     return out
 
 
-RUNE_CONFLICTS: list = _rune_conflicts()
+_RUNES_RAW = placeholder("_RUNES_RAW")
+_GAME_CONFIG = placeholder("_GAME_CONFIG")
+_CFG_ENHANCE = placeholder("_CFG_ENHANCE")
+_CFG_UPGRADE = placeholder("_CFG_UPGRADE")
+_CFG_REFINE = placeholder("_CFG_REFINE")
+MATERIALS = placeholder("MATERIALS")
+ITEMS = placeholder("ITEMS")
+MATERIALS_BY_NAME = placeholder("MATERIALS_BY_NAME")
+EQUIP_ROSTER = placeholder("EQUIP_ROSTER")
+EQUIP_ROSTER_BY_NAME = placeholder("EQUIP_ROSTER_BY_NAME")
+RUNES = placeholder("RUNES")
+RUNE_CRAFT = placeholder("RUNE_CRAFT")
+_EFFECT_NAMES_BY_KEY = placeholder("_EFFECT_NAMES_BY_KEY")
+RUNE_EFFECT_NAMES = placeholder("RUNE_EFFECT_NAMES")
+RUNE_CONFLICTS = placeholder("RUNE_CONFLICTS")
+_RUNE_SHARD_NAME = placeholder("_RUNE_SHARD_NAME")
+_RUNE_SHARD_HITS = placeholder("_RUNE_SHARD_HITS")
+RUNE_SHARD_KEY = placeholder("RUNE_SHARD_KEY")
+AFFIXES = placeholder("AFFIXES")
+SETS = placeholder("SETS")
+LEGENDARY_EFFECTS = placeholder("LEGENDARY_EFFECTS")
+PROPS = placeholder("PROPS")
+ENHANCE_TABLE = placeholder("ENHANCE_TABLE")
+MAX_ENHANCE = placeholder("MAX_ENHANCE")
+ENHANCE_FAIL_DROP = placeholder("ENHANCE_FAIL_DROP")
+ENHANCE_SMITH_MAPS = placeholder("ENHANCE_SMITH_MAPS")
+UPGRADE_TABLE = placeholder("UPGRADE_TABLE")
+UPGRADE_STONE = placeholder("UPGRADE_STONE")
+UPGRADE_STAMINA = placeholder("UPGRADE_STAMINA")
+UPGRADE_MATERIAL_CN = placeholder("UPGRADE_MATERIAL_CN")
+REFINE_RECIPES = placeholder("REFINE_RECIPES")
+_CFG_REFINE_EXCLUSIVE = placeholder("_CFG_REFINE_EXCLUSIVE")
+REFINE_EXCLUSIVE_RECIPES = placeholder("REFINE_EXCLUSIVE_RECIPES")
 
-# 符文碎片材料 key（真源常量 `RUNE_SHARD_KEY = "mat_fu_wen_sui_pian"`，注释写明「items.py 已定义
-# 名字『符文碎片』」）→ 按**名字唯一命中**从 items 域取 key（命中 ≠ 1 就 raise，不猜）。
-_RUNE_SHARD_NAME = "符文碎片"
-_RUNE_SHARD_HITS = [k for k, v in ITEMS.items() if isinstance(v, dict) and v.get("name") == _RUNE_SHARD_NAME]
-if len(_RUNE_SHARD_HITS) != 1:
-    raise ValueError(
-        "catalog_items：items 域里名字 %r 的条目有 %d 条（要求恰好 1 条）—— RUNE_SHARD_KEY "
-        "无法唯一确定，拒绝猜。" % (_RUNE_SHARD_NAME, len(_RUNE_SHARD_HITS)))
-RUNE_SHARD_KEY: str = _RUNE_SHARD_HITS[0]
-
-
-# ============================================================
-# ⑦ 词条 / 套装 / 道具 / 传说特效（域直读，仅还原序）
-# ============================================================
-AFFIXES: dict = _R.affixes.all()
-SETS: dict = _R.sets.all()
-LEGENDARY_EFFECTS: dict = _R.legendary_effects.all()
-
-# 道具（真源 `game/data/props.py:12 PROPS`）；域条目多一个导出期注入的 `mounts`（← `MOUNT_POOL`
-# 挂点）→ 剥掉（道具本体条目没有它）。
-PROPS: dict = _R.props.all()
-
-
-# ============================================================
-# ⑧ 强化 / 升级 / 精炼（数值键表 + `game_config` 三组常量）
-# ------------------------------------------------------------
-# 真源 `game/data/enhance.py` / `upgrade.py` / `refine.py`；常量组在 `content/rules/game_config.json`
-# 的 `enhance` / `upgrade` / `refine`（导出器「每个模块级常量都有家」硬闸的产物）。
-# 三张数值键表（`ENHANCE_TABLE` / `UPGRADE_TABLE` / `ENHANCE_FAIL_DROP`）都按数值升序还原键型。
-# ============================================================
-ENHANCE_TABLE: dict = _num_sorted(_R.enhance_table.all())
-MAX_ENHANCE = _CFG_ENHANCE.get("MAX_ENHANCE")
-ENHANCE_FAIL_DROP: dict = _num_sorted(_int_keys(_CFG_ENHANCE.get("ENHANCE_FAIL_DROP")))
-ENHANCE_SMITH_MAPS: list = list(_CFG_ENHANCE.get("ENHANCE_SMITH_MAPS") or [])
-
-UPGRADE_TABLE: dict = _num_sorted(_int_keys(_CFG_UPGRADE.get("UPGRADE_TABLE")))
-UPGRADE_STONE = _CFG_UPGRADE.get("UPGRADE_STONE")
-UPGRADE_STAMINA = _CFG_UPGRADE.get("UPGRADE_STAMINA")
-UPGRADE_MATERIAL_CN = _CFG_UPGRADE.get("UPGRADE_MATERIAL_CN")
-
-REFINE_RECIPES: dict = dict(_CFG_REFINE.get("REFINE_RECIPES") or {})
-
-# ---- B15b 追加（只加新名，既有名与取值不动）----
-# `REFINE_EXCLUSIVE_RECIPES`：真源 `game/data/refine_exclusive.py:18`（v172 路 B 重锻专属 12 条，
-# 键 = 旧装备中文名，值 = {target(名册 rid), mats, gold, inherit, desc}）。域 = `content/rules/game_config.json`
-# 的**新组** `refine_exclusive`（组名 = 真源模块名，与 `refine` 组同款口径；数据由
-# `overnight/b15b_port_domain.py` 从备份真源 import 后 dump，非手抄）。
-# 为什么必须有这个门面名：宿主聚合层 `C.REFINE_EXCLUSIVE_RECIPES` 开关后**没有对象**了，
-# 而 `content/economy_cmds.py` 的 4 处 `getattr(C, "REFINE_EXCLUSIVE_RECIPES", None) or {}`
-# 会静默退成 `{}`（= v172 路 B 的重锻专属配方在『装备重锻』列表/获取提示里**整块消失**）。
-# 本名由 `game/content.py` 的 `catalog_*` 聚合循环自动收回 ⇒ `C.<名>` 恢复（宿主侧零改动）。
-_CFG_REFINE_EXCLUSIVE: dict = dict(_GAME_CONFIG.get("refine_exclusive") or {})
-REFINE_EXCLUSIVE_RECIPES: dict = dict(_CFG_REFINE_EXCLUSIVE.get("REFINE_EXCLUSIVE_RECIPES") or {})
 
 
 __all__ = [
@@ -318,3 +303,170 @@ __all__ = [
     "UPGRADE_TABLE", "UPGRADE_STONE", "UPGRADE_STAMINA", "UPGRADE_MATERIAL_CN",
     "REFINE_RECIPES", "REFINE_EXCLUSIVE_RECIPES", "missing_domains",
 ]
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _RUNES_RAW, _GAME_CONFIG, _CFG_ENHANCE, _CFG_UPGRADE
+    global _CFG_REFINE, MATERIALS, ITEMS, MATERIALS_BY_NAME
+    global EQUIP_ROSTER, EQUIP_ROSTER_BY_NAME, RUNES, RUNE_CRAFT
+    global _EFFECT_NAMES_BY_KEY, RUNE_EFFECT_NAMES, RUNE_CONFLICTS, _RUNE_SHARD_NAME
+    global _RUNE_SHARD_HITS, RUNE_SHARD_KEY, AFFIXES, SETS
+    global LEGENDARY_EFFECTS, PROPS, ENHANCE_TABLE, MAX_ENHANCE
+    global ENHANCE_FAIL_DROP, ENHANCE_SMITH_MAPS, UPGRADE_TABLE, UPGRADE_STONE
+    global UPGRADE_STAMINA, UPGRADE_MATERIAL_CN, REFINE_RECIPES, _CFG_REFINE_EXCLUSIVE
+    global REFINE_EXCLUSIVE_RECIPES
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_RUNES_RAW': None, '_GAME_CONFIG': None, '_CFG_ENHANCE': None, '_CFG_UPGRADE': None,
+        '_CFG_REFINE': None, 'MATERIALS': None, 'ITEMS': None, 'MATERIALS_BY_NAME': None,
+        'EQUIP_ROSTER': None, 'EQUIP_ROSTER_BY_NAME': None, 'RUNES': None, 'RUNE_CRAFT': None,
+        '_EFFECT_NAMES_BY_KEY': None, 'RUNE_EFFECT_NAMES': None, 'RUNE_CONFLICTS': None, '_RUNE_SHARD_NAME': None,
+        '_RUNE_SHARD_HITS': None, 'RUNE_SHARD_KEY': None, 'AFFIXES': None, 'SETS': None,
+        'LEGENDARY_EFFECTS': None, 'PROPS': None, 'ENHANCE_TABLE': None, 'MAX_ENHANCE': None,
+        'ENHANCE_FAIL_DROP': None, 'ENHANCE_SMITH_MAPS': None, 'UPGRADE_TABLE': None, 'UPGRADE_STONE': None,
+        'UPGRADE_STAMINA': None, 'UPGRADE_MATERIAL_CN': None, 'REFINE_RECIPES': None, '_CFG_REFINE_EXCLUSIVE': None,
+        'REFINE_EXCLUSIVE_RECIPES': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _RUNES_RAW = records_from_domain(_PKG_ROOT, "runes").all()
+
+    _GAME_CONFIG = _R.game_config.all()
+    _CFG_ENHANCE = dict(_GAME_CONFIG.get("enhance") or {})
+    _CFG_UPGRADE = dict(_GAME_CONFIG.get("upgrade") or {})
+    _CFG_REFINE = dict(_GAME_CONFIG.get("refine") or {})
+
+    # ============================================================
+    # ③b 两个键型小工具（形状覆盖不到的嵌套/数值序变换）
+    # ============================================================
+    MATERIALS = {k: _R.items.all()[k] for k in _ORDER_MATERIALS}   # 已按声明序排好 + 集合守卫
+    ITEMS = dict(_R.items.all())
+
+    # 名字 → 材料条目（真源 `items.py:3054 {_m["name"]: _m for _m in MATERIALS.values()}`；值序 = MATERIALS 序）
+    MATERIALS_BY_NAME = {v["name"]: v for v in MATERIALS.values() if isinstance(v, dict) and v.get("name")}
+
+    # ============================================================
+    # ⑤ 装备名册（`EQUIP_ROSTER` / `EQUIP_ROSTER_BY_NAME`）
+    # ------------------------------------------------------------
+    # 真源 `game/data/equip_roster.py:15 EQUIP_ROSTER`（687）。域条目多两个**导出期注入**字段
+    # （`series_set` ← `SERIES_SETS`、`fixed_affixes` ← `SERIES_FIXED_AFFIX`）→ 必须剥，否则逐条不等。
+    # `EQUIP_ROSTER_BY_NAME`（:1048 `setdefault(name, []).append(id)`）= 名字 → [id]（686 键 / 687 id，
+    # 重名 1 处「精铁短杖」）—— S2 ③：**索引本体改由引擎 records 建**（`Records.index_of`：
+    # 重名收全、值序 = 表序、缺字段/None/非映射不参与并留痕），本模块不再手写一遍
+    # `setdefault(...).append(...)`（同一件事两处实现 = 改一处漏一处）。
+    # ============================================================
+    EQUIP_ROSTER = _R.equip_roster.all()
+
+    EQUIP_ROSTER_BY_NAME = _R.equip_roster.index_of("name")
+
+    # ============================================================
+    # ⑥ 符文（`RUNES` / `RUNE_CRAFT` / `RUNE_EFFECT_NAMES` / `RUNE_CONFLICTS` / `RUNE_SHARD_KEY`）
+    # ------------------------------------------------------------
+    # 真源 `game/data/runes.py`：`RUNES`（16，`lvl` 是 **int 键**）+ 常量段 `RUNE_CONFLICTS`（3 对）/
+    # `RUNE_DROP` / `RUNE_EFFECT_NAMES` / `RUNE_LEVEL_ROMAN` / `RUNE_CRAFT` / `RUNE_CRAFT_SHARDS` /
+    # `RUNE_SHARD_KEY`。域 `runes.json` 把 `RUNE_CRAFT` 折成条目 `craft` 字段、`RUNE_CONFLICTS`
+    # 折成对称的条目 `conflicts` 字段 → 两张表都由剥出来的值重建（序由真源插入序声明给出）。
+    # `RUNE_DROP` / `RUNE_LEVEL_ROMAN` / `RUNE_CRAFT_SHARDS` **无域** → 缺口，不提供。
+    # ============================================================
+    RUNES = _runes_build()
+
+    # 符文制作配方（真源 `RUNE_CRAFT`，序 = 真源插入序）
+    RUNE_CRAFT = {
+        rid: dict(_RUNES_RAW[rid]["craft"])
+        for rid in _ORDER_RUNE_CRAFT if rid in _RUNES_RAW and "craft" in _RUNES_RAW[rid]
+    }
+
+    # 效果 key → 中文名（真源 `RUNE_EFFECT_NAMES`；值 = `RUNES[*]["name"]`，实测 16/16 逐条相等）
+    _EFFECT_NAMES_BY_KEY = {v["effect"]: v.get("name") for v in RUNES.values() if isinstance(v, dict)}
+    RUNE_EFFECT_NAMES = {
+        eff: _EFFECT_NAMES_BY_KEY[eff]
+        for eff in _ORDER_RUNE_EFFECT_NAMES if eff in _EFFECT_NAMES_BY_KEY
+    }
+
+    RUNE_CONFLICTS = _rune_conflicts()
+
+    # 符文碎片材料 key（真源常量 `RUNE_SHARD_KEY = "mat_fu_wen_sui_pian"`，注释写明「items.py 已定义
+    # 名字『符文碎片』」）→ 按**名字唯一命中**从 items 域取 key（命中 ≠ 1 就 raise，不猜）。
+    _RUNE_SHARD_NAME = "符文碎片"
+    _RUNE_SHARD_HITS = [k for k, v in ITEMS.items() if isinstance(v, dict) and v.get("name") == _RUNE_SHARD_NAME]
+    if len(_RUNE_SHARD_HITS) != 1:
+        raise ValueError(
+            "catalog_items：items 域里名字 %r 的条目有 %d 条（要求恰好 1 条）—— RUNE_SHARD_KEY "
+            "无法唯一确定，拒绝猜。" % (_RUNE_SHARD_NAME, len(_RUNE_SHARD_HITS)))
+    RUNE_SHARD_KEY = _RUNE_SHARD_HITS[0]
+
+    # ============================================================
+    # ⑦ 词条 / 套装 / 道具 / 传说特效（域直读，仅还原序）
+    # ============================================================
+    AFFIXES = _R.affixes.all()
+    SETS = _R.sets.all()
+    LEGENDARY_EFFECTS = _R.legendary_effects.all()
+
+    # 道具（真源 `game/data/props.py:12 PROPS`）；域条目多一个导出期注入的 `mounts`（← `MOUNT_POOL`
+    # 挂点）→ 剥掉（道具本体条目没有它）。
+    PROPS = _R.props.all()
+
+    # ============================================================
+    # ⑧ 强化 / 升级 / 精炼（数值键表 + `game_config` 三组常量）
+    # ------------------------------------------------------------
+    # 真源 `game/data/enhance.py` / `upgrade.py` / `refine.py`；常量组在 `content/rules/game_config.json`
+    # 的 `enhance` / `upgrade` / `refine`（导出器「每个模块级常量都有家」硬闸的产物）。
+    # 三张数值键表（`ENHANCE_TABLE` / `UPGRADE_TABLE` / `ENHANCE_FAIL_DROP`）都按数值升序还原键型。
+    # ============================================================
+    ENHANCE_TABLE = _num_sorted(_R.enhance_table.all())
+    MAX_ENHANCE = _CFG_ENHANCE.get("MAX_ENHANCE")
+    ENHANCE_FAIL_DROP = _num_sorted(_int_keys(_CFG_ENHANCE.get("ENHANCE_FAIL_DROP")))
+    ENHANCE_SMITH_MAPS = list(_CFG_ENHANCE.get("ENHANCE_SMITH_MAPS") or [])
+
+    UPGRADE_TABLE = _num_sorted(_int_keys(_CFG_UPGRADE.get("UPGRADE_TABLE")))
+    UPGRADE_STONE = _CFG_UPGRADE.get("UPGRADE_STONE")
+    UPGRADE_STAMINA = _CFG_UPGRADE.get("UPGRADE_STAMINA")
+    UPGRADE_MATERIAL_CN = _CFG_UPGRADE.get("UPGRADE_MATERIAL_CN")
+
+    REFINE_RECIPES = dict(_CFG_REFINE.get("REFINE_RECIPES") or {})
+
+    # ---- B15b 追加（只加新名，既有名与取值不动）----
+    # `REFINE_EXCLUSIVE_RECIPES`：真源 `game/data/refine_exclusive.py:18`（v172 路 B 重锻专属 12 条，
+    # 键 = 旧装备中文名，值 = {target(名册 rid), mats, gold, inherit, desc}）。域 = `content/rules/game_config.json`
+    # 的**新组** `refine_exclusive`（组名 = 真源模块名，与 `refine` 组同款口径；数据由
+    # `overnight/b15b_port_domain.py` 从备份真源 import 后 dump，非手抄）。
+    # 为什么必须有这个门面名：宿主聚合层 `C.REFINE_EXCLUSIVE_RECIPES` 开关后**没有对象**了，
+    # 而 `content/economy_cmds.py` 的 4 处 `getattr(C, "REFINE_EXCLUSIVE_RECIPES", None) or {}`
+    # 会静默退成 `{}`（= v172 路 B 的重锻专属配方在『装备重锻』列表/获取提示里**整块消失**）。
+    # 本名由 `game/content.py` 的 `catalog_*` 聚合循环自动收回 ⇒ `C.<名>` 恢复（宿主侧零改动）。
+    _CFG_REFINE_EXCLUSIVE = dict(_GAME_CONFIG.get("refine_exclusive") or {})
+    REFINE_EXCLUSIVE_RECIPES = dict(_CFG_REFINE_EXCLUSIVE.get("REFINE_EXCLUSIVE_RECIPES") or {})
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=30)
+apply_replacements(_rebuild_view(), __package__)

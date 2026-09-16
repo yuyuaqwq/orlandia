@@ -23,7 +23,7 @@
 """
 import os
 import random
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -51,13 +51,9 @@ _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 _R = set_from_domains(_PKG_ROOT, ("pois",))
 
 
-_POI_ROWS: dict = _R.pois.all()                 # 房间地址 → {map, subarea, pois: [...], source}
+_POI_ROWS = placeholder("_POI_ROWS")
+_MOUNTED = placeholder("_MOUNTED")
 
-# 房间地址 → 挂载的 poi id 列表（dungeon 行的自带定义 dict → 只留 id，与宿主装配后同形）
-# S2 ③：**映射改由引擎 records 建**（`Records.into`：逐条变换、保序保键、不丢条目），
-# 本模块不再手写 for 循环（逐元素对拍见 out/raw/task3_index_after.json）。
-_MOUNTED: dict = _R.pois.into(
-    lambda _row: [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_row.get("pois") or [])])
 
 
 def subarea_pois(map_id: str, subarea_id: str) -> list:
@@ -105,3 +101,54 @@ def roll_poi(group_id: str, qq_id: str, map_id: str, subarea_id: str, chance: fl
     poi_id = random.choice(ids)
     from .catalog_b143 import POIS   # ★ W12 收口：真源 `from ..data.pois import POIS`（函数内）
     return poi_id, POIS.get(poi_id, {})
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _POI_ROWS, _MOUNTED
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_POI_ROWS': None, '_MOUNTED': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _POI_ROWS = _R.pois.all()                 # 房间地址 → {map, subarea, pois: [...], source}
+
+    # 房间地址 → 挂载的 poi id 列表（dungeon 行的自带定义 dict → 只留 id，与宿主装配后同形）
+    # S2 ③：**映射改由引擎 records 建**（`Records.into`：逐条变换、保序保键、不丢条目），
+    # 本模块不再手写 for 循环（逐元素对拍见 out/raw/task3_index_after.json）。
+    _MOUNTED = _R.pois.into(
+        lambda _row: [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_row.get("pois") or [])])
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=110)
+apply_replacements(_rebuild_view(), __package__)

@@ -35,7 +35,8 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import (apply_replacements, placeholder, register_view,
+                                    set_from_domains, update_in_place)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -58,15 +59,15 @@ _R = set_from_domains(_PKG_ROOT, (
 # ============================================================
 # ① 已进包的域（D1/D2 就在包里，面板与战斗共用）
 # ============================================================
-CLASSES: dict = _R.classes.all()
-SKILLS: dict = _R.skills.all()
+CLASSES: dict = {}
+SKILLS: dict = {}
 
 # ============================================================
 # ② 本批新域（D3 面板批次：职业面板完整版依赖的四族数据）
 # ============================================================
-RACES: dict = _R.races.all()
-SETS: dict = _R.sets.all()
-_PANEL_RULES: dict = _R.panel_rules.all()
+RACES: dict = {}
+SETS: dict = {}
+_PANEL_RULES: dict = {}
 
 
 def _int_keys(tbl) -> dict:
@@ -81,21 +82,19 @@ def _int_keys(tbl) -> dict:
 
 
 # 强化等级 → {rate, cost, mult}（面板读 [k]["mult"]；原文是 .get(int)）
-ENHANCE_TABLE: dict = _R.enhance_table.all()
+ENHANCE_TABLE: dict = {}
 # 转职档位 → 成长倍率（原文 .get(tier, 1.0)）
-TIER_GROWTH: dict = _int_keys(_PANEL_RULES.get("tier_growth"))
+TIER_GROWTH: dict = {}
 # 分支档位 → 属性倍率（通用回退档 + 职业×分支权威表，原文都按 int 档位查）
-BRANCH_BONUS: dict = _int_keys(_PANEL_RULES.get("branch_bonus"))
-BRANCH_BONUS_BY_CLASS: dict = {
-    cls: _int_keys(m)
-    for cls, m in (_PANEL_RULES.get("branch_bonus_by_class") or {}).items()
-}
+BRANCH_BONUS: dict = {}
+BRANCH_BONUS_BY_CLASS: dict = {}
 # 成长结构声明（键集 / 分支修正模式 / 输出别名）—— 原样带出，形状与游戏仓 `PLAYER_BASE_GROWTH` 同
-PLAYER_BASE_GROWTH: dict = dict(_PANEL_RULES.get("base_growth") or {})
+PLAYER_BASE_GROWTH: dict = {}
 # 百分比域（原文用 `in` / `.get(k, 默认)`；tuple 保序、语义与源表一致）
-PCT_CAPS: dict = dict(_PANEL_RULES.get("pct_caps") or {})
-PCT_STATS: tuple = tuple((_PANEL_RULES.get("pct_stats") or {}).get("stats") or ())
-PENE_PCT_STATS: tuple = tuple((_PANEL_RULES.get("pene_pct_stats") or {}).get("stats") or ())
+PCT_CAPS: dict = {}
+# 非容器（tuple）的**独立占位对象**（不能共用 `None`：别名回填按对象身份匹配，共享占位会串台）
+PCT_STATS = placeholder("PCT_STATS")
+PENE_PCT_STATS = placeholder("PENE_PCT_STATS")
 
 # ============================================================
 # ②b job_guide 域（『职业』速查读口）—— 2026-09-13 B8.2 线5
@@ -112,9 +111,26 @@ PENE_PCT_STATS: tuple = tuple((_PANEL_RULES.get("pene_pct_stats") or {}).get("st
 #      （= 职业展示序）在域里没处存 → 在本模块显式声明 `JOB_ORDER`：多了/少了职业就
 #      `raise`（防「加职业忘了改这里」= 静默漏职业 / 一览顺序漂移）。
 # ============================================================
-_JOB_RAW: dict = _R.job_guide.all()
+_JOB_RAW: dict = {}
+
+JOB_GUIDE: dict = {}
+
+# 职业展示顺序（一览 / 多命中候选 / 隐藏传承的遍历序）—— 源 = 真源 JOB_GUIDE 插入序
+# （= 游戏仓 `game/data/classes.py` 的 CLASSES 声明序；域文件键是字典序，顺序只能显式声明）。
+JOB_ORDER = ("cls_zhan_shi", "cls_fa_shi", "cls_you_xia", "cls_mu_shi",
+             "cls_ci_ke", "cls_wu_seng", "cls_shi_ren")
 
 
+# ============================================================
+# ★ 视图：资料表重载后重建本模块的模块级派生状态（`saintess_engine.records.views`）
+# ------------------------------------------------------------
+# 两条口径（与包里其它派生模块一致）：
+#   ① 可变容器（dict / list / set）**就地更新** —— 外部 `from .tables import X` 拿到的是
+#      同一只对象，身份不变、内容已新；
+#   ② 非容器（tuple / frozenset / 数字 / 字符串）**返回** `{旧对象: 新对象}`，由引擎在
+#      `content` 前缀的已加载模块里按键身份回填（通用别名回填）。
+# 这里是模块级派生状态的**唯一构建处**：import 期（见文件尾）与每次重载走同一条路径。
+# ============================================================
 def _job_int_tiers(tbl) -> dict:
     """档位键 "1"/"2"/"3" → int（与 `_int_keys` 同口径：非整数键原样保留、不静默丢）。"""
     return _int_keys(tbl)
@@ -129,14 +145,6 @@ def _job_guide_load(raw) -> dict:
         e["tier_levels"] = _job_int_tiers(ent.get("tier_levels"))
         out[cid] = e
     return out
-
-
-JOB_GUIDE: dict = _job_guide_load(_JOB_RAW)
-
-# 职业展示顺序（一览 / 多命中候选 / 隐藏传承的遍历序）—— 源 = 真源 JOB_GUIDE 插入序
-# （= 游戏仓 `game/data/classes.py` 的 CLASSES 声明序；域文件键是字典序，顺序只能显式声明）。
-JOB_ORDER = ("cls_zhan_shi", "cls_fa_shi", "cls_you_xia", "cls_mu_shi",
-             "cls_ci_ke", "cls_wu_seng", "cls_shi_ren")
 
 
 def job_order() -> list:
@@ -239,7 +247,7 @@ def missing_domains() -> list:
 # 语义与真源逐行同义（`phase_template` 未知 id 回落 normal；`merge_phase_config` 模板为底、
 # overrides 逐键覆盖，含 `None` 值 —— `null` 是源侧合法值，不许改写成 0/""）。
 # ============================================================
-BOSS_PHASE_TEMPLATES: dict = _R.boss_phases.all()
+BOSS_PHASE_TEMPLATES: dict = {}
 
 
 def phase_template(phase_id: str) -> dict:
@@ -276,10 +284,10 @@ def _id_index(table: dict) -> dict:
             for k, v in (table or {}).items()}
 
 
-_CLASSES_BY_NAME = _name_index(CLASSES)
-_CLASSES_BY_ID = _id_index(CLASSES)
-_SKILLS_BY_NAME = _name_index(SKILLS)
-_SKILLS_BY_ID = _id_index(SKILLS)
+_CLASSES_BY_NAME: dict = {}
+_CLASSES_BY_ID: dict = {}
+_SKILLS_BY_NAME: dict = {}
+_SKILLS_BY_ID: dict = {}
 
 
 def resolve(table_name: str, name_or_id: str):
@@ -339,6 +347,61 @@ def skill_by_key(skill_key: str):
     return info if isinstance(info, dict) else None
 
 
+def _rebuild_view() -> dict:
+    """重读本模块声明的域 → 重建模块级派生表；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器走 `update_in_place`（身份不变、内容已新）；非容器（tuple）本模块换引用，并把
+    `(旧对象, 新对象)` 序列交引擎做别名回填。import 期（见文件尾）与每次重载走**同一条路径**。
+    """
+    global PCT_STATS, PENE_PCT_STATS
+    _R.classes.load()
+    _R.skills.load()
+    _R.races.load()
+    _R.sets.load()
+    _R.enhance_table.load()
+    _R.job_guide.load()
+    _R.panel_rules.load()
+    _R.boss_phases.load()
+
+    panel = _R.panel_rules.all()
+    job_raw = _R.job_guide.all()
+    new_classes = _R.classes.all()
+    new_skills = _R.skills.all()
+
+    # 域表直读
+    update_in_place(CLASSES, new_classes)
+    update_in_place(SKILLS, new_skills)
+    update_in_place(RACES, _R.races.all())
+    update_in_place(SETS, _R.sets.all())
+    update_in_place(_PANEL_RULES, panel)
+    # 强化 / 档位表
+    update_in_place(ENHANCE_TABLE, _R.enhance_table.all())
+    update_in_place(TIER_GROWTH, _int_keys(panel.get("tier_growth")))
+    update_in_place(BRANCH_BONUS, _int_keys(panel.get("branch_bonus")))
+    update_in_place(BRANCH_BONUS_BY_CLASS, {cls: _int_keys(m) for cls, m in
+                                            (panel.get("branch_bonus_by_class") or {}).items()})
+    update_in_place(PLAYER_BASE_GROWTH, dict(panel.get("base_growth") or {}))
+    # 百分比域（`PCT_CAPS` 键序 = 域序）
+    update_in_place(PCT_CAPS, dict(panel.get("pct_caps") or {}))
+    # job_guide 域（域条目 → 真源同形的内存表；键型还原见 `_job_guide_load`）
+    update_in_place(_JOB_RAW, job_raw)
+    update_in_place(JOB_GUIDE, _job_guide_load(job_raw))
+    update_in_place(JOB_ALIAS, _job_alias_index())
+    update_in_place(BOSS_PHASE_TEMPLATES, _R.boss_phases.all())
+    # 名字索引（模块级私有，查询函数直接读它们）
+    update_in_place(_CLASSES_BY_NAME, _name_index(new_classes))
+    update_in_place(_CLASSES_BY_ID, _id_index(new_classes))
+    update_in_place(_SKILLS_BY_NAME, _name_index(new_skills))
+    update_in_place(_SKILLS_BY_ID, _id_index(new_skills))
+
+    # 非容器（tuple）：本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎 —— 引擎在 content
+    # 前缀的已加载模块里按键身份做别名回填（外部 `from .tables import PCT_STATS` 也看到新值）
+    old_pct, old_pene = PCT_STATS, PENE_PCT_STATS
+    PCT_STATS = tuple((panel.get("pct_stats") or {}).get("stats") or ())
+    PENE_PCT_STATS = tuple((panel.get("pene_pct_stats") or {}).get("stats") or ())
+    return [(old_pct, PCT_STATS), (old_pene, PENE_PCT_STATS)]
+
+
 __all__ = [
     "CLASSES", "SKILLS", "RACES", "SETS", "ENHANCE_TABLE", "TIER_GROWTH",
     "BRANCH_BONUS", "BRANCH_BONUS_BY_CLASS", "PLAYER_BASE_GROWTH",
@@ -348,3 +411,8 @@ __all__ = [
     "job_hidden_order", "job_hidden_successors", "resolve_job",
     "BOSS_PHASE_TEMPLATES", "phase_template", "merge_phase_config",
 ]
+
+
+# import 期登记视图 + 建一次（与每次重载走同一条路径；`order` 见 `content/gm.py` 的模块序台账）
+register_view(_rebuild_view, order=10)
+apply_replacements(_rebuild_view(), __package__)

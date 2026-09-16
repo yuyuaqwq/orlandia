@@ -63,7 +63,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -110,9 +110,6 @@ def _by_source(dom: dict, source: str, drop=("source",)) -> dict:
 # =============================================================================
 # ① 序表（`content/data/key_order.json`：本模块 13 条 / 1,461 键）
 # =============================================================================
-_ORDERS: dict = _R.key_order.all()
-
-
 def _order(name: str) -> list:
     """按名取键序声明（`key_order` 域）—— 缺条目 / 形状不对 → raise（不静默当空序）。"""
     ent = _ORDERS.get(name)
@@ -127,55 +124,6 @@ def _order(name: str) -> list:
 # =============================================================================
 # ② 域读入（全在包内；缺文件 → {} → 下面 _ordered 立刻 raise，不静默变空表）
 # =============================================================================
-_NPCS_DOM = _R.npcs.all()
-_QUEST_DOM = _R.quests.all()
-_EVENT_DOM = _R.events.all()
-_DLG_DOM = _R.dialogues.all()
-_ACH_DOM = _R.achievements.all()
-_TITLE_DOM = _R.titles.all()
-_WEEKLY_DOM = _R.weekly_quests.all()
-_TRIAL_DOM = _R.trial_floors.all()
-_MODS_DOM = _R.monster_mods.all()
-_MSKILL_DOM = _R.monsters.all()
-_ROSTER_DOM = _R.monster_roster.all()
-_CFG = _R.game_config.all()
-
-
-# =============================================================================
-# ③ 21 个数据名（宿主 `C.<名>` 的等价物）
-# =============================================================================
-# --- NPC 三表（`derive_npcs` 折了 town/wild/hidden 三张真源表，注入 `source` 表达归属）---
-NPCS: dict = _ordered(_by_source(_NPCS_DOM, "town"), _order("npcs_town"), "npcs(town)")
-WILD_NPCS: dict = _ordered(_by_source(_NPCS_DOM, "wild"), _order("npcs_wild"), "npcs(wild)")
-# hidden 里 6 条副本层内 NPC 多一个注入字段 `inst_stage`（`derive_npcs` 注入），一并去掉
-HIDDEN_NPCS: dict = _ordered(_by_source(_NPCS_DOM, "hidden", ("source", "inst_stage")),
-                             _order("npcs_hidden"), "npcs(hidden)")
-
-# --- 对话树（键 = NPC id；39 棵，节点/选项顺序是语义，域内已原样）---
-DIALOGUES: dict = _ordered(_DLG_DOM, _order("dialogues"), "dialogues")
-
-# --- 任务三表（`derive_quests` 合表 + 注入 `source`；DAILY 的键是 name，源侧没有 id）---
-MAIN_QUESTS: list = [_drop(_QUEST_DOM[k], "source") for k in _order("quests_main")]
-SIDE_QUESTS: list = [_drop(_QUEST_DOM[k], "source") for k in _order("quests_side")]
-DAILY_QUESTS: list = [_drop(_QUEST_DOM[k], "source") for k in _order("quests_daily")]
-
-# --- 探索事件两池（`derive_events` 合表 + 注入 `source`）---
-EXPLORE_EVENTS: list = [_drop(_EVENT_DOM[k], "source") for k in _order("events_explore")]
-EXPLORE_EGG_EVENTS: list = [_drop(_EVENT_DOM[k], "source") for k in _order("events_egg")]
-
-# --- 成就 / 称号 / 周常 ---
-ACHIEVEMENTS: list = [_ACH_DOM[k] for k in _order("achievements")]
-# 称号 / 周常：域自带 `seq`（导出器注入 1 基源序），按它还原源序、再把 `seq` 去掉
-TITLES: list = [_drop(v, "seq") for v in
-                sorted(_TITLE_DOM.values(), key=lambda e: e["seq"])]
-WEEKLY_QUESTS: list = [_drop(v, "seq") for v in
-                       sorted(_WEEKLY_DOM.values(), key=lambda e: e["seq"])]
-
-# --- 怪技能 / 个体改造 ---
-MONSTER_SKILLS: dict = _ordered(_MSKILL_DOM, _order("monsters"), "monsters")
-MONSTER_MODS: dict = _ordered(_MODS_DOM, _order("monster_mods"), "monster_mods")
-
-# --- 精英专属装备掉落（宿主 `ELITE_EQUIP_DROP`：键 = 精英怪**中文名** → 名册装备 id）---
 def _elite_equip_drop() -> dict:
     """从 `monster_roster` 的 `elite_equip_drop` 字段还原（键 = 条目的 `name`）。
 
@@ -196,30 +144,40 @@ def _elite_equip_drop() -> dict:
     return _ordered(m, _order("elite_equip_drop"), "monster_roster(elite_equip_drop)")
 
 
-ELITE_EQUIP_DROP: dict = _elite_equip_drop()
+_ORDERS = placeholder("_ORDERS")
+_NPCS_DOM = placeholder("_NPCS_DOM")
+_QUEST_DOM = placeholder("_QUEST_DOM")
+_EVENT_DOM = placeholder("_EVENT_DOM")
+_DLG_DOM = placeholder("_DLG_DOM")
+_ACH_DOM = placeholder("_ACH_DOM")
+_TITLE_DOM = placeholder("_TITLE_DOM")
+_WEEKLY_DOM = placeholder("_WEEKLY_DOM")
+_TRIAL_DOM = placeholder("_TRIAL_DOM")
+_MODS_DOM = placeholder("_MODS_DOM")
+_MSKILL_DOM = placeholder("_MSKILL_DOM")
+_ROSTER_DOM = placeholder("_ROSTER_DOM")
+_CFG = placeholder("_CFG")
+NPCS = placeholder("NPCS")
+WILD_NPCS = placeholder("WILD_NPCS")
+HIDDEN_NPCS = placeholder("HIDDEN_NPCS")
+DIALOGUES = placeholder("DIALOGUES")
+MAIN_QUESTS = placeholder("MAIN_QUESTS")
+SIDE_QUESTS = placeholder("SIDE_QUESTS")
+DAILY_QUESTS = placeholder("DAILY_QUESTS")
+EXPLORE_EVENTS = placeholder("EXPLORE_EVENTS")
+EXPLORE_EGG_EVENTS = placeholder("EXPLORE_EGG_EVENTS")
+ACHIEVEMENTS = placeholder("ACHIEVEMENTS")
+TITLES = placeholder("TITLES")
+WEEKLY_QUESTS = placeholder("WEEKLY_QUESTS")
+MONSTER_SKILLS = placeholder("MONSTER_SKILLS")
+MONSTER_MODS = placeholder("MONSTER_MODS")
+ELITE_EQUIP_DROP = placeholder("ELITE_EQUIP_DROP")
+_TRIAL_CFG = placeholder("_TRIAL_CFG")
+TRIAL_DAILY_LIMIT = placeholder("TRIAL_DAILY_LIMIT")
+TRIAL_MAX_FLOOR = placeholder("TRIAL_MAX_FLOOR")
+TRIAL_FLOORS = placeholder("TRIAL_FLOORS")
+BUILDS = placeholder("BUILDS")
 
-# --- 试炼塔：层表 + 两个标量（常量与层表同在 game_config 域，但分属两个子表）---
-_TRIAL_CFG = _CFG.get("trial_tower") or {}
-TRIAL_DAILY_LIMIT: int = _TRIAL_CFG["TRIAL_DAILY_LIMIT"]
-TRIAL_MAX_FLOOR: int = _TRIAL_CFG["TRIAL_MAX_FLOOR"]
-# 层表按 floor 1..TRIAL_MAX_FLOOR 还原源序（域键是字符串 "1"/"10"/…，字面序会乱）
-TRIAL_FLOORS: list = [_TRIAL_DOM[str(i)] for i in range(1, TRIAL_MAX_FLOOR + 1)]
-
-# --- 职业流派（rules 域的 builds 子表：内层键序 = 源序，未被 sort_table 折叠）---
-BUILDS: dict = dict((_CFG.get("builds") or {}).get("BUILDS") or {})
-
-
-# =============================================================================
-# ④ 缺口的两个名字（不在此处定义 —— 定义成空值会让门禁把「缺口」当成「值不等」）
-# =============================================================================
-# 这两个名字在包内 66 域里**没有**等价数据源，故本单元不提供：
-#   HIDDEN_MONSTERS  ← 宿主 game/data/hidden_monsters.py:18（25 条隐藏怪行）
-#                      包内 `monster_roster` 有 `hidden` 子块（lv_off/gold_mult/cond/
-#                      chance/tag/flavor 六字段，25/25 对得上），但它的 `name`/`skills`/
-#                      `drops` 是**五处摆放表求并集**的投影（实测 19/25 与隐藏怪行不同），
-#                      还原不了隐藏怪行原文 → 需新域 `hidden_monsters`（字段见报告）。
-#   CHAPTER_PACK     ← 宿主 game/data/quest_add_v140.py:106（10 档章节礼包 list）
-#                      包内无任何域含这批数据 → 需新域 `chapter_pack`（字段见报告）。
 PENDING_NAMES = ("HIDDEN_MONSTERS", "CHAPTER_PACK")
 
 # 本模块真要用到的包内域（缺一个 = 门面变空/import 期 raise）—— 便于验收脚本点名核对
@@ -242,3 +200,136 @@ __all__ = [
     "TRIAL_FLOORS", "TRIAL_DAILY_LIMIT", "TRIAL_MAX_FLOOR", "BUILDS",
     "PENDING_NAMES", "REQUIRED_DOMAINS", "missing_domains",
 ]
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _ORDERS, _NPCS_DOM, _QUEST_DOM, _EVENT_DOM
+    global _DLG_DOM, _ACH_DOM, _TITLE_DOM, _WEEKLY_DOM
+    global _TRIAL_DOM, _MODS_DOM, _MSKILL_DOM, _ROSTER_DOM
+    global _CFG, NPCS, WILD_NPCS, HIDDEN_NPCS
+    global DIALOGUES, MAIN_QUESTS, SIDE_QUESTS, DAILY_QUESTS
+    global EXPLORE_EVENTS, EXPLORE_EGG_EVENTS, ACHIEVEMENTS, TITLES
+    global WEEKLY_QUESTS, MONSTER_SKILLS, MONSTER_MODS, ELITE_EQUIP_DROP
+    global _TRIAL_CFG, TRIAL_DAILY_LIMIT, TRIAL_MAX_FLOOR, TRIAL_FLOORS
+    global BUILDS
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_ORDERS': None, '_NPCS_DOM': None, '_QUEST_DOM': None, '_EVENT_DOM': None,
+        '_DLG_DOM': None, '_ACH_DOM': None, '_TITLE_DOM': None, '_WEEKLY_DOM': None,
+        '_TRIAL_DOM': None, '_MODS_DOM': None, '_MSKILL_DOM': None, '_ROSTER_DOM': None,
+        '_CFG': None, 'NPCS': None, 'WILD_NPCS': None, 'HIDDEN_NPCS': None,
+        'DIALOGUES': None, 'MAIN_QUESTS': None, 'SIDE_QUESTS': None, 'DAILY_QUESTS': None,
+        'EXPLORE_EVENTS': None, 'EXPLORE_EGG_EVENTS': None, 'ACHIEVEMENTS': None, 'TITLES': None,
+        'WEEKLY_QUESTS': None, 'MONSTER_SKILLS': None, 'MONSTER_MODS': None, 'ELITE_EQUIP_DROP': None,
+        '_TRIAL_CFG': None, 'TRIAL_DAILY_LIMIT': None, 'TRIAL_MAX_FLOOR': None, 'TRIAL_FLOORS': None,
+        'BUILDS': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _ORDERS = _R.key_order.all()
+
+    _NPCS_DOM = _R.npcs.all()
+    _QUEST_DOM = _R.quests.all()
+    _EVENT_DOM = _R.events.all()
+    _DLG_DOM = _R.dialogues.all()
+    _ACH_DOM = _R.achievements.all()
+    _TITLE_DOM = _R.titles.all()
+    _WEEKLY_DOM = _R.weekly_quests.all()
+    _TRIAL_DOM = _R.trial_floors.all()
+    _MODS_DOM = _R.monster_mods.all()
+    _MSKILL_DOM = _R.monsters.all()
+    _ROSTER_DOM = _R.monster_roster.all()
+    _CFG = _R.game_config.all()
+
+    # =============================================================================
+    # ③ 21 个数据名（宿主 `C.<名>` 的等价物）
+    # =============================================================================
+    # --- NPC 三表（`derive_npcs` 折了 town/wild/hidden 三张真源表，注入 `source` 表达归属）---
+    NPCS = _ordered(_by_source(_NPCS_DOM, "town"), _order("npcs_town"), "npcs(town)")
+    WILD_NPCS = _ordered(_by_source(_NPCS_DOM, "wild"), _order("npcs_wild"), "npcs(wild)")
+    # hidden 里 6 条副本层内 NPC 多一个注入字段 `inst_stage`（`derive_npcs` 注入），一并去掉
+    HIDDEN_NPCS = _ordered(_by_source(_NPCS_DOM, "hidden", ("source", "inst_stage")),
+                                 _order("npcs_hidden"), "npcs(hidden)")
+
+    # --- 对话树（键 = NPC id；39 棵，节点/选项顺序是语义，域内已原样）---
+    DIALOGUES = _ordered(_DLG_DOM, _order("dialogues"), "dialogues")
+
+    # --- 任务三表（`derive_quests` 合表 + 注入 `source`；DAILY 的键是 name，源侧没有 id）---
+    MAIN_QUESTS = [_drop(_QUEST_DOM[k], "source") for k in _order("quests_main")]
+    SIDE_QUESTS = [_drop(_QUEST_DOM[k], "source") for k in _order("quests_side")]
+    DAILY_QUESTS = [_drop(_QUEST_DOM[k], "source") for k in _order("quests_daily")]
+
+    # --- 探索事件两池（`derive_events` 合表 + 注入 `source`）---
+    EXPLORE_EVENTS = [_drop(_EVENT_DOM[k], "source") for k in _order("events_explore")]
+    EXPLORE_EGG_EVENTS = [_drop(_EVENT_DOM[k], "source") for k in _order("events_egg")]
+
+    # --- 成就 / 称号 / 周常 ---
+    ACHIEVEMENTS = [_ACH_DOM[k] for k in _order("achievements")]
+    # 称号 / 周常：域自带 `seq`（导出器注入 1 基源序），按它还原源序、再把 `seq` 去掉
+    TITLES = [_drop(v, "seq") for v in
+                    sorted(_TITLE_DOM.values(), key=lambda e: e["seq"])]
+    WEEKLY_QUESTS = [_drop(v, "seq") for v in
+                           sorted(_WEEKLY_DOM.values(), key=lambda e: e["seq"])]
+
+    # --- 怪技能 / 个体改造 ---
+    MONSTER_SKILLS = _ordered(_MSKILL_DOM, _order("monsters"), "monsters")
+    MONSTER_MODS = _ordered(_MODS_DOM, _order("monster_mods"), "monster_mods")
+
+    # --- 精英专属装备掉落（宿主 `ELITE_EQUIP_DROP`：键 = 精英怪**中文名** → 名册装备 id）---
+    ELITE_EQUIP_DROP = _elite_equip_drop()
+
+    # --- 试炼塔：层表 + 两个标量（常量与层表同在 game_config 域，但分属两个子表）---
+    _TRIAL_CFG = _CFG.get("trial_tower") or {}
+    TRIAL_DAILY_LIMIT = _TRIAL_CFG["TRIAL_DAILY_LIMIT"]
+    TRIAL_MAX_FLOOR = _TRIAL_CFG["TRIAL_MAX_FLOOR"]
+    # 层表按 floor 1..TRIAL_MAX_FLOOR 还原源序（域键是字符串 "1"/"10"/…，字面序会乱）
+    TRIAL_FLOORS = [_TRIAL_DOM[str(i)] for i in range(1, TRIAL_MAX_FLOOR + 1)]
+
+    # --- 职业流派（rules 域的 builds 子表：内层键序 = 源序，未被 sort_table 折叠）---
+    BUILDS = dict((_CFG.get("builds") or {}).get("BUILDS") or {})
+
+    # =============================================================================
+    # ④ 缺口的两个名字（不在此处定义 —— 定义成空值会让门禁把「缺口」当成「值不等」）
+    # =============================================================================
+    # 这两个名字在包内 66 域里**没有**等价数据源，故本单元不提供：
+    #   HIDDEN_MONSTERS  ← 宿主 game/data/hidden_monsters.py:18（25 条隐藏怪行）
+    #                      包内 `monster_roster` 有 `hidden` 子块（lv_off/gold_mult/cond/
+    #                      chance/tag/flavor 六字段，25/25 对得上），但它的 `name`/`skills`/
+    #                      `drops` 是**五处摆放表求并集**的投影（实测 19/25 与隐藏怪行不同），
+    #                      还原不了隐藏怪行原文 → 需新域 `hidden_monsters`（字段见报告）。
+    #   CHAPTER_PACK     ← 宿主 game/data/quest_add_v140.py:106（10 档章节礼包 list）
+    #                      包内无任何域含这批数据 → 需新域 `chapter_pack`（字段见报告）。
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=60)
+apply_replacements(_rebuild_view(), __package__)

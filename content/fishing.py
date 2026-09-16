@@ -17,7 +17,7 @@
 """
 import os
 import random
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -45,15 +45,9 @@ _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 _R = set_from_domains(_PKG_ROOT, ("fishing_spots", "fishing_pool"))
 
 
-FISHING_SPOTS: dict = _R.fishing_spots.all()
-# 源是 list（插入序参与抽样）→ 域里带注入字段 `seq`（1 基）→ 这里按 seq 还原成 list 并剥掉 seq
-# （剥掉后每条的字段与字段序 = 源条目原样，逐项对拍见 w1213_l5_probe.py P4）
-FISH_POOL: list = [{k: v for k, v in _e.items() if k != "seq"}
-                   for _e in sorted(_R.fishing_pool.all().values(), key=lambda x: x["seq"])]
+FISHING_SPOTS = placeholder("FISHING_SPOTS")
+FISH_POOL = placeholder("FISH_POOL")
 
-# ============================================================
-# ③ 宿主取件（模块级名字与真源逐名相同；正文零改动）
-# ============================================================
 from .catalog_rules import FISH_COLLECT   # ★ B16-W11d：包内门面（无域 → dump）          # v101.25i6 别名：= QUALITY_ORDER
 from .catalog_b143 import QUALITY_ORDER as FISH_QUALITY_ORDER   # ★ B16-W11d：真源 = `QUALITY_ORDER` 别名      # v184：垂钓档位/权重唯一真相源
 # ★ P5E-DELETE（2026-09-15，删壳批）：下面两行原为宿主句柄
@@ -202,3 +196,56 @@ def roll_collect_fish(spot_id: str | None = None, is_night: bool = False):
         if random.random() < cf["chance"]:
             return cf
     return None
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global FISHING_SPOTS, FISH_POOL
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        'FISHING_SPOTS': None, 'FISH_POOL': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    FISHING_SPOTS = _R.fishing_spots.all()
+    # 源是 list（插入序参与抽样）→ 域里带注入字段 `seq`（1 基）→ 这里按 seq 还原成 list 并剥掉 seq
+    # （剥掉后每条的字段与字段序 = 源条目原样，逐项对拍见 w1213_l5_probe.py P4）
+    FISH_POOL = [{k: v for k, v in _e.items() if k != "seq"}
+                       for _e in sorted(_R.fishing_pool.all().values(), key=lambda x: x["seq"])]
+
+    # ============================================================
+    # ③ 宿主取件（模块级名字与真源逐名相同；正文零改动）
+    # ============================================================
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=100)
+apply_replacements(_rebuild_view(), __package__)

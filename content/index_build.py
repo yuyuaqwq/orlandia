@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>/
@@ -251,3 +251,25 @@ def build_into(_indexes: dict, _host_getter=None) -> dict:
 
 
 __all__ = ["build_into", "GAP_TABLES", "GAP_SOURCES"]
+
+
+def _rebuild_view() -> list:
+    """重读 `equipment` 域 → 刷新缺口表来源台账 `GAP_SOURCES`（见文件头 ★ 视图）。
+
+    本模块的派生状态只有 `GAP_SOURCES`（`_gap_tables()` 的产物，探针/报告取证用）——
+    容器就地更新，身份不变。真正的名字索引重建在 `content/index.py` 的视图里（它是
+    `build_into` 的调用方，序排在所有内容门面之后：`content/gm.py` 的模块序台账）。
+
+    **不在 import 期自调**：原实现的 `GAP_SOURCES` 由 `build_into` 首次调用时才填、
+    import 期恒为 `{}`（本模块是 13 个派生模块里唯一 import 期零域读取的一个）——
+    视图只在重载时刷新它，import 期行为因此一字不变。
+    """
+    from . import catalog_b143 as _B143
+    from . import catalog_core as _CC
+    from . import catalog_items as _CI
+
+    update_in_place(GAP_SOURCES, _gap_tables(None, _B143, _CI, _CC))
+    return []
+
+
+register_view(_rebuild_view, order=150)

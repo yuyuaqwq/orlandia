@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import orders_of, set_from_domains
+from saintess_engine.records import apply_replacements, orders_of, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -127,206 +127,12 @@ _R = set_from_domains(_PKG_ROOT, (
 # ============================================================
 # rules/effect_rules.json（85 条，与 content/mech/params.py 读的是**同一份文件**）
 # 序 = 真源插入序（域落盘是字典序 ⇒ 序不可逆，只能在此显式声明；声明与域键集不符即 raise）
-EFFECT_RULES: dict = _R.effect_rules.all()
-
-# rules/game_config.json -> battle_rules 组
-BAR_STATE_PREFIX = _read_group("game_config", "rules", "battle_rules", "BAR_STATE_PREFIX")
-
-# rules/game_config.json -> formula_skeleton 组（**全量 9 段**；宿主 game/bootstrap.py 的
-# `_skeleton()` hook 供体读它。⚠️ 与 content/mech/params.py 的 FORMULA_SKELETON **不同物** ——
-# 后者是引擎切片用的 2 段子集，别拿它替这个）
-FORMULA_SKELETON: dict = _read_group("game_config", "rules", "formula_skeleton", "FORMULA_SKELETON", {}) or {}
-if isinstance(FORMULA_SKELETON.get("boss_atk_legacy"), dict):     # ← tuple 行还原
-    FORMULA_SKELETON["boss_atk_legacy"]["seg"] = _tupled_rows(
-        FORMULA_SKELETON["boss_atk_legacy"].get("seg"))
-
-# rules/game_config.json -> stat_templates 组（每档值 = tuple 行列表 → 还原）
-FIELD_TIER_MULT: dict = {k: _tupled_rows(v) for k, v in (
-    _read_group("game_config", "rules", "stat_templates", "FIELD_TIER_MULT", {}) or {}).items()}
-
-# data/drop_pools.json（596 池）
-DROP_POOLS: dict = _R.drop_pools.all()
-
-# rules/panel_rules.json -> base_growth 组（+ **linear_stats 还原 tuple**）
-_BASE_GROWTH: dict = _R.panel_rules.all().get("base_growth") or {}
-PLAYER_BASE_GROWTH: dict = dict(_BASE_GROWTH)
-if "linear_stats" in PLAYER_BASE_GROWTH:
-    PLAYER_BASE_GROWTH["linear_stats"] = tuple(PLAYER_BASE_GROWTH["linear_stats"] or ())
-
-# ============================================================
-# ② 派生（由包内 events 域现算；真源 = 宿主 `game/data/events.py` 的两条 sum）
-# ============================================================
-_EVENTS: dict = _R.events.all()
-
-
 def _weight_sum(source: str) -> int:
     """某池的权重和（域条目自带 `weight`；非 dict 条目跳过 —— 同真源只 sum 池条）。"""
     return sum(v["weight"] for v in _EVENTS.values()
                if isinstance(v, dict) and v.get("source") == source and "weight" in v)
 
 
-EVENT_WEIGHT_SUM = _weight_sum("explore")   # ← sum(e["weight"] for e in EXPLORE_EVENTS)
-EXPLORE_EGG_SUM = _weight_sum("egg")        # ← sum(e["weight"] for e in EXPLORE_EGG_EVENTS)
-
-
-# ============================================================
-# ③ 域常量（值原样；`game_config` 的组名 = 宿主源模块名）
-# ============================================================
-# ---- equipment 域（content/data/equipment.json · `equipment` 组 ← 宿主 game/data/equipment.py）----
-# WEAPON_TYPES ← equipment.py:49（武器类型 → 可用职业）
-WEAPON_TYPES: dict = _read_group("equipment", "data", "equipment", "WEAPON_TYPES", {}) or {}
-# WEAPON_NAME_SUFFIX ← equipment.py:76（武器类型 → 名后缀词）
-WEAPON_NAME_SUFFIX: dict = _read_group("equipment", "data", "equipment", "WEAPON_NAME_SUFFIX", {}) or {}
-# EQUIP_NAME_PREFIX ← equipment.py:166（品质 → 名前缀词）
-EQUIP_NAME_PREFIX: dict = _read_group("equipment", "data", "equipment", "EQUIP_NAME_PREFIX", {}) or {}
-# EQUIP_PREFIX_FLAVOR ← equipment.py:207（前缀词 → 数值加成）
-EQUIP_PREFIX_FLAVOR: dict = _read_group("equipment", "data", "equipment", "EQUIP_PREFIX_FLAVOR", {}) or {}
-# EQUIP_NAME_SUFFIX ← equipment.py:232（部位 → 名后缀词）
-EQUIP_NAME_SUFFIX: dict = _read_group("equipment", "data", "equipment", "EQUIP_NAME_SUFFIX", {}) or {}
-# AFFIX_FALLBACK ← equipment.py:293（词条 → 兜底数值区间）
-AFFIX_FALLBACK: dict = _read_group("equipment", "data", "equipment", "AFFIX_FALLBACK", {}) or {}
-# AFFIX_COUNT ← equipment.py:280（品质 → 词条条数；orange 是区间）
-AFFIX_COUNT: dict = _read_group("equipment", "data", "equipment", "AFFIX_COUNT", {}) or {}
-
-# ---- gems 域（content/data/gems.json · `gems` 组 ← 宿主 game/data/gems.py）----
-# GEM_STATS ← gems.py:23（可镶嵌属性池）
-GEM_STATS: list = _read_group("gems", "data", "gems", "GEM_STATS", []) or []
-# GEM_ITEM_TYPE ← gems.py:21（宝石物品类型名）
-GEM_ITEM_TYPE = _read_group("gems", "data", "gems", "GEM_ITEM_TYPE")
-# GEM_REMOVE_COST ← gems.py:39（拆卸手续费）
-GEM_REMOVE_COST = _read_group("gems", "data", "gems", "GEM_REMOVE_COST")
-# GEM_DROP_RATE ← gems.py:47（怪档 → 掉落率）
-GEM_DROP_RATE: dict = _read_group("gems", "data", "gems", "GEM_DROP_RATE", {}) or {}
-# GEM_DROP_TIER ← gems.py:54（怪档 → 掉落阶区间）—— 值是 **tuple** ⇒ 还原
-GEM_DROP_TIER: dict = {k: tuple(v) for k, v in (
-    _read_group("gems", "data", "gems", "GEM_DROP_TIER", {}) or {}).items()}
-# GEM_BOSS_FIXED ← gems.py:62（指定 Boss → 必掉宝石属性）
-GEM_BOSS_FIXED: dict = _read_group("gems", "data", "gems", "GEM_BOSS_FIXED", {}) or {}
-
-# ---- enchant 域（content/data/enchant.json · `enchant` 组 ← 宿主 game/data/enchant.py）----
-# ENCHANT_MAX_VALUE ← enchant.py:138（词条 → 单次附魔上限）
-ENCHANT_MAX_VALUE: dict = _read_group("enchant", "data", "enchant", "ENCHANT_MAX_VALUE", {}) or {}
-
-# ---- factions 域（content/data/factions.json · `factions` 组 ← 宿主 game/data/factions.py）----
-# FACTION_SHOP ← factions.py:34（阵营 → 声望商店货单）
-FACTION_SHOP: dict = _read_group("factions", "data", "factions", "FACTION_SHOP", {}) or {}
-# FACTION_CAMPS ← factions.py:76（阵营营地：名 / 图标 / 说明）
-FACTION_CAMPS: dict = _read_group("factions", "data", "factions", "FACTION_CAMPS", {}) or {}
-# FACTION_CAMP_OPEN_LV ← factions.py:88（营地解锁等级）
-FACTION_CAMP_OPEN_LV = _read_group("factions", "data", "factions", "FACTION_CAMP_OPEN_LV")
-# FACTION_CAMP_SWITCH_COOLDOWN ← factions.py:95（换阵营冷却秒）
-FACTION_CAMP_SWITCH_COOLDOWN = _read_group("factions", "data", "factions", "FACTION_CAMP_SWITCH_COOLDOWN")
-# FACTION_CAMP_DAILY_TASKS ← factions.py:116（营地日常任务）
-FACTION_CAMP_DAILY_TASKS: list = _read_group("factions", "data", "factions", "FACTION_CAMP_DAILY_TASKS", []) or []
-# FACTION_CAMP_DAILY_LIMIT ← factions.py:92（每日日常上限）
-FACTION_CAMP_DAILY_LIMIT = _read_group("factions", "data", "factions", "FACTION_CAMP_DAILY_LIMIT")
-# FACTION_CAMP_SHOP ← factions.py:101（营地商店货单）
-FACTION_CAMP_SHOP: list = _read_group("factions", "data", "factions", "FACTION_CAMP_SHOP", []) or []
-
-# ---- chapters 域（content/data/chapters.json · `quest_add_v140` 组）----
-# SUPPLY_BOX ← 宿主 game/data/quest_add_v140.py:121（每日补给箱 3 档）
-SUPPLY_BOX: list = _read_group("chapters", "data", "quest_add_v140", "SUPPLY_BOX", []) or []
-
-# ---- game_config 域 · events 组（宿主 game/data/events.py）----
-# EXPLORE_EGG_CHANCE ← events.py:1458（探索彩蛋 0.5% 独立触发闸门）
-EXPLORE_EGG_CHANCE = _read_group("game_config", "rules", "events", "EXPLORE_EGG_CHANCE")
-
-# ---- game_config 域 · sets 组（宿主 game/data/sets.py）----
-# SET_THEMES ← sets.py:3（品质 → 套装主题词）
-SET_THEMES: dict = _read_group("game_config", "rules", "sets", "SET_THEMES", {}) or {}
-# SET_CHANCE ← sets.py:24（品质 → 套装出现概率）
-SET_CHANCE: dict = _read_group("game_config", "rules", "sets", "SET_CHANCE", {}) or {}
-
-# ---- game_config 域 · equip_roster 组（宿主 game/data/equip_roster.py）----
-# SERIES_SETS ← equip_roster.py:510（系列 → 系列套名）
-SERIES_SETS: dict = _read_group("game_config", "rules", "equip_roster", "SERIES_SETS", {}) or {}
-
-# ---- game_config 域 · pois 组（宿主 game/data/pois.py）----
-# NOTE_POOL ← pois.py:352（note POI 线索文案池）
-NOTE_POOL: list = _read_group("game_config", "rules", "pois", "NOTE_POOL", []) or []
-# RUNE_POOL ← pois.py:359（rune POI 图鉴线索文案池）
-RUNE_POOL: list = _read_group("game_config", "rules", "pois", "RUNE_POOL", []) or []
-# SIGHT_POOL ← pois.py:367（sight POI 风景文案池）
-SIGHT_POOL: list = _read_group("game_config", "rules", "pois", "SIGHT_POOL", []) or []
-
-# ---- game_config 域 · set_bonus_data 组（宿主 game/data/set_bonus_data.py）----
-# SERIES_SET_BONUS ← set_bonus_data.py:35（系列 → 套装件数 → 加成）
-SERIES_SET_BONUS: dict = _read_group("game_config", "rules", "set_bonus_data", "SERIES_SET_BONUS", {}) or {}
-
-# ---- game_config 域 · affixes 组（宿主 game/data/affixes.py）----
-# AFFIX_AFFINITY_POOLS ← affixes.py:529（锻造倾向 → 词条池）
-AFFIX_AFFINITY_POOLS: dict = _read_group("game_config", "rules", "affixes", "AFFIX_AFFINITY_POOLS", {}) or {}
-# SERIES_FIXED_AFFIX ← affixes.py:1028（系列 / 装备名 → 固定词条）
-SERIES_FIXED_AFFIX: dict = _read_group("game_config", "rules", "affixes", "SERIES_FIXED_AFFIX", {}) or {}
-
-# ---- game_config 域 · fishing 组（宿主 game/data/fishing.py）----
-# FISH_QUALITY_WEIGHTS ← fishing.py:73（钓点等级 → 品质权重）—— 键是 **int** ⇒ 还原
-FISH_QUALITY_WEIGHTS: dict = _int_keys(
-    _read_group("game_config", "rules", "fishing", "FISH_QUALITY_WEIGHTS", {}) or {})
-
-# ---- game_config 域 · pets 组（宿主 game/data/pets.py）----
-# _PET_EGG_PRICE ← pets.py:133（品质 → 宠物蛋价）
-_PET_EGG_PRICE: dict = _read_group("game_config", "rules", "pets", "_PET_EGG_PRICE", {}) or {}
-# PET_EXP_GRADE ← pets.py:194（品质 → 经验加成曲线）
-PET_EXP_GRADE: dict = _read_group("game_config", "rules", "pets", "PET_EXP_GRADE", {}) or {}
-
-# ---- game_config 域 · props 组（宿主 game/data/props.py）----
-# SUBAREA_PROPS ← props.py:606（`地图:子区域` → 落点道具行）—— 行内是 **tuple** ⇒ 还原
-SUBAREA_PROPS: dict = {
-    k: [tuple(x) if isinstance(x, list) else x for x in (v or [])]
-    for k, v in (_read_group("game_config", "rules", "props", "SUBAREA_PROPS", {}) or {}).items()}
-
-# ---- game_config 域 · races 组（宿主 game/data/races.py）----
-# RACE_ATTACK_MULT ← races.py:115（性格 → 攻击系数）
-RACE_ATTACK_MULT: dict = _read_group("game_config", "rules", "races", "RACE_ATTACK_MULT", {}) or {}
-
-# ---- game_config 域 · daily_events 组（宿主 game/data/daily_events.py）----
-# DAILY_MAP_EVENTS ← daily_events.py:18（野外图 → 今日奇遇变体）
-DAILY_MAP_EVENTS: dict = _read_group("game_config", "rules", "daily_events", "DAILY_MAP_EVENTS", {}) or {}
-
-# ---- game_config 域 · wild_king_data 组（宿主 game/data/wild_king_data.py）----
-# WILD_KING_CHEST_TIERS ← wild_king_data.py:145（档位 → 宝箱奖励）
-WILD_KING_CHEST_TIERS: dict = _read_group(
-    "game_config", "rules", "wild_king_data", "WILD_KING_CHEST_TIERS", {}) or {}
-# WILD_KING_GLOBAL_LIMIT ← wild_king_data.py:34（全局同时存在上限）
-WILD_KING_GLOBAL_LIMIT = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_GLOBAL_LIMIT")
-# WILD_KING_LIFETIME_SEC ← wild_king_data.py:36（存活秒）
-WILD_KING_LIFETIME_SEC = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_LIFETIME_SEC")
-# WILD_KING_LOOT_PRIORITY_SEC ← wild_king_data.py:38（发现者优先拾取秒）
-WILD_KING_LOOT_PRIORITY_SEC = _read_group(
-    "game_config", "rules", "wild_king_data", "WILD_KING_LOOT_PRIORITY_SEC")
-# WILD_KING_MAPS ← wild_king_data.py:130（候选野外图）
-WILD_KING_MAPS: list = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_MAPS", []) or []
-# WILD_KING_NO_KILL_EXTRA ← wild_king_data.py:45（未击杀者的额外惩罚）
-WILD_KING_NO_KILL_EXTRA = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_NO_KILL_EXTRA")
-# WILD_KING_PERIODS ← wild_king_data.py:26（时段表）
-WILD_KING_PERIODS: list = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_PERIODS", []) or []
-# WILD_KING_PER_DAY_LIMIT ← wild_king_data.py:41（每日上限）
-WILD_KING_PER_DAY_LIMIT = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_PER_DAY_LIMIT")
-# WILD_KING_PER_PERIOD_LIMIT ← wild_king_data.py:40（每时段上限）
-WILD_KING_PER_PERIOD_LIMIT = _read_group(
-    "game_config", "rules", "wild_king_data", "WILD_KING_PER_PERIOD_LIMIT")
-# WILD_KING_PITY_PERIODS ← wild_king_data.py:43（保底时段数）
-WILD_KING_PITY_PERIODS = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_PITY_PERIODS")
-# WILD_KING_SPAWN_HOURS ← wild_king_data.py:47（刷新小时）—— 值是 **tuple** ⇒ 还原
-WILD_KING_SPAWN_HOURS: tuple = tuple(
-    _read_group("game_config", "rules", "wild_king_data", "WILD_KING_SPAWN_HOURS", ()) or ())
-# WILD_KING_PITY_VOUCHER_NAME ← wild_king_data.py:184（保底券名）
-WILD_KING_PITY_VOUCHER_NAME = _read_group(
-    "game_config", "rules", "wild_king_data", "WILD_KING_PITY_VOUCHER_NAME")
-
-# ---- game_config 域 · instances 组（宿主 game/data/instances.py）----
-# INSTANCE_BOSS_EQUIP_DROP ← instances.py:3686（副本 → Boss 装备掉落规则）
-INSTANCE_BOSS_EQUIP_DROP: dict = _read_group(
-    "game_config", "rules", "instances", "INSTANCE_BOSS_EQUIP_DROP", {}) or {}
-
-# ---- game_config 域 · battle_config 组（宿主 game/data/battle_config.py）----
-# ENEMY_BAR_CFG ← battle_config.py（敌方架势条配置；消费点 tests/test_numeric_bar_decay.py）
-ENEMY_BAR_CFG: dict = _read_group("game_config", "rules", "battle_config", "ENEMY_BAR_CFG")
-
-# ---- 既有读口的结果（同一份数据不在本模块再造一份）----
-# `craft` 域（content/data/craft.json）：条目带导出期注入的 `aliases`；真源插入序由
-# `catalog_life` 的 `_ORDER_CRAFT_RECIPES` 声明并带集合守卫 ⇒ 直接取那份结果。
 from .catalog_life import CRAFT_RECIPES, CRAFT_RECIPE_ALIASES      # noqa: E402
 # `game_config.fishing` 组（content/rules/game_config.json）
 from .catalog_b143 import FISH_COLLECT                             # noqa: E402
@@ -335,30 +141,81 @@ from .catalog_b143 import FISH_COLLECT                             # noqa: E402
 # ============================================================
 # ④ 遗留登记 —— 本模块的数据名全部有域（本格为空 = 无需登记）
 # ============================================================
-NOT_YET_DOMAINED: tuple = ()
+EFFECT_RULES = placeholder("EFFECT_RULES")
+BAR_STATE_PREFIX = placeholder("BAR_STATE_PREFIX")
+FORMULA_SKELETON = placeholder("FORMULA_SKELETON")
+FIELD_TIER_MULT = placeholder("FIELD_TIER_MULT")
+DROP_POOLS = placeholder("DROP_POOLS")
+_BASE_GROWTH = placeholder("_BASE_GROWTH")
+PLAYER_BASE_GROWTH = placeholder("PLAYER_BASE_GROWTH")
+_EVENTS = placeholder("_EVENTS")
+EVENT_WEIGHT_SUM = placeholder("EVENT_WEIGHT_SUM")
+EXPLORE_EGG_SUM = placeholder("EXPLORE_EGG_SUM")
+WEAPON_TYPES = placeholder("WEAPON_TYPES")
+WEAPON_NAME_SUFFIX = placeholder("WEAPON_NAME_SUFFIX")
+EQUIP_NAME_PREFIX = placeholder("EQUIP_NAME_PREFIX")
+EQUIP_PREFIX_FLAVOR = placeholder("EQUIP_PREFIX_FLAVOR")
+EQUIP_NAME_SUFFIX = placeholder("EQUIP_NAME_SUFFIX")
+AFFIX_FALLBACK = placeholder("AFFIX_FALLBACK")
+AFFIX_COUNT = placeholder("AFFIX_COUNT")
+GEM_STATS = placeholder("GEM_STATS")
+GEM_ITEM_TYPE = placeholder("GEM_ITEM_TYPE")
+GEM_REMOVE_COST = placeholder("GEM_REMOVE_COST")
+GEM_DROP_RATE = placeholder("GEM_DROP_RATE")
+GEM_DROP_TIER = placeholder("GEM_DROP_TIER")
+GEM_BOSS_FIXED = placeholder("GEM_BOSS_FIXED")
+ENCHANT_MAX_VALUE = placeholder("ENCHANT_MAX_VALUE")
+FACTION_SHOP = placeholder("FACTION_SHOP")
+FACTION_CAMPS = placeholder("FACTION_CAMPS")
+FACTION_CAMP_OPEN_LV = placeholder("FACTION_CAMP_OPEN_LV")
+FACTION_CAMP_SWITCH_COOLDOWN = placeholder("FACTION_CAMP_SWITCH_COOLDOWN")
+FACTION_CAMP_DAILY_TASKS = placeholder("FACTION_CAMP_DAILY_TASKS")
+FACTION_CAMP_DAILY_LIMIT = placeholder("FACTION_CAMP_DAILY_LIMIT")
+FACTION_CAMP_SHOP = placeholder("FACTION_CAMP_SHOP")
+SUPPLY_BOX = placeholder("SUPPLY_BOX")
+EXPLORE_EGG_CHANCE = placeholder("EXPLORE_EGG_CHANCE")
+SET_THEMES = placeholder("SET_THEMES")
+SET_CHANCE = placeholder("SET_CHANCE")
+SERIES_SETS = placeholder("SERIES_SETS")
+NOTE_POOL = placeholder("NOTE_POOL")
+RUNE_POOL = placeholder("RUNE_POOL")
+SIGHT_POOL = placeholder("SIGHT_POOL")
+SERIES_SET_BONUS = placeholder("SERIES_SET_BONUS")
+AFFIX_AFFINITY_POOLS = placeholder("AFFIX_AFFINITY_POOLS")
+SERIES_FIXED_AFFIX = placeholder("SERIES_FIXED_AFFIX")
+FISH_QUALITY_WEIGHTS = placeholder("FISH_QUALITY_WEIGHTS")
+_PET_EGG_PRICE = placeholder("_PET_EGG_PRICE")
+PET_EXP_GRADE = placeholder("PET_EXP_GRADE")
+SUBAREA_PROPS = placeholder("SUBAREA_PROPS")
+RACE_ATTACK_MULT = placeholder("RACE_ATTACK_MULT")
+DAILY_MAP_EVENTS = placeholder("DAILY_MAP_EVENTS")
+WILD_KING_CHEST_TIERS = placeholder("WILD_KING_CHEST_TIERS")
+WILD_KING_GLOBAL_LIMIT = placeholder("WILD_KING_GLOBAL_LIMIT")
+WILD_KING_LIFETIME_SEC = placeholder("WILD_KING_LIFETIME_SEC")
+WILD_KING_LOOT_PRIORITY_SEC = placeholder("WILD_KING_LOOT_PRIORITY_SEC")
+WILD_KING_MAPS = placeholder("WILD_KING_MAPS")
+WILD_KING_NO_KILL_EXTRA = placeholder("WILD_KING_NO_KILL_EXTRA")
+WILD_KING_PERIODS = placeholder("WILD_KING_PERIODS")
+WILD_KING_PER_DAY_LIMIT = placeholder("WILD_KING_PER_DAY_LIMIT")
+WILD_KING_PER_PERIOD_LIMIT = placeholder("WILD_KING_PER_PERIOD_LIMIT")
+WILD_KING_PITY_PERIODS = placeholder("WILD_KING_PITY_PERIODS")
+WILD_KING_SPAWN_HOURS = placeholder("WILD_KING_SPAWN_HOURS")
+WILD_KING_PITY_VOUCHER_NAME = placeholder("WILD_KING_PITY_VOUCHER_NAME")
+INSTANCE_BOSS_EQUIP_DROP = placeholder("INSTANCE_BOSS_EQUIP_DROP")
+ENEMY_BAR_CFG = placeholder("ENEMY_BAR_CFG")
+NOT_YET_DOMAINED = placeholder("NOT_YET_DOMAINED")
+EQUIP_SLOT_BASE = placeholder("EQUIP_SLOT_BASE")
+EQUIP_SLOT_SCALING = placeholder("EQUIP_SLOT_SCALING")
+MONSTER_EXP_BASE = placeholder("MONSTER_EXP_BASE")
+MONSTER_GOLD_BASE = placeholder("MONSTER_GOLD_BASE")
+MONSTER_ROLE_BASE = placeholder("MONSTER_ROLE_BASE")
+MONSTER_ROLE_GROWTH = placeholder("MONSTER_ROLE_GROWTH")
+NORMAL_HP_STAGE_MULT = placeholder("NORMAL_HP_STAGE_MULT")
+BOSS_ATK_STAGE_MULT = placeholder("BOSS_ATK_STAGE_MULT")
+INSTANCE_BOSS_ATK_STAGE_MULT = placeholder("INSTANCE_BOSS_ATK_STAGE_MULT")
+HP_STAGE_MULT = placeholder("HP_STAGE_MULT")
+ATK_STAGE_MULT = placeholder("ATK_STAGE_MULT")
 
-
-# =============================================================================
-# B14 收口追加（主 agent 2026-09-14）：`game_config.stat_templates` 13 键
-#   ← `content/stats.py:89-105` 的模块级取件（真源 `game/data/stat_templates.py`）
-#   删宿主 `game/data` 的**唯一 import 期阻塞**就是这一组；`FIELD_TIER_MULT` 本模块已有。
-# =============================================================================
-EQUIP_SLOT_BASE: dict = _read_group("game_config", "rules", "stat_templates", "EQUIP_SLOT_BASE", {}) or {}
-EQUIP_SLOT_SCALING: dict = _read_group("game_config", "rules", "stat_templates", "EQUIP_SLOT_SCALING", {}) or {}
-MONSTER_EXP_BASE: dict = _read_group("game_config", "rules", "stat_templates", "MONSTER_EXP_BASE", {}) or {}
-MONSTER_GOLD_BASE: dict = _read_group("game_config", "rules", "stat_templates", "MONSTER_GOLD_BASE", {}) or {}
-MONSTER_ROLE_BASE: dict = _read_group("game_config", "rules", "stat_templates", "MONSTER_ROLE_BASE", {}) or {}
-MONSTER_ROLE_GROWTH: dict = _read_group("game_config", "rules", "stat_templates", "MONSTER_ROLE_GROWTH", {}) or {}
-# ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
-NORMAL_HP_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "NORMAL_HP_STAGE_MULT", {}) or {})
-# ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
-BOSS_ATK_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "BOSS_ATK_STAGE_MULT", {}) or {})
-# ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
-INSTANCE_BOSS_ATK_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "INSTANCE_BOSS_ATK_STAGE_MULT", {}) or {})
-# ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
-HP_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "HP_STAGE_MULT", {}) or {})
-# ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
-ATK_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "ATK_STAGE_MULT", {}) or {})
 MONSTER_ROLE_MODS: dict = _read_group("game_config", "rules", "stat_templates", "MONSTER_ROLE_MODS", {}) or {}
 
 
@@ -459,3 +316,298 @@ def missing_domains() -> list:
 # =============================================================================
 from .prof_config import gather_map_min_lv, price_band  # noqa: F401
 from .refine_exclusive import merge_into  # noqa: F401
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global EFFECT_RULES, BAR_STATE_PREFIX, FORMULA_SKELETON, FIELD_TIER_MULT
+    global DROP_POOLS, _BASE_GROWTH, PLAYER_BASE_GROWTH, _EVENTS
+    global EVENT_WEIGHT_SUM, EXPLORE_EGG_SUM, WEAPON_TYPES, WEAPON_NAME_SUFFIX
+    global EQUIP_NAME_PREFIX, EQUIP_PREFIX_FLAVOR, EQUIP_NAME_SUFFIX, AFFIX_FALLBACK
+    global AFFIX_COUNT, GEM_STATS, GEM_ITEM_TYPE, GEM_REMOVE_COST
+    global GEM_DROP_RATE, GEM_DROP_TIER, GEM_BOSS_FIXED, ENCHANT_MAX_VALUE
+    global FACTION_SHOP, FACTION_CAMPS, FACTION_CAMP_OPEN_LV, FACTION_CAMP_SWITCH_COOLDOWN
+    global FACTION_CAMP_DAILY_TASKS, FACTION_CAMP_DAILY_LIMIT, FACTION_CAMP_SHOP, SUPPLY_BOX
+    global EXPLORE_EGG_CHANCE, SET_THEMES, SET_CHANCE, SERIES_SETS
+    global NOTE_POOL, RUNE_POOL, SIGHT_POOL, SERIES_SET_BONUS
+    global AFFIX_AFFINITY_POOLS, SERIES_FIXED_AFFIX, FISH_QUALITY_WEIGHTS, _PET_EGG_PRICE
+    global PET_EXP_GRADE, SUBAREA_PROPS, RACE_ATTACK_MULT, DAILY_MAP_EVENTS
+    global WILD_KING_CHEST_TIERS, WILD_KING_GLOBAL_LIMIT, WILD_KING_LIFETIME_SEC, WILD_KING_LOOT_PRIORITY_SEC
+    global WILD_KING_MAPS, WILD_KING_NO_KILL_EXTRA, WILD_KING_PERIODS, WILD_KING_PER_DAY_LIMIT
+    global WILD_KING_PER_PERIOD_LIMIT, WILD_KING_PITY_PERIODS, WILD_KING_SPAWN_HOURS, WILD_KING_PITY_VOUCHER_NAME
+    global INSTANCE_BOSS_EQUIP_DROP, ENEMY_BAR_CFG, NOT_YET_DOMAINED, EQUIP_SLOT_BASE
+    global EQUIP_SLOT_SCALING, MONSTER_EXP_BASE, MONSTER_GOLD_BASE, MONSTER_ROLE_BASE
+    global MONSTER_ROLE_GROWTH, NORMAL_HP_STAGE_MULT, BOSS_ATK_STAGE_MULT, INSTANCE_BOSS_ATK_STAGE_MULT
+    global HP_STAGE_MULT, ATK_STAGE_MULT
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        'EFFECT_RULES': None, 'BAR_STATE_PREFIX': None, 'FORMULA_SKELETON': None, 'FIELD_TIER_MULT': None,
+        'DROP_POOLS': None, '_BASE_GROWTH': None, 'PLAYER_BASE_GROWTH': None, '_EVENTS': None,
+        'EVENT_WEIGHT_SUM': None, 'EXPLORE_EGG_SUM': None, 'WEAPON_TYPES': None, 'WEAPON_NAME_SUFFIX': None,
+        'EQUIP_NAME_PREFIX': None, 'EQUIP_PREFIX_FLAVOR': None, 'EQUIP_NAME_SUFFIX': None, 'AFFIX_FALLBACK': None,
+        'AFFIX_COUNT': None, 'GEM_STATS': None, 'GEM_ITEM_TYPE': None, 'GEM_REMOVE_COST': None,
+        'GEM_DROP_RATE': None, 'GEM_DROP_TIER': None, 'GEM_BOSS_FIXED': None, 'ENCHANT_MAX_VALUE': None,
+        'FACTION_SHOP': None, 'FACTION_CAMPS': None, 'FACTION_CAMP_OPEN_LV': None, 'FACTION_CAMP_SWITCH_COOLDOWN': None,
+        'FACTION_CAMP_DAILY_TASKS': None, 'FACTION_CAMP_DAILY_LIMIT': None, 'FACTION_CAMP_SHOP': None, 'SUPPLY_BOX': None,
+        'EXPLORE_EGG_CHANCE': None, 'SET_THEMES': None, 'SET_CHANCE': None, 'SERIES_SETS': None,
+        'NOTE_POOL': None, 'RUNE_POOL': None, 'SIGHT_POOL': None, 'SERIES_SET_BONUS': None,
+        'AFFIX_AFFINITY_POOLS': None, 'SERIES_FIXED_AFFIX': None, 'FISH_QUALITY_WEIGHTS': None, '_PET_EGG_PRICE': None,
+        'PET_EXP_GRADE': None, 'SUBAREA_PROPS': None, 'RACE_ATTACK_MULT': None, 'DAILY_MAP_EVENTS': None,
+        'WILD_KING_CHEST_TIERS': None, 'WILD_KING_GLOBAL_LIMIT': None, 'WILD_KING_LIFETIME_SEC': None, 'WILD_KING_LOOT_PRIORITY_SEC': None,
+        'WILD_KING_MAPS': None, 'WILD_KING_NO_KILL_EXTRA': None, 'WILD_KING_PERIODS': None, 'WILD_KING_PER_DAY_LIMIT': None,
+        'WILD_KING_PER_PERIOD_LIMIT': None, 'WILD_KING_PITY_PERIODS': None, 'WILD_KING_SPAWN_HOURS': None, 'WILD_KING_PITY_VOUCHER_NAME': None,
+        'INSTANCE_BOSS_EQUIP_DROP': None, 'ENEMY_BAR_CFG': None, 'NOT_YET_DOMAINED': None, 'EQUIP_SLOT_BASE': None,
+        'EQUIP_SLOT_SCALING': None, 'MONSTER_EXP_BASE': None, 'MONSTER_GOLD_BASE': None, 'MONSTER_ROLE_BASE': None,
+        'MONSTER_ROLE_GROWTH': None, 'NORMAL_HP_STAGE_MULT': None, 'BOSS_ATK_STAGE_MULT': None, 'INSTANCE_BOSS_ATK_STAGE_MULT': None,
+        'HP_STAGE_MULT': None, 'ATK_STAGE_MULT': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    EFFECT_RULES = _R.effect_rules.all()
+
+    # rules/game_config.json -> battle_rules 组
+    BAR_STATE_PREFIX = _read_group("game_config", "rules", "battle_rules", "BAR_STATE_PREFIX")
+
+    # rules/game_config.json -> formula_skeleton 组（**全量 9 段**；宿主 game/bootstrap.py 的
+    # `_skeleton()` hook 供体读它。⚠️ 与 content/mech/params.py 的 FORMULA_SKELETON **不同物** ——
+    # 后者是引擎切片用的 2 段子集，别拿它替这个）
+    FORMULA_SKELETON = _read_group("game_config", "rules", "formula_skeleton", "FORMULA_SKELETON", {}) or {}
+    if isinstance(FORMULA_SKELETON.get("boss_atk_legacy"), dict):     # ← tuple 行还原
+        FORMULA_SKELETON["boss_atk_legacy"]["seg"] = _tupled_rows(
+            FORMULA_SKELETON["boss_atk_legacy"].get("seg"))
+
+    # rules/game_config.json -> stat_templates 组（每档值 = tuple 行列表 → 还原）
+    FIELD_TIER_MULT = {k: _tupled_rows(v) for k, v in (
+        _read_group("game_config", "rules", "stat_templates", "FIELD_TIER_MULT", {}) or {}).items()}
+
+    # data/drop_pools.json（596 池）
+    DROP_POOLS = _R.drop_pools.all()
+
+    # rules/panel_rules.json -> base_growth 组（+ **linear_stats 还原 tuple**）
+    _BASE_GROWTH = _R.panel_rules.all().get("base_growth") or {}
+    PLAYER_BASE_GROWTH = dict(_BASE_GROWTH)
+    if "linear_stats" in PLAYER_BASE_GROWTH:
+        PLAYER_BASE_GROWTH["linear_stats"] = tuple(PLAYER_BASE_GROWTH["linear_stats"] or ())
+
+    # ============================================================
+    # ② 派生（由包内 events 域现算；真源 = 宿主 `game/data/events.py` 的两条 sum）
+    # ============================================================
+    _EVENTS = _R.events.all()
+
+    EVENT_WEIGHT_SUM = _weight_sum("explore")   # ← sum(e["weight"] for e in EXPLORE_EVENTS)
+    EXPLORE_EGG_SUM = _weight_sum("egg")        # ← sum(e["weight"] for e in EXPLORE_EGG_EVENTS)
+
+    # ============================================================
+    # ③ 域常量（值原样；`game_config` 的组名 = 宿主源模块名）
+    # ============================================================
+    # ---- equipment 域（content/data/equipment.json · `equipment` 组 ← 宿主 game/data/equipment.py）----
+    # WEAPON_TYPES ← equipment.py:49（武器类型 → 可用职业）
+    WEAPON_TYPES = _read_group("equipment", "data", "equipment", "WEAPON_TYPES", {}) or {}
+    # WEAPON_NAME_SUFFIX ← equipment.py:76（武器类型 → 名后缀词）
+    WEAPON_NAME_SUFFIX = _read_group("equipment", "data", "equipment", "WEAPON_NAME_SUFFIX", {}) or {}
+    # EQUIP_NAME_PREFIX ← equipment.py:166（品质 → 名前缀词）
+    EQUIP_NAME_PREFIX = _read_group("equipment", "data", "equipment", "EQUIP_NAME_PREFIX", {}) or {}
+    # EQUIP_PREFIX_FLAVOR ← equipment.py:207（前缀词 → 数值加成）
+    EQUIP_PREFIX_FLAVOR = _read_group("equipment", "data", "equipment", "EQUIP_PREFIX_FLAVOR", {}) or {}
+    # EQUIP_NAME_SUFFIX ← equipment.py:232（部位 → 名后缀词）
+    EQUIP_NAME_SUFFIX = _read_group("equipment", "data", "equipment", "EQUIP_NAME_SUFFIX", {}) or {}
+    # AFFIX_FALLBACK ← equipment.py:293（词条 → 兜底数值区间）
+    AFFIX_FALLBACK = _read_group("equipment", "data", "equipment", "AFFIX_FALLBACK", {}) or {}
+    # AFFIX_COUNT ← equipment.py:280（品质 → 词条条数；orange 是区间）
+    AFFIX_COUNT = _read_group("equipment", "data", "equipment", "AFFIX_COUNT", {}) or {}
+
+    # ---- gems 域（content/data/gems.json · `gems` 组 ← 宿主 game/data/gems.py）----
+    # GEM_STATS ← gems.py:23（可镶嵌属性池）
+    GEM_STATS = _read_group("gems", "data", "gems", "GEM_STATS", []) or []
+    # GEM_ITEM_TYPE ← gems.py:21（宝石物品类型名）
+    GEM_ITEM_TYPE = _read_group("gems", "data", "gems", "GEM_ITEM_TYPE")
+    # GEM_REMOVE_COST ← gems.py:39（拆卸手续费）
+    GEM_REMOVE_COST = _read_group("gems", "data", "gems", "GEM_REMOVE_COST")
+    # GEM_DROP_RATE ← gems.py:47（怪档 → 掉落率）
+    GEM_DROP_RATE = _read_group("gems", "data", "gems", "GEM_DROP_RATE", {}) or {}
+    # GEM_DROP_TIER ← gems.py:54（怪档 → 掉落阶区间）—— 值是 **tuple** ⇒ 还原
+    GEM_DROP_TIER = {k: tuple(v) for k, v in (
+        _read_group("gems", "data", "gems", "GEM_DROP_TIER", {}) or {}).items()}
+    # GEM_BOSS_FIXED ← gems.py:62（指定 Boss → 必掉宝石属性）
+    GEM_BOSS_FIXED = _read_group("gems", "data", "gems", "GEM_BOSS_FIXED", {}) or {}
+
+    # ---- enchant 域（content/data/enchant.json · `enchant` 组 ← 宿主 game/data/enchant.py）----
+    # ENCHANT_MAX_VALUE ← enchant.py:138（词条 → 单次附魔上限）
+    ENCHANT_MAX_VALUE = _read_group("enchant", "data", "enchant", "ENCHANT_MAX_VALUE", {}) or {}
+
+    # ---- factions 域（content/data/factions.json · `factions` 组 ← 宿主 game/data/factions.py）----
+    # FACTION_SHOP ← factions.py:34（阵营 → 声望商店货单）
+    FACTION_SHOP = _read_group("factions", "data", "factions", "FACTION_SHOP", {}) or {}
+    # FACTION_CAMPS ← factions.py:76（阵营营地：名 / 图标 / 说明）
+    FACTION_CAMPS = _read_group("factions", "data", "factions", "FACTION_CAMPS", {}) or {}
+    # FACTION_CAMP_OPEN_LV ← factions.py:88（营地解锁等级）
+    FACTION_CAMP_OPEN_LV = _read_group("factions", "data", "factions", "FACTION_CAMP_OPEN_LV")
+    # FACTION_CAMP_SWITCH_COOLDOWN ← factions.py:95（换阵营冷却秒）
+    FACTION_CAMP_SWITCH_COOLDOWN = _read_group("factions", "data", "factions", "FACTION_CAMP_SWITCH_COOLDOWN")
+    # FACTION_CAMP_DAILY_TASKS ← factions.py:116（营地日常任务）
+    FACTION_CAMP_DAILY_TASKS = _read_group("factions", "data", "factions", "FACTION_CAMP_DAILY_TASKS", []) or []
+    # FACTION_CAMP_DAILY_LIMIT ← factions.py:92（每日日常上限）
+    FACTION_CAMP_DAILY_LIMIT = _read_group("factions", "data", "factions", "FACTION_CAMP_DAILY_LIMIT")
+    # FACTION_CAMP_SHOP ← factions.py:101（营地商店货单）
+    FACTION_CAMP_SHOP = _read_group("factions", "data", "factions", "FACTION_CAMP_SHOP", []) or []
+
+    # ---- chapters 域（content/data/chapters.json · `quest_add_v140` 组）----
+    # SUPPLY_BOX ← 宿主 game/data/quest_add_v140.py:121（每日补给箱 3 档）
+    SUPPLY_BOX = _read_group("chapters", "data", "quest_add_v140", "SUPPLY_BOX", []) or []
+
+    # ---- game_config 域 · events 组（宿主 game/data/events.py）----
+    # EXPLORE_EGG_CHANCE ← events.py:1458（探索彩蛋 0.5% 独立触发闸门）
+    EXPLORE_EGG_CHANCE = _read_group("game_config", "rules", "events", "EXPLORE_EGG_CHANCE")
+
+    # ---- game_config 域 · sets 组（宿主 game/data/sets.py）----
+    # SET_THEMES ← sets.py:3（品质 → 套装主题词）
+    SET_THEMES = _read_group("game_config", "rules", "sets", "SET_THEMES", {}) or {}
+    # SET_CHANCE ← sets.py:24（品质 → 套装出现概率）
+    SET_CHANCE = _read_group("game_config", "rules", "sets", "SET_CHANCE", {}) or {}
+
+    # ---- game_config 域 · equip_roster 组（宿主 game/data/equip_roster.py）----
+    # SERIES_SETS ← equip_roster.py:510（系列 → 系列套名）
+    SERIES_SETS = _read_group("game_config", "rules", "equip_roster", "SERIES_SETS", {}) or {}
+
+    # ---- game_config 域 · pois 组（宿主 game/data/pois.py）----
+    # NOTE_POOL ← pois.py:352（note POI 线索文案池）
+    NOTE_POOL = _read_group("game_config", "rules", "pois", "NOTE_POOL", []) or []
+    # RUNE_POOL ← pois.py:359（rune POI 图鉴线索文案池）
+    RUNE_POOL = _read_group("game_config", "rules", "pois", "RUNE_POOL", []) or []
+    # SIGHT_POOL ← pois.py:367（sight POI 风景文案池）
+    SIGHT_POOL = _read_group("game_config", "rules", "pois", "SIGHT_POOL", []) or []
+
+    # ---- game_config 域 · set_bonus_data 组（宿主 game/data/set_bonus_data.py）----
+    # SERIES_SET_BONUS ← set_bonus_data.py:35（系列 → 套装件数 → 加成）
+    SERIES_SET_BONUS = _read_group("game_config", "rules", "set_bonus_data", "SERIES_SET_BONUS", {}) or {}
+
+    # ---- game_config 域 · affixes 组（宿主 game/data/affixes.py）----
+    # AFFIX_AFFINITY_POOLS ← affixes.py:529（锻造倾向 → 词条池）
+    AFFIX_AFFINITY_POOLS = _read_group("game_config", "rules", "affixes", "AFFIX_AFFINITY_POOLS", {}) or {}
+    # SERIES_FIXED_AFFIX ← affixes.py:1028（系列 / 装备名 → 固定词条）
+    SERIES_FIXED_AFFIX = _read_group("game_config", "rules", "affixes", "SERIES_FIXED_AFFIX", {}) or {}
+
+    # ---- game_config 域 · fishing 组（宿主 game/data/fishing.py）----
+    # FISH_QUALITY_WEIGHTS ← fishing.py:73（钓点等级 → 品质权重）—— 键是 **int** ⇒ 还原
+    FISH_QUALITY_WEIGHTS = _int_keys(
+        _read_group("game_config", "rules", "fishing", "FISH_QUALITY_WEIGHTS", {}) or {})
+
+    # ---- game_config 域 · pets 组（宿主 game/data/pets.py）----
+    # _PET_EGG_PRICE ← pets.py:133（品质 → 宠物蛋价）
+    _PET_EGG_PRICE = _read_group("game_config", "rules", "pets", "_PET_EGG_PRICE", {}) or {}
+    # PET_EXP_GRADE ← pets.py:194（品质 → 经验加成曲线）
+    PET_EXP_GRADE = _read_group("game_config", "rules", "pets", "PET_EXP_GRADE", {}) or {}
+
+    # ---- game_config 域 · props 组（宿主 game/data/props.py）----
+    # SUBAREA_PROPS ← props.py:606（`地图:子区域` → 落点道具行）—— 行内是 **tuple** ⇒ 还原
+    SUBAREA_PROPS = {
+        k: [tuple(x) if isinstance(x, list) else x for x in (v or [])]
+        for k, v in (_read_group("game_config", "rules", "props", "SUBAREA_PROPS", {}) or {}).items()}
+
+    # ---- game_config 域 · races 组（宿主 game/data/races.py）----
+    # RACE_ATTACK_MULT ← races.py:115（性格 → 攻击系数）
+    RACE_ATTACK_MULT = _read_group("game_config", "rules", "races", "RACE_ATTACK_MULT", {}) or {}
+
+    # ---- game_config 域 · daily_events 组（宿主 game/data/daily_events.py）----
+    # DAILY_MAP_EVENTS ← daily_events.py:18（野外图 → 今日奇遇变体）
+    DAILY_MAP_EVENTS = _read_group("game_config", "rules", "daily_events", "DAILY_MAP_EVENTS", {}) or {}
+
+    # ---- game_config 域 · wild_king_data 组（宿主 game/data/wild_king_data.py）----
+    # WILD_KING_CHEST_TIERS ← wild_king_data.py:145（档位 → 宝箱奖励）
+    WILD_KING_CHEST_TIERS = _read_group(
+        "game_config", "rules", "wild_king_data", "WILD_KING_CHEST_TIERS", {}) or {}
+    # WILD_KING_GLOBAL_LIMIT ← wild_king_data.py:34（全局同时存在上限）
+    WILD_KING_GLOBAL_LIMIT = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_GLOBAL_LIMIT")
+    # WILD_KING_LIFETIME_SEC ← wild_king_data.py:36（存活秒）
+    WILD_KING_LIFETIME_SEC = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_LIFETIME_SEC")
+    # WILD_KING_LOOT_PRIORITY_SEC ← wild_king_data.py:38（发现者优先拾取秒）
+    WILD_KING_LOOT_PRIORITY_SEC = _read_group(
+        "game_config", "rules", "wild_king_data", "WILD_KING_LOOT_PRIORITY_SEC")
+    # WILD_KING_MAPS ← wild_king_data.py:130（候选野外图）
+    WILD_KING_MAPS = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_MAPS", []) or []
+    # WILD_KING_NO_KILL_EXTRA ← wild_king_data.py:45（未击杀者的额外惩罚）
+    WILD_KING_NO_KILL_EXTRA = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_NO_KILL_EXTRA")
+    # WILD_KING_PERIODS ← wild_king_data.py:26（时段表）
+    WILD_KING_PERIODS = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_PERIODS", []) or []
+    # WILD_KING_PER_DAY_LIMIT ← wild_king_data.py:41（每日上限）
+    WILD_KING_PER_DAY_LIMIT = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_PER_DAY_LIMIT")
+    # WILD_KING_PER_PERIOD_LIMIT ← wild_king_data.py:40（每时段上限）
+    WILD_KING_PER_PERIOD_LIMIT = _read_group(
+        "game_config", "rules", "wild_king_data", "WILD_KING_PER_PERIOD_LIMIT")
+    # WILD_KING_PITY_PERIODS ← wild_king_data.py:43（保底时段数）
+    WILD_KING_PITY_PERIODS = _read_group("game_config", "rules", "wild_king_data", "WILD_KING_PITY_PERIODS")
+    # WILD_KING_SPAWN_HOURS ← wild_king_data.py:47（刷新小时）—— 值是 **tuple** ⇒ 还原
+    WILD_KING_SPAWN_HOURS = tuple(
+        _read_group("game_config", "rules", "wild_king_data", "WILD_KING_SPAWN_HOURS", ()) or ())
+    # WILD_KING_PITY_VOUCHER_NAME ← wild_king_data.py:184（保底券名）
+    WILD_KING_PITY_VOUCHER_NAME = _read_group(
+        "game_config", "rules", "wild_king_data", "WILD_KING_PITY_VOUCHER_NAME")
+
+    # ---- game_config 域 · instances 组（宿主 game/data/instances.py）----
+    # INSTANCE_BOSS_EQUIP_DROP ← instances.py:3686（副本 → Boss 装备掉落规则）
+    INSTANCE_BOSS_EQUIP_DROP = _read_group(
+        "game_config", "rules", "instances", "INSTANCE_BOSS_EQUIP_DROP", {}) or {}
+
+    # ---- game_config 域 · battle_config 组（宿主 game/data/battle_config.py）----
+    # ENEMY_BAR_CFG ← battle_config.py（敌方架势条配置；消费点 tests/test_numeric_bar_decay.py）
+    ENEMY_BAR_CFG = _read_group("game_config", "rules", "battle_config", "ENEMY_BAR_CFG")
+
+    # ---- 既有读口的结果（同一份数据不在本模块再造一份）----
+    # `craft` 域（content/data/craft.json）：条目带导出期注入的 `aliases`；真源插入序由
+    # `catalog_life` 的 `_ORDER_CRAFT_RECIPES` 声明并带集合守卫 ⇒ 直接取那份结果。
+    NOT_YET_DOMAINED = ()
+
+    # =============================================================================
+    # B14 收口追加（主 agent 2026-09-14）：`game_config.stat_templates` 13 键
+    #   ← `content/stats.py:89-105` 的模块级取件（真源 `game/data/stat_templates.py`）
+    #   删宿主 `game/data` 的**唯一 import 期阻塞**就是这一组；`FIELD_TIER_MULT` 本模块已有。
+    # =============================================================================
+    EQUIP_SLOT_BASE = _read_group("game_config", "rules", "stat_templates", "EQUIP_SLOT_BASE", {}) or {}
+    EQUIP_SLOT_SCALING = _read_group("game_config", "rules", "stat_templates", "EQUIP_SLOT_SCALING", {}) or {}
+    MONSTER_EXP_BASE = _read_group("game_config", "rules", "stat_templates", "MONSTER_EXP_BASE", {}) or {}
+    MONSTER_GOLD_BASE = _read_group("game_config", "rules", "stat_templates", "MONSTER_GOLD_BASE", {}) or {}
+    MONSTER_ROLE_BASE = _read_group("game_config", "rules", "stat_templates", "MONSTER_ROLE_BASE", {}) or {}
+    MONSTER_ROLE_GROWTH = _read_group("game_config", "rules", "stat_templates", "MONSTER_ROLE_GROWTH", {}) or {}
+    # ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
+    NORMAL_HP_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "NORMAL_HP_STAGE_MULT", {}) or {})
+    # ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
+    BOSS_ATK_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "BOSS_ATK_STAGE_MULT", {}) or {})
+    # ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
+    INSTANCE_BOSS_ATK_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "INSTANCE_BOSS_ATK_STAGE_MULT", {}) or {})
+    # ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
+    HP_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "HP_STAGE_MULT", {}) or {})
+    # ⚠️ 真源是 list[tuple]（JSON 落盘只剩 list）→ 必须 `_tupled_rows` 还原，否则类型不等
+    ATK_STAGE_MULT = _tupled_rows(_read_group("game_config", "rules", "stat_templates", "ATK_STAGE_MULT", {}) or {})
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=80)
+apply_replacements(_rebuild_view(), __package__)

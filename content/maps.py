@@ -61,7 +61,7 @@ from __future__ import annotations
 import os
 import sys
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -72,17 +72,10 @@ _R = set_from_domains(_PKG_ROOT, ("maps", "subareas"))
 
 
 # maps 域（图内形状）：{map_id: {name, roles, nodes:[{id,name,role}], topology, links?}}
-_MAPS: dict = _R.maps.all()
-# subareas 域（房间内容）：{subarea_id: 源行原样 + 注入 map}
-_SUBS: dict = _R.subareas.all()
+_MAPS = placeholder("_MAPS")
+_SUBS = placeholder("_SUBS")
+_DOM_ROLES = placeholder("_DOM_ROLES")
 
-# `roles` 兜底（域里每张图都带 `roles`，实测 121/121 同值 —— 取第一个非空的当兜底，防单图缺键）
-_DOM_ROLES: dict = next((e.get("roles") for e in _MAPS.values() if e.get("roles")), {})
-
-
-# ============================================================
-# 宿主替身口（`db` / `data`）—— 正文 `db.xxx(...)` 一行未改
-# ============================================================
 HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
 HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
 from saintess_engine.wire import Wire
@@ -421,3 +414,57 @@ __all__ = [
     # B15-W9：4 张装配期派生表（落点 = 包内本模块；宿主同名对象只做兼容镜像）
     "MONSTER_LOCS", "ENCY_MAP_MONSTERS", "ENCY_MONSTER_MAP", "ENCY_MATERIAL_SOURCE",
 ]
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _MAPS, _SUBS, _DOM_ROLES
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_MAPS': None, '_SUBS': None, '_DOM_ROLES': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _MAPS = _R.maps.all()
+    # subareas 域（房间内容）：{subarea_id: 源行原样 + 注入 map}
+    _SUBS = _R.subareas.all()
+
+    # `roles` 兜底（域里每张图都带 `roles`，实测 121/121 同值 —— 取第一个非空的当兜底，防单图缺键）
+    _DOM_ROLES = next((e.get("roles") for e in _MAPS.values() if e.get("roles")), {})
+
+    # ============================================================
+    # 宿主替身口（`db` / `data`）—— 正文 `db.xxx(...)` 一行未改
+    # ============================================================
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=120)
+apply_replacements(_rebuild_view(), __package__)

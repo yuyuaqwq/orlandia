@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import orders_of, set_from_domains
+from saintess_engine.records import apply_replacements, orders_of, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -93,80 +93,7 @@ from content.tables import resolve_job as resolve_job  # noqa: F401  包内模�
 # ② 包内域读口（content/rules/game_config.json 各组；对拍全等）
 # ============================================================
 # ---- game_config.battle_config（14 名）
-BOSS_ATTACK_MULTS = _R.game_config.get("battle_config", {}).get("BOSS_ATTACK_MULTS") or {}
-CONTROL_MECHS = _R.game_config.get("battle_config", {}).get("CONTROL_MECHS") or ()
-DOT_ADAPT_DECAY_STEP = _R.game_config.get("battle_config", {}).get("DOT_ADAPT_DECAY_STEP")
-DOT_BLEED_DOUBLE_HP_PCT = _R.game_config.get("battle_config", {}).get("DOT_BLEED_DOUBLE_HP_PCT")
-DOT_DEFS = _R.game_config.get("battle_config", {}).get("DOT_DEFS") or {}
-DOT_RESIST_CAP = _R.game_config.get("battle_config", {}).get("DOT_RESIST_CAP")
-MECH_COMBO_STACKS = _R.game_config.get("battle_config", {}).get("MECH_COMBO_STACKS") or ()
-MECH_FROZEN_MULT = _R.game_config.get("battle_config", {}).get("MECH_FROZEN_MULT") or {}
-MECH_FULL_HP_CRIT = _R.game_config.get("battle_config", {}).get("MECH_FULL_HP_CRIT") or ()
-MECH_PROC_GROUPS = _R.game_config.get("battle_config", {}).get("MECH_PROC_GROUPS") or {}
-MECH_STACK_BONUS = _R.game_config.get("battle_config", {}).get("MECH_STACK_BONUS") or {}
-MECH_STACK_WHITELIST = _R.game_config.get("battle_config", {}).get("MECH_STACK_WHITELIST") or ()
-MECH_STAT_PASSIVES = _R.game_config.get("battle_config", {}).get("MECH_STAT_PASSIVES") or {}
-SKILL_CC_WHITELIST = _R.game_config.get("battle_config", {}).get("SKILL_CC_WHITELIST") or ()
-
-# ---- game_config.gather_pools（3 名）
-GATHER_MAP_POOLS = _R.game_config.get("gather_pools", {}).get("GATHER_MAP_POOLS") or {}
-GATHER_COND_POOLS = _R.game_config.get("gather_pools", {}).get("GATHER_COND_POOLS") or {}
-MINING_DEEP_POOLS = _R.game_config.get("gather_pools", {}).get("MINING_DEEP_POOLS") or {}
-
-# ---- game_config.prof_config（2 名）
-PRICE_BAND = _R.game_config.get("prof_config", {}).get("PRICE_BAND") or {}
-GATHER_MAP_MIN_LV = _R.game_config.get("prof_config", {}).get("GATHER_MAP_MIN_LV") or []
-
-# ---- game_config.item_tag_display（1 名）
-ITEM_TAG_DISPLAY = _R.game_config.get("item_tag_display", {}).get("ITEM_TAG_DISPLAY") or {}
-
-# ---- game_config.mounts（2 名）
-MOUNT_DROP_BOSS = _R.game_config.get("mounts", {}).get("MOUNT_DROP_BOSS") or {}
-MOUNT_DROP_ELITE = _R.game_config.get("mounts", {}).get("MOUNT_DROP_ELITE") or {}
-
-# ---- game_config.signin_config（1 名）
-SIGNIN_CONFIG = _R.game_config.get("signin_config", {}).get("SIGNIN_CONFIG") or {}
-
-# ============================================================
-# ③ 序/类型还原读口（域落盘字典序 → 真源插入序；注入键剥离/反折叠）
-# ============================================================
-# 商店限购配置 35 条（真源 game/data/shop_limit.py:39；域落盘是字典序 → 按真源插入序还原）
-_ORDER_SHOP_LIMIT = _order("shop_limit")
-from content.shop_stock import SHOP_LIMIT as _SHOP_LIMIT_RAW  # noqa: E402
-SHOP_LIMIT = _ordered(_SHOP_LIMIT_RAW, _ORDER_SHOP_LIMIT, "shop_stock.SHOP_LIMIT")
-
-# 职业速查 7 条（真源 game/data/job_guide.py:172；域落盘字典序 + 导出器注入 `aliases`/`extra_resources`
-# → 剥注入键后按真源插入序还原）
-_ORDER_JOB_GUIDE = _order("job_guide")
 from content.tables import JOB_GUIDE as _JOB_GUIDE_RAW  # noqa: E402
-_JOB_GUIDE_STRIPPED = {_cid: {_k: _v for _k, _v in _e.items()
-                       if _k not in ("aliases", "extra_resources")}
-                       for _cid, _e in _JOB_GUIDE_RAW.items()}
-JOB_GUIDE = _ordered(_JOB_GUIDE_STRIPPED, _ORDER_JOB_GUIDE, "content.tables.JOB_GUIDE")
-
-# 职业查询别名 44 条（真源 game/data/job_guide.py:180 JOB_ALIASES；导出器把它折叠进
-# 每职业的 `aliases` 列表 → 反折叠回 `{查询名: 职业 id}` 并按真源插入序还原）
-_ORDER_JOB_ALIASES = _order("job_aliases")
-_JOB_ALIASES_FOLDED = {}
-for _cid, _e in _JOB_GUIDE_RAW.items():
-    for _a in (_e.get("aliases") or []):
-        _JOB_ALIASES_FOLDED.setdefault(_a, _cid)
-JOB_ALIASES = _ordered(_JOB_ALIASES_FOLDED, _ORDER_JOB_ALIASES, "game/data/job_guide.py:JOB_ALIASES")
-
-# 次要资源（真源 game/data/job_guide.py:58 EXTRA_RESOURCES；导出器把 EXTRA_RESOURCES +
-# EXTRA_RESOURCE_GUIDE 合并成每职业的 `extra_resources` 列表 → 反折叠回 `{职业: [资源 key]}`）
-EXTRA_RESOURCES = {_cid: [_e2["key"] for _e2 in (_e.get("extra_resources") or [])]
-                   for _cid, _e in _JOB_GUIDE_RAW.items() if _e.get("extra_resources")}
-
-# 次要资源展示元数据（真源 game/data/job_guide.py:99 EXTRA_RESOURCE_GUIDE；被导出器并进
-# 每职业 `extra_resources` 的每条（多了 `key`）→ 反折叠回 `{资源 key: {name,max,desc}}`）
-EXTRA_RESOURCE_GUIDE = {}
-for _cid, _e in _JOB_GUIDE_RAW.items():
-    for _e2 in (_e.get("extra_resources") or []):
-        EXTRA_RESOURCE_GUIDE[_e2["key"]] = {_k: _v for _k, _v in _e2.items()
-                                            if _k != "key"}
-
-# 基础七职业顺序（真源 game/data/job_guide.py `BASE_ORDER`；与包内 `tables.JOB_ORDER` 同值）
 from content.tables import JOB_ORDER as BASE_ORDER  # noqa: E402
 
 # 宝石名基底（真源 game/data/gems.py `GEM_BASE_NAME`；与包内 `GEM_ITEM_TYPE` 同值）
@@ -174,40 +101,116 @@ from content.catalog_rules import GEM_ITEM_TYPE as GEM_BASE_NAME  # noqa: E402
 
 # 垂钓档位序（真源 game/data/__init__.py:30：`FISH_QUALITY_ORDER = QUALITY_ORDER`）
 from content.catalog_b143 import QUALITY_ORDER as _QUALITY_ORDER  # noqa: E402
-FISH_QUALITY_ORDER = _QUALITY_ORDER
-
-# 冒险者收藏册 5 册（真源 game/data/collection_book.py:20；域每册被注入 `order`（列表序）
-# → 剥掉后逐册全等，册序由 `books()` 按源列表序给出）
 from content.collection import books as _collection_books  # noqa: E402
-COLLECTION_BOOKS = [dict((_k, _v) for _k, _v in _b.items() if _k != "order")
-                    for _b in _collection_books()]
-
-# 野外王 8 条（真源 game/data/wild_king_data.py；域落盘字典序 → 按真源插入序还原）
-_ORDER_WILD_KINGS = _order("wild_kings")
 from content.wild_king import WILD_KINGS as _WILD_KINGS_RAW  # noqa: E402
-WILD_KINGS = _ordered(_WILD_KINGS_RAW, _ORDER_WILD_KINGS, "content/wild_king.WILD_KINGS")
+BOSS_ATTACK_MULTS = placeholder("BOSS_ATTACK_MULTS")
+CONTROL_MECHS = placeholder("CONTROL_MECHS")
+DOT_ADAPT_DECAY_STEP = placeholder("DOT_ADAPT_DECAY_STEP")
+DOT_BLEED_DOUBLE_HP_PCT = placeholder("DOT_BLEED_DOUBLE_HP_PCT")
+DOT_DEFS = placeholder("DOT_DEFS")
+DOT_RESIST_CAP = placeholder("DOT_RESIST_CAP")
+MECH_COMBO_STACKS = placeholder("MECH_COMBO_STACKS")
+MECH_FROZEN_MULT = placeholder("MECH_FROZEN_MULT")
+MECH_FULL_HP_CRIT = placeholder("MECH_FULL_HP_CRIT")
+MECH_PROC_GROUPS = placeholder("MECH_PROC_GROUPS")
+MECH_STACK_BONUS = placeholder("MECH_STACK_BONUS")
+MECH_STACK_WHITELIST = placeholder("MECH_STACK_WHITELIST")
+MECH_STAT_PASSIVES = placeholder("MECH_STAT_PASSIVES")
+SKILL_CC_WHITELIST = placeholder("SKILL_CC_WHITELIST")
+GATHER_MAP_POOLS = placeholder("GATHER_MAP_POOLS")
+GATHER_COND_POOLS = placeholder("GATHER_COND_POOLS")
+MINING_DEEP_POOLS = placeholder("MINING_DEEP_POOLS")
+PRICE_BAND = placeholder("PRICE_BAND")
+GATHER_MAP_MIN_LV = placeholder("GATHER_MAP_MIN_LV")
+ITEM_TAG_DISPLAY = placeholder("ITEM_TAG_DISPLAY")
+MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
+MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
+SIGNIN_CONFIG = placeholder("SIGNIN_CONFIG")
+SHOP_LIMIT = placeholder("SHOP_LIMIT")
+_ORDER_JOB_GUIDE = placeholder("_ORDER_JOB_GUIDE")
+_JOB_GUIDE_STRIPPED = placeholder("_JOB_GUIDE_STRIPPED")
+JOB_GUIDE = placeholder("JOB_GUIDE")
+_ORDER_JOB_ALIASES = placeholder("_ORDER_JOB_ALIASES")
+_JOB_ALIASES_FOLDED = placeholder("_JOB_ALIASES_FOLDED")
+JOB_ALIASES = placeholder("JOB_ALIASES")
+EXTRA_RESOURCES = placeholder("EXTRA_RESOURCES")
+EXTRA_RESOURCE_GUIDE = placeholder("EXTRA_RESOURCE_GUIDE")
+FISH_QUALITY_ORDER = placeholder("FISH_QUALITY_ORDER")
+COLLECTION_BOOKS = placeholder("COLLECTION_BOOKS")
+_ORDER_WILD_KINGS = placeholder("_ORDER_WILD_KINGS")
+WILD_KINGS = placeholder("WILD_KINGS")
+_ORDER_SUBAREA_LINKS_INDEX = placeholder("_ORDER_SUBAREA_LINKS_INDEX")
+_MAPS_DOM = placeholder("_MAPS_DOM")
+_LINKS_BUILT = placeholder("_LINKS_BUILT")
+SUBAREA_LINKS_INDEX = placeholder("SUBAREA_LINKS_INDEX")
+_ORDER_SUBAREA_POIS = placeholder("_ORDER_SUBAREA_POIS")
+_POIS_DOM = placeholder("_POIS_DOM")
+SUBAREA_POIS = placeholder("SUBAREA_POIS")
+_a = placeholder("_a")
+_cid = placeholder("_cid")
+_e = placeholder("_e")
+_e2 = placeholder("_e2")
 
-# 网状连通表 97 图（真源 game/data/_assembly.py 装配；= maps 域每图的 `links`，
-# 无 links 的图不在真源表里；域按字典序落盘 → 按真源插入序还原）
-_ORDER_SUBAREA_LINKS_INDEX = _order("subarea_links_index")
-_MAPS_DOM = _R.maps.all()
-_LINKS_BUILT = {_mid: _e["links"] for _mid, _e in _MAPS_DOM.items()
-                if isinstance(_e, dict) and isinstance(_e.get("links"), dict)}
-SUBAREA_LINKS_INDEX = _ordered(_LINKS_BUILT, _ORDER_SUBAREA_LINKS_INDEX,
-                               "data/maps.json:links")
+_ORDER_SHOP_LIMIT = _order("shop_limit")
+from content.shop_stock import SHOP_LIMIT as _SHOP_LIMIT_RAW  # noqa: E402
+from content.tables import JOB_GUIDE as _JOB_GUIDE_RAW  # noqa: E402
+from content.tables import JOB_ORDER as BASE_ORDER  # noqa: E402
 
-# POI 挂载表 457 行（真源 game/data/pois.py；dungeon 行的自带定义 dict → 只留 id，
-# 与 content/pois.py 的 `_MOUNTED` 同款归一；域按字典序落盘 → 按真源插入序还原）
-_ORDER_SUBAREA_POIS = _order("subarea_pois")
-_POIS_DOM = _R.pois.all()
-SUBAREA_POIS = _ordered(
-    {_k: [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_r.get("pois") or [])]
-     for _k, _r in _POIS_DOM.items()},
-    _ORDER_SUBAREA_POIS, "data/pois.json")
+# 宝石名基底（真源 game/data/gems.py `GEM_BASE_NAME`；与包内 `GEM_ITEM_TYPE` 同值）
+from content.catalog_rules import GEM_ITEM_TYPE as GEM_BASE_NAME  # noqa: E402
 
-# ============================================================
-# ④ 台账（供报告 / 门禁）
-# ============================================================
+# 垂钓档位序（真源 game/data/__init__.py:30：`FISH_QUALITY_ORDER = QUALITY_ORDER`）
+from content.catalog_b143 import QUALITY_ORDER as _QUALITY_ORDER  # noqa: E402
+from content.collection import books as _collection_books  # noqa: E402
+from content.wild_king import WILD_KINGS as _WILD_KINGS_RAW  # noqa: E402
+BOSS_ATTACK_MULTS = placeholder("BOSS_ATTACK_MULTS")
+CONTROL_MECHS = placeholder("CONTROL_MECHS")
+DOT_ADAPT_DECAY_STEP = placeholder("DOT_ADAPT_DECAY_STEP")
+DOT_BLEED_DOUBLE_HP_PCT = placeholder("DOT_BLEED_DOUBLE_HP_PCT")
+DOT_DEFS = placeholder("DOT_DEFS")
+DOT_RESIST_CAP = placeholder("DOT_RESIST_CAP")
+MECH_COMBO_STACKS = placeholder("MECH_COMBO_STACKS")
+MECH_FROZEN_MULT = placeholder("MECH_FROZEN_MULT")
+MECH_FULL_HP_CRIT = placeholder("MECH_FULL_HP_CRIT")
+MECH_PROC_GROUPS = placeholder("MECH_PROC_GROUPS")
+MECH_STACK_BONUS = placeholder("MECH_STACK_BONUS")
+MECH_STACK_WHITELIST = placeholder("MECH_STACK_WHITELIST")
+MECH_STAT_PASSIVES = placeholder("MECH_STAT_PASSIVES")
+SKILL_CC_WHITELIST = placeholder("SKILL_CC_WHITELIST")
+GATHER_MAP_POOLS = placeholder("GATHER_MAP_POOLS")
+GATHER_COND_POOLS = placeholder("GATHER_COND_POOLS")
+MINING_DEEP_POOLS = placeholder("MINING_DEEP_POOLS")
+PRICE_BAND = placeholder("PRICE_BAND")
+GATHER_MAP_MIN_LV = placeholder("GATHER_MAP_MIN_LV")
+ITEM_TAG_DISPLAY = placeholder("ITEM_TAG_DISPLAY")
+MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
+MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
+SIGNIN_CONFIG = placeholder("SIGNIN_CONFIG")
+SHOP_LIMIT = placeholder("SHOP_LIMIT")
+_ORDER_JOB_GUIDE = placeholder("_ORDER_JOB_GUIDE")
+_JOB_GUIDE_STRIPPED = placeholder("_JOB_GUIDE_STRIPPED")
+JOB_GUIDE = placeholder("JOB_GUIDE")
+_ORDER_JOB_ALIASES = placeholder("_ORDER_JOB_ALIASES")
+_JOB_ALIASES_FOLDED = placeholder("_JOB_ALIASES_FOLDED")
+JOB_ALIASES = placeholder("JOB_ALIASES")
+EXTRA_RESOURCES = placeholder("EXTRA_RESOURCES")
+EXTRA_RESOURCE_GUIDE = placeholder("EXTRA_RESOURCE_GUIDE")
+FISH_QUALITY_ORDER = placeholder("FISH_QUALITY_ORDER")
+COLLECTION_BOOKS = placeholder("COLLECTION_BOOKS")
+_ORDER_WILD_KINGS = placeholder("_ORDER_WILD_KINGS")
+WILD_KINGS = placeholder("WILD_KINGS")
+_ORDER_SUBAREA_LINKS_INDEX = placeholder("_ORDER_SUBAREA_LINKS_INDEX")
+_MAPS_DOM = placeholder("_MAPS_DOM")
+_LINKS_BUILT = placeholder("_LINKS_BUILT")
+SUBAREA_LINKS_INDEX = placeholder("SUBAREA_LINKS_INDEX")
+_ORDER_SUBAREA_POIS = placeholder("_ORDER_SUBAREA_POIS")
+_POIS_DOM = placeholder("_POIS_DOM")
+SUBAREA_POIS = placeholder("SUBAREA_POIS")
+_a = placeholder("_a")
+_cid = placeholder("_cid")
+_e = placeholder("_e")
+_e2 = placeholder("_e2")
+
 COVERED: tuple = ("BASE_ORDER", "BOSS_ATTACK_MULTS", "COLLECTION_BOOKS", "CONTROL_MECHS", "DOT_ADAPT_DECAY_STEP", "DOT_BLEED_DOUBLE_HP_PCT", "DOT_DEFS", "DOT_RESIST_CAP", "ELEMENT_REACTIONS", "EXTRA_RESOURCES", "EXTRA_RESOURCE_GUIDE", "FISH_QUALITY_ORDER", "GATHER_COND_POOLS", "GATHER_MAP_MIN_LV", "GATHER_MAP_POOLS", "GEM_BASE_NAME", "INVESTIGATE_BP_CHANCE", "INVESTIGATE_COLLECT_CHANCE", "INVESTIGATE_RUNE_CHANCE", "ITEM_TAG_DISPLAY", "JOB_ALIASES", "JOB_GUIDE", "MECH_CFG", "MECH_COMBO_STACKS", "MECH_FROZEN_MULT", "MECH_FULL_HP_CRIT", "MECH_PROC_GROUPS", "MECH_STACK_BONUS", "MECH_STACK_WHITELIST", "MECH_STAT_PASSIVES", "MINING_DEEP_POOLS", "MOUNT_DROP_BOSS", "MOUNT_DROP_ELITE", "PRICE_BAND", "SHOP_LIMIT", "SIGNIN_CONFIG", "SKILL_CC_WHITELIST", "SKILL_UP", "SUBAREA_LINKS_INDEX", "SUBAREA_POIS", "TIPS", "TRIAL_MIN_LV", "WEAPON_EFFECT_DATA", "WEEKLY_MIN_LV", "WEEKLY_PICK", "WILD_KINGS", "mech_cfg", "resolve_job")
 
 #: 本模块**不覆盖**的丢名（包内无源 → 需建域或改读点；见报告「缺口」逐条）
@@ -307,3 +310,172 @@ __all__ = [
     "missing_domains",
     "missing_names",
 ]
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global BOSS_ATTACK_MULTS, CONTROL_MECHS, DOT_ADAPT_DECAY_STEP, DOT_BLEED_DOUBLE_HP_PCT
+    global DOT_DEFS, DOT_RESIST_CAP, MECH_COMBO_STACKS, MECH_FROZEN_MULT
+    global MECH_FULL_HP_CRIT, MECH_PROC_GROUPS, MECH_STACK_BONUS, MECH_STACK_WHITELIST
+    global MECH_STAT_PASSIVES, SKILL_CC_WHITELIST, GATHER_MAP_POOLS, GATHER_COND_POOLS
+    global MINING_DEEP_POOLS, PRICE_BAND, GATHER_MAP_MIN_LV, ITEM_TAG_DISPLAY
+    global MOUNT_DROP_BOSS, MOUNT_DROP_ELITE, SIGNIN_CONFIG, SHOP_LIMIT
+    global _ORDER_JOB_GUIDE, _JOB_GUIDE_STRIPPED, JOB_GUIDE, _ORDER_JOB_ALIASES
+    global _JOB_ALIASES_FOLDED, JOB_ALIASES, EXTRA_RESOURCES, EXTRA_RESOURCE_GUIDE
+    global FISH_QUALITY_ORDER, COLLECTION_BOOKS, _ORDER_WILD_KINGS, WILD_KINGS
+    global _ORDER_SUBAREA_LINKS_INDEX, _MAPS_DOM, _LINKS_BUILT, SUBAREA_LINKS_INDEX
+    global _ORDER_SUBAREA_POIS, _POIS_DOM, SUBAREA_POIS, _a
+    global _cid, _e, _e2
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        'BOSS_ATTACK_MULTS': None, 'CONTROL_MECHS': None, 'DOT_ADAPT_DECAY_STEP': None, 'DOT_BLEED_DOUBLE_HP_PCT': None,
+        'DOT_DEFS': None, 'DOT_RESIST_CAP': None, 'MECH_COMBO_STACKS': None, 'MECH_FROZEN_MULT': None,
+        'MECH_FULL_HP_CRIT': None, 'MECH_PROC_GROUPS': None, 'MECH_STACK_BONUS': None, 'MECH_STACK_WHITELIST': None,
+        'MECH_STAT_PASSIVES': None, 'SKILL_CC_WHITELIST': None, 'GATHER_MAP_POOLS': None, 'GATHER_COND_POOLS': None,
+        'MINING_DEEP_POOLS': None, 'PRICE_BAND': None, 'GATHER_MAP_MIN_LV': None, 'ITEM_TAG_DISPLAY': None,
+        'MOUNT_DROP_BOSS': None, 'MOUNT_DROP_ELITE': None, 'SIGNIN_CONFIG': None, 'SHOP_LIMIT': None,
+        '_ORDER_JOB_GUIDE': None, '_JOB_GUIDE_STRIPPED': None, 'JOB_GUIDE': None, '_ORDER_JOB_ALIASES': None,
+        '_JOB_ALIASES_FOLDED': None, 'JOB_ALIASES': None, 'EXTRA_RESOURCES': None, 'EXTRA_RESOURCE_GUIDE': None,
+        'FISH_QUALITY_ORDER': None, 'COLLECTION_BOOKS': None, '_ORDER_WILD_KINGS': None, 'WILD_KINGS': None,
+        '_ORDER_SUBAREA_LINKS_INDEX': None, '_MAPS_DOM': None, '_LINKS_BUILT': None, 'SUBAREA_LINKS_INDEX': None,
+        '_ORDER_SUBAREA_POIS': None, '_POIS_DOM': None, 'SUBAREA_POIS': None, '_a': None,
+        '_cid': None, '_e': None, '_e2': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    BOSS_ATTACK_MULTS = _R.game_config.get("battle_config", {}).get("BOSS_ATTACK_MULTS") or {}
+    CONTROL_MECHS = _R.game_config.get("battle_config", {}).get("CONTROL_MECHS") or ()
+    DOT_ADAPT_DECAY_STEP = _R.game_config.get("battle_config", {}).get("DOT_ADAPT_DECAY_STEP")
+    DOT_BLEED_DOUBLE_HP_PCT = _R.game_config.get("battle_config", {}).get("DOT_BLEED_DOUBLE_HP_PCT")
+    DOT_DEFS = _R.game_config.get("battle_config", {}).get("DOT_DEFS") or {}
+    DOT_RESIST_CAP = _R.game_config.get("battle_config", {}).get("DOT_RESIST_CAP")
+    MECH_COMBO_STACKS = _R.game_config.get("battle_config", {}).get("MECH_COMBO_STACKS") or ()
+    MECH_FROZEN_MULT = _R.game_config.get("battle_config", {}).get("MECH_FROZEN_MULT") or {}
+    MECH_FULL_HP_CRIT = _R.game_config.get("battle_config", {}).get("MECH_FULL_HP_CRIT") or ()
+    MECH_PROC_GROUPS = _R.game_config.get("battle_config", {}).get("MECH_PROC_GROUPS") or {}
+    MECH_STACK_BONUS = _R.game_config.get("battle_config", {}).get("MECH_STACK_BONUS") or {}
+    MECH_STACK_WHITELIST = _R.game_config.get("battle_config", {}).get("MECH_STACK_WHITELIST") or ()
+    MECH_STAT_PASSIVES = _R.game_config.get("battle_config", {}).get("MECH_STAT_PASSIVES") or {}
+    SKILL_CC_WHITELIST = _R.game_config.get("battle_config", {}).get("SKILL_CC_WHITELIST") or ()
+
+    # ---- game_config.gather_pools（3 名）
+    GATHER_MAP_POOLS = _R.game_config.get("gather_pools", {}).get("GATHER_MAP_POOLS") or {}
+    GATHER_COND_POOLS = _R.game_config.get("gather_pools", {}).get("GATHER_COND_POOLS") or {}
+    MINING_DEEP_POOLS = _R.game_config.get("gather_pools", {}).get("MINING_DEEP_POOLS") or {}
+
+    # ---- game_config.prof_config（2 名）
+    PRICE_BAND = _R.game_config.get("prof_config", {}).get("PRICE_BAND") or {}
+    GATHER_MAP_MIN_LV = _R.game_config.get("prof_config", {}).get("GATHER_MAP_MIN_LV") or []
+
+    # ---- game_config.item_tag_display（1 名）
+    ITEM_TAG_DISPLAY = _R.game_config.get("item_tag_display", {}).get("ITEM_TAG_DISPLAY") or {}
+
+    # ---- game_config.mounts（2 名）
+    MOUNT_DROP_BOSS = _R.game_config.get("mounts", {}).get("MOUNT_DROP_BOSS") or {}
+    MOUNT_DROP_ELITE = _R.game_config.get("mounts", {}).get("MOUNT_DROP_ELITE") or {}
+
+    # ---- game_config.signin_config（1 名）
+    SIGNIN_CONFIG = _R.game_config.get("signin_config", {}).get("SIGNIN_CONFIG") or {}
+
+    # ============================================================
+    # ③ 序/类型还原读口（域落盘字典序 → 真源插入序；注入键剥离/反折叠）
+    # ============================================================
+    # 商店限购配置 35 条（真源 game/data/shop_limit.py:39；域落盘是字典序 → 按真源插入序还原）
+    SHOP_LIMIT = _ordered(_SHOP_LIMIT_RAW, _ORDER_SHOP_LIMIT, "shop_stock.SHOP_LIMIT")
+
+    # 职业速查 7 条（真源 game/data/job_guide.py:172；域落盘字典序 + 导出器注入 `aliases`/`extra_resources`
+    # → 剥注入键后按真源插入序还原）
+    _ORDER_JOB_GUIDE = _order("job_guide")
+    _JOB_GUIDE_STRIPPED = {_cid: {_k: _v for _k, _v in _e.items()
+                           if _k not in ("aliases", "extra_resources")}
+                           for _cid, _e in _JOB_GUIDE_RAW.items()}
+    JOB_GUIDE = _ordered(_JOB_GUIDE_STRIPPED, _ORDER_JOB_GUIDE, "content.tables.JOB_GUIDE")
+
+    # 职业查询别名 44 条（真源 game/data/job_guide.py:180 JOB_ALIASES；导出器把它折叠进
+    # 每职业的 `aliases` 列表 → 反折叠回 `{查询名: 职业 id}` 并按真源插入序还原）
+    _ORDER_JOB_ALIASES = _order("job_aliases")
+    _JOB_ALIASES_FOLDED = {}
+    for _cid, _e in _JOB_GUIDE_RAW.items():
+        for _a in (_e.get("aliases") or []):
+            _JOB_ALIASES_FOLDED.setdefault(_a, _cid)
+    JOB_ALIASES = _ordered(_JOB_ALIASES_FOLDED, _ORDER_JOB_ALIASES, "game/data/job_guide.py:JOB_ALIASES")
+
+    # 次要资源（真源 game/data/job_guide.py:58 EXTRA_RESOURCES；导出器把 EXTRA_RESOURCES +
+    # EXTRA_RESOURCE_GUIDE 合并成每职业的 `extra_resources` 列表 → 反折叠回 `{职业: [资源 key]}`）
+    EXTRA_RESOURCES = {_cid: [_e2["key"] for _e2 in (_e.get("extra_resources") or [])]
+                       for _cid, _e in _JOB_GUIDE_RAW.items() if _e.get("extra_resources")}
+
+    # 次要资源展示元数据（真源 game/data/job_guide.py:99 EXTRA_RESOURCE_GUIDE；被导出器并进
+    # 每职业 `extra_resources` 的每条（多了 `key`）→ 反折叠回 `{资源 key: {name,max,desc}}`）
+    EXTRA_RESOURCE_GUIDE = {}
+    for _cid, _e in _JOB_GUIDE_RAW.items():
+        for _e2 in (_e.get("extra_resources") or []):
+            EXTRA_RESOURCE_GUIDE[_e2["key"]] = {_k: _v for _k, _v in _e2.items()
+                                                if _k != "key"}
+
+    # 基础七职业顺序（真源 game/data/job_guide.py `BASE_ORDER`；与包内 `tables.JOB_ORDER` 同值）
+    FISH_QUALITY_ORDER = _QUALITY_ORDER
+
+    # 冒险者收藏册 5 册（真源 game/data/collection_book.py:20；域每册被注入 `order`（列表序）
+    # → 剥掉后逐册全等，册序由 `books()` 按源列表序给出）
+    COLLECTION_BOOKS = [dict((_k, _v) for _k, _v in _b.items() if _k != "order")
+                        for _b in _collection_books()]
+
+    # 野外王 8 条（真源 game/data/wild_king_data.py；域落盘字典序 → 按真源插入序还原）
+    _ORDER_WILD_KINGS = _order("wild_kings")
+    WILD_KINGS = _ordered(_WILD_KINGS_RAW, _ORDER_WILD_KINGS, "content/wild_king.WILD_KINGS")
+
+    # 网状连通表 97 图（真源 game/data/_assembly.py 装配；= maps 域每图的 `links`，
+    # 无 links 的图不在真源表里；域按字典序落盘 → 按真源插入序还原）
+    _ORDER_SUBAREA_LINKS_INDEX = _order("subarea_links_index")
+    _MAPS_DOM = _R.maps.all()
+    _LINKS_BUILT = {_mid: _e["links"] for _mid, _e in _MAPS_DOM.items()
+                    if isinstance(_e, dict) and isinstance(_e.get("links"), dict)}
+    SUBAREA_LINKS_INDEX = _ordered(_LINKS_BUILT, _ORDER_SUBAREA_LINKS_INDEX,
+                                   "data/maps.json:links")
+
+    # POI 挂载表 457 行（真源 game/data/pois.py；dungeon 行的自带定义 dict → 只留 id，
+    # 与 content/pois.py 的 `_MOUNTED` 同款归一；域按字典序落盘 → 按真源插入序还原）
+    _ORDER_SUBAREA_POIS = _order("subarea_pois")
+    _POIS_DOM = _R.pois.all()
+    SUBAREA_POIS = _ordered(
+        {_k: [(_x["id"] if isinstance(_x, dict) else _x) for _x in (_r.get("pois") or [])]
+         for _k, _r in _POIS_DOM.items()},
+        _ORDER_SUBAREA_POIS, "data/pois.json")
+
+    # ============================================================
+    # ④ 台账（供报告 / 门禁）
+    # ============================================================
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=90)
+apply_replacements(_rebuild_view(), __package__)

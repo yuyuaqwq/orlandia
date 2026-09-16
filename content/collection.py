@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -43,11 +43,10 @@ _R = set_from_domains(_PKG_ROOT, ("collection_books", "items"))
 # ============================================================
 # ① 收藏册表（content/data/collection_books.json）
 # ============================================================
-_BOOK_TABLE = _R.collection_books.all()
+_BOOK_TABLE = placeholder("_BOOK_TABLE")
+_BOOKS = placeholder("_BOOKS")
+_ITEMS = placeholder("_ITEMS")
 
-# 按源列表序（`order`）还原：总览/领取的遍历序 = 源 `COLLECTION_BOOKS` 的列表序。
-_BOOKS = sorted((b for b in (_BOOK_TABLE or {}).values() if isinstance(b, dict)),
-                key=lambda b: b.get("order", 0))
 
 
 def books() -> list:
@@ -78,7 +77,10 @@ def book_progress(book, inv_names, best_names) -> tuple:
 # ============================================================
 # ② 物品定义（content/data/items.json；只读 key，惰性加载）
 # ============================================================
-_ITEMS = None
+_BOOK_TABLE = placeholder("_BOOK_TABLE")
+_BOOKS = placeholder("_BOOKS")
+_ITEMS = placeholder("_ITEMS")
+
 
 
 def _items() -> dict:
@@ -98,3 +100,53 @@ def item_info(key: str):
     故一次查 items 域与真源两次查**逐一等价**（导出器 `derive_items` 的 docstring 已证）。
     """
     return _items().get(key)
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _BOOK_TABLE, _BOOKS, _ITEMS
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_BOOK_TABLE': None, '_BOOKS': None, '_ITEMS': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _BOOK_TABLE = _R.collection_books.all()
+
+    # 按源列表序（`order`）还原：总览/领取的遍历序 = 源 `COLLECTION_BOOKS` 的列表序。
+    _BOOKS = sorted((b for b in (_BOOK_TABLE or {}).values() if isinstance(b, dict)),
+                    key=lambda b: b.get("order", 0))
+    _ITEMS = None
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=70)
+apply_replacements(_rebuild_view(), __package__)

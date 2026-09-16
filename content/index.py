@@ -30,6 +30,7 @@ from __future__ import annotations
 
 from pypinyin import lazy_pinyin
 
+from saintess_engine.records import register_view
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
@@ -114,3 +115,21 @@ def display(table_name: str, entity_id: str):
 
 
 __all__ = ["pinyin_id", "build_index", "resolve", "display", "bind_host", "_INDEXES", "_indexes"]
+
+
+def _rebuild_view() -> list:
+    """重读各内容门面 → 重建包内名字索引（见文件头 ★ 视图）。
+
+    `_INDEXES` 是模块级唯一一份 dict（宿主 `_assembly` 的 `build_index(...)` 也写在它上面）⇒
+    **就地清空 + 重建**（身份不变、内容已新）；`_BUILT` 是闸，先放掉再让 `_indexes()` 重建。
+    候选顺序排在所有内容门面之后（`content/gm.py` 的模块序台账）—— `index_build.build_into`
+    读的是它们的模块级派生表，必须等它们刷新完。
+    """
+    global _BUILT
+    _INDEXES.clear()
+    _BUILT = False
+    _indexes()
+    return []
+
+
+register_view(_rebuild_view, order=200)

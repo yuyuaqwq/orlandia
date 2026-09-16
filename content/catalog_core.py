@@ -56,7 +56,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 from . import constants as _K
 from . import skills as _SK
@@ -74,73 +74,9 @@ _R = set_from_domains(_PKG_ROOT, ("game_config",))
 # ============================================================
 # ① 面板读口（A 组）—— 直接复用 `content/tables.py`（解 rules/panel_rules.json）
 # ============================================================
-CLASS_NOVICE = _T.CLASS_NOVICE            # "cls_novice" 见习兜底
-PCT_STATS = _T.PCT_STATS                  # 23 项百分比显示属性（tuple，保序）
-PCT_CAPS = _T.PCT_CAPS                    # 23 项百分比上限（dict，插入序 = 真源序）
-PENE_PCT_STATS = _T.PENE_PCT_STATS        # 2 项百分比穿透（tuple）
-
-# ============================================================
-# ② 常量单源（B 组）—— 直接复用 `content/constants.py`（B13-L6 已整块进包）
-# ============================================================
-START_MAP = _K.START_MAP
-START_SUBAREA = _K.START_SUBAREA
-MAP_TYPE_TOWN = _K.MAP_TYPE_TOWN
-MAP_TYPE_FIELD = _K.MAP_TYPE_FIELD
-MAP_TYPE_INSTANCE = _K.MAP_TYPE_INSTANCE
-SUB_TYPE_TOWN = _K.SUB_TYPE_TOWN
-ITEM_TYPE_PET_EGG = _K.ITEM_TYPE_PET_EGG
-ITEM_TYPE_MOUNT = _K.ITEM_TYPE_MOUNT
-MATERIAL_KIND_TYPES = _K.MATERIAL_KIND_TYPES          # frozenset（集合比较，无序）
-DEFAULT_MAX_MP = _K.DEFAULT_MAX_MP
-EVOLVE_LEVELS = _K.EVOLVE_LEVELS                      # {1:30, 2:60, 3:90}（int 键）
-EVOLVE_FEES = _K.EVOLVE_FEES                          # {1:500, 2:2000, 3:5000}
-RESET_SKILL_COST = _K.RESET_SKILL_COST
-PVP_TIMEOUT_SEC = _K.PVP_TIMEOUT_SEC
-OPTIONAL_STATS = _K.OPTIONAL_STATS                    # tuple（23 项，保序）
-GUILD_EXP_BASE = _K.GUILD_EXP_BASE
-RECIPE_LV_TIERS = _K.RECIPE_LV_TIERS                  # tuple(10,30,50,70,90)
-ENCOUNTER_EVENT_CHANCE = _K.ENCOUNTER_EVENT_CHANCE
-SA_BOSS_CHANCE = _K.SA_BOSS_CHANCE
-PET_EGG_ORANGE_CHANCE = _K.PET_EGG_ORANGE_CHANCE
-RARE_MAT_CHANCE = _K.RARE_MAT_CHANCE
-PROF5_BONUS_CHANCE = _K.PROF5_BONUS_CHANCE
-INST_EVENT_CHANCE = _K.INST_EVENT_CHANCE
-TRADER_DEAL_CHANCE = _K.TRADER_DEAL_CHANCE
-CHEST_BP_CHANCE = _K.CHEST_BP_CHANCE
-INSTANCE_BP_CHANCE = _K.INSTANCE_BP_CHANCE
-ELITE_EQ_DROP_CHANCE = _K.ELITE_EQ_DROP_CHANCE
-prof_exp_need = _K.prof_exp_need                      # 函数（副业升级经验曲线，读 FORMULA_SKELETON）
-
-# ============================================================
-# ③ 配置域常量组（C 组）—— `content/rules/game_config.json` → `battle_config`
-# ------------------------------------------------------------
-# 该域一条 = 一个宿主源模块的常量组（`{模块名: {常量名: 值}}`，导出器
-# `scripts/export_domains/b9_l7_domains.py:derive_game_config`）→ 组内键名与宿主
-# `game/data/battle_config.py` 顶层常量名一一对应，取值原样（无换算）。
-# ============================================================
-_BATTLE_CONFIG: dict = dict(_R.game_config.all().get("battle_config") or {})
-
-
 def _bc(name: str, default=None):
     """取 `game_config.battle_config` 组里的常量（缺 → default，绝不猜值）。"""
     return _BATTLE_CONFIG.get(name, default)
-
-
-MASTERPIECE_CHANCE = _bc("MASTERPIECE_CHANCE")                       # 橙装「杰作」判定
-QUALITY_UPGRADE_CHANCE = _bc("QUALITY_UPGRADE_CHANCE")               # 品质提升概率
-QUALITY_UPGRADE_MASTER_BONUS = _bc("QUALITY_UPGRADE_MASTER_BONUS")   # 神锻名家加成
-QUALITY_UPGRADE_COST = _bc("QUALITY_UPGRADE_COST")                   # {材料 id: 数量}（插入序保真）
-
-# ============================================================
-# ④ 职业 / 种族（D 组）—— 还原「声明序 + 键型」
-# ------------------------------------------------------------
-# 域文件（导出契约 `sort_table`）是**字典序**，真源插入序在域里没处存 → 显式声明；
-# 域里多/少职业（种族）就 raise —— 防「加了新职业却静默漏掉 / 顺序漂移」。
-# ============================================================
-CLASS_ORDER = ("cls_novice",) + tuple(_T.JOB_ORDER)
-# 种族展示序（建号选种族 / 种族天赋一览的遍历序）—— 真源 `game/data/races.py` 声明序；
-# 域文件键是字典序，序只能显式声明（同 `content/tables.py:JOB_ORDER` 先例）。
-RACE_ORDER = ("human", "elf", "dwarf", "orc", "halfling", "dragonborn")
 
 
 def _restore_class_entry(entry) -> dict:
@@ -161,33 +97,6 @@ def _restore_class_entry(entry) -> dict:
     return e
 
 
-CLASSES: dict = {}
-for _cid in CLASS_ORDER:
-    if _cid in _T.CLASSES:
-        CLASSES[_cid] = _restore_class_entry(_T.CLASSES[_cid])
-_missing_cls = [c for c in _T.CLASSES if c not in CLASS_ORDER]
-if _missing_cls:
-    raise ValueError("classes 域出现未声明顺序的职业 %s —— 请同步 content/catalog_core.py:CLASS_ORDER"
-                     "（否则该职业在本门面里被静默丢掉）" % _missing_cls)
-_missing_cls2 = [c for c in CLASS_ORDER if c not in _T.CLASSES]
-if _missing_cls2:
-    raise ValueError("classes 域缺职业 %s（真源 C.CLASSES 有）—— 域不完整，拒绝静默少键" % _missing_cls2)
-
-RACES: dict = {}
-for _rid in RACE_ORDER:
-    if _rid in _T.RACES:
-        RACES[_rid] = _T.RACES[_rid]
-_missing_race = [r for r in _T.RACES if r not in RACE_ORDER]
-if _missing_race:
-    raise ValueError("races 域出现未声明顺序的种族 %s —— 请同步 content/catalog_core.py:RACE_ORDER"
-                     "（否则该种族在本门面里被静默丢掉）" % _missing_race)
-
-# ============================================================
-# ⑤ 技能三表（E 组）—— `content/skills.py` 的逆折结果，只重排**序**
-# ------------------------------------------------------------
-# 值一律复用 `content/skills.py`（包内单源，逆折自 `content/data/skills.json`）；
-# 本模块只做三件事：外层职业序、分支线序、表内 `(lv, 技能键)` 序。
-# ============================================================
 def _skill_seq(entry) -> int:
     """技能在**表内**的排序桶：0 = 低阶纯魔法输出技（`kind == "魔法"` 且 `lv <= 8`），1 = 其余。
 
@@ -211,16 +120,6 @@ def _by_lv(skills: dict) -> dict:
                                     key=lambda kv: (_skill_seq(kv[1]), kv[1].get("lv", 0) if isinstance(kv[1], dict) else 0, kv[0]))}
 
 
-PLAYER_SKILLS: dict = {}
-for _cid in _T.JOB_ORDER:
-    _ent = _SK.PLAYER_SKILLS.get(_cid)
-    if _ent is None:
-        continue
-    _e = dict(_ent)
-    _e["skills"] = _by_lv(_ent.get("skills"))
-    PLAYER_SKILLS[_cid] = _e
-
-
 def _branch_line_order(cid: str) -> list:
     """分支线序 = `classes.json[cid].evolve_branches["1"]`（实测 7/7 职业、全档位一致）。
 
@@ -231,44 +130,6 @@ def _branch_line_order(cid: str) -> list:
     return list(eb.get("1") or [])
 
 
-BRANCH_SKILLS: dict = {}
-for _cid in _T.JOB_ORDER:
-    _ent = _SK.BRANCH_SKILLS.get(_cid)
-    if _ent is None:
-        continue
-    _lines = _branch_line_order(_cid)
-    _tiers = {}
-    for _tier in sorted((_ent.get("branches") or {}), key=lambda t: (isinstance(t, str), t)):
-        _host_tiers = _ent["branches"][_tier]
-        _ordered = {}
-        for _line in _lines:
-            if _line in _host_tiers:
-                _ordered[_line] = _by_lv(_host_tiers[_line])
-        _extra_lines = [l for l in _host_tiers if l not in _lines]
-        if _extra_lines:
-            raise ValueError("职业 %s 档位 %s 出现未在 evolve_branches['1'] 声明的分支线 %s"
-                             " —— 域结构变了，拒绝静默丢线" % (_cid, _tier, _extra_lines))
-        _tiers[int(_tier) if str(_tier).lstrip("-").isdigit() else _tier] = _ordered
-    _e = dict(_ent)
-    _e["branches"] = _tiers
-    BRANCH_SKILLS[_cid] = _e
-
-# 导师技表：真源 `game/data/skills.py:4172 TUTOR_SKILLS` 声明 **6 键**
-# （`cls_zhan_shi` / `cls_you_xia` 是两张**空表**，吟游诗人 `cls_shi_ren` 没有导师表）
-# —— 域里没有这个「表键集声明」（空表在域里无条目，产不出键），故本门面显式声明 + 自检。
-TUTOR_TABLE_CLASSES = tuple(c for c in _T.JOB_ORDER if c != "cls_shi_ren")
-_extra_tutor = [c for c in _SK.TUTOR_SKILLS if c not in TUTOR_TABLE_CLASSES]
-if _extra_tutor:
-    raise ValueError("skills 域出现未在 TUTOR_TABLE_CLASSES 声明的导师技职业 %s"
-                     " —— 请同步 content/catalog_core.py:TUTOR_TABLE_CLASSES" % _extra_tutor)
-TUTOR_SKILLS: dict = {c: _by_lv(_SK.TUTOR_SKILLS.get(c) or {}) for c in TUTOR_TABLE_CLASSES}
-
-# ============================================================
-# ⑥ 数值函数（F 组）—— 惰性转发到 `content/stats.py`（B13-L6 已进包的单源）
-# ------------------------------------------------------------
-# 惰性：本模块 import 期不触碰 stats 模块（后者模块级要解宿主句柄读怪物数值表 —— B13 已登记
-# 的缺口），宿主表删掉后「本模块能 import」不受影响；调用方用到函数时才会真正取件。
-# ============================================================
 def exp_to_next(level, *args, **kwargs):
     """升到下一级所需经验 —— 单源 `content/stats.py::exp_to_next(level)`（逐字搬自 `game/core/stats.py`）。"""
     from .stats import exp_to_next as _f
@@ -288,9 +149,68 @@ def equip_value(stats, *args, **kwargs):
 
 
 # 缺口登记（不暴露 = 不猜值；门禁报 `门面缺 1`，报告 `overnight/W-B14-E.md` 给字段清单）
-GAP_QUALITY = ("QUALITY：包内无域。需要新域（建议 `quality`，或 game_config 增 `equipment` 组）导出 "
-               "宿主 `game/data/equipment.py:13 QUALITY`：5 键 white/green/blue/purple/orange（声明序保鲜）"
-               " × {mult(float), color(str 单字符 emoji), name(str 中文)}。")
+CLASS_NOVICE = placeholder("CLASS_NOVICE")
+PCT_STATS = placeholder("PCT_STATS")
+PCT_CAPS = placeholder("PCT_CAPS")
+PENE_PCT_STATS = placeholder("PENE_PCT_STATS")
+START_MAP = placeholder("START_MAP")
+START_SUBAREA = placeholder("START_SUBAREA")
+MAP_TYPE_TOWN = placeholder("MAP_TYPE_TOWN")
+MAP_TYPE_FIELD = placeholder("MAP_TYPE_FIELD")
+MAP_TYPE_INSTANCE = placeholder("MAP_TYPE_INSTANCE")
+SUB_TYPE_TOWN = placeholder("SUB_TYPE_TOWN")
+ITEM_TYPE_PET_EGG = placeholder("ITEM_TYPE_PET_EGG")
+ITEM_TYPE_MOUNT = placeholder("ITEM_TYPE_MOUNT")
+MATERIAL_KIND_TYPES = placeholder("MATERIAL_KIND_TYPES")
+DEFAULT_MAX_MP = placeholder("DEFAULT_MAX_MP")
+EVOLVE_LEVELS = placeholder("EVOLVE_LEVELS")
+EVOLVE_FEES = placeholder("EVOLVE_FEES")
+RESET_SKILL_COST = placeholder("RESET_SKILL_COST")
+PVP_TIMEOUT_SEC = placeholder("PVP_TIMEOUT_SEC")
+OPTIONAL_STATS = placeholder("OPTIONAL_STATS")
+GUILD_EXP_BASE = placeholder("GUILD_EXP_BASE")
+RECIPE_LV_TIERS = placeholder("RECIPE_LV_TIERS")
+ENCOUNTER_EVENT_CHANCE = placeholder("ENCOUNTER_EVENT_CHANCE")
+SA_BOSS_CHANCE = placeholder("SA_BOSS_CHANCE")
+PET_EGG_ORANGE_CHANCE = placeholder("PET_EGG_ORANGE_CHANCE")
+RARE_MAT_CHANCE = placeholder("RARE_MAT_CHANCE")
+PROF5_BONUS_CHANCE = placeholder("PROF5_BONUS_CHANCE")
+INST_EVENT_CHANCE = placeholder("INST_EVENT_CHANCE")
+TRADER_DEAL_CHANCE = placeholder("TRADER_DEAL_CHANCE")
+CHEST_BP_CHANCE = placeholder("CHEST_BP_CHANCE")
+INSTANCE_BP_CHANCE = placeholder("INSTANCE_BP_CHANCE")
+ELITE_EQ_DROP_CHANCE = placeholder("ELITE_EQ_DROP_CHANCE")
+prof_exp_need = placeholder("prof_exp_need")
+_BATTLE_CONFIG = placeholder("_BATTLE_CONFIG")
+MASTERPIECE_CHANCE = placeholder("MASTERPIECE_CHANCE")
+QUALITY_UPGRADE_CHANCE = placeholder("QUALITY_UPGRADE_CHANCE")
+QUALITY_UPGRADE_MASTER_BONUS = placeholder("QUALITY_UPGRADE_MASTER_BONUS")
+QUALITY_UPGRADE_COST = placeholder("QUALITY_UPGRADE_COST")
+CLASS_ORDER = placeholder("CLASS_ORDER")
+RACE_ORDER = placeholder("RACE_ORDER")
+CLASSES = placeholder("CLASSES")
+_missing_cls = placeholder("_missing_cls")
+_missing_cls2 = placeholder("_missing_cls2")
+RACES = placeholder("RACES")
+_missing_race = placeholder("_missing_race")
+PLAYER_SKILLS = placeholder("PLAYER_SKILLS")
+BRANCH_SKILLS = placeholder("BRANCH_SKILLS")
+TUTOR_TABLE_CLASSES = placeholder("TUTOR_TABLE_CLASSES")
+_extra_tutor = placeholder("_extra_tutor")
+TUTOR_SKILLS = placeholder("TUTOR_SKILLS")
+GAP_QUALITY = placeholder("GAP_QUALITY")
+_cid = placeholder("_cid")
+_e = placeholder("_e")
+_ent = placeholder("_ent")
+_extra_lines = placeholder("_extra_lines")
+_host_tiers = placeholder("_host_tiers")
+_line = placeholder("_line")
+_lines = placeholder("_lines")
+_ordered = placeholder("_ordered")
+_rid = placeholder("_rid")
+_tier = placeholder("_tier")
+_tiers = placeholder("_tiers")
+
 
 __all__ = [
     # A 面板读口
@@ -315,3 +235,216 @@ __all__ = [
     # 缺口登记
     "GAP_QUALITY",
 ]
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global CLASS_NOVICE, PCT_STATS, PCT_CAPS, PENE_PCT_STATS
+    global START_MAP, START_SUBAREA, MAP_TYPE_TOWN, MAP_TYPE_FIELD
+    global MAP_TYPE_INSTANCE, SUB_TYPE_TOWN, ITEM_TYPE_PET_EGG, ITEM_TYPE_MOUNT
+    global MATERIAL_KIND_TYPES, DEFAULT_MAX_MP, EVOLVE_LEVELS, EVOLVE_FEES
+    global RESET_SKILL_COST, PVP_TIMEOUT_SEC, OPTIONAL_STATS, GUILD_EXP_BASE
+    global RECIPE_LV_TIERS, ENCOUNTER_EVENT_CHANCE, SA_BOSS_CHANCE, PET_EGG_ORANGE_CHANCE
+    global RARE_MAT_CHANCE, PROF5_BONUS_CHANCE, INST_EVENT_CHANCE, TRADER_DEAL_CHANCE
+    global CHEST_BP_CHANCE, INSTANCE_BP_CHANCE, ELITE_EQ_DROP_CHANCE, prof_exp_need
+    global _BATTLE_CONFIG, MASTERPIECE_CHANCE, QUALITY_UPGRADE_CHANCE, QUALITY_UPGRADE_MASTER_BONUS
+    global QUALITY_UPGRADE_COST, CLASS_ORDER, RACE_ORDER, CLASSES
+    global _missing_cls, _missing_cls2, RACES, _missing_race
+    global PLAYER_SKILLS, BRANCH_SKILLS, TUTOR_TABLE_CLASSES, _extra_tutor
+    global TUTOR_SKILLS, GAP_QUALITY, _cid, _e
+    global _ent, _extra_lines, _host_tiers, _line
+    global _lines, _ordered, _rid, _tier
+    global _tiers
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        'CLASS_NOVICE': None, 'PCT_STATS': None, 'PCT_CAPS': None, 'PENE_PCT_STATS': None,
+        'START_MAP': None, 'START_SUBAREA': None, 'MAP_TYPE_TOWN': None, 'MAP_TYPE_FIELD': None,
+        'MAP_TYPE_INSTANCE': None, 'SUB_TYPE_TOWN': None, 'ITEM_TYPE_PET_EGG': None, 'ITEM_TYPE_MOUNT': None,
+        'MATERIAL_KIND_TYPES': None, 'DEFAULT_MAX_MP': None, 'EVOLVE_LEVELS': None, 'EVOLVE_FEES': None,
+        'RESET_SKILL_COST': None, 'PVP_TIMEOUT_SEC': None, 'OPTIONAL_STATS': None, 'GUILD_EXP_BASE': None,
+        'RECIPE_LV_TIERS': None, 'ENCOUNTER_EVENT_CHANCE': None, 'SA_BOSS_CHANCE': None, 'PET_EGG_ORANGE_CHANCE': None,
+        'RARE_MAT_CHANCE': None, 'PROF5_BONUS_CHANCE': None, 'INST_EVENT_CHANCE': None, 'TRADER_DEAL_CHANCE': None,
+        'CHEST_BP_CHANCE': None, 'INSTANCE_BP_CHANCE': None, 'ELITE_EQ_DROP_CHANCE': None, 'prof_exp_need': None,
+        '_BATTLE_CONFIG': None, 'MASTERPIECE_CHANCE': None, 'QUALITY_UPGRADE_CHANCE': None, 'QUALITY_UPGRADE_MASTER_BONUS': None,
+        'QUALITY_UPGRADE_COST': None, 'CLASS_ORDER': None, 'RACE_ORDER': None, 'CLASSES': None,
+        '_missing_cls': None, '_missing_cls2': None, 'RACES': None, '_missing_race': None,
+        'PLAYER_SKILLS': None, 'BRANCH_SKILLS': None, 'TUTOR_TABLE_CLASSES': None, '_extra_tutor': None,
+        'TUTOR_SKILLS': None, 'GAP_QUALITY': None, '_cid': None, '_e': None,
+        '_ent': None, '_extra_lines': None, '_host_tiers': None, '_line': None,
+        '_lines': None, '_ordered': None, '_rid': None, '_tier': None,
+        '_tiers': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    CLASS_NOVICE = _T.CLASS_NOVICE            # "cls_novice" 见习兜底
+    PCT_STATS = _T.PCT_STATS                  # 23 项百分比显示属性（tuple，保序）
+    PCT_CAPS = _T.PCT_CAPS                    # 23 项百分比上限（dict，插入序 = 真源序）
+    PENE_PCT_STATS = _T.PENE_PCT_STATS        # 2 项百分比穿透（tuple）
+
+    # ============================================================
+    # ② 常量单源（B 组）—— 直接复用 `content/constants.py`（B13-L6 已整块进包）
+    # ============================================================
+    START_MAP = _K.START_MAP
+    START_SUBAREA = _K.START_SUBAREA
+    MAP_TYPE_TOWN = _K.MAP_TYPE_TOWN
+    MAP_TYPE_FIELD = _K.MAP_TYPE_FIELD
+    MAP_TYPE_INSTANCE = _K.MAP_TYPE_INSTANCE
+    SUB_TYPE_TOWN = _K.SUB_TYPE_TOWN
+    ITEM_TYPE_PET_EGG = _K.ITEM_TYPE_PET_EGG
+    ITEM_TYPE_MOUNT = _K.ITEM_TYPE_MOUNT
+    MATERIAL_KIND_TYPES = _K.MATERIAL_KIND_TYPES          # frozenset（集合比较，无序）
+    DEFAULT_MAX_MP = _K.DEFAULT_MAX_MP
+    EVOLVE_LEVELS = _K.EVOLVE_LEVELS                      # {1:30, 2:60, 3:90}（int 键）
+    EVOLVE_FEES = _K.EVOLVE_FEES                          # {1:500, 2:2000, 3:5000}
+    RESET_SKILL_COST = _K.RESET_SKILL_COST
+    PVP_TIMEOUT_SEC = _K.PVP_TIMEOUT_SEC
+    OPTIONAL_STATS = _K.OPTIONAL_STATS                    # tuple（23 项，保序）
+    GUILD_EXP_BASE = _K.GUILD_EXP_BASE
+    RECIPE_LV_TIERS = _K.RECIPE_LV_TIERS                  # tuple(10,30,50,70,90)
+    ENCOUNTER_EVENT_CHANCE = _K.ENCOUNTER_EVENT_CHANCE
+    SA_BOSS_CHANCE = _K.SA_BOSS_CHANCE
+    PET_EGG_ORANGE_CHANCE = _K.PET_EGG_ORANGE_CHANCE
+    RARE_MAT_CHANCE = _K.RARE_MAT_CHANCE
+    PROF5_BONUS_CHANCE = _K.PROF5_BONUS_CHANCE
+    INST_EVENT_CHANCE = _K.INST_EVENT_CHANCE
+    TRADER_DEAL_CHANCE = _K.TRADER_DEAL_CHANCE
+    CHEST_BP_CHANCE = _K.CHEST_BP_CHANCE
+    INSTANCE_BP_CHANCE = _K.INSTANCE_BP_CHANCE
+    ELITE_EQ_DROP_CHANCE = _K.ELITE_EQ_DROP_CHANCE
+    prof_exp_need = _K.prof_exp_need                      # 函数（副业升级经验曲线，读 FORMULA_SKELETON）
+
+    # ============================================================
+    # ③ 配置域常量组（C 组）—— `content/rules/game_config.json` → `battle_config`
+    # ------------------------------------------------------------
+    # 该域一条 = 一个宿主源模块的常量组（`{模块名: {常量名: 值}}`，导出器
+    # `scripts/export_domains/b9_l7_domains.py:derive_game_config`）→ 组内键名与宿主
+    # `game/data/battle_config.py` 顶层常量名一一对应，取值原样（无换算）。
+    # ============================================================
+    _BATTLE_CONFIG = dict(_R.game_config.all().get("battle_config") or {})
+
+    MASTERPIECE_CHANCE = _bc("MASTERPIECE_CHANCE")                       # 橙装「杰作」判定
+    QUALITY_UPGRADE_CHANCE = _bc("QUALITY_UPGRADE_CHANCE")               # 品质提升概率
+    QUALITY_UPGRADE_MASTER_BONUS = _bc("QUALITY_UPGRADE_MASTER_BONUS")   # 神锻名家加成
+    QUALITY_UPGRADE_COST = _bc("QUALITY_UPGRADE_COST")                   # {材料 id: 数量}（插入序保真）
+
+    # ============================================================
+    # ④ 职业 / 种族（D 组）—— 还原「声明序 + 键型」
+    # ------------------------------------------------------------
+    # 域文件（导出契约 `sort_table`）是**字典序**，真源插入序在域里没处存 → 显式声明；
+    # 域里多/少职业（种族）就 raise —— 防「加了新职业却静默漏掉 / 顺序漂移」。
+    # ============================================================
+    CLASS_ORDER = ("cls_novice",) + tuple(_T.JOB_ORDER)
+    # 种族展示序（建号选种族 / 种族天赋一览的遍历序）—— 真源 `game/data/races.py` 声明序；
+    # 域文件键是字典序，序只能显式声明（同 `content/tables.py:JOB_ORDER` 先例）。
+    RACE_ORDER = ("human", "elf", "dwarf", "orc", "halfling", "dragonborn")
+
+    CLASSES = {}
+    for _cid in CLASS_ORDER:
+        if _cid in _T.CLASSES:
+            CLASSES[_cid] = _restore_class_entry(_T.CLASSES[_cid])
+    _missing_cls = [c for c in _T.CLASSES if c not in CLASS_ORDER]
+    if _missing_cls:
+        raise ValueError("classes 域出现未声明顺序的职业 %s —— 请同步 content/catalog_core.py:CLASS_ORDER"
+                         "（否则该职业在本门面里被静默丢掉）" % _missing_cls)
+    _missing_cls2 = [c for c in CLASS_ORDER if c not in _T.CLASSES]
+    if _missing_cls2:
+        raise ValueError("classes 域缺职业 %s（真源 C.CLASSES 有）—— 域不完整，拒绝静默少键" % _missing_cls2)
+
+    RACES = {}
+    for _rid in RACE_ORDER:
+        if _rid in _T.RACES:
+            RACES[_rid] = _T.RACES[_rid]
+    _missing_race = [r for r in _T.RACES if r not in RACE_ORDER]
+    if _missing_race:
+        raise ValueError("races 域出现未声明顺序的种族 %s —— 请同步 content/catalog_core.py:RACE_ORDER"
+                         "（否则该种族在本门面里被静默丢掉）" % _missing_race)
+
+    # ============================================================
+    # ⑤ 技能三表（E 组）—— `content/skills.py` 的逆折结果，只重排**序**
+    # ------------------------------------------------------------
+    # 值一律复用 `content/skills.py`（包内单源，逆折自 `content/data/skills.json`）；
+    # 本模块只做三件事：外层职业序、分支线序、表内 `(lv, 技能键)` 序。
+    # ============================================================
+    PLAYER_SKILLS = {}
+    for _cid in _T.JOB_ORDER:
+        _ent = _SK.PLAYER_SKILLS.get(_cid)
+        if _ent is None:
+            continue
+        _e = dict(_ent)
+        _e["skills"] = _by_lv(_ent.get("skills"))
+        PLAYER_SKILLS[_cid] = _e
+
+    BRANCH_SKILLS = {}
+    for _cid in _T.JOB_ORDER:
+        _ent = _SK.BRANCH_SKILLS.get(_cid)
+        if _ent is None:
+            continue
+        _lines = _branch_line_order(_cid)
+        _tiers = {}
+        for _tier in sorted((_ent.get("branches") or {}), key=lambda t: (isinstance(t, str), t)):
+            _host_tiers = _ent["branches"][_tier]
+            _ordered = {}
+            for _line in _lines:
+                if _line in _host_tiers:
+                    _ordered[_line] = _by_lv(_host_tiers[_line])
+            _extra_lines = [l for l in _host_tiers if l not in _lines]
+            if _extra_lines:
+                raise ValueError("职业 %s 档位 %s 出现未在 evolve_branches['1'] 声明的分支线 %s"
+                                 " —— 域结构变了，拒绝静默丢线" % (_cid, _tier, _extra_lines))
+            _tiers[int(_tier) if str(_tier).lstrip("-").isdigit() else _tier] = _ordered
+        _e = dict(_ent)
+        _e["branches"] = _tiers
+        BRANCH_SKILLS[_cid] = _e
+
+    # 导师技表：真源 `game/data/skills.py:4172 TUTOR_SKILLS` 声明 **6 键**
+    # （`cls_zhan_shi` / `cls_you_xia` 是两张**空表**，吟游诗人 `cls_shi_ren` 没有导师表）
+    # —— 域里没有这个「表键集声明」（空表在域里无条目，产不出键），故本门面显式声明 + 自检。
+    TUTOR_TABLE_CLASSES = tuple(c for c in _T.JOB_ORDER if c != "cls_shi_ren")
+    _extra_tutor = [c for c in _SK.TUTOR_SKILLS if c not in TUTOR_TABLE_CLASSES]
+    if _extra_tutor:
+        raise ValueError("skills 域出现未在 TUTOR_TABLE_CLASSES 声明的导师技职业 %s"
+                         " —— 请同步 content/catalog_core.py:TUTOR_TABLE_CLASSES" % _extra_tutor)
+    TUTOR_SKILLS = {c: _by_lv(_SK.TUTOR_SKILLS.get(c) or {}) for c in TUTOR_TABLE_CLASSES}
+
+    # ============================================================
+    # ⑥ 数值函数（F 组）—— 惰性转发到 `content/stats.py`（B13-L6 已进包的单源）
+    # ------------------------------------------------------------
+    # 惰性：本模块 import 期不触碰 stats 模块（后者模块级要解宿主句柄读怪物数值表 —— B13 已登记
+    # 的缺口），宿主表删掉后「本模块能 import」不受影响；调用方用到函数时才会真正取件。
+    # ============================================================
+    GAP_QUALITY = ("QUALITY：包内无域。需要新域（建议 `quality`，或 game_config 增 `equipment` 组）导出 "
+                   "宿主 `game/data/equipment.py:13 QUALITY`：5 键 white/green/blue/purple/orange（声明序保鲜）"
+                   " × {mult(float), color(str 单字符 emoji), name(str 中文)}。")
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=50)
+apply_replacements(_rebuild_view(), __package__)

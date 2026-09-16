@@ -56,7 +56,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import orders_of, set_from_domains
+from saintess_engine.records import apply_replacements, orders_of, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -157,9 +157,6 @@ def _ordered(raw: dict, block: str, where: str) -> dict:
 # ============================================================
 # ② 配置归口域 `game_config`（rules）—— 一个组 = 一个宿主源模块的常量组
 # ============================================================
-_GAME_CONFIG: dict = _R.game_config.all()
-
-
 def _cfg(group: str) -> dict:
     """取 `game_config` 的一个组（缺组 → 空 dict；键序原样，导出期未排序）。"""
     g = _GAME_CONFIG.get(group)
@@ -167,132 +164,59 @@ def _cfg(group: str) -> dict:
 
 
 # ---- econ_config 组（真源 game/data/econ_config.py）----
-ECON_CONFIG: dict = _cfg("econ_config").get("ECON_CONFIG") or {}
+_GAME_CONFIG = placeholder("_GAME_CONFIG")
+ECON_CONFIG = placeholder("ECON_CONFIG")
+_PROF = placeholder("_PROF")
+PROF_TUTORS = placeholder("PROF_TUTORS")
+PROF_WAIT_BASE = placeholder("PROF_WAIT_BASE")
+DAILY_PROF_TASKS = placeholder("DAILY_PROF_TASKS")
+BAG_FILTER_TYPES = placeholder("BAG_FILTER_TYPES")
+PROF_STAMINA_COST = placeholder("PROF_STAMINA_COST")
+PROF_WAIT_DECAY = placeholder("PROF_WAIT_DECAY")
+PROF_WAIT_FLOOR = placeholder("PROF_WAIT_FLOOR")
+MINING_KEYWORDS = placeholder("MINING_KEYWORDS")
+PAWN_RATES = placeholder("PAWN_RATES")
+ENCHANT_SLOT_UNLOCK = placeholder("ENCHANT_SLOT_UNLOCK")
+RUNE_LEVEL_GATE = placeholder("RUNE_LEVEL_GATE")
+DAILY_PROF_EXP = placeholder("DAILY_PROF_EXP")
+RARE_MATERIAL_PRICE = placeholder("RARE_MATERIAL_PRICE")
+_HOUSING = placeholder("_HOUSING")
+PROPERTIES = placeholder("PROPERTIES")
+HOUSE_LEVELS = placeholder("HOUSE_LEVELS")
+HOUSE_MAX_LEVEL = placeholder("HOUSE_MAX_LEVEL")
+HOUSE_REFUND = placeholder("HOUSE_REFUND")
+_GATHER = placeholder("_GATHER")
+CAMP_SPOTS = placeholder("CAMP_SPOTS")
+MINE_SPOTS = placeholder("MINE_SPOTS")
+_CALAMITY = placeholder("_CALAMITY")
+CALAMITY_MAX = placeholder("CALAMITY_MAX")
+CALAMITY_COST = placeholder("CALAMITY_COST")
+CALAMITY_STATS = placeholder("CALAMITY_STATS")
+CALAMITY_BONUS = placeholder("CALAMITY_BONUS")
+CALAMITY_MALUS = placeholder("CALAMITY_MALUS")
+CALAMITY_POSITIVE_CHANCE = placeholder("CALAMITY_POSITIVE_CHANCE")
+MOUNT_POOL = placeholder("MOUNT_POOL")
+MOUNT_BY_KEY = placeholder("MOUNT_BY_KEY")
+_CRAFT = placeholder("_CRAFT")
+_CRAFT_STRIPPED = placeholder("_CRAFT_STRIPPED")
+CRAFT_RECIPES = placeholder("CRAFT_RECIPES")
+CRAFT_RECIPE_ALIASES = placeholder("CRAFT_RECIPE_ALIASES")
+ALCHEMY_RECIPES = placeholder("ALCHEMY_RECIPES")
+COOKING_RECIPES = placeholder("COOKING_RECIPES")
+FISHING_SPOTS = placeholder("FISHING_SPOTS")
+FISH_POOL = placeholder("FISH_POOL")
+_SHOP = placeholder("_SHOP")
+SHOP_WEAPONS = placeholder("SHOP_WEAPONS")
+SHOP_EQUIP = placeholder("SHOP_EQUIP")
+SHOP_SMITH_MATERIALS = placeholder("SHOP_SMITH_MATERIALS")
+SHOP_SUBAREA_ITEMS = placeholder("SHOP_SUBAREA_ITEMS")
+SHOP_WILD_TRADE = placeholder("SHOP_WILD_TRADE")
+SUBAREA_KIND = placeholder("SUBAREA_KIND")
+_PETS = placeholder("_PETS")
+_PET_POOL_BY_KEY = placeholder("_PET_POOL_BY_KEY")
+PET_POOL = placeholder("PET_POOL")
+PET_EGG_ROLL = placeholder("PET_EGG_ROLL")
 
-# ---- prof_config 组（真源 game/data/prof_config.py，15 个常量）----
-_PROF: dict = _cfg("prof_config")
-PROF_TUTORS: dict = _tupled(_PROF.get("PROF_TUTORS"))              # {副业: (导师, 城市)}
-PROF_WAIT_BASE: dict = _tupled(_PROF.get("PROF_WAIT_BASE"))        # {副业: (低秒, 高秒, 名)}
-DAILY_PROF_TASKS: dict = _tupled(_PROF.get("DAILY_PROF_TASKS"))    # {副业: (任务名, 次数, 金币)}
-BAG_FILTER_TYPES: list = list(_PROF.get("BAG_FILTER_TYPES") or [])
-PROF_STAMINA_COST: dict = dict(_PROF.get("PROF_STAMINA_COST") or {})
-PROF_WAIT_DECAY: float = _PROF.get("PROF_WAIT_DECAY", 0.0)
-PROF_WAIT_FLOOR: int = _PROF.get("PROF_WAIT_FLOOR", 0)
-MINING_KEYWORDS: list = list(_PROF.get("MINING_KEYWORDS") or [])
-PAWN_RATES: dict = dict(_PROF.get("PAWN_RATES") or {})
-ENCHANT_SLOT_UNLOCK: dict = dict(_PROF.get("ENCHANT_SLOT_UNLOCK") or {})
-RUNE_LEVEL_GATE: dict = _int_keys(_PROF.get("RUNE_LEVEL_GATE"))     # {符文等级: 附魔副业等级}
-DAILY_PROF_EXP: int = _PROF.get("DAILY_PROF_EXP", 0)
-RARE_MATERIAL_PRICE: int = _PROF.get("RARE_MATERIAL_PRICE", 0)
-# （同组的 PRICE_BAND / GATHER_MAP_MIN_LV 属函数侧常量，E 单元与 `content/profession.py` 各自消费）
-
-# ---- housing 组（真源 game/data/housing.py）----
-_HOUSING: dict = _cfg("housing")
-PROPERTIES: dict = dict(_HOUSING.get("PROPERTIES") or {})
-HOUSE_LEVELS: dict = {k: dict(v) for k, v in _int_keys(_HOUSING.get("HOUSE_LEVELS")).items()}
-HOUSE_MAX_LEVEL: int = _HOUSING.get("HOUSE_MAX_LEVEL", 0)
-HOUSE_REFUND: dict = _int_keys(_HOUSING.get("HOUSE_REFUND"))
-
-# ---- gather 组（真源 game/data/gather.py；采集/挖掘点池在 gather_pools/子域别处）----
-_GATHER: dict = _cfg("gather")
-CAMP_SPOTS: dict = dict(_GATHER.get("CAMP_SPOTS") or {})
-MINE_SPOTS: dict = {k: dict(v) for k, v in (_GATHER.get("MINE_SPOTS") or {}).items()}
-
-# ---- calamity 组（真源 game/data/calamity.py，v136 怪异炼成）----
-_CALAMITY: dict = _cfg("calamity")
-CALAMITY_MAX: int = _CALAMITY.get("CALAMITY_MAX", 0)
-CALAMITY_COST: dict = dict(_CALAMITY.get("CALAMITY_COST") or {})
-CALAMITY_STATS: list = list(_CALAMITY.get("CALAMITY_STATS") or [])
-CALAMITY_BONUS: float = _CALAMITY.get("CALAMITY_BONUS", 0.0)
-CALAMITY_MALUS: float = _CALAMITY.get("CALAMITY_MALUS", 0.0)
-CALAMITY_POSITIVE_CHANCE: float = _CALAMITY.get("CALAMITY_POSITIVE_CHANCE", 0.0)
-
-# ---- mounts 组（真源 game/data/mounts.py；`MOUNT_BY_KEY` 是派生索引）----
-MOUNT_POOL: list = list(_cfg("mounts").get("MOUNT_POOL") or [])
-# 真源 `mounts.py:70 MOUNT_BY_KEY = {m["key"]: m for m in MOUNT_POOL}` —— 键序 = MOUNT_POOL 序
-MOUNT_BY_KEY: dict = {m["key"]: m for m in MOUNT_POOL}
-
-
-# ============================================================
-# ③ 副业配方域 `craft` / `alchemy` / `cooking`（data）
-# ============================================================
-_CRAFT: dict = _R.craft.all()
-
-# 配方条目剥掉导出期注入的 `aliases`（= 真源 CRAFT_RECIPE_ALIASES 折进条目）
-_CRAFT_STRIPPED: dict = {
-    rid: {k: v for k, v in ent.items() if k != "aliases"}
-    for rid, ent in _CRAFT.items()
-}
-CRAFT_RECIPES: dict = _ordered(_CRAFT_STRIPPED, _ORDER_CRAFT_RECIPES, "craft 配方")
-
-# 别名表：真源 `CRAFT_RECIPE_ALIASES`={配方 id: [名字…]}，导出期折进条目 `aliases`
-CRAFT_RECIPE_ALIASES: dict = _ordered(
-    {rid: list(ent["aliases"]) for rid, ent in _CRAFT.items() if ent.get("aliases")},
-    _ORDER_CRAFT_RECIPE_ALIASES, "craft 配方别名")
-
-ALCHEMY_RECIPES: dict = _ordered(
-    {k: dict(v) for k, v in _R.alchemy.all().items()},
-    _ORDER_ALCHEMY_RECIPES, "alchemy 配方")
-COOKING_RECIPES: dict = _ordered(
-    {k: dict(v) for k, v in _R.cooking.all().items()},
-    _ORDER_COOKING_RECIPES, "cooking 配方")
-
-
-# ============================================================
-# ④ 垂钓域 `fishing_spots` / `fishing_pool`（data）
-# ============================================================
-FISHING_SPOTS: dict = _ordered(
-    {k: dict(v) for k, v in _R.fishing_spots.all().items()},
-    _ORDER_FISHING_SPOTS, "fishing_spots")
-
-# 渔获池 = 源 list 的等价物：域 = {鱼名: 条目 + seq}，按 `seq` 还原成 list 并剥掉 `seq`
-# （源 `FISH_POOL` 是 list、插入序参与 `random.choices` 抽样 → 必须保序；域里已有 `seq`，不需要序声明）
-FISH_POOL: list = [
-    {k: v for k, v in ent.items() if k != "seq"}
-    for ent in sorted(_R.fishing_pool.all().values(),
-                      key=lambda x: x["seq"])
-]
-
-
-# ============================================================
-# ⑤ 商店域 `shop`（data）—— 89 条「六张源表并集」合表，按列拆回各表
-#    ⚠ 合表里五列是**五张源表**，各有各的插入序 → 每列一个序声明
-# ============================================================
-_SHOP: dict = _R.shop.all()
-
-SHOP_WEAPONS: dict = _ordered(_pick(_SHOP, "weapons"), _ORDER_SHOP_WEAPONS,
-                              "shop.weapons")               # 真源 game/data/shop.py:83
-SHOP_EQUIP: dict = _ordered(_pick(_SHOP, "equip"), _ORDER_SHOP_EQUIP,
-                            "shop.equip")                   # 真源 game/data/shop.py:293
-SHOP_SMITH_MATERIALS: dict = _ordered(_pick(_SHOP, "materials"), _ORDER_SHOP_SMITH_MATERIALS,
-                                      "shop.materials")     # 真源 game/data/shop.py:232
-# 子区域配货：合表里唯一非店铺条目是保留键 `wild_trade`（行商货单），要从本表排除
-SHOP_SUBAREA_ITEMS: dict = _ordered(
-    {k: v["items"] for k, v in _SHOP.items() if "items" in v and k != "wild_trade"},
-    _ORDER_SHOP_SUBAREA_ITEMS, "shop.items")                # 真源 shop.py:22
-SHOP_WILD_TRADE: list = list((_SHOP.get("wild_trade") or {}).get("items") or [])  # 真源 shop.py:13
-# 设施类别表（真源 game/data/shop.py:417）
-SUBAREA_KIND: dict = _ordered(_pick(_SHOP, "kind"), _ORDER_SUBAREA_KIND, "shop.kind")
-
-
-# ============================================================
-# ⑥ 宠物域 `pets`（data）—— 一条 = 一个品种，规则行挂在条目 `egg_roll`
-# ============================================================
-_PETS: dict = _R.pets.all()
-# 品种池：剥掉导出期注入的 `egg_roll`（= 该品种的掷蛋规则行）
-_PET_POOL_BY_KEY: dict = _ordered(
-    {k: {kk: vv for kk, vv in ent.items() if kk != "egg_roll"} for k, ent in _PETS.items()},
-    _ORDER_PET_POOL, "pets 品种")
-PET_POOL: list = list(_PET_POOL_BY_KEY.values())
-# 掷蛋规则表：源 `PET_EGG_ROLL` 是 list，导出期按 `key` 连接进品种条目 → 这里按键取回（序由声明给出）
-PET_EGG_ROLL: list = list(_ordered(
-    {k: dict(ent["egg_roll"]) for k, ent in _PETS.items() if ent.get("egg_roll")},
-    _ORDER_PET_EGG_ROLL, "pets 掷蛋规则").values())
-
-
-# ============================================================
-# ⑦ 缺域检出 —— 「静默变空洞」比报错难查得多（同 tables.py:missing_domains 口径）
-# ============================================================
 REQUIRED_DOMAINS = ("game_config", "craft", "alchemy", "cooking",
                     "fishing_spots", "fishing_pool", "shop", "pets")
 
@@ -321,3 +245,194 @@ __all__ = [
     "PET_POOL", "PET_EGG_ROLL",
     "REQUIRED_DOMAINS", "missing_domains",
 ]
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _GAME_CONFIG, ECON_CONFIG, _PROF, PROF_TUTORS
+    global PROF_WAIT_BASE, DAILY_PROF_TASKS, BAG_FILTER_TYPES, PROF_STAMINA_COST
+    global PROF_WAIT_DECAY, PROF_WAIT_FLOOR, MINING_KEYWORDS, PAWN_RATES
+    global ENCHANT_SLOT_UNLOCK, RUNE_LEVEL_GATE, DAILY_PROF_EXP, RARE_MATERIAL_PRICE
+    global _HOUSING, PROPERTIES, HOUSE_LEVELS, HOUSE_MAX_LEVEL
+    global HOUSE_REFUND, _GATHER, CAMP_SPOTS, MINE_SPOTS
+    global _CALAMITY, CALAMITY_MAX, CALAMITY_COST, CALAMITY_STATS
+    global CALAMITY_BONUS, CALAMITY_MALUS, CALAMITY_POSITIVE_CHANCE, MOUNT_POOL
+    global MOUNT_BY_KEY, _CRAFT, _CRAFT_STRIPPED, CRAFT_RECIPES
+    global CRAFT_RECIPE_ALIASES, ALCHEMY_RECIPES, COOKING_RECIPES, FISHING_SPOTS
+    global FISH_POOL, _SHOP, SHOP_WEAPONS, SHOP_EQUIP
+    global SHOP_SMITH_MATERIALS, SHOP_SUBAREA_ITEMS, SHOP_WILD_TRADE, SUBAREA_KIND
+    global _PETS, _PET_POOL_BY_KEY, PET_POOL, PET_EGG_ROLL
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_GAME_CONFIG': None, 'ECON_CONFIG': None, '_PROF': None, 'PROF_TUTORS': None,
+        'PROF_WAIT_BASE': None, 'DAILY_PROF_TASKS': None, 'BAG_FILTER_TYPES': None, 'PROF_STAMINA_COST': None,
+        'PROF_WAIT_DECAY': None, 'PROF_WAIT_FLOOR': None, 'MINING_KEYWORDS': None, 'PAWN_RATES': None,
+        'ENCHANT_SLOT_UNLOCK': None, 'RUNE_LEVEL_GATE': None, 'DAILY_PROF_EXP': None, 'RARE_MATERIAL_PRICE': None,
+        '_HOUSING': None, 'PROPERTIES': None, 'HOUSE_LEVELS': None, 'HOUSE_MAX_LEVEL': None,
+        'HOUSE_REFUND': None, '_GATHER': None, 'CAMP_SPOTS': None, 'MINE_SPOTS': None,
+        '_CALAMITY': None, 'CALAMITY_MAX': None, 'CALAMITY_COST': None, 'CALAMITY_STATS': None,
+        'CALAMITY_BONUS': None, 'CALAMITY_MALUS': None, 'CALAMITY_POSITIVE_CHANCE': None, 'MOUNT_POOL': None,
+        'MOUNT_BY_KEY': None, '_CRAFT': None, '_CRAFT_STRIPPED': None, 'CRAFT_RECIPES': None,
+        'CRAFT_RECIPE_ALIASES': None, 'ALCHEMY_RECIPES': None, 'COOKING_RECIPES': None, 'FISHING_SPOTS': None,
+        'FISH_POOL': None, '_SHOP': None, 'SHOP_WEAPONS': None, 'SHOP_EQUIP': None,
+        'SHOP_SMITH_MATERIALS': None, 'SHOP_SUBAREA_ITEMS': None, 'SHOP_WILD_TRADE': None, 'SUBAREA_KIND': None,
+        '_PETS': None, '_PET_POOL_BY_KEY': None, 'PET_POOL': None, 'PET_EGG_ROLL': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _GAME_CONFIG = _R.game_config.all()
+
+    ECON_CONFIG = _cfg("econ_config").get("ECON_CONFIG") or {}
+
+    # ---- prof_config 组（真源 game/data/prof_config.py，15 个常量）----
+    _PROF = _cfg("prof_config")
+    PROF_TUTORS = _tupled(_PROF.get("PROF_TUTORS"))              # {副业: (导师, 城市)}
+    PROF_WAIT_BASE = _tupled(_PROF.get("PROF_WAIT_BASE"))        # {副业: (低秒, 高秒, 名)}
+    DAILY_PROF_TASKS = _tupled(_PROF.get("DAILY_PROF_TASKS"))    # {副业: (任务名, 次数, 金币)}
+    BAG_FILTER_TYPES = list(_PROF.get("BAG_FILTER_TYPES") or [])
+    PROF_STAMINA_COST = dict(_PROF.get("PROF_STAMINA_COST") or {})
+    PROF_WAIT_DECAY = _PROF.get("PROF_WAIT_DECAY", 0.0)
+    PROF_WAIT_FLOOR = _PROF.get("PROF_WAIT_FLOOR", 0)
+    MINING_KEYWORDS = list(_PROF.get("MINING_KEYWORDS") or [])
+    PAWN_RATES = dict(_PROF.get("PAWN_RATES") or {})
+    ENCHANT_SLOT_UNLOCK = dict(_PROF.get("ENCHANT_SLOT_UNLOCK") or {})
+    RUNE_LEVEL_GATE = _int_keys(_PROF.get("RUNE_LEVEL_GATE"))     # {符文等级: 附魔副业等级}
+    DAILY_PROF_EXP = _PROF.get("DAILY_PROF_EXP", 0)
+    RARE_MATERIAL_PRICE = _PROF.get("RARE_MATERIAL_PRICE", 0)
+    # （同组的 PRICE_BAND / GATHER_MAP_MIN_LV 属函数侧常量，E 单元与 `content/profession.py` 各自消费）
+
+    # ---- housing 组（真源 game/data/housing.py）----
+    _HOUSING = _cfg("housing")
+    PROPERTIES = dict(_HOUSING.get("PROPERTIES") or {})
+    HOUSE_LEVELS = {k: dict(v) for k, v in _int_keys(_HOUSING.get("HOUSE_LEVELS")).items()}
+    HOUSE_MAX_LEVEL = _HOUSING.get("HOUSE_MAX_LEVEL", 0)
+    HOUSE_REFUND = _int_keys(_HOUSING.get("HOUSE_REFUND"))
+
+    # ---- gather 组（真源 game/data/gather.py；采集/挖掘点池在 gather_pools/子域别处）----
+    _GATHER = _cfg("gather")
+    CAMP_SPOTS = dict(_GATHER.get("CAMP_SPOTS") or {})
+    MINE_SPOTS = {k: dict(v) for k, v in (_GATHER.get("MINE_SPOTS") or {}).items()}
+
+    # ---- calamity 组（真源 game/data/calamity.py，v136 怪异炼成）----
+    _CALAMITY = _cfg("calamity")
+    CALAMITY_MAX = _CALAMITY.get("CALAMITY_MAX", 0)
+    CALAMITY_COST = dict(_CALAMITY.get("CALAMITY_COST") or {})
+    CALAMITY_STATS = list(_CALAMITY.get("CALAMITY_STATS") or [])
+    CALAMITY_BONUS = _CALAMITY.get("CALAMITY_BONUS", 0.0)
+    CALAMITY_MALUS = _CALAMITY.get("CALAMITY_MALUS", 0.0)
+    CALAMITY_POSITIVE_CHANCE = _CALAMITY.get("CALAMITY_POSITIVE_CHANCE", 0.0)
+
+    # ---- mounts 组（真源 game/data/mounts.py；`MOUNT_BY_KEY` 是派生索引）----
+    MOUNT_POOL = list(_cfg("mounts").get("MOUNT_POOL") or [])
+    # 真源 `mounts.py:70 MOUNT_BY_KEY = {m["key"]: m for m in MOUNT_POOL}` —— 键序 = MOUNT_POOL 序
+    MOUNT_BY_KEY = {m["key"]: m for m in MOUNT_POOL}
+
+    # ============================================================
+    # ③ 副业配方域 `craft` / `alchemy` / `cooking`（data）
+    # ============================================================
+    _CRAFT = _R.craft.all()
+
+    # 配方条目剥掉导出期注入的 `aliases`（= 真源 CRAFT_RECIPE_ALIASES 折进条目）
+    _CRAFT_STRIPPED = {
+        rid: {k: v for k, v in ent.items() if k != "aliases"}
+        for rid, ent in _CRAFT.items()
+    }
+    CRAFT_RECIPES = _ordered(_CRAFT_STRIPPED, _ORDER_CRAFT_RECIPES, "craft 配方")
+
+    # 别名表：真源 `CRAFT_RECIPE_ALIASES`={配方 id: [名字…]}，导出期折进条目 `aliases`
+    CRAFT_RECIPE_ALIASES = _ordered(
+        {rid: list(ent["aliases"]) for rid, ent in _CRAFT.items() if ent.get("aliases")},
+        _ORDER_CRAFT_RECIPE_ALIASES, "craft 配方别名")
+
+    ALCHEMY_RECIPES = _ordered(
+        {k: dict(v) for k, v in _R.alchemy.all().items()},
+        _ORDER_ALCHEMY_RECIPES, "alchemy 配方")
+    COOKING_RECIPES = _ordered(
+        {k: dict(v) for k, v in _R.cooking.all().items()},
+        _ORDER_COOKING_RECIPES, "cooking 配方")
+
+    # ============================================================
+    # ④ 垂钓域 `fishing_spots` / `fishing_pool`（data）
+    # ============================================================
+    FISHING_SPOTS = _ordered(
+        {k: dict(v) for k, v in _R.fishing_spots.all().items()},
+        _ORDER_FISHING_SPOTS, "fishing_spots")
+
+    # 渔获池 = 源 list 的等价物：域 = {鱼名: 条目 + seq}，按 `seq` 还原成 list 并剥掉 `seq`
+    # （源 `FISH_POOL` 是 list、插入序参与 `random.choices` 抽样 → 必须保序；域里已有 `seq`，不需要序声明）
+    FISH_POOL = [
+        {k: v for k, v in ent.items() if k != "seq"}
+        for ent in sorted(_R.fishing_pool.all().values(),
+                          key=lambda x: x["seq"])
+    ]
+
+    # ============================================================
+    # ⑤ 商店域 `shop`（data）—— 89 条「六张源表并集」合表，按列拆回各表
+    #    ⚠ 合表里五列是**五张源表**，各有各的插入序 → 每列一个序声明
+    # ============================================================
+    _SHOP = _R.shop.all()
+
+    SHOP_WEAPONS = _ordered(_pick(_SHOP, "weapons"), _ORDER_SHOP_WEAPONS,
+                                  "shop.weapons")               # 真源 game/data/shop.py:83
+    SHOP_EQUIP = _ordered(_pick(_SHOP, "equip"), _ORDER_SHOP_EQUIP,
+                                "shop.equip")                   # 真源 game/data/shop.py:293
+    SHOP_SMITH_MATERIALS = _ordered(_pick(_SHOP, "materials"), _ORDER_SHOP_SMITH_MATERIALS,
+                                          "shop.materials")     # 真源 game/data/shop.py:232
+    # 子区域配货：合表里唯一非店铺条目是保留键 `wild_trade`（行商货单），要从本表排除
+    SHOP_SUBAREA_ITEMS = _ordered(
+        {k: v["items"] for k, v in _SHOP.items() if "items" in v and k != "wild_trade"},
+        _ORDER_SHOP_SUBAREA_ITEMS, "shop.items")                # 真源 shop.py:22
+    SHOP_WILD_TRADE = list((_SHOP.get("wild_trade") or {}).get("items") or [])  # 真源 shop.py:13
+    # 设施类别表（真源 game/data/shop.py:417）
+    SUBAREA_KIND = _ordered(_pick(_SHOP, "kind"), _ORDER_SUBAREA_KIND, "shop.kind")
+
+    # ============================================================
+    # ⑥ 宠物域 `pets`（data）—— 一条 = 一个品种，规则行挂在条目 `egg_roll`
+    # ============================================================
+    _PETS = _R.pets.all()
+    # 品种池：剥掉导出期注入的 `egg_roll`（= 该品种的掷蛋规则行）
+    _PET_POOL_BY_KEY = _ordered(
+        {k: {kk: vv for kk, vv in ent.items() if kk != "egg_roll"} for k, ent in _PETS.items()},
+        _ORDER_PET_POOL, "pets 品种")
+    PET_POOL = list(_PET_POOL_BY_KEY.values())
+    # 掷蛋规则表：源 `PET_EGG_ROLL` 是 list，导出期按 `key` 连接进品种条目 → 这里按键取回（序由声明给出）
+    PET_EGG_ROLL = list(_ordered(
+        {k: dict(ent["egg_roll"]) for k, ent in _PETS.items() if ent.get("egg_roll")},
+        _ORDER_PET_EGG_ROLL, "pets 掷蛋规则").values())
+
+    # ============================================================
+    # ⑦ 缺域检出 —— 「静默变空洞」比报错难查得多（同 tables.py:missing_domains 口径）
+    # ============================================================
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=40)
+apply_replacements(_rebuild_view(), __package__)

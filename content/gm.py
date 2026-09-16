@@ -43,6 +43,7 @@ import json
 import time
 
 from saintess_engine.command import page_items
+from saintess_engine.records import rebuild_views
 
 # B14-2（L7 线）：数据名读点切包内门面 —— 原 `host.C.<名>` 直取换成门面同名绑定；
 # `host.C` 仍保留给 `display`（函数，无门面，见头注）。
@@ -450,77 +451,25 @@ def boss_dmg(host, qq_id, raw: str) -> str:
 # 资料表热重载（引擎注册表重载 + 包内派生缓存重建）
 # ============================================================
 # 引擎侧只重载 `Records` 表；包内从域表**派生**出来的模块级缓存不会自己跟着变 —— 命令层读到的
-# 会是旧值。这些派生物的唯一来源是各自模块的模块级代码，故重建 = 按依赖序把那段代码在
-# **原命名空间**里再跑一遍（不是 `importlib.reload`：同一命名空间才让已经 `import` 出去的函数
-# 继续看到新全局）。
+# 会是旧值。这些派生物的重建由**引擎通用视图注册表**（`saintess_engine.records.views`）负责：
+# 每个派生模块在 import 期 `register_view(<自己的重建函数>, order=<依赖序>)`，
+# `rebuild_views(module_prefix=__package__)` 按 `(order, 登记序)` 依次调用它们。
 #
-# 重建三条口径（清点与证据见包仓报告）：
-#   ① 可变容器（dict / list / set）**就地更新** —— `from X import Y` 的消费方持有的是同一对象，
-#      就地更新它们才看得到新内容；
-#   ② 非容器（tuple / 数字 / 字符串 / 函数）按**旧对象身份**回填到本包各模块的同名全局上；
-#   ③ 名字索引（`content/index.py::_INDEXES`）单独重建（它是 `index_build.build_into` 的惰性产物，
-#      由 `_BUILT` 闸着）。
-_DERIVATION_MODULES = (
-    "catalog_b143", "catalog_core", "catalog_items", "catalog_legacy", "catalog_life",
-    "catalog_quests", "catalog_rules", "collection", "fishing", "index_build",
-    "maps", "pois", "tables",
-)
-
-_MISSING = object()
+# 消费方看到新值的两条口径（模块序台账见下）：
+#   ① 可变容器（dict / list / set）**就地更新** —— `from X import Y` 的消费方持有的是同一对象；
+#   ② 非容器（tuple / frozenset / 数字 / 字符串）由引擎按**旧对象身份**回填到本包各模块的同名
+#      全局上（视图函数把 `(旧对象, 新对象)` 交出来，引擎做通用别名回填）。
+#
+# 模块序（`order`）—— 被别的视图读到的模块先跑：
+#     tables 10 · catalog_b143 20 · catalog_items 30 · catalog_life 40 · catalog_core 50 ·
+#     catalog_quests 60 · collection 70 · catalog_rules 80 · catalog_legacy 90 ·
+#     fishing 100 · pois 110 · maps 120 · index_build 150 · index 200
+#     （`content/index.py` 的 `_INDEXES`/`_BUILT` 重建在 index 那个视图里，排在最后）
 
 
 def _rebuild_derived_caches() -> int:
-    """按域表重建包内模块级派生缓存，返回重建的模块数。"""
-    import sys
-    pkg = __package__ or "content"
-    mods = []
-    for short in _DERIVATION_MODULES:
-        module = sys.modules.get("%s.%s" % (pkg, short))
-        if module is not None and getattr(module, "__file__", None):
-            mods.append(module)
-    snapshots = []
-    for module in mods:
-        with open(module.__file__, encoding="utf-8") as fh:
-            code = compile(fh.read(), module.__file__, "exec")
-        snapshots.append((module, code,
-                          {k: v for k, v in module.__dict__.items() if not k.startswith("__")}))
-    repl: dict = {}
-    for module, code, before in snapshots:
-        exec(code, module.__dict__)
-        for name, old in before.items():
-            new = module.__dict__.get(name, _MISSING)
-            if new is _MISSING or new is old:
-                continue
-            if isinstance(old, dict) and isinstance(new, dict):
-                old.clear()
-                old.update(new)
-                module.__dict__[name] = old
-            elif isinstance(old, list) and isinstance(new, list):
-                old[:] = new
-                module.__dict__[name] = old
-            elif isinstance(old, set) and isinstance(new, set):
-                old.clear()
-                old.update(new)
-                module.__dict__[name] = old
-            else:
-                repl[id(old)] = new
-    if repl:
-        for name, module in list(sys.modules.items()):
-            if name != pkg and not name.startswith(pkg + "."):
-                continue
-            namespace = getattr(module, "__dict__", None)
-            if not isinstance(namespace, dict):
-                continue
-            for key, value in list(namespace.items()):
-                new = repl.get(id(value), _MISSING)
-                if new is not _MISSING and new is not value:
-                    namespace[key] = new
-    index = sys.modules.get(pkg + ".index")
-    if index is not None:
-        index._INDEXES.clear()
-        index._BUILT = False
-        index._indexes()
-    return len(mods)
+    """按已登记的视图函数重建包内模块级派生缓存，返回重建的视图个数。"""
+    return rebuild_views(module_prefix=__package__)
 
 
 def reload_tables(reload_all_sets, reload_error) -> list:

@@ -58,7 +58,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import set_from_domains
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -137,7 +137,64 @@ def _tupled_rows(rows):
 # ============================================================
 # ① 序声明（`content/data/key_order.json`：本模块 26 条 / 443 键，按名取用）
 # ============================================================
-_ORDERS: dict = _R.key_order.all()
+def _grp(group: str) -> dict:
+    """`game_config` 的一组常量（缺组 → `{}`）。"""
+    g = _CFG.get(group)
+    return g if isinstance(g, dict) else {}
+
+_ORDERS = placeholder("_ORDERS")
+_CFG = placeholder("_CFG")
+PET_MAX_LEVEL = placeholder("PET_MAX_LEVEL")
+PET_SKILL_UNLOCK_LV = placeholder("PET_SKILL_UNLOCK_LV")
+MAP_CONNECTIONS = placeholder("MAP_CONNECTIONS")
+LEGACY_MAP_ALIAS = placeholder("LEGACY_MAP_ALIAS")
+HIDDEN_MAP_UNLOCK = placeholder("HIDDEN_MAP_UNLOCK")
+WORLD_EVENT_POOL = placeholder("WORLD_EVENT_POOL")
+AUCTION_POOL = placeholder("AUCTION_POOL")
+WORLD_BOSS_POOL = placeholder("WORLD_BOSS_POOL")
+RUNE_CRAFT_SHARDS = placeholder("RUNE_CRAFT_SHARDS")
+RUNE_DROP = placeholder("RUNE_DROP")
+RUNE_LEVEL_ROMAN = placeholder("RUNE_LEVEL_ROMAN")
+AFFIX_AFFINITY_CN = placeholder("AFFIX_AFFINITY_CN")
+AFFIX_POOL_BY_QUALITY = placeholder("AFFIX_POOL_BY_QUALITY")
+FISH_COLLECT = placeholder("FISH_COLLECT")
+FISH_EXP = placeholder("FISH_EXP")
+POIS = placeholder("POIS")
+HIDDEN_MONSTERS = placeholder("HIDDEN_MONSTERS")
+INVESTIGATE_COLLECT_SAMPLES = placeholder("INVESTIGATE_COLLECT_SAMPLES")
+QUALITY = placeholder("QUALITY")
+EQUIP_SLOTS = placeholder("EQUIP_SLOTS")
+WEAPON_FLAVOR = placeholder("WEAPON_FLAVOR")
+QUALITY_ORDER = placeholder("QUALITY_ORDER")
+FACTIONS = placeholder("FACTIONS")
+FACTION_ORDER = placeholder("FACTION_ORDER")
+AREA_FACTION = placeholder("AREA_FACTION")
+CHRONICLES = placeholder("CHRONICLES")
+REPUTATION_TIERS = placeholder("REPUTATION_TIERS")
+ENCHANT_RECIPES = placeholder("ENCHANT_RECIPES")
+ENCHANT_SLOTS = placeholder("ENCHANT_SLOTS")
+ENCHANT_CRIT_CHANCE = placeholder("ENCHANT_CRIT_CHANCE")
+WISH_POOL = placeholder("WISH_POOL")
+CAMPFIRE_FOOD_POOL = placeholder("CAMPFIRE_FOOD_POOL")
+HERB_POOL = placeholder("HERB_POOL")
+CHAPTER_PACK = placeholder("CHAPTER_PACK")
+GEM_TIERS = placeholder("GEM_TIERS")
+GEM_TIER_NAMES = placeholder("GEM_TIER_NAMES")
+GEM_SOCKETS = placeholder("GEM_SOCKETS")
+GEM_DRILL = placeholder("GEM_DRILL")
+GEM_LEGENDARY_EFFECTS = placeholder("GEM_LEGENDARY_EFFECTS")
+RUNE_REMOVE_COST = placeholder("RUNE_REMOVE_COST")
+GUILD_CONFIG = placeholder("GUILD_CONFIG")
+HONOR_SHOP = placeholder("HONOR_SHOP")
+WT_CN = placeholder("WT_CN")
+QUALITY_CN = placeholder("QUALITY_CN")
+WEAPON_DIST = placeholder("WEAPON_DIST")
+ARMOR_FAMILY = placeholder("ARMOR_FAMILY")
+ARMOR_FAMILY_ALIAS = placeholder("ARMOR_FAMILY_ALIAS")
+RULES = placeholder("RULES")
+MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
+MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
+
 
 
 def _order(name: str):
@@ -154,56 +211,64 @@ def _order(name: str):
 # ============================================================
 # ② 42 个名字（域 → 值；含两处类型还原）
 # ============================================================
-_CFG = _R.game_config.all()
-
-
 def _grp(group: str) -> dict:
     """`game_config` 的一组常量（缺组 → `{}`）。"""
     g = _CFG.get(group)
     return g if isinstance(g, dict) else {}
 
-PET_MAX_LEVEL = _grp("pets").get("PET_MAX_LEVEL")
-PET_SKILL_UNLOCK_LV = _grp("pets").get("PET_SKILL_UNLOCK_LV")
-MAP_CONNECTIONS = _ordered((_grp("maps").get("MAP_CONNECTIONS") if isinstance(_grp("maps").get("MAP_CONNECTIONS"), dict) else {}), _order("map_connections"), "game_config.maps")
-LEGACY_MAP_ALIAS = _ordered((_grp("maps").get("LEGACY_MAP_ALIAS") if isinstance(_grp("maps").get("LEGACY_MAP_ALIAS"), dict) else {}), _order("legacy_map_alias"), "game_config.maps")
-HIDDEN_MAP_UNLOCK = _ordered((_grp("maps").get("HIDDEN_MAP_UNLOCK") if isinstance(_grp("maps").get("HIDDEN_MAP_UNLOCK"), dict) else {}), _order("hidden_map_unlock"), "game_config.maps")
-WORLD_EVENT_POOL = _grp("world").get("WORLD_EVENT_POOL")
-AUCTION_POOL = _grp("world").get("AUCTION_POOL")
-WORLD_BOSS_POOL = _grp("world").get("WORLD_BOSS_POOL")
-RUNE_CRAFT_SHARDS = _ordered((_grp("runes").get("RUNE_CRAFT_SHARDS") if isinstance(_grp("runes").get("RUNE_CRAFT_SHARDS"), dict) else {}), _order("rune_craft_shards"), "game_config.runes")
-RUNE_DROP = _ordered((_grp("runes").get("RUNE_DROP") if isinstance(_grp("runes").get("RUNE_DROP"), dict) else {}), _order("rune_drop"), "game_config.runes")
-RUNE_LEVEL_ROMAN = _num_sorted(_ordered(_int_keys((_grp("runes").get("RUNE_LEVEL_ROMAN") if isinstance(_grp("runes").get("RUNE_LEVEL_ROMAN"), dict) else {})), _order("rune_level_roman"), "game_config.runes"))
-AFFIX_AFFINITY_CN = _ordered((_grp("affixes").get("AFFIX_AFFINITY_CN") if isinstance(_grp("affixes").get("AFFIX_AFFINITY_CN"), dict) else {}), _order("affix_affinity_cn"), "game_config.affixes")
-AFFIX_POOL_BY_QUALITY = _ordered((_grp("affixes").get("AFFIX_POOL_BY_QUALITY") if isinstance(_grp("affixes").get("AFFIX_POOL_BY_QUALITY"), dict) else {}), _order("affix_pool_by_quality"), "game_config.affixes")
-FISH_COLLECT = _grp("fishing").get("FISH_COLLECT")
-FISH_EXP = _ordered((_grp("fishing").get("FISH_EXP") if isinstance(_grp("fishing").get("FISH_EXP"), dict) else {}), _order("fish_exp"), "game_config.fishing")
-POIS = _ordered((_grp("pois").get("POIS") if isinstance(_grp("pois").get("POIS"), dict) else {}), _order("pois"), "game_config.pois")
-HIDDEN_MONSTERS = _ordered((_grp("hidden_monsters").get("HIDDEN_MONSTERS") if isinstance(_grp("hidden_monsters").get("HIDDEN_MONSTERS"), dict) else {}), _order("hidden_monsters"), "game_config.hidden_monsters")
-INVESTIGATE_COLLECT_SAMPLES = _grp("instance_investigation").get("INVESTIGATE_COLLECT_SAMPLES")
-QUALITY = _ordered((_R.equipment.get("equipment", {}).get("QUALITY") if isinstance(_R.equipment.get("equipment", {}).get("QUALITY"), dict) else {}), _order("quality"), "equipment")
-EQUIP_SLOTS = _ordered((_R.equipment.get("equipment", {}).get("EQUIP_SLOTS") if isinstance(_R.equipment.get("equipment", {}).get("EQUIP_SLOTS"), dict) else {}), _order("equip_slots"), "equipment")
-WEAPON_FLAVOR = _ordered((_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR") if isinstance(_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR"), dict) else {}), _order("weapon_flavor"), "equipment")
-QUALITY_ORDER = _R.equipment.get("equipment", {}).get("QUALITY_ORDER")
-FACTIONS = _ordered((_R.factions.get("factions", {}).get("FACTIONS") if isinstance(_R.factions.get("factions", {}).get("FACTIONS"), dict) else {}), _order("factions"), "factions")
-FACTION_ORDER = _R.factions.get("factions", {}).get("FACTION_ORDER")
-AREA_FACTION = _ordered((_R.factions.get("factions", {}).get("AREA_FACTION") if isinstance(_R.factions.get("factions", {}).get("AREA_FACTION"), dict) else {}), _order("area_faction"), "factions")
-CHRONICLES = _R.factions.get("factions", {}).get("CHRONICLES")
-REPUTATION_TIERS = _tupled_rows(_R.factions.get("factions", {}).get("REPUTATION_TIERS"))
-ENCHANT_RECIPES = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES"), dict) else {}), _order("enchant_recipes"), "enchant")
-ENCHANT_SLOTS = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS"), dict) else {}), _order("enchant_slots"), "enchant")
-ENCHANT_CRIT_CHANCE = _R.enchant.get("enchant", {}).get("ENCHANT_CRIT_CHANCE")
-WISH_POOL = _R.poi_pools.get("poi_pools", {}).get("WISH_POOL")
-CAMPFIRE_FOOD_POOL = _R.poi_pools.get("poi_pools", {}).get("CAMPFIRE_FOOD_POOL")
-HERB_POOL = _R.poi_pools.get("poi_pools", {}).get("HERB_POOL")
-CHAPTER_PACK = _R.chapters.get("quest_add_v140", {}).get("CHAPTER_PACK")
-GEM_TIERS = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _order("gem_tiers"), "gems"))
-GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _order("gem_tier_names"), "gems"))
-GEM_SOCKETS = _ordered((_R.gems.get("gems", {}).get("GEM_SOCKETS") if isinstance(_R.gems.get("gems", {}).get("GEM_SOCKETS"), dict) else {}), _order("gem_sockets"), "gems")
-GEM_DRILL = _ordered((_R.gems.get("gems", {}).get("GEM_DRILL") if isinstance(_R.gems.get("gems", {}).get("GEM_DRILL"), dict) else {}), _order("gem_drill"), "gems")
-GEM_LEGENDARY_EFFECTS = _R.gems.get("gems", {}).get("GEM_LEGENDARY_EFFECTS")
-RUNE_REMOVE_COST = _R.gems.get("gems", {}).get("RUNE_REMOVE_COST")
-GUILD_CONFIG = _ordered((_R.guild.get("config", {}) if isinstance(_R.guild.get("config", {}), dict) else {}), _order("guild_config"), "guild")
-HONOR_SHOP = _num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _order("honor_shop"), "shop"))
+_ORDERS = placeholder("_ORDERS")
+_CFG = placeholder("_CFG")
+PET_MAX_LEVEL = placeholder("PET_MAX_LEVEL")
+PET_SKILL_UNLOCK_LV = placeholder("PET_SKILL_UNLOCK_LV")
+MAP_CONNECTIONS = placeholder("MAP_CONNECTIONS")
+LEGACY_MAP_ALIAS = placeholder("LEGACY_MAP_ALIAS")
+HIDDEN_MAP_UNLOCK = placeholder("HIDDEN_MAP_UNLOCK")
+WORLD_EVENT_POOL = placeholder("WORLD_EVENT_POOL")
+AUCTION_POOL = placeholder("AUCTION_POOL")
+WORLD_BOSS_POOL = placeholder("WORLD_BOSS_POOL")
+RUNE_CRAFT_SHARDS = placeholder("RUNE_CRAFT_SHARDS")
+RUNE_DROP = placeholder("RUNE_DROP")
+RUNE_LEVEL_ROMAN = placeholder("RUNE_LEVEL_ROMAN")
+AFFIX_AFFINITY_CN = placeholder("AFFIX_AFFINITY_CN")
+AFFIX_POOL_BY_QUALITY = placeholder("AFFIX_POOL_BY_QUALITY")
+FISH_COLLECT = placeholder("FISH_COLLECT")
+FISH_EXP = placeholder("FISH_EXP")
+POIS = placeholder("POIS")
+HIDDEN_MONSTERS = placeholder("HIDDEN_MONSTERS")
+INVESTIGATE_COLLECT_SAMPLES = placeholder("INVESTIGATE_COLLECT_SAMPLES")
+QUALITY = placeholder("QUALITY")
+EQUIP_SLOTS = placeholder("EQUIP_SLOTS")
+WEAPON_FLAVOR = placeholder("WEAPON_FLAVOR")
+QUALITY_ORDER = placeholder("QUALITY_ORDER")
+FACTIONS = placeholder("FACTIONS")
+FACTION_ORDER = placeholder("FACTION_ORDER")
+AREA_FACTION = placeholder("AREA_FACTION")
+CHRONICLES = placeholder("CHRONICLES")
+REPUTATION_TIERS = placeholder("REPUTATION_TIERS")
+ENCHANT_RECIPES = placeholder("ENCHANT_RECIPES")
+ENCHANT_SLOTS = placeholder("ENCHANT_SLOTS")
+ENCHANT_CRIT_CHANCE = placeholder("ENCHANT_CRIT_CHANCE")
+WISH_POOL = placeholder("WISH_POOL")
+CAMPFIRE_FOOD_POOL = placeholder("CAMPFIRE_FOOD_POOL")
+HERB_POOL = placeholder("HERB_POOL")
+CHAPTER_PACK = placeholder("CHAPTER_PACK")
+GEM_TIERS = placeholder("GEM_TIERS")
+GEM_TIER_NAMES = placeholder("GEM_TIER_NAMES")
+GEM_SOCKETS = placeholder("GEM_SOCKETS")
+GEM_DRILL = placeholder("GEM_DRILL")
+GEM_LEGENDARY_EFFECTS = placeholder("GEM_LEGENDARY_EFFECTS")
+RUNE_REMOVE_COST = placeholder("RUNE_REMOVE_COST")
+GUILD_CONFIG = placeholder("GUILD_CONFIG")
+HONOR_SHOP = placeholder("HONOR_SHOP")
+WT_CN = placeholder("WT_CN")
+QUALITY_CN = placeholder("QUALITY_CN")
+WEAPON_DIST = placeholder("WEAPON_DIST")
+ARMOR_FAMILY = placeholder("ARMOR_FAMILY")
+ARMOR_FAMILY_ALIAS = placeholder("ARMOR_FAMILY_ALIAS")
+RULES = placeholder("RULES")
+MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
+MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
+
 
 
 _REQUIRED = (
@@ -223,25 +288,64 @@ _REQUIRED = (
 #   `WT_CN`/`QUALITY_CN` → `content/index_build.py` 的 `weapon_types`/`quality` 索引表
 #   `WEAPON_DIST`/`ARMOR_FAMILY`/`ARMOR_FAMILY_ALIAS` → `content/stats.py:103-105` 模块级取件
 # =============================================================================
-WT_CN = (_R.equipment.get("equipment", {}).get("WT_CN") or {})
-QUALITY_CN = (_R.equipment.get("equipment", {}).get("QUALITY_CN") or {})
-WEAPON_DIST = (_R.equipment.get("equipment", {}).get("WEAPON_DIST") or {})
-ARMOR_FAMILY = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY") or {})
-ARMOR_FAMILY_ALIAS = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY_ALIAS") or {})
+def _grp(group: str) -> dict:
+    """`game_config` 的一组常量（缺组 → `{}`）。"""
+    g = _CFG.get(group)
+    return g if isinstance(g, dict) else {}
 
+_ORDERS = placeholder("_ORDERS")
+_CFG = placeholder("_CFG")
+PET_MAX_LEVEL = placeholder("PET_MAX_LEVEL")
+PET_SKILL_UNLOCK_LV = placeholder("PET_SKILL_UNLOCK_LV")
+MAP_CONNECTIONS = placeholder("MAP_CONNECTIONS")
+LEGACY_MAP_ALIAS = placeholder("LEGACY_MAP_ALIAS")
+HIDDEN_MAP_UNLOCK = placeholder("HIDDEN_MAP_UNLOCK")
+WORLD_EVENT_POOL = placeholder("WORLD_EVENT_POOL")
+AUCTION_POOL = placeholder("AUCTION_POOL")
+WORLD_BOSS_POOL = placeholder("WORLD_BOSS_POOL")
+RUNE_CRAFT_SHARDS = placeholder("RUNE_CRAFT_SHARDS")
+RUNE_DROP = placeholder("RUNE_DROP")
+RUNE_LEVEL_ROMAN = placeholder("RUNE_LEVEL_ROMAN")
+AFFIX_AFFINITY_CN = placeholder("AFFIX_AFFINITY_CN")
+AFFIX_POOL_BY_QUALITY = placeholder("AFFIX_POOL_BY_QUALITY")
+FISH_COLLECT = placeholder("FISH_COLLECT")
+FISH_EXP = placeholder("FISH_EXP")
+POIS = placeholder("POIS")
+HIDDEN_MONSTERS = placeholder("HIDDEN_MONSTERS")
+INVESTIGATE_COLLECT_SAMPLES = placeholder("INVESTIGATE_COLLECT_SAMPLES")
+QUALITY = placeholder("QUALITY")
+EQUIP_SLOTS = placeholder("EQUIP_SLOTS")
+WEAPON_FLAVOR = placeholder("WEAPON_FLAVOR")
+QUALITY_ORDER = placeholder("QUALITY_ORDER")
+FACTIONS = placeholder("FACTIONS")
+FACTION_ORDER = placeholder("FACTION_ORDER")
+AREA_FACTION = placeholder("AREA_FACTION")
+CHRONICLES = placeholder("CHRONICLES")
+REPUTATION_TIERS = placeholder("REPUTATION_TIERS")
+ENCHANT_RECIPES = placeholder("ENCHANT_RECIPES")
+ENCHANT_SLOTS = placeholder("ENCHANT_SLOTS")
+ENCHANT_CRIT_CHANCE = placeholder("ENCHANT_CRIT_CHANCE")
+WISH_POOL = placeholder("WISH_POOL")
+CAMPFIRE_FOOD_POOL = placeholder("CAMPFIRE_FOOD_POOL")
+HERB_POOL = placeholder("HERB_POOL")
+CHAPTER_PACK = placeholder("CHAPTER_PACK")
+GEM_TIERS = placeholder("GEM_TIERS")
+GEM_TIER_NAMES = placeholder("GEM_TIER_NAMES")
+GEM_SOCKETS = placeholder("GEM_SOCKETS")
+GEM_DRILL = placeholder("GEM_DRILL")
+GEM_LEGENDARY_EFFECTS = placeholder("GEM_LEGENDARY_EFFECTS")
+RUNE_REMOVE_COST = placeholder("RUNE_REMOVE_COST")
+GUILD_CONFIG = placeholder("GUILD_CONFIG")
+HONOR_SHOP = placeholder("HONOR_SHOP")
+WT_CN = placeholder("WT_CN")
+QUALITY_CN = placeholder("QUALITY_CN")
+WEAPON_DIST = placeholder("WEAPON_DIST")
+ARMOR_FAMILY = placeholder("ARMOR_FAMILY")
+ARMOR_FAMILY_ALIAS = placeholder("ARMOR_FAMILY_ALIAS")
+RULES = placeholder("RULES")
+MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
+MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
 
-# =============================================================================
-# B14 收口追加（W12 世界/杂项线 2026-09-14）：`game_config` 的 `rules` / `mounts` 两组
-#   `RULES` ← 真源 `game/data/rules.py:8`（20 条；list ⇒ JSON 数组自带序，不需要序声明）
-#   `MOUNT_DROP_BOSS` / `MOUNT_DROP_ELITE` ← 真源 `game/data/mounts.py:71/70`
-#     └ **序有行为**：`content/mounts.py:roll_mount_drop` 按 `.items()` 累计区间抽签 ⇒ 序声明 + 守卫
-#   消费点：`content/rule_engine.py:_rules()` · `content/mounts.py:_tables()`
-#   逐值 + 键序对拍（对**真源模块**，非 `C`：宿主聚合层未导出这两个名，
-#   `b14_catalog_gate.py` 判「门面缺」）→ `overnight/_w12_precheck_sources.py` A/B/C/D 全 OK。
-# =============================================================================
-RULES = _grp("rules").get("RULES")
-MOUNT_DROP_BOSS = _ordered((_grp("mounts").get("MOUNT_DROP_BOSS") if isinstance(_grp("mounts").get("MOUNT_DROP_BOSS"), dict) else {}), _order("mount_drop_boss"), "game_config.mounts")
-MOUNT_DROP_ELITE = _ordered((_grp("mounts").get("MOUNT_DROP_ELITE") if isinstance(_grp("mounts").get("MOUNT_DROP_ELITE"), dict) else {}), _order("mount_drop_elite"), "game_config.mounts")
 
 
 __all__ = [
@@ -273,3 +377,134 @@ __all__ = [
     "MOUNT_DROP_ELITE",
 ]
 
+
+
+
+def _rebuild_view() -> list:
+    """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
+
+    容器（dict / list / set）就地更新（身份不变、内容已新）；非容器（tuple / frozenset /
+    数字 / 字符串）本模块换引用，并把 `(旧对象, 新对象)` 序列交引擎做别名回填。
+    import 期（见文件尾）与每次重载走**同一条路径**：本函数是唯一构建处。
+    """
+    global _ORDERS, _CFG, PET_MAX_LEVEL, PET_SKILL_UNLOCK_LV
+    global MAP_CONNECTIONS, LEGACY_MAP_ALIAS, HIDDEN_MAP_UNLOCK, WORLD_EVENT_POOL
+    global AUCTION_POOL, WORLD_BOSS_POOL, RUNE_CRAFT_SHARDS, RUNE_DROP
+    global RUNE_LEVEL_ROMAN, AFFIX_AFFINITY_CN, AFFIX_POOL_BY_QUALITY, FISH_COLLECT
+    global FISH_EXP, POIS, HIDDEN_MONSTERS, INVESTIGATE_COLLECT_SAMPLES
+    global QUALITY, EQUIP_SLOTS, WEAPON_FLAVOR, QUALITY_ORDER
+    global FACTIONS, FACTION_ORDER, AREA_FACTION, CHRONICLES
+    global REPUTATION_TIERS, ENCHANT_RECIPES, ENCHANT_SLOTS, ENCHANT_CRIT_CHANCE
+    global WISH_POOL, CAMPFIRE_FOOD_POOL, HERB_POOL, CHAPTER_PACK
+    global GEM_TIERS, GEM_TIER_NAMES, GEM_SOCKETS, GEM_DRILL
+    global GEM_LEGENDARY_EFFECTS, RUNE_REMOVE_COST, GUILD_CONFIG, HONOR_SHOP
+    global WT_CN, QUALITY_CN, WEAPON_DIST, ARMOR_FAMILY
+    global ARMOR_FAMILY_ALIAS, RULES, MOUNT_DROP_BOSS, MOUNT_DROP_ELITE
+
+    # 旧对象：容器要就地更新、非容器要交代给引擎（全部先抓一遍，再重建）
+    old = {
+        '_ORDERS': None, '_CFG': None, 'PET_MAX_LEVEL': None, 'PET_SKILL_UNLOCK_LV': None,
+        'MAP_CONNECTIONS': None, 'LEGACY_MAP_ALIAS': None, 'HIDDEN_MAP_UNLOCK': None, 'WORLD_EVENT_POOL': None,
+        'AUCTION_POOL': None, 'WORLD_BOSS_POOL': None, 'RUNE_CRAFT_SHARDS': None, 'RUNE_DROP': None,
+        'RUNE_LEVEL_ROMAN': None, 'AFFIX_AFFINITY_CN': None, 'AFFIX_POOL_BY_QUALITY': None, 'FISH_COLLECT': None,
+        'FISH_EXP': None, 'POIS': None, 'HIDDEN_MONSTERS': None, 'INVESTIGATE_COLLECT_SAMPLES': None,
+        'QUALITY': None, 'EQUIP_SLOTS': None, 'WEAPON_FLAVOR': None, 'QUALITY_ORDER': None,
+        'FACTIONS': None, 'FACTION_ORDER': None, 'AREA_FACTION': None, 'CHRONICLES': None,
+        'REPUTATION_TIERS': None, 'ENCHANT_RECIPES': None, 'ENCHANT_SLOTS': None, 'ENCHANT_CRIT_CHANCE': None,
+        'WISH_POOL': None, 'CAMPFIRE_FOOD_POOL': None, 'HERB_POOL': None, 'CHAPTER_PACK': None,
+        'GEM_TIERS': None, 'GEM_TIER_NAMES': None, 'GEM_SOCKETS': None, 'GEM_DRILL': None,
+        'GEM_LEGENDARY_EFFECTS': None, 'RUNE_REMOVE_COST': None, 'GUILD_CONFIG': None, 'HONOR_SHOP': None,
+        'WT_CN': None, 'QUALITY_CN': None, 'WEAPON_DIST': None, 'ARMOR_FAMILY': None,
+        'ARMOR_FAMILY_ALIAS': None, 'RULES': None, 'MOUNT_DROP_BOSS': None, 'MOUNT_DROP_ELITE': None,
+    }
+    for _n in list(old):
+        old[_n] = globals()[_n]
+
+    _ORDERS = _R.key_order.all()
+    _CFG = _R.game_config.all()
+
+    PET_MAX_LEVEL = _grp("pets").get("PET_MAX_LEVEL")
+    PET_SKILL_UNLOCK_LV = _grp("pets").get("PET_SKILL_UNLOCK_LV")
+    MAP_CONNECTIONS = _ordered((_grp("maps").get("MAP_CONNECTIONS") if isinstance(_grp("maps").get("MAP_CONNECTIONS"), dict) else {}), _order("map_connections"), "game_config.maps")
+    LEGACY_MAP_ALIAS = _ordered((_grp("maps").get("LEGACY_MAP_ALIAS") if isinstance(_grp("maps").get("LEGACY_MAP_ALIAS"), dict) else {}), _order("legacy_map_alias"), "game_config.maps")
+    HIDDEN_MAP_UNLOCK = _ordered((_grp("maps").get("HIDDEN_MAP_UNLOCK") if isinstance(_grp("maps").get("HIDDEN_MAP_UNLOCK"), dict) else {}), _order("hidden_map_unlock"), "game_config.maps")
+    WORLD_EVENT_POOL = _grp("world").get("WORLD_EVENT_POOL")
+    AUCTION_POOL = _grp("world").get("AUCTION_POOL")
+    WORLD_BOSS_POOL = _grp("world").get("WORLD_BOSS_POOL")
+    RUNE_CRAFT_SHARDS = _ordered((_grp("runes").get("RUNE_CRAFT_SHARDS") if isinstance(_grp("runes").get("RUNE_CRAFT_SHARDS"), dict) else {}), _order("rune_craft_shards"), "game_config.runes")
+    RUNE_DROP = _ordered((_grp("runes").get("RUNE_DROP") if isinstance(_grp("runes").get("RUNE_DROP"), dict) else {}), _order("rune_drop"), "game_config.runes")
+    RUNE_LEVEL_ROMAN = _num_sorted(_ordered(_int_keys((_grp("runes").get("RUNE_LEVEL_ROMAN") if isinstance(_grp("runes").get("RUNE_LEVEL_ROMAN"), dict) else {})), _order("rune_level_roman"), "game_config.runes"))
+    AFFIX_AFFINITY_CN = _ordered((_grp("affixes").get("AFFIX_AFFINITY_CN") if isinstance(_grp("affixes").get("AFFIX_AFFINITY_CN"), dict) else {}), _order("affix_affinity_cn"), "game_config.affixes")
+    AFFIX_POOL_BY_QUALITY = _ordered((_grp("affixes").get("AFFIX_POOL_BY_QUALITY") if isinstance(_grp("affixes").get("AFFIX_POOL_BY_QUALITY"), dict) else {}), _order("affix_pool_by_quality"), "game_config.affixes")
+    FISH_COLLECT = _grp("fishing").get("FISH_COLLECT")
+    FISH_EXP = _ordered((_grp("fishing").get("FISH_EXP") if isinstance(_grp("fishing").get("FISH_EXP"), dict) else {}), _order("fish_exp"), "game_config.fishing")
+    POIS = _ordered((_grp("pois").get("POIS") if isinstance(_grp("pois").get("POIS"), dict) else {}), _order("pois"), "game_config.pois")
+    HIDDEN_MONSTERS = _ordered((_grp("hidden_monsters").get("HIDDEN_MONSTERS") if isinstance(_grp("hidden_monsters").get("HIDDEN_MONSTERS"), dict) else {}), _order("hidden_monsters"), "game_config.hidden_monsters")
+    INVESTIGATE_COLLECT_SAMPLES = _grp("instance_investigation").get("INVESTIGATE_COLLECT_SAMPLES")
+    QUALITY = _ordered((_R.equipment.get("equipment", {}).get("QUALITY") if isinstance(_R.equipment.get("equipment", {}).get("QUALITY"), dict) else {}), _order("quality"), "equipment")
+    EQUIP_SLOTS = _ordered((_R.equipment.get("equipment", {}).get("EQUIP_SLOTS") if isinstance(_R.equipment.get("equipment", {}).get("EQUIP_SLOTS"), dict) else {}), _order("equip_slots"), "equipment")
+    WEAPON_FLAVOR = _ordered((_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR") if isinstance(_R.equipment.get("equipment", {}).get("WEAPON_FLAVOR"), dict) else {}), _order("weapon_flavor"), "equipment")
+    QUALITY_ORDER = _R.equipment.get("equipment", {}).get("QUALITY_ORDER")
+    FACTIONS = _ordered((_R.factions.get("factions", {}).get("FACTIONS") if isinstance(_R.factions.get("factions", {}).get("FACTIONS"), dict) else {}), _order("factions"), "factions")
+    FACTION_ORDER = _R.factions.get("factions", {}).get("FACTION_ORDER")
+    AREA_FACTION = _ordered((_R.factions.get("factions", {}).get("AREA_FACTION") if isinstance(_R.factions.get("factions", {}).get("AREA_FACTION"), dict) else {}), _order("area_faction"), "factions")
+    CHRONICLES = _R.factions.get("factions", {}).get("CHRONICLES")
+    REPUTATION_TIERS = _tupled_rows(_R.factions.get("factions", {}).get("REPUTATION_TIERS"))
+    ENCHANT_RECIPES = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_RECIPES"), dict) else {}), _order("enchant_recipes"), "enchant")
+    ENCHANT_SLOTS = _ordered((_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS") if isinstance(_R.enchant.get("enchant", {}).get("ENCHANT_SLOTS"), dict) else {}), _order("enchant_slots"), "enchant")
+    ENCHANT_CRIT_CHANCE = _R.enchant.get("enchant", {}).get("ENCHANT_CRIT_CHANCE")
+    WISH_POOL = _R.poi_pools.get("poi_pools", {}).get("WISH_POOL")
+    CAMPFIRE_FOOD_POOL = _R.poi_pools.get("poi_pools", {}).get("CAMPFIRE_FOOD_POOL")
+    HERB_POOL = _R.poi_pools.get("poi_pools", {}).get("HERB_POOL")
+    CHAPTER_PACK = _R.chapters.get("quest_add_v140", {}).get("CHAPTER_PACK")
+    GEM_TIERS = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _order("gem_tiers"), "gems"))
+    GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _order("gem_tier_names"), "gems"))
+    GEM_SOCKETS = _ordered((_R.gems.get("gems", {}).get("GEM_SOCKETS") if isinstance(_R.gems.get("gems", {}).get("GEM_SOCKETS"), dict) else {}), _order("gem_sockets"), "gems")
+    GEM_DRILL = _ordered((_R.gems.get("gems", {}).get("GEM_DRILL") if isinstance(_R.gems.get("gems", {}).get("GEM_DRILL"), dict) else {}), _order("gem_drill"), "gems")
+    GEM_LEGENDARY_EFFECTS = _R.gems.get("gems", {}).get("GEM_LEGENDARY_EFFECTS")
+    RUNE_REMOVE_COST = _R.gems.get("gems", {}).get("RUNE_REMOVE_COST")
+    GUILD_CONFIG = _ordered((_R.guild.get("config", {}) if isinstance(_R.guild.get("config", {}), dict) else {}), _order("guild_config"), "guild")
+    HONOR_SHOP = _num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _order("honor_shop"), "shop"))
+    WT_CN = (_R.equipment.get("equipment", {}).get("WT_CN") or {})
+    QUALITY_CN = (_R.equipment.get("equipment", {}).get("QUALITY_CN") or {})
+    WEAPON_DIST = (_R.equipment.get("equipment", {}).get("WEAPON_DIST") or {})
+    ARMOR_FAMILY = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY") or {})
+    ARMOR_FAMILY_ALIAS = (_R.equipment.get("equipment", {}).get("ARMOR_FAMILY_ALIAS") or {})
+
+    # =============================================================================
+    # B14 收口追加（W12 世界/杂项线 2026-09-14）：`game_config` 的 `rules` / `mounts` 两组
+    #   `RULES` ← 真源 `game/data/rules.py:8`（20 条；list ⇒ JSON 数组自带序，不需要序声明）
+    #   `MOUNT_DROP_BOSS` / `MOUNT_DROP_ELITE` ← 真源 `game/data/mounts.py:71/70`
+    #     └ **序有行为**：`content/mounts.py:roll_mount_drop` 按 `.items()` 累计区间抽签 ⇒ 序声明 + 守卫
+    #   消费点：`content/rule_engine.py:_rules()` · `content/mounts.py:_tables()`
+    #   逐值 + 键序对拍（对**真源模块**，非 `C`：宿主聚合层未导出这两个名，
+    #   `b14_catalog_gate.py` 判「门面缺」）→ `overnight/_w12_precheck_sources.py` A/B/C/D 全 OK。
+    # =============================================================================
+    RULES = _grp("rules").get("RULES")
+    MOUNT_DROP_BOSS = _ordered((_grp("mounts").get("MOUNT_DROP_BOSS") if isinstance(_grp("mounts").get("MOUNT_DROP_BOSS"), dict) else {}), _order("mount_drop_boss"), "game_config.mounts")
+    MOUNT_DROP_ELITE = _ordered((_grp("mounts").get("MOUNT_DROP_ELITE") if isinstance(_grp("mounts").get("MOUNT_DROP_ELITE"), dict) else {}), _order("mount_drop_elite"), "game_config.mounts")
+
+    # 收敛：容器就地更新（身份不变）；非容器交引擎按身份回填
+    out = []
+    for name in old:
+        before, new = old[name], globals()[name]
+        if before is new:
+            continue
+        if isinstance(new, (dict, list, set)):
+            if _same_container(before, new):
+                update_in_place(before, new)   # 就地更新：消费方手头引用身份不变
+                globals()[name] = before
+            continue                           # 首次构建：全局已是新对象
+        out.append((before, new))
+    return out
+
+
+def _same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+register_view(_rebuild_view, order=20)
+apply_replacements(_rebuild_view(), __package__)
