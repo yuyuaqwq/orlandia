@@ -73,7 +73,7 @@ FROZEN_COUNTS = {
     "items": 900, "equip_roster": 687, "subareas": 628, "exploration": 628,
     "drop_pools": 596, "pois": 457, "npcs": 431, "craft": 426, "monster_roster": 380,
     "monsters": 330, "skills": 305, "skill_up": 305, "quests": 238, "texts": 233,
-    "commands": 194, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
+    "commands": 195, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
     "pets": 16, "runes": 16, "passive_proc": 42, "dialogues": 39, "titles": 68,

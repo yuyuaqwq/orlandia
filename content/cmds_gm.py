@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""包内 GM/运营命令域（`content/cmds_gm.py`，B18-L4）—— 19 条 `gm_*` 命令的守卫/取参/业务/**渲染**。
+"""包内 GM/运营命令域（`content/cmds_gm.py`，B18-L4）—— 20 条 `gm_*` 命令的守卫/取参/业务/**渲染**。
 
 终态形状（真源 = `overnight/B18_TERMINAL_SHAPE.md` §1.2）：宿主 `game/commands/gm.py` 里
 每条命令只剩 `@declared("gm_<key>")` + `_BRIDGE.run(self, "gm_<key>", event)` 一行转发。
@@ -29,7 +29,7 @@ v104.1 M24 语义，含两条逐字提示语）。本模块把它接到**守卫*
   原判定「不适合本形状 ⇒ 留宿主」被本批推翻：实现已**搬回本模块**（`gm_play` / `gm_spy` +
   `_spy_to_role_cards` / `_chunk_text`），宿主壳 `host/shell.py` 只留 1–3 行转发。
   两条**仍然不进引擎声明路由**（宿主适配器 `PLATFORM_ROUTES` 按 key 派发到宿主壳），故本模块
-  对它们**不 `@register`** —— 包内处理器表照旧没有这两条，注册面 194 == 194 不变。
+  对它们**不 `@register`** —— 包内处理器表照旧没有这两条，注册面 195 == 195 不变。
   平台件（进程内实录目录 / 合并转发类型 / 投递前端 / 宿主日志 / 身份映射）经宿主壳能力口取
   （`shell._guard_hook` · `shell._strip_cmd` · `shell._run_shortcut` · `shell._spy_ops` ·
   `shell._identity_ops`），包内不 import 宿主（I2 口径）。
@@ -45,6 +45,8 @@ import json
 import os
 import re
 import time
+
+from saintess_engine.records import RecordsReloadError, reload_all_sets
 
 from . import gm as _G
 from .commands import register
@@ -140,6 +142,12 @@ def gm_broadcast(env) -> list:
     if broadcast is not None:
         _broadcast_soon(_shell(env), broadcast)
     return [text]
+
+
+@register("gm_reload", guards=("hook:gm",), params=("cmd=gm_重载",))
+def gm_reload(env) -> list:
+    """『gm_重载』：把包内资料表按磁盘重读一遍（不停服、不改代码）。"""
+    return _G.reload_tables(reload_all_sets, RecordsReloadError)
 
 
 # ============================================================
@@ -281,7 +289,7 @@ def gm_identity_table(env) -> list:
 # ============================================================
 # 平台例外两条（`gm_play` / `gm_spy`）—— P5E「壳去逻辑」批：实现回包，壳侧只转发
 # ------------------------------------------------------------
-# 见模块头注；两条**不 `@register`**（注册面 194 == 194 不变，宿主适配器按
+# 见模块头注；两条**不 `@register`**（注册面 195 == 195 不变，宿主适配器按
 # `PLATFORM_ROUTES` 把命中声明的消息派到宿主壳，宿主壳再转发到下面两个函数）。
 # ============================================================
 

@@ -43,7 +43,7 @@ from _engine_harness import harness as _harness  # noqa: E402
 # 「首个命中即返回」的口径下把**全部指令**都吃掉了（`_run_shortcut` 静默返回空）。
 # 旧宿主 `_host_handler_finder` 是按 `name.startswith("_")` **显式跳过**私有 handler 的
 # （见 `game/commands/base.py:163`），测试侧的静态表兜底也应同口径。
-# 本文件按同一口径把私有键从静态表剔除（命令面一字未减：194 键 → 193 键，只少 gate）。
+# 本文件按同一口径把私有键从静态表剔除（命令面一字未减：195 键 → 193 键，只少 gate）。
 def _static_without_private():
     return [(rx, k) for rx, k in _harness().declarations_for_static()
             if not k.startswith("_")]

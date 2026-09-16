@@ -6,7 +6,7 @@
 
 数据源（双份，互相强校验）：
 1. 包内声明表 `content/data/commands.json` 派生的有效表（2026-09-12 #9 收尾后 = 声明表派生）
-2. 包内运行时注册表 `pkg.command_handlers()` ∪ 平台例外键（真实注册 = 194 条）
+2. 包内运行时注册表 `pkg.command_handlers()` ∪ 平台例外键（真实注册 = 195 条）
 
 断言：
 A. 一致性：静态表键集合 == 装饰器方法名集合，且每条模式逐字相等（表漂移即失败）
@@ -204,6 +204,7 @@ REPRESENTATIVES = {
     "unequip": "卸下", "use": "使用", "sell": "出售", "shop": "商店", "buy": "购买",
     # gm.py
     "gm_maintenance": "gm_停服", "gm_open": "gm_开服", "gm_status": "gm_状态",
+    "gm_reload": "gm_重载",
     "gm_broadcast": "gm_广播", "gm_players": "gm_玩家", "gm_query": "gm_查询",
     "gm_give_gold": "gm_发金币", "gm_give_item": "gm_发物品", "gm_give_exp": "gm_发经验",
     "gm_set_level": "gm_设等级", "gm_teleport": "gm_传送", "gm_stamina": "gm_体力",
