@@ -8,13 +8,13 @@
 （唯一函数内改动 = 1 行 import 拆成 2 行，见下；对拍见 `overnight/d2_misc_verify.py` A4）。
 
 动作清单（1 个）
-  :120   `skill_cond_mult`  (def skill_cond_mult_act → 本文件 def :133)
+  :120   `skill_cond_mult`  (def skill_cond_mult_act → 本文件 `skill_cond_mult_act`)
 谓词表（真源模块级，逐字抄）：`_DEBUFF_KEYS`(`:26`) / `_DOT_KEYS`(`:28`) /
 `_MELODY_BUFF_KINDS`(`:30`) / `COND_PREDICATES`(`:32`) / `register_cond`(`:35`) / `_spd_of`(`:43`) +
 5 个谓词：`player_first`(`:54`) / `enemy_debuff`(`:60`) / `enemy_broken`(`:78`) /
 `melody_buff`(`:97`) / `melody_stacks`(`:110`)。
 
-结构改写清单（只有 2 类，零行为变化）
+结构改写清单（只有 3 类，零行为变化）
 1. **去装配入口**：删真源 `:156-180 apply_cond_procs(actor)`（装配链归
    `content/apply.py`，P4 设计稿 §二）。
 2. **技能表相对 import → 包内来源**（唯一一处）：真源 `:144`
@@ -29,10 +29,24 @@
    其余 import（`:23` register_action、`:47` `from saintess_engine import stats as S`）一字未动
    （`saintess_engine.stats` 在框架仓与游戏仓子模块里**都不存在** → 真源 `_spd_of` 实际一直走
    `except` 分支读 `actor["spd"]`；逐字搬运 = 行为一致，见 `overnight/d2-misc_procs.md` 备注）。
+3. **★ U1-I5 条件族去双源**（2026-09-15）：真源模块级自建注册表
+   `COND_PREDICATES = {}`(`:32`) + `register_cond`(`:35`) **整块删除**，改用引擎
+   `saintess_engine.conditions.Conditions`（登记 · 同 key 覆盖 · 登记序 · 键校验 · 纯查表
+   全由引擎给）；`COND_PREDICATES` / `register_cond` 两个对外名字**做成指向引擎对象的别名**
+   （不是第二份实现），故 `:12-15` 那两行「真源模块级 · 逐字抄」的**载体口径已换**、
+   **键名与判定语义一字未改**。
+   · 5 个 `@register_cond("…")` 装饰器行与 5 个谓词函数体**逐字节不变**（只换注册到哪）。
+   · 谓词签名 `(battle, actor, target, cond)` **保持内容侧 4 参**：引擎 `Conditions` 只要求
+     `callable(fn)`，实参形状由内容侧定（包内先例 `dialogue_conds` 2 参 /
+     `achievement_conds` 5 参 / `title_conds` 用自建 `TitleCtx`），故 `evaluate(key, ctx)` 的
+     1 参面不适用于本族 —— 详见本批设计稿 `out/U1-I5_DESIGN.md` §3。
+   · 动作查表改用引擎 `has()` 先探（未注册 / 非法键一律静默不崩）—— 本批**唯一**行为差异，
+     方向 = 变安全，详见设计稿 §4.3。
 """
 from __future__ import annotations
 
 from saintess_engine.battle.effects import register_action
+from saintess_engine.conditions import Conditions        # ★ U1-I5：条件注册表 = 引擎 conditions.Conditions
 
 # 敌方减益键（控制/属性降）；DOT/印记类走 effects 层数判定
 _DEBUFF_KEYS = ("def_down", "spd_down", "mon_atk_down", "atk_down",
@@ -41,15 +55,19 @@ _DOT_KEYS = ("poison", "burn", "bleed", "mark")
 # 旋律增益系（咏叹调 desc「当前旋律为增益系时 ×1.3」）
 _MELODY_BUFF_KINDS = ("atk", "def", "spd", "atk_matk", "all")
 
-COND_PREDICATES: dict = {}
+# ★ U1-I5 去双源：条件注册表的**唯一实现** = 引擎 `saintess_engine.conditions.Conditions`
+#   （登记 / 同 key 覆盖 / 登记序 / 键校验 / 纯查表 全由引擎给）；本模块**不再自带一份 dict**。
+#   照包内三个先例：`dialogue_conds.py:63` / `achievement_conds.py:143`（注册表 = 引擎实例）·
+#   `title_conds.py:121-124`（`register = CONDITIONS.register` 直接别名）。
+_CONDITIONS = Conditions()
 
+#: 条件谓词注册表 —— **指向引擎注册表实例的别名**（不是复制出来的第二本字典）；
+#: 查询面 `get` / `in` / `keys` / `len` / 迭代 全走引擎 `Conditions`。
+COND_PREDICATES = _CONDITIONS
 
-def register_cond(key):
-    """条件类型注册（加类型 = 加一行；未注册 type 静默不生效）。"""
-    def deco(fn):
-        COND_PREDICATES[key] = fn
-        return fn
-    return deco
+#: 条件类型注册装饰器（= 引擎 `Conditions.register`，装饰器路与直接路同一处实现）。
+#: 加类型 = 加一行 `@register_cond("<key>")`；未注册 type 静默不生效（见下面动作）。
+register_cond = _CONDITIONS.register
 
 
 def _spd_of(battle, actor) -> float:
@@ -139,9 +157,13 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
     cond = info.get("cond")
     if not isinstance(cond, dict):
         return  # 无字段 = 不启用
-    fn = COND_PREDICATES.get(cond.get("type"))
-    if fn is None:
-        return  # 未注册类型：静默不生效（不给断言/不崩）
+    _t = cond.get("type")
+    if not COND_PREDICATES.has(_t):
+        # 未注册 / 非法键（空串 · 不可哈希）：静默不生效（不给断言/不崩）。
+        # ★ U1-I5：旧自建 dict 对不可哈希键会 TypeError 上抛（与本句契约矛盾）；改用引擎
+        #   `Conditions.has` 后一律静默 —— 本批**唯一**行为差异，方向 = 变安全（设计稿 §4.3）。
+        return
+    fn = COND_PREDICATES.get(_t)
     actor = ctx.get("actor") or caster
     tgt = ctx.get("target")
     if tgt is None:
@@ -166,6 +188,8 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
     logs.append(f"✨ 条件达成【{cond.get('type')}】×{mult:g}")
 
 
+#: 对外名字 **4 名一字不变**（仍可从本路径 import）；前 2 名现在指向引擎对象 ——
+#: `COND_PREDICATES` = 引擎注册表实例别名，`register_cond` = 引擎 `register` 方法别名。
 __all__ = ["skill_cond_mult_act", "COND_PREDICATES", "register_cond", "apply_cond_procs"]
 
 
@@ -175,7 +199,7 @@ __all__ = ["skill_cond_mult_act", "COND_PREDICATES", "register_cond", "apply_con
 #     · 真源 `from ..content_rules.skills import skill_info, skill_level_of`
 #       → 包内 `from ..apply import _SKILL_LOOKUP as _PKG_SKILLS, skill_level_of` +
 #         `skill_info = _PKG_SKILLS.skill_info`
-#       （与同文件动作段 :156-157 的改写**逐字一致**；`skill_cond_mult` 那行是
+#       （与同文件动作段 :177-178 的改写**逐字一致**；`skill_cond_mult` 那行是
 #         真源里的未使用 import，原样保留不删）
 #   本块**追加在 `__all__` 之后** → 既有逐字对拍（`d2_misc_verify.py` A4）不受影响。
 # ============================================================
