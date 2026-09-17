@@ -22,13 +22,80 @@
     "条件文案": "技能详情面板「条件转化」行的条件说明文案（B 批 B-1 B 档，搬自 battle_cond_labels.py:COND_LABELS；槽位由调用方按 c 配置算好后传入）",
     "宠物技能描述": "宠物技能一句话描述（面板「宠物」详情；B 批 B-1 B 档，搬自 pets.py:_PET_SKILL_DESC；槽位 iv=间隔刻数、pct=技能值百分比）",
     "帮助面板": "『帮助 <分类>』的 11 份面板长文本（B 批 B-1 B 档，搬自 misc_cmds.py:CMD_HELP*；纯文本无槽位，含分隔线 ━━━ 与 emoji，逐字节照搬）",
-    "副业图标": "副业面板的副业图标（B 批 B-1 B 档，搬自 economy_cmds.py:icons；8 个 id → emoji 图标，玩家可见展示用；与「叠层名/减益名」同类）"
+    "副业图标": "副业面板的副业图标（B 批 B-1 B 档，搬自 economy_cmds.py:icons；8 个 id → emoji 图标，玩家可见展示用；与「叠层名/减益名」同类）",
+    "冒险手册": "『冒险手册』总览卡片（v168）的行级句壳（B 批 C 档，搬自 economy_cmds.py:_adventure_overview；分隔线 ━━━ 属排版结构不入表）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
     "howto": "改文案只动本文件；改逻辑才动代码。{slot} 由调用方渲染；未知槽原样保留（不静默丢字）。",
     "guards": "tests/test_texts_table.py：key 集合对账（AST 扫调用点 ↔ 本表，双向）+ 每条 params 与调用实参对账 + validate() 干净 + 缺 key 不静默；渲染逐字一致由 tests/test_v185_instance_admission.py（副本 805 格）与 周常行为快照（本表 weekly.*）钉住；副本日志域（instance.日志_*）另由本表的 INSTANCE_LOG_FROZEN（迁移前 26 分支真跑输出）与 INSTANCE_LOG_TEMPLATES（70 条模板骨架）逐字钉住。",
     "boundary": "排版结构（如分隔线 ━━━、缩进层级）与内容数据（任务名/怪名/任务 desc）不进表 —— 表只管“句壳”。"
+  },
+  "adventure.overview_collect": {
+    "value": "🎣 收藏 鱼 {fish}/{fish_total} ｜ 收藏品 {def_owned}/{defs}",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "fish",
+      "fish_total",
+      "def_owned",
+      "defs"
+    ]
+  },
+  "adventure.overview_fail": {
+    "value": "📖 冒险手册加载失败（{err}），请联系管理～",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "err"
+    ]
+  },
+  "adventure.overview_footprint": {
+    "value": "📍 足迹 {vis}/{tot} 子区域",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "vis",
+      "tot"
+    ]
+  },
+  "adventure.overview_item": {
+    "value": "🎒 物品 {owned} 种曾拥有 · 当前持有 {held} 种",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "owned",
+      "held"
+    ]
+  },
+  "adventure.overview_monster": {
+    "value": "👹 怪物 {kinds}/{total} 种 · 累计击杀 {kills}",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "kinds",
+      "total",
+      "kills"
+    ]
+  },
+  "adventure.overview_pet": {
+    "value": "🐾 宠物 {hatched}/{total} 种（孵过）",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "hatched",
+      "total"
+    ]
+  },
+  "adventure.overview_tip": {
+    "value": "💡 『足迹』区域 ｜ 『冒险手册 怪物/物品/收藏/垂钓/宠物』看明细",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
+  },
+  "adventure.overview_title": {
+    "value": "📖 【冒险手册】",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
   },
   "cond_label.element_marks": {
     "value": "敌方{element}印记≥{n}层",

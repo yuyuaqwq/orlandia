@@ -1,4 +1,70 @@
 {
+  "adventure.overview_collect": {
+    "value": "🎣 收藏 鱼 {fish}/{fish_total} ｜ 收藏品 {def_owned}/{defs}",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "fish",
+      "fish_total",
+      "def_owned",
+      "defs"
+    ]
+  },
+  "adventure.overview_fail": {
+    "value": "📖 冒险手册加载失败（{err}），请联系管理～",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "err"
+    ]
+  },
+  "adventure.overview_footprint": {
+    "value": "📍 足迹 {vis}/{tot} 子区域",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "vis",
+      "tot"
+    ]
+  },
+  "adventure.overview_item": {
+    "value": "🎒 物品 {owned} 种曾拥有 · 当前持有 {held} 种",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "owned",
+      "held"
+    ]
+  },
+  "adventure.overview_monster": {
+    "value": "👹 怪物 {kinds}/{total} 种 · 累计击杀 {kills}",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "kinds",
+      "total",
+      "kills"
+    ]
+  },
+  "adventure.overview_pet": {
+    "value": "🐾 宠物 {hatched}/{total} 种（孵过）",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）",
+    "params": [
+      "hatched",
+      "total"
+    ]
+  },
+  "adventure.overview_tip": {
+    "value": "💡 『足迹』区域 ｜ 『冒险手册 怪物/物品/收藏/垂钓/宠物』看明细",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
+  },
+  "adventure.overview_title": {
+    "value": "📖 【冒险手册】",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
+  },
   "cond_label.element_marks": {
     "value": "敌方{element}印记≥{n}层",
     "category": "条件文案",

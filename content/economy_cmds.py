@@ -4072,19 +4072,22 @@ class EconomyImpl(CommandBase):
             _pet_dex = db.pet_dex_get(qq_id)
             _pet_total = len(_clife.PET_POOL)
             lines = [
-                "📖 【冒险手册】",
+                _T.static("adventure.overview_title"),
+                "━━━━━━━━━━━━",                       # 排版结构（分隔线）不入表 —— 表只管句壳
+                _T.text("adventure.overview_footprint", vis=vis, tot=tot),
+                _T.text("adventure.overview_monster", kinds=len(best), total=best_total,
+                        kills=_kill),
+                _T.text("adventure.overview_item", owned=poss, held=len(inv_keys)),
+                # ★ def_owned 传 0：搬前源码此位是 f-string 里的字面量 `{0}`（收藏品计数未接数据）
+                _T.text("adventure.overview_collect", fish=fish_n,
+                        fish_total=len(_b143.FISH_COLLECT), def_owned=0, defs=_defs),
+                _T.text("adventure.overview_pet", hatched=len(_pet_dex), total=_pet_total),
                 "━━━━━━━━━━━━",
-                f"📍 足迹 {vis}/{tot} 子区域",
-                f"👹 怪物 {len(best)}/{best_total} 种 · 累计击杀 {_kill}",
-                f"🎒 物品 {poss} 种曾拥有 · 当前持有 {len(inv_keys)} 种",
-                f"🎣 收藏 鱼 {fish_n}/{len(_b143.FISH_COLLECT)} ｜ 收藏品 {0}/{_defs}",
-                f"🐾 宠物 {len(_pet_dex)}/{_pet_total} 种（孵过）",
-                "━━━━━━━━━━━━",
-                "💡 『足迹』区域 ｜ 『冒险手册 怪物/物品/收藏/垂钓/宠物』看明细",
+                _T.static("adventure.overview_tip"),
             ]
             return "\n".join(lines)
         except Exception as e:
-            return f"📖 冒险手册加载失败（{e}），请联系管理～"
+            return _T.text("adventure.overview_fail", err=e)
 
     def _footprint_view(self, group_id, qq_id) -> str:
         """足迹：按大区分组展示到访明细（紧凑版——只展开有到访的大区，避免刷屏）。
