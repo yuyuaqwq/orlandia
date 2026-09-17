@@ -962,6 +962,195 @@
       "pages"
     ]
   },
+  "ency.eq_detail_affix": {
+    "value": "{name}：{desc}",
+    "params": [
+      "name",
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_affix_head": {
+    "value": "✨ 词条：",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_bullet": {
+    "value": "  · {row}",
+    "params": [
+      "row"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_craft": {
+    "value": "🔨 获取：锻造可得（铁匠铺『锻造』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_feat": {
+    "value": "⭐ 词条特色：{feats}",
+    "params": [
+      "feats"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_flavor": {
+    "value": "✦ {desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_legendary": {
+    "value": "✨ 专属·{name}：{desc}",
+    "params": [
+      "name",
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_refine_in": {
+    "value": "🔀 {hints} 可重锻得到（在铁匠铺『装备重锻 <旧装备>』）",
+    "params": [
+      "hints"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）"
+  },
+  "ency.eq_detail_refine_out": {
+    "value": "🔀 {hints}（重锻继承一半强化/升级）",
+    "params": [
+      "hints"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）"
+  },
+  "ency.eq_detail_req": {
+    "value": "需求：{req}",
+    "params": [
+      "req"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_series": {
+    "value": "系列：{series}",
+    "params": [
+      "series"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_set": {
+    "value": "套装：{set_name}",
+    "params": [
+      "set_name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_source": {
+    "value": "来源：{src}",
+    "params": [
+      "src"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_special": {
+    "value": "特效：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_stat": {
+    "value": "{label} + {value}",
+    "params": [
+      "label",
+      "value"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_stat_pct": {
+    "value": "{label} + {pct}%",
+    "params": [
+      "label",
+      "pct"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_stats_head": {
+    "value": "属性：",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_tip": {
+    "value": "💡 『百科装备 {slot}』看{slot2}全部装备",
+    "params": [
+      "slot",
+      "slot2"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_title": {
+    "value": "⚔️ {color}【{name}】({slot}·Lv.{lv}·{qname})",
+    "params": [
+      "color",
+      "name",
+      "slot",
+      "lv",
+      "qname"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_detail_type": {
+    "value": "类型：{type}",
+    "params": [
+      "type"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_dup_head": {
+    "value": "⚔️ 找到 {n} 件同名装备『{q}』：",
+    "params": [
+      "n",
+      "q"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_dup_row": {
+    "value": "{i}. {color}【{name}】({slot}·Lv.{lv}·{qname})｜{req}｜{src}",
+    "params": [
+      "i",
+      "color",
+      "name",
+      "slot",
+      "lv",
+      "qname",
+      "req",
+      "src"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_dup_tip": {
+    "value": "💡 『百科装备 <部位>』按部位浏览可区分",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
   "ency.eq_fuzzy2_head": {
     "value": "❓ 找到 {n} 件装备名含『{q}』，用全名查询（或『百科装备 <部位>』浏览）：",
     "params": [
@@ -1042,6 +1231,14 @@
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
     "params": [
       "n"
+    ]
+  },
+  "ency.eq_refine_to": {
+    "value": "可重锻为 {name}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）",
+    "params": [
+      "name"
     ]
   },
   "ency.eq_rep": {
@@ -1247,6 +1444,23 @@
     "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档） · 槽位名 key→name（避 render(key, **slots) 形参撞名）",
     "params": [
       "name"
+    ]
+  },
+  "ency.inst_ppl2_range": {
+    "value": "{lo}-{hi} 人",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）",
+    "params": [
+      "lo",
+      "hi"
+    ]
+  },
+  "ency.inst_ppl2_same": {
+    "value": "{n} 人",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）",
+    "params": [
+      "n"
     ]
   },
   "ency.inst_ppl_range": {
@@ -1481,6 +1695,16 @@
     "value": "无需求",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "ency.rune_conflict_none": {
+    "value": "无",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）"
+  },
+  "ency.rune_conflict_suffix": {
+    "value": "(不能共存)",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档 6b）"
   },
   "ency.rune_detail_conflict": {
     "value": "冲突：{names}",

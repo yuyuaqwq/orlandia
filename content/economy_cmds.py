@@ -4586,7 +4586,8 @@ class EconomyImpl(CommandBase):
                         _cn = _cit.RUNE_EFFECT_NAMES.get(_pair, _pair)
                         if _cn not in _conf_names:
                             _conf_names.append(_cn)
-                _conf_txt = "、".join(_conf_names) + "(不能共存)" if _conf_names else "无"
+                _conf_txt = ("、".join(_conf_names) + _T.static("ency.rune_conflict_suffix")
+                         if _conf_names else _T.static("ency.rune_conflict_none"))
                 lines = [
                     _T.text("ency.rune_detail_title", qname=q_name, name=st_name),
                     "━━━━━━━━━━━━",
@@ -4621,16 +4622,18 @@ class EconomyImpl(CommandBase):
         if raw not in mats_byname and _roster_exact:
             # 重名多件 → 逐件列出（同名牌不同品质/Lv 是合法数据）
             if len(_roster_exact) > 1:
-                elines = [f"⚔️ 找到 {len(_roster_exact)} 件同名装备『{raw}』：", "━━━━━━━━━━━━"]
+                elines = [_T.text("ency.eq_dup_head", n=len(_roster_exact), q=raw), "━━━━━━━━━━━━"]
                 _attr_cn0 = _ATTR_CN
                 for _ri, _rx in enumerate(sorted(_roster_exact, key=lambda r: (r.get("lv", 0), r.get("quality", ""))), 1):
                     _qx = _b143.QUALITY.get(_rx.get("quality", "white"), {})
                     _sx = _b143.EQUIP_SLOTS.get(_rx.get("slot", ""), "?")
                     _reqx = _rx.get("req") or {}
                     _reqsx = "、".join(f"{_attr_cn0.get(k, k)}{v}" for k, v in _reqx.items()) if _reqx else _T.static("ency.req_none")
-                    elines.append(f"{_ri}. {_qx.get('color', '')}【{_rx['name']}】({_sx}·Lv.{_rx.get('lv', '?')}·{_qx.get('name', '')})｜{_reqsx}｜{_rx.get('source', '?')}")
+                    elines.append(_T.text("ency.eq_dup_row", i=_ri, color=_qx.get('color', ''), name=_rx['name'], slot=_sx,
+                                      lv=_rx.get('lv', '?'), qname=_qx.get('name', ''),
+                                      req=_reqsx, src=_rx.get('source', '?')))
                 elines.append("━━━━━━━━━━━━")
-                elines.append("💡 『百科装备 <部位>』按部位浏览可区分")
+                elines.append(_T.static("ency.eq_dup_tip"))
                 yield event.plain_result("\n".join(elines))
                 return
             _r = _roster_exact[0]
@@ -4650,61 +4653,62 @@ class EconomyImpl(CommandBase):
             _attr_cn = _ATTR_CN
             _req = _r.get("req") or {}
             _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
-            elines = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_slot_nm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
+            elines = [_T.text("ency.eq_detail_title", color=_q.get('color', ''), name=_r['name'], slot=_slot_nm,
+                          lv=_r.get('lv', '?'), qname=_q.get('name', _r.get('quality'))),
                      "━━━━━━━━━━━━"]
             # ---- 属性值 / 词条 / 专属：与真实生成（generate_roster_equip）同口径 ----
             if _eq:
                 if _r.get("weapon_type"):
                     _wt_nm = C.display("weapon_types", _r["weapon_type"])
-                    elines.append(f"类型：{_wt_nm}")
+                    elines.append(_T.text("ency.eq_detail_type", type=_wt_nm))
                     _fl = _b143.WEAPON_FLAVOR.get(_r["weapon_type"], {}).get("desc", "")
                     if _fl:
-                        elines.append(f"✦ {_fl}")
+                        elines.append(_T.text("ency.eq_detail_flavor", desc=_fl))
                 _stat_lines = []
                 for _k, _v in (_eq.get("stats") or {}).items():
                     if _v:
                         _lb = _STAT_NAMES.get(_k, _k)
-                        _stat_lines.append(f"{_lb} + {int(_v * 100)}%" if _k in _ccore.PCT_STATS else f"{_lb} + {_v}")
+                        _stat_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                 if _stat_lines:
-                    elines.append("属性：")
+                    elines.append(_T.static("ency.eq_detail_stats_head"))
                     for _s in _stat_lines:
-                        elines.append(f"  · {_s}")
+                        elines.append(_T.text("ency.eq_detail_bullet", row=_s))
                 _aff_lines = []
                 for _af in _eq.get("affixes") or []:
                     if isinstance(_af, dict):  # 旧结构兼容
                         _k, _v = _af.get("stat"), _af.get("value", 0)
                         _lb = _STAT_NAMES.get(_k, _k)
-                        _aff_lines.append(f"{_lb} + {int(_v * 100)}%" if _k in _ccore.PCT_STATS else f"{_lb} + {_v}")
+                        _aff_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                         continue
                     _ai = _cit.AFFIXES.get(_af)
                     if _ai:
-                        _aff_lines.append(f"{_ai.get('name', _af)}：{_ai.get('desc', '')}" if _ai.get("desc") else _ai.get("name", _af))
+                        _aff_lines.append(_T.text("ency.eq_detail_affix", name=_ai.get('name', _af), desc=_ai.get('desc', '')) if _ai.get("desc") else _ai.get("name", _af))
                 if _aff_lines:
-                    elines.append("✨ 词条：")
+                    elines.append(_T.static("ency.eq_detail_affix_head"))
                     for _a in _aff_lines:
-                        elines.append(f"  · {_a}")
+                        elines.append(_T.text("ency.eq_detail_bullet", row=_a))
                 _feat = _equip_affix_features(_eq)
                 if _feat:
-                    elines.append(f"⭐ 词条特色：{'｜'.join(_feat)}")
+                    elines.append(_T.text("ency.eq_detail_feat", feats='｜'.join(_feat)))
                 if _eq.get("legendary"):
                     _lg = _cit.LEGENDARY_EFFECTS.get(_eq["legendary"])
                     if _lg:
-                        elines.append(f"✨ 专属·{_lg.get('name', '')}：{_lg.get('desc', '')}")
+                        elines.append(_T.text("ency.eq_detail_legendary", name=_lg.get('name', ''), desc=_lg.get('desc', '')))
             if _r.get("series"):
-                elines.append(f"系列：{_r['series']}")
-            elines.append(f"需求：{_req_s}")
+                elines.append(_T.text("ency.eq_detail_series", series=_r['series']))
+            elines.append(_T.text("ency.eq_detail_req", req=_req_s))
             if _r.get("source"):
-                elines.append(f"来源：{_r['source']}")
+                elines.append(_T.text("ency.eq_detail_source", src=_r['source']))
             if _r.get("set"):
-                elines.append(f"套装：{_r['set']}")
+                elines.append(_T.text("ency.eq_detail_set", set_name=_r['set']))
             if _r.get("special"):
-                elines.append(f"特效：{_r['special']}")
+                elines.append(_T.text("ency.eq_detail_special", desc=_r['special']))
             if _r.get("desc"):
                 elines.append(f"{_r['desc']}")
             # ---- 获取链提示：锻造可得 / 可作重锻源 / 可由重锻获得（v172）----
             _has_craft = any((rec.get("roster_id") == _rid_s and _rid_s) for rec in _clife.CRAFT_RECIPES.values() if rec.get("roster_id"))
             if _has_craft:
-                elines.append("🔨 获取：锻造可得（铁匠铺『锻造』）")
+                elines.append(_T.static("ency.eq_detail_craft"))
             # 重锻配方两张表兜底（v172 改名进行时：REFINE_RECIPES / REFINE_EXCLUSIVE_RECIPES）
             _ref_tbl = getattr(C, "REFINE_RECIPES", None) or getattr(C, "REFINE_EXCLUSIVE_RECIPES", None) or {}
             _as_src = [(_src_k, _rc) for _src_k, _rc in _ref_tbl.items() if _src_k in _r.get("name", "")]
@@ -4712,17 +4716,19 @@ class EconomyImpl(CommandBase):
             for _src_k, _rc in _as_src:
                 _tgt_rec = _clife.CRAFT_RECIPES.get(_rc.get("target")) or {}
                 _tgt_nm = _tgt_rec.get("name") or (C.display("recipes", _rc.get("target")) if _rc.get("target") else "?")
-                _refine_hints.append(f"可重锻为 {_tgt_nm}")
+                _refine_hints.append(_T.text("ency.eq_refine_to", name=_tgt_nm))
             if _refine_hints:
-                elines.append("🔀 " + "；".join(_refine_hints) + "（重锻继承一半强化/升级）")
+                elines.append(_T.text("ency.eq_detail_refine_out",
+                                              hints="；".join(_refine_hints)))
             _as_tgt_names = []
             for _src_k, _rc in _ref_tbl.items():
                 _tn = _clife.CRAFT_RECIPES.get(_rc.get("target")) or {}
                 if _tn.get("name") == _r.get("name") or (_tn.get("roster_id") == _rid_s and _rid_s):
                     _as_tgt_names.append(_src_k)
             if _as_tgt_names:
-                elines.append("🔀 " + "、".join(_as_tgt_names) + " 可重锻得到（在铁匠铺『装备重锻 <旧装备>』）")
-            elines.append(f"💡 『百科装备 {_slot_nm}』看{_slot_nm}全部装备")
+                elines.append(_T.text("ency.eq_detail_refine_in",
+                                              hints="、".join(_as_tgt_names)))
+            elines.append(_T.text("ency.eq_detail_tip", slot=_slot_nm, slot2=_slot_nm))
             yield event.plain_result("\n".join(elines))
             return
         if raw in mats_byname or any(kw in raw for kw in mats_byname):
@@ -4785,56 +4791,57 @@ class EconomyImpl(CommandBase):
                 _attr_cn = _ATTR_CN
                 _req = _r.get("req") or {}
                 _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
-                lines = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_slot_nm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
+                lines = [_T.text("ency.eq_detail_title", color=_q.get('color', ''), name=_r['name'], slot=_slot_nm,
+                             lv=_r.get('lv', '?'), qname=_q.get('name', _r.get('quality'))),
                          "━━━━━━━━━━━━"]
                 # ---- 属性值 / 词条 / 专属：与真实生成（generate_roster_equip）同口径 ----
                 if _eq:
                     _st = _eq.get("stats") or {}
                     if _r.get("weapon_type"):
                         _wt_nm = C.display("weapon_types", _r["weapon_type"])
-                        lines.append(f"类型：{_wt_nm}")
+                        lines.append(_T.text("ency.eq_detail_type", type=_wt_nm))
                         _fl = _b143.WEAPON_FLAVOR.get(_r["weapon_type"], {}).get("desc", "")
                         if _fl:
-                            lines.append(f"✦ {_fl}")
+                            lines.append(_T.text("ency.eq_detail_flavor", desc=_fl))
                     _stat_lines = []
                     for _k, _v in _st.items():
                         if _v:
                             _lb = _STAT_NAMES.get(_k, _k)
-                            _stat_lines.append(f"{_lb} + {int(_v * 100)}%" if _k in _ccore.PCT_STATS else f"{_lb} + {_v}")
+                            _stat_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                     if _stat_lines:
-                        lines.append("属性：")
+                        lines.append(_T.static("ency.eq_detail_stats_head"))
                         for _s in _stat_lines:
-                            lines.append(f"  · {_s}")
+                            lines.append(_T.text("ency.eq_detail_bullet", row=_s))
                     _aff_lines = []
                     for _af in _eq.get("affixes") or []:
                         if isinstance(_af, dict):  # 旧结构兼容
                             _k, _v = _af.get("stat"), _af.get("value", 0)
                             _lb = _STAT_NAMES.get(_k, _k)
-                            _aff_lines.append(f"{_lb} + {int(_v * 100)}%" if _k in _ccore.PCT_STATS else f"{_lb} + {_v}")
+                            _aff_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                             continue
                         _ai = _cit.AFFIXES.get(_af)
                         if _ai:
-                            _aff_lines.append(f"{_ai.get('name', _af)}：{_ai.get('desc', '')}" if _ai.get("desc") else _ai.get("name", _af))
+                            _aff_lines.append(_T.text("ency.eq_detail_affix", name=_ai.get('name', _af), desc=_ai.get('desc', '')) if _ai.get("desc") else _ai.get("name", _af))
                     if _aff_lines:
-                        lines.append("✨ 词条：")
+                        lines.append(_T.static("ency.eq_detail_affix_head"))
                         for _a in _aff_lines:
-                            lines.append(f"  · {_a}")
+                            lines.append(_T.text("ency.eq_detail_bullet", row=_a))
                     _feat = _equip_affix_features(_eq)
                     if _feat:
-                        lines.append(f"⭐ 词条特色：{'｜'.join(_feat)}")
+                        lines.append(_T.text("ency.eq_detail_feat", feats='｜'.join(_feat)))
                     if _eq.get("legendary"):
                         _lg = _cit.LEGENDARY_EFFECTS.get(_eq["legendary"])
                         if _lg:
-                            lines.append(f"✨ 专属·{_lg.get('name', '')}：{_lg.get('desc', '')}")
+                            lines.append(_T.text("ency.eq_detail_legendary", name=_lg.get('name', ''), desc=_lg.get('desc', '')))
                 if _r.get("series"):
-                    lines.append(f"系列：{_r['series']}")
-                lines.append(f"需求：{_req_s}")
+                    lines.append(_T.text("ency.eq_detail_series", series=_r['series']))
+                lines.append(_T.text("ency.eq_detail_req", req=_req_s))
                 if _r.get("source"):
-                    lines.append(f"来源：{_r['source']}")
+                    lines.append(_T.text("ency.eq_detail_source", src=_r['source']))
                 if _r.get("set"):
-                    lines.append(f"套装：{_r['set']}")
+                    lines.append(_T.text("ency.eq_detail_set", set_name=_r['set']))
                 if _r.get("special"):
-                    lines.append(f"特效：{_r['special']}")
+                    lines.append(_T.text("ency.eq_detail_special", desc=_r['special']))
                 if _r.get("desc"):
                     lines.append(f"{_r['desc']}")
                 # ---- 获取链提示：锻造可得 / 可作重锻源 / 可由重锻获得（v172）----
@@ -4843,7 +4850,7 @@ class EconomyImpl(CommandBase):
                     (rec.get("roster_id") == _gen_rid)
                     for rec in _clife.CRAFT_RECIPES.values() if rec.get("roster_id"))
                 if _has_craft:
-                    lines.append("🔨 获取：锻造可得（铁匠铺『锻造』）")
+                    lines.append(_T.static("ency.eq_detail_craft"))
                 # 重锻配方两张表兜底（v172 改名进行时：REFINE_RECIPES / REFINE_EXCLUSIVE_RECIPES）
                 _ref_tbl = getattr(C, "REFINE_RECIPES", None) or getattr(C, "REFINE_EXCLUSIVE_RECIPES", None) or {}
                 _as_src = [(_src_k, _rc) for _src_k, _rc in _ref_tbl.items() if _src_k in _r.get("name", "")]
@@ -4851,9 +4858,10 @@ class EconomyImpl(CommandBase):
                 for _src_k, _rc in _as_src:
                     _tgt_rec = _clife.CRAFT_RECIPES.get(_rc.get("target")) or {}
                     _tgt_nm = _tgt_rec.get("name") or (C.display("recipes", _rc.get("target")) if _rc.get("target") else "?")
-                    _refine_hints.append(f"可重锻为 {_tgt_nm}")
+                    _refine_hints.append(_T.text("ency.eq_refine_to", name=_tgt_nm))
                 if _refine_hints:
-                    lines.append("🔀 " + "；".join(_refine_hints) + "（重锻继承一半强化/升级）")
+                    lines.append(_T.text("ency.eq_detail_refine_out",
+                                             hints="；".join(_refine_hints)))
                 # 作为重锻目标（其他名册装备能重锻成它）：按目标装备名反向查
                 _as_tgt_names = []
                 for _src_k, _rc in _ref_tbl.items():
@@ -4861,8 +4869,9 @@ class EconomyImpl(CommandBase):
                     if _tn.get("name") == _r.get("name") or (_tn.get("roster_id") == _gen_rid and _gen_rid):
                         _as_tgt_names.append(_src_k)
                 if _as_tgt_names:
-                    lines.append("🔀 " + "、".join(_as_tgt_names) + " 可重锻得到（在铁匠铺『装备重锻 <旧装备>』）")
-                lines.append(f"💡 『百科装备 {_slot_nm}』看{_slot_nm}全部装备")
+                    lines.append(_T.text("ency.eq_detail_refine_in",
+                                             hints="、".join(_as_tgt_names)))
+                lines.append(_T.text("ency.eq_detail_tip", slot=_slot_nm, slot2=_slot_nm))
                 yield event.plain_result("\n".join(lines))
                 return
             # 模糊多个 → 列候选
@@ -4901,7 +4910,8 @@ class EconomyImpl(CommandBase):
             _lv = inst.get("lv", "?")
             _min_p = inst.get("min_players", 1)
             _max_p = inst.get("max_players", _min_p)
-            _ppl = f"{_min_p}-{_max_p} 人" if _max_p != _min_p else f"{_min_p} 人"
+            _ppl = (_T.text("ency.inst_ppl2_range", lo=_min_p, hi=_max_p)
+                    if _max_p != _min_p else _T.text("ency.inst_ppl2_same", n=_min_p))
             lines.append(_T.text("ency.inst_detail_lv", lv=_lv, ppl=_ppl, icon=inst.get('icon', '🏰')))
             # 钥匙需求（有钥匙才显示；无钥匙副本显示免钥匙）
             ki = inst.get("key_item")
