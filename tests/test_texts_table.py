@@ -236,7 +236,13 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          #   引用面 = 各自文件里的 `_*_KEYS` 字面量表（`_scan_calls` ②「字面量也算引用」）
          "战斗日志": os.path.join(PKG_CONTENT, "mech", "we_procs.py"),
          "天气名": os.path.join(PKG_CONTENT, "time_weather.py"),
-         "季节名": os.path.join(PKG_CONTENT, "time_weather.py")}
+         "季节名": os.path.join(PKG_CONTENT, "time_weather.py"),
+         # ★ B 批 B-1 第三批（B 档，2026-09-17）：属性名（4 处内联字面量合并成一张表：
+         #   reward.py:309 `_CN` + economy_cmds.py 附魔行 / 套装 bonus_2 / bonus_4_stats）
+         #   + 团队特效名（player_cmds.py 技能详情的函数内局部 dict）
+         #   引用面 = 各自文件里的 `_*_KEYS` 字面量表（`_scan_calls` ②「字面量也算引用」）
+         "属性名": [os.path.join(PKG_CONTENT, "reward.py"), PKG_ECONOMY_SRC],
+         "团队特效名": os.path.join(PKG_CONTENT, "player_cmds.py")}
 
 
 def _wired_paths(path):
@@ -816,10 +822,11 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
-                        "战斗日志", "天气名", "季节名"}, cats)
+                        "战斗日志", "天气名", "季节名",
+                        "属性名", "团队特效名"}, cats)
 
 
 def t2_key_and_params_accounting():

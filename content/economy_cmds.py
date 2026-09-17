@@ -42,10 +42,27 @@ from . import wild as _wild          # B14-3：`ALL_WILD` 派生读口（content
 from . import reroll as _reroll      # V2 批新增：『重铸』数值/规则面（content/reroll.py）
 from .panel import STAT_NAMES  # 既有读口（原 `_HostRef("STAT_NAMES")`，门禁证明与宿主面同值同序）
 from ._pkgref import HANDLES   # ★ R2（终态补债）：库路径真源 `content/persistence/handles.db_path()`
+from . import texts as _T      # ★ B 批 B-1：文案表（属性名）
 # ★ D5（数据进表）：本文件内联字面量表 → 包内域文件（唯一真源 = `editor/domains.json`；
 #   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
 #   读口 = 引擎既有 `records_from_domain`（本包 `catalog_items.py:341` 同款），不新增机制。
 from saintess_engine.records import RecordsDeclarationError, records_from_domain
+
+# ★ B 批 B-1：属性中文名 → 文案真源（`content/data/text_specs.json` 的 `stat_name.*`）
+#   本文件原有 3 处内联字面量（附魔成功行 7 键 / 套装 bonus_2 9 键 / bonus_4_stats 8 键）已合并到这一张表。
+_STAT_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "atk": "stat_name.atk",
+    "crit": "stat_name.crit",
+    "def": "stat_name.def",
+    "dodge": "stat_name.dodge",
+    "heal": "stat_name.heal",
+    "hp": "stat_name.hp",
+    "matk": "stat_name.matk",
+    "mdef": "stat_name.mdef",
+    "mp": "stat_name.mp",
+    "spd": "stat_name.spd",
+}
+_STAT_CN = _T.names(_STAT_KEYS, prefix="stat_name")
 
 #: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
 _PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -3727,7 +3744,7 @@ class EconomyImpl(CommandBase):
         else:
             # F1 P0-1：背包格原子写回（替代 remove+add 两步非原子替换）
             db.update_item_data(group_id, qq_id, target["key"], d)
-        sn = {"atk": "攻击", "matk": "魔攻", "def": "防御", "mdef": "魔防", "hp": "生命", "spd": "速度", "crit": "暴击"}
+        sn = _STAT_CN                      # ★ B 批 B-1：真源 = 文案表 stat_name.*
         val_str = f"+{int(v * 100)}%" if stat_key in _ccore.PCT_STATS else f"+{v}"
         big_str = "🌟 大成功！" if big else ""
         # 阶段九：附魔次数 + 成就判定
@@ -3875,12 +3892,12 @@ class EconomyImpl(CommandBase):
                     f"{sn} +{int(v * 100)}%"
                     for k, v in b2_raw.items()
                     if isinstance(v, (int, float)) and not isinstance(v, bool)
-                    for sn in [{"atk": "攻击", "def": "防御", "matk": "魔攻", "mdef": "魔防", "hp": "生命", "spd": "速度", "crit": "暴击", "dodge": "闪避", "heal": "治疗"}.get(k, k)]
+                    for sn in [_STAT_CN.get(k, k)]
                 )
             # 阶段八：4 件效果 = 属性加成（bonus_4_stats）或特效（bonus_4.effect）
             b4_parts = []
             for k, v in info.get("bonus_4_stats", {}).items():
-                sn = {"atk": "攻击", "def": "防御", "matk": "魔攻", "mdef": "魔防", "hp": "生命", "spd": "速度", "crit": "暴击", "dodge": "闪避"}.get(k, k)
+                sn = _STAT_CN.get(k, k)
                 b4_parts.append(f"{sn} +{int(v * 100)}%")
             b4_desc = info.get("bonus_4", {}).get("desc", "")
             if b4_desc:

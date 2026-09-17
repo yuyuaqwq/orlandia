@@ -2510,6 +2510,56 @@
     "category": "叠层名",
     "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
   },
+  "stat_name.atk": {
+    "value": "攻击",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.crit": {
+    "value": "暴击",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.def": {
+    "value": "防御",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.dodge": {
+    "value": "闪避",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.heal": {
+    "value": "治疗",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.hp": {
+    "value": "生命",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.matk": {
+    "value": "魔攻",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.mdef": {
+    "value": "魔防",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.mp": {
+    "value": "魔力",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.spd": {
+    "value": "速度",
+    "category": "属性名",
+    "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
   "supply.all_done": {
     "value": "  今天/本周的补给箱都已领过啦，明天再来吧～",
     "category": "补给箱",
@@ -2555,6 +2605,51 @@
     ],
     "category": "补给箱",
     "desc": "周限箱已达上限（/2 的 2 与限额口径同源数据）"
+  },
+  "team_effect.crit_all": {
+    "value": "暴击全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.def_all": {
+    "value": "防御全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.heal_all": {
+    "value": "治疗全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.matk_all": {
+    "value": "魔攻全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.poison_all": {
+    "value": "毒伤全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.reduce_all": {
+    "value": "减伤全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.shield_all": {
+    "value": "护盾全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.spd_all": {
+    "value": "速度全队",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "team_effect.taunt": {
+    "value": "嘲讽",
+    "category": "团队特效名",
+    "desc": "搬自 player_cmds.py（B 批 B-1）"
   },
   "we.abyss_barrier.log": {
     "value": "🌑 深渊屏障：最大生命 +{bonus}！（持续整场）",

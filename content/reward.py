@@ -50,6 +50,23 @@ from .catalog_quests import TITLES                                       # noqa:
 from .mounts import make_mount_rein                                      # noqa: E402  真源 `C.make_mount_rein`
 from .pets import make_pet_egg                                           # noqa: E402  真源 `C.make_pet_egg`
 from saintess_engine.grant import Grant                                  # noqa: E402  发放编排（类别名 → sink）
+from . import texts as _T                                                # noqa: E402  文案表（B 批 B-1）
+
+# ★ B 批 B-1：属性中文名 → 文案真源（`content/data/text_specs.json` 的 `stat_name.*`）
+#   读口 `_T.names(...)` 返回 Mapping：`[k]` / `in` / `.get(k, d)` / `.items()` 四种用法语义不变。
+_STAT_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "atk": "stat_name.atk",
+    "crit": "stat_name.crit",
+    "def": "stat_name.def",
+    "dodge": "stat_name.dodge",
+    "heal": "stat_name.heal",
+    "hp": "stat_name.hp",
+    "matk": "stat_name.matk",
+    "mdef": "stat_name.mdef",
+    "mp": "stat_name.mp",
+    "spd": "stat_name.spd",
+}
+_STAT_CN = _T.names(_STAT_KEYS, prefix="stat_name")
 
 # ============================================================
 # 宿主面取件口（B2-C4 收口）—— 注入优先（宿主薄壳 `game/reward.py:91` 的 `bind_host`）→ 包内兜底
@@ -302,10 +319,8 @@ def _grant_bonus(ctx, bonuses):
     if not bonus:
         return
     parts = []
-    _CN = {"atk": "攻击", "def": "防御", "matk": "魔攻", "mdef": "魔防",
-           "spd": "速度", "hp": "生命", "mp": "魔力", "crit": "暴击", "dodge": "闪避"}
     for k, v in (bonus or {}).items():
-        parts.append(f"{_CN.get(k, k)}+{v}")
+        parts.append(f"{_STAT_CN.get(k, k)}+{v}")
     if parts:
         lines.append(f"  ✨ 永久属性：{'、'.join(parts)}（已自动生效）")
 

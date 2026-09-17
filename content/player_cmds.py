@@ -115,6 +115,21 @@ EFFECT_RULES = _cat_rules.EFFECT_RULES
 # ★ L7（2026-09-15）：技能详情「特效」汉化表的真源 = 包内 `content/combat_cmds.py` 的
 #   **模块级** `_EFFECT_CN`（原为宿主 `CombatCmds` 类属性，绑壳读不到 ⇒ 线上 AttributeError）。
 from . import combat_cmds as _combat_cmds_mod   # noqa: E402
+from . import texts as _T                       # noqa: E402  文案表（B 批 B-1）
+
+# ★ B 批 B-1：技能团队特效名 → 文案真源（`content/data/text_specs.json` 的 `team_effect.*`）
+_TEAM_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "crit_all": "team_effect.crit_all",
+    "def_all": "team_effect.def_all",
+    "heal_all": "team_effect.heal_all",
+    "matk_all": "team_effect.matk_all",
+    "poison_all": "team_effect.poison_all",
+    "reduce_all": "team_effect.reduce_all",
+    "shield_all": "team_effect.shield_all",
+    "spd_all": "team_effect.spd_all",
+    "taunt": "team_effect.taunt",
+}
+_TEAM_CN = _T.names(_TEAM_KEYS, prefix="team_effect")
 
 
 # ★ D9：注册性别输入别名映射（原 `register` 函数内字面量）→ 包内域
@@ -1548,10 +1563,7 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
         eff_cn = _combat_cmds_mod._effect_cn(info["effect"])   # ★ B-1：真源 = 文案表 effect_name.*
         lines.append(f"特效：{eff_cn}")
     if info.get("team"):
-        team_cn = {"heal_all": "治疗全队", "def_all": "防御全队", "reduce_all": "减伤全队",
-                   "shield_all": "护盾全队", "matk_all": "魔攻全队", "crit_all": "暴击全队",
-                   "spd_all": "速度全队", "poison_all": "毒伤全队", "taunt": "嘲讽"}
-        lines.append(f"团队：{team_cn.get(info['team'], info['team'])}(副本中广播全队)")
+        lines.append(f"团队：{_TEAM_CN.get(info['team'], info['team'])}(副本中广播全队)")
     if info.get("cond"):
         cond = info["cond"]
         ctype = cond.get("type")
