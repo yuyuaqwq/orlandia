@@ -223,7 +223,15 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          #   引用（域 `weapon_effects` 的条目字段存 `<字段>_key`，装载期回填模板串）
          #   —— 本域是「数据在域、文案在文案表、代码传 key」的第一个纯数据域，
          #   引用面 = 读口里的 `_TEXT_KEYS` 字面量（`_scan_calls` ②「字面量也算引用」）。
-         "武器特效": os.path.join(PKG_CONTENT, "mech", "we_data.py")}
+         "武器特效": os.path.join(PKG_CONTENT, "mech", "we_data.py"),
+         # ★ B 批 B-1（2026-09-17）：效果名（`_EFFECT_CN` 47 键）搬进文案表 `effect_name.*`，
+         #   引用面 = `combat_cmds.py` 里的 `_EFFECT_KEYS`（id → 文案键）字面量表 + 读口 `_effect_cn()`。
+         "效果名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         "机制名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         "增益名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         "减益名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         "叠层名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         "资源名": os.path.join(PKG_CONTENT, "combat_cmds.py")}
 
 
 def _wired_paths(path):
@@ -803,9 +811,8 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效）",
-          set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
-                        "武器特效"}, cats)
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 战斗名词类 5 项）",
+          set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务", "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名"}, cats)
 
 
 def t2_key_and_params_accounting():

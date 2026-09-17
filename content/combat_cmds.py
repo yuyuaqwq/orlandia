@@ -103,6 +103,7 @@ import time
 from saintess_engine.battle.formulas import skill_buff_turns, skill_cond_mult, skill_lifesteal_pct, skill_max_level, skill_mech_val, skill_mp_pay_of, skill_power_mult
 from saintess_engine.formation import formation_view
 
+from . import texts as _T          # 文案表（B 批 B-1：效果名等）
 from .mech.kinds import K_PHYS, K_MAGI, K_HEAL, K_BUFF, K_PASSIVE, K_TAUNT  # v176 去魔法字符串
 from .panel import passive_skills_learned, player_final_stats, skill_learn_cost_for
 from .skills import _sk_table, branch_skill_owner, is_skill_learned, skill_info, skill_level_of
@@ -426,77 +427,91 @@ _EXPLORE_RECENT_KEY = "explore_recent_{gid}_{qq_id}"
 
 _EXPLORE_RECENT_MAX = 3
 
-_MECH_CN = {"rage": "狂暴", "burn": "灼烧", "freeze": "冰冻", "poison": "中毒", "mark": "标记",
-            "shadow": "影袭", "chi": "气力", "wind": "风印", "judge": "审判", "bless": "神恩",
-            "iron": "铁壁", "shield": "圣盾", "arcane": "奥术", "cleanse": "净化", "stun": "眩晕",
-            "spd_down": "减速", "mark_burst": "引爆", "arcane_burst": "奥爆",
-            "bleed": "流血", "bone_rush": "骸骨", "corros": "腐蚀", "curse": "诅咒",
-            "curse_refresh": "诅咒刷新", "element_burst": "元素引爆", "element_burst_3": "三系引爆",
-            "element_burst_all": "全系引爆", "element_multi_mark": "多系印记", "faith_unload": "卸负",
-            "finisher": "终结", "fire_mark": "火印", "guard_core_burst": "磐核爆发",
-            "hunt_mark": "猎印", "ice_mark": "冰印", "lian_duan": "连段", "melody": "旋律",
-            "melody_chant": "吟唱", "poison_burst": "毒爆", "poison_burst_finisher": "毒爆终结",
-            "sacrifice": "献祭", "silence": "沉默", "soul_mark": "魂印", "thunder_mark": "雷印",
-            "zhan_yi": "战意", "zhan_yi_cash": "战意兑换", "zhan_yi_fury": "战意狂暴"}
+_MECH_KEYS = {   # ★ B-1：id → 文案键（文案真源 = text_specs.json 的 mech_name.*）
+    "arcane": "mech_name.arcane", "arcane_burst": "mech_name.arcane_burst", "bleed": "mech_name.bleed",
+    "bless": "mech_name.bless", "bone_rush": "mech_name.bone_rush", "burn": "mech_name.burn",
+    "chi": "mech_name.chi", "cleanse": "mech_name.cleanse", "corros": "mech_name.corros",
+    "curse": "mech_name.curse", "curse_refresh": "mech_name.curse_refresh", "element_burst": "mech_name.element_burst",
+    "element_burst_3": "mech_name.element_burst_3", "element_burst_all": "mech_name.element_burst_all", "element_multi_mark": "mech_name.element_multi_mark",
+    "faith_unload": "mech_name.faith_unload", "finisher": "mech_name.finisher", "fire_mark": "mech_name.fire_mark",
+    "freeze": "mech_name.freeze", "guard_core_burst": "mech_name.guard_core_burst", "hunt_mark": "mech_name.hunt_mark",
+    "ice_mark": "mech_name.ice_mark", "iron": "mech_name.iron", "judge": "mech_name.judge",
+    "lian_duan": "mech_name.lian_duan", "mark": "mech_name.mark", "mark_burst": "mech_name.mark_burst",
+    "melody": "mech_name.melody", "melody_chant": "mech_name.melody_chant", "poison": "mech_name.poison",
+    "poison_burst": "mech_name.poison_burst", "poison_burst_finisher": "mech_name.poison_burst_finisher", "rage": "mech_name.rage",
+    "sacrifice": "mech_name.sacrifice", "shadow": "mech_name.shadow", "shield": "mech_name.shield",
+    "silence": "mech_name.silence", "soul_mark": "mech_name.soul_mark", "spd_down": "mech_name.spd_down",
+    "stun": "mech_name.stun", "thunder_mark": "mech_name.thunder_mark", "wind": "mech_name.wind",
+    "zhan_yi": "mech_name.zhan_yi", "zhan_yi_cash": "mech_name.zhan_yi_cash", "zhan_yi_fury": "mech_name.zhan_yi_fury",
+}
+_MECH_CN = _T.names(_MECH_KEYS, prefix="mech_name")
 
-_EFFECT_CN = {"atk_up": "攻击", "def_up": "防御", "matk_up": "魔攻", "spd_up": "速度", "crit_up": "暴击",
-              "atk_up_strong": "强攻", "matk_up_strong": "强魔攻", "mon_atk_down": "威压", "lifesteal": "吸血",
-              "counter": "反击", "rage_burst": "爆发", "burn_burst": "引爆", "bless_shield": "护盾",
-              "all_stat_cc": "全属性", "arcane_field": "奥术力场", "arcane_matrix": "奥术矩阵",
-              "arcane_shield": "相位盾", "atk_all": "全队攻击", "atk_matk_all": "全队攻魔",
-              "block_reflect": "格挡反伤", "cc_immune": "免控", "cleanse": "净化", "cleanse_all": "净化全队",
-              "crit_all": "全队暴击", "crit_hit_buff": "暴击命中", "disengage_dodge": "脱战闪避",
-              "dodge_buff": "闪避", "dodge_reduce_all": "全队闪避", "element_switch": "换系",
-              "hunt_team_dmg": "猎杀增伤", "matk_all": "全队魔攻", "protect": "守护",
-              "reduce": "减伤", "reduce_all": "全队减伤", "reduce_shield_all": "减伤护盾",
-              "shadow_dance": "影舞", "shield_all": "全队护盾", "shield_all_reduce": "护盾减伤",
-              "shield_block": "格挡盾", "shield_self": "护盾", "spd_all": "全队速度",
-              "spd_buff": "加速", "star_lock": "星轨锁定", "stealth": "潜行", "stealth_cc": "影遁",
-              "taunt": "嘲讽", "vuln": "死亡标记"}
-
-_P_BUFF_NAMES = {
-    "atk_up": "⚔️攻击↑", "atk_up_strong": "⚔️攻击↑↑", "matk_up": "🔮魔攻↑",
-    "matk_up_strong": "🔮魔攻↑↑", "def_up": "🛡️防御↑", "spd_up": "💨速度↑",
-    "crit_up": "💥暴击↑", "counter": "🔄反击", "mon_atk_down": "😵敌攻↓",
-    "food_atk_up": "🍖攻↑", "food_def_up": "🍖防↑", "food_spd_up": "🍖速↑",
-    "food_crit_up": "🍖暴击↑", "food_matk_up": "🍖魔攻↑",
-    # v101.28f 药水强度分档 + 特殊效果
-    "atk_up_big": "⚔️攻击↑↑", "atk_up_small": "⚔️攻击↑", "spd_up_small": "💨速度↑",
-    "crit_up_small": "💥暴击↑", "crit_up_big": "💥暴击↑↑",
-    "next_atk_up": "⚔️蓄力", "heal_up": "✨治疗↑", "magic_resist": "🛡️魔抗↑",
-    "thorns_pot": "🌵反伤", "dodge_pot": "💨闪避", "cc_immune": "🗿免疫控制",
-    "execute_pot": "💀处决",
-    "stun": "🌀眩晕", "freeze": "❄️冻结", "silence": "🤐沉默",
-    "mortal_wound": "🤕重伤",
-    # v125.1 P2-4：补漏显键（对照 BUFF_MULT 24 键 + 全量 p_buffs 写入点）
-    "echo_bless": "✨回声祝福", "matk_up_pot": "🔮魔攻↑", "food_spd_up_small": "🍖速↑",
-    "pene_pot": "🗡️物穿", "pene_magi_pot": "🔮法穿", "lifesteal_pot": "🩸吸血",
-    "crit_dmg_pot": "💥暴伤", "block_pot": "🧱格挡",
-    "spd_down": "💨减速", "atk_down": "😵攻↓", "revenge_atk": "⚔️复仇",
-    "spellblade_surge": "🔮魔涌", "stealth": "🌫️潜行", "dodge_up": "💨闪避↑",
-    # 注：atk_down 由 Boss 开场技『低吼削弱』写入（battle_mech.py _b_opening），
-    # 目前无属性消费端（死键）——状态栏照实显示作透明标注，待数值接入
-    # 注：reduce_all 存减伤百分比（float）且刻数由 _reduce_all_left 单独计时，
-    # 无刻数可显示，故意不进本表（避免"剩0.3 刻"误导）
+# ★ B 批 B-1（2026-09-17）：本表已搬进**文案真源**（`content/data/text_specs.json` 的
+#   `effect_name.*`，分类「效果名」）。代码侧只留读口 —— 值与搬前逐字相等（47 键等价性见
+#   `tests/` 与本批 LANDING）；未登记 → 原样返回 id（= 搬前 `.get(id, id)` 同义）。
+_EFFECT_KEYS = {   # ★ B-1：效果 id → 文案键（文案真源 = text_specs.json 的 effect_name.*）
+    "all_stat_cc": "effect_name.all_stat_cc", "arcane_field": "effect_name.arcane_field", "arcane_matrix": "effect_name.arcane_matrix",
+    "arcane_shield": "effect_name.arcane_shield", "atk_all": "effect_name.atk_all", "atk_matk_all": "effect_name.atk_matk_all",
+    "atk_up": "effect_name.atk_up", "atk_up_strong": "effect_name.atk_up_strong", "bless_shield": "effect_name.bless_shield",
+    "block_reflect": "effect_name.block_reflect", "burn_burst": "effect_name.burn_burst", "cc_immune": "effect_name.cc_immune",
+    "cleanse": "effect_name.cleanse", "cleanse_all": "effect_name.cleanse_all", "counter": "effect_name.counter",
+    "crit_all": "effect_name.crit_all", "crit_hit_buff": "effect_name.crit_hit_buff", "crit_up": "effect_name.crit_up",
+    "def_up": "effect_name.def_up", "disengage_dodge": "effect_name.disengage_dodge", "dodge_buff": "effect_name.dodge_buff",
+    "dodge_reduce_all": "effect_name.dodge_reduce_all", "element_switch": "effect_name.element_switch", "hunt_team_dmg": "effect_name.hunt_team_dmg",
+    "lifesteal": "effect_name.lifesteal", "matk_all": "effect_name.matk_all", "matk_up": "effect_name.matk_up",
+    "matk_up_strong": "effect_name.matk_up_strong", "mon_atk_down": "effect_name.mon_atk_down", "protect": "effect_name.protect",
+    "rage_burst": "effect_name.rage_burst", "reduce": "effect_name.reduce", "reduce_all": "effect_name.reduce_all",
+    "reduce_shield_all": "effect_name.reduce_shield_all", "shadow_dance": "effect_name.shadow_dance", "shield_all": "effect_name.shield_all",
+    "shield_all_reduce": "effect_name.shield_all_reduce", "shield_block": "effect_name.shield_block", "shield_self": "effect_name.shield_self",
+    "spd_all": "effect_name.spd_all", "spd_buff": "effect_name.spd_buff", "spd_up": "effect_name.spd_up",
+    "star_lock": "effect_name.star_lock", "stealth": "effect_name.stealth", "stealth_cc": "effect_name.stealth_cc",
+    "taunt": "effect_name.taunt", "vuln": "effect_name.vuln",
 }
 
-_E_BUFF_NAMES = {
-    "freeze": "❄️冻结", "stun": "🌀眩晕", "silence": "🤐沉默",
-    "mon_atk_down": "😵攻↓", "mon_atk_up": "⚔️攻↑",
-    "mon_atk_up_strong": "⚔️攻↑↑", "mon_def_up": "🛡️防↑", "def_down": "💔破甲",
-    "spd_down": "💨减速", "poison": "☠️中毒", "mark": "🎯标记", "burn": "🔥灼烧",
-    "summon": "👥召唤", "mortal_wound": "🤕重伤",
-    # v125.1 P2-4：补漏显键（对照全量 e_buffs 写入点：Boss 盾/速/睡眠/减速 + 元素印记）
-    "shield": "🛡️护盾", "spd_up": "💨速↑", "sleep": "😴睡眠",
-    "mon_spd_down": "💨减速", "fire_mark": "🔥火印", "ice_mark": "❄️冰印",
-    "thunder_mark": "⚡雷印",
-}
 
-_STACK_NAMES = {
-    "burn": "🔥灼烧", "poison": "☠️毒层", "rage": "🔥狂暴", "shadow": "🌑影袭",
-    "chi": "🌀气力", "judge": "⚖️审判", "mark": "🎯标记", "wind": "💨风印",
-    "iron": "🪨铁壁", "shield": "🛡️圣盾", "bless": "✨神恩",
+def _effect_cn(eid) -> str:
+    """效果名（真源 = 文案表 `effect_name.*`）；未登记 → 原样返回 id（= 搬前 `.get(id, id)` 同义）。"""
+    key = _EFFECT_KEYS.get(str(eid))
+    return _T.static(key) if key else str(eid)
+
+
+_P_BUFF_KEYS = {   # ★ B-1：id → 文案键（文案真源 = text_specs.json 的 pbuff_name.*）
+    "atk_down": "pbuff_name.atk_down", "atk_up": "pbuff_name.atk_up", "atk_up_big": "pbuff_name.atk_up_big",
+    "atk_up_small": "pbuff_name.atk_up_small", "atk_up_strong": "pbuff_name.atk_up_strong", "block_pot": "pbuff_name.block_pot",
+    "cc_immune": "pbuff_name.cc_immune", "counter": "pbuff_name.counter", "crit_dmg_pot": "pbuff_name.crit_dmg_pot",
+    "crit_up": "pbuff_name.crit_up", "crit_up_big": "pbuff_name.crit_up_big", "crit_up_small": "pbuff_name.crit_up_small",
+    "def_up": "pbuff_name.def_up", "dodge_pot": "pbuff_name.dodge_pot", "dodge_up": "pbuff_name.dodge_up",
+    "echo_bless": "pbuff_name.echo_bless", "execute_pot": "pbuff_name.execute_pot", "food_atk_up": "pbuff_name.food_atk_up",
+    "food_crit_up": "pbuff_name.food_crit_up", "food_def_up": "pbuff_name.food_def_up", "food_matk_up": "pbuff_name.food_matk_up",
+    "food_spd_up": "pbuff_name.food_spd_up", "food_spd_up_small": "pbuff_name.food_spd_up_small", "freeze": "pbuff_name.freeze",
+    "heal_up": "pbuff_name.heal_up", "lifesteal_pot": "pbuff_name.lifesteal_pot", "magic_resist": "pbuff_name.magic_resist",
+    "matk_up": "pbuff_name.matk_up", "matk_up_pot": "pbuff_name.matk_up_pot", "matk_up_strong": "pbuff_name.matk_up_strong",
+    "mon_atk_down": "pbuff_name.mon_atk_down", "mortal_wound": "pbuff_name.mortal_wound", "next_atk_up": "pbuff_name.next_atk_up",
+    "pene_magi_pot": "pbuff_name.pene_magi_pot", "pene_pot": "pbuff_name.pene_pot", "revenge_atk": "pbuff_name.revenge_atk",
+    "silence": "pbuff_name.silence", "spd_down": "pbuff_name.spd_down", "spd_up": "pbuff_name.spd_up",
+    "spd_up_small": "pbuff_name.spd_up_small", "spellblade_surge": "pbuff_name.spellblade_surge", "stealth": "pbuff_name.stealth",
+    "stun": "pbuff_name.stun", "thorns_pot": "pbuff_name.thorns_pot",
 }
+_P_BUFF_NAMES = _T.names(_P_BUFF_KEYS, prefix="pbuff_name")
+
+_E_BUFF_KEYS = {   # ★ B-1：id → 文案键（文案真源 = text_specs.json 的 ebuff_name.*）
+    "burn": "ebuff_name.burn", "def_down": "ebuff_name.def_down", "fire_mark": "ebuff_name.fire_mark",
+    "freeze": "ebuff_name.freeze", "ice_mark": "ebuff_name.ice_mark", "mark": "ebuff_name.mark",
+    "mon_atk_down": "ebuff_name.mon_atk_down", "mon_atk_up": "ebuff_name.mon_atk_up", "mon_atk_up_strong": "ebuff_name.mon_atk_up_strong",
+    "mon_def_up": "ebuff_name.mon_def_up", "mon_spd_down": "ebuff_name.mon_spd_down", "mortal_wound": "ebuff_name.mortal_wound",
+    "poison": "ebuff_name.poison", "shield": "ebuff_name.shield", "silence": "ebuff_name.silence",
+    "sleep": "ebuff_name.sleep", "spd_down": "ebuff_name.spd_down", "spd_up": "ebuff_name.spd_up",
+    "stun": "ebuff_name.stun", "summon": "ebuff_name.summon", "thunder_mark": "ebuff_name.thunder_mark",
+}
+_E_BUFF_NAMES = _T.names(_E_BUFF_KEYS, prefix="ebuff_name")
+
+_STACK_KEYS = {   # ★ B-1：id → 文案键（文案真源 = text_specs.json 的 stack_name.*）
+    "bless": "stack_name.bless", "burn": "stack_name.burn", "chi": "stack_name.chi",
+    "iron": "stack_name.iron", "judge": "stack_name.judge", "mark": "stack_name.mark",
+    "poison": "stack_name.poison", "rage": "stack_name.rage", "shadow": "stack_name.shadow",
+    "shield": "stack_name.shield", "wind": "stack_name.wind",
+}
+_STACK_NAMES = _T.names(_STACK_KEYS, prefix="stack_name")
 
 _ENEMY_MECH_STACKS = ("burn", "poison", "mark", "bleed")
 
@@ -615,17 +630,12 @@ WORLD_BOSS_DROPS = {
 }
 
 
-RESOURCE_STACK_CN = {
-    "zhan_yi": "战意",      # 战士（v151 起主资源；EFFECT_RULES cap 10）
-    "rage": "怒气",         # 旧狂暴层（EFFECT_RULES cap 10；v151 前战士）
-    "arcane": "奥术",       # 法师转职（EFFECT_RULES cap 10）
-    "chi": "气",            # 武僧（EFFECT_RULES cap 10）
-    "lian_duan": "连段",    # 刺客转职（EFFECT_RULES cap 10）
-    "cp": "连击点",         # 刺客基础（无 EFFECT_RULES 条目 → 只显层数）
-    "energy": "精力",       # 游侠（无 EFFECT_RULES 条目 → 只显层数）
-    "faith": "信仰值",      # 牧师（无 EFFECT_RULES 条目 → 只显层数）
-    "melody": "旋律",       # 歌者旋律（无 EFFECT_RULES 条目 → 只显层数）
+_RESOURCE_KEYS = {   # ★ B-1：id → 文案键（文案真源 = text_specs.json 的 resource_name.*）
+    "arcane": "resource_name.arcane", "chi": "resource_name.chi", "cp": "resource_name.cp",
+    "energy": "resource_name.energy", "faith": "resource_name.faith", "lian_duan": "resource_name.lian_duan",
+    "melody": "resource_name.melody", "rage": "resource_name.rage", "zhan_yi": "resource_name.zhan_yi",
 }
+RESOURCE_STACK_CN = _T.names(_RESOURCE_KEYS, prefix="resource_name")
 
 
 def resource_stack_text(effects) -> str:
@@ -2021,7 +2031,7 @@ def _skill_tag(self, info: dict) -> str:
     if info.get("kind") == K_PASSIVE:
         return "被动"
     if info.get("effect"):
-        return _EFFECT_CN.get(info["effect"], info["effect"])
+        return _effect_cn(info["effect"])
     if info.get("mech"):
         return _MECH_CN.get(info["mech"], info["mech"])
     if info.get("cond"):

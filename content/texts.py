@@ -41,6 +41,8 @@ import json
 import logging
 import os
 
+from collections.abc import Mapping
+
 from saintess_engine.text import TextTable
 
 HOST_PKG = "data.plugins.dragonfall.game"
@@ -176,3 +178,32 @@ def load_error() -> str:
 __all__ = ["SPEC_PATH", "PROJECTION_PATH", "spec_path", "canonical_path",
            "bind_spec_path", "bind_log",
            "table", "reload", "text", "static", "audit", "load_error"]
+
+
+def names(keys: dict, *, prefix: str):
+    """「代码传键、值在文案表」的映射读口（★ B 批 B-1）。
+
+    `keys` = `{id: "<prefix>.<key>"}` 的**字面量**表（键在代码里可见，文案门禁靠它判「非死文案」）；
+    返回 `Mapping`：`m[k]` / `k in m` / `m.get(k, d)` / `m.items()` 与普通 dict 语义一致，
+    值**实时**取自文案表（缺 key 走表的不静默行为）。
+    """
+    class _Names(Mapping):
+        __slots__ = ("_keys", "_prefix")
+
+        def __init__(self, k, p):
+            self._keys, self._prefix = k, p
+
+        def __getitem__(self, k):
+            table()                      # 懒装载（热重载后自动生效）
+            return static(self._keys[k])
+
+        def __contains__(self, k):
+            return k in self._keys
+
+        def __iter__(self):
+            return iter(self._keys)
+
+        def __len__(self):
+            return len(self._keys)
+
+    return _Names(dict(keys), prefix)

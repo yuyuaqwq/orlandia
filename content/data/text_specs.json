@@ -7,7 +7,13 @@
     "补给箱": "限时补给箱『补给』的开启与奖励提示（v183 起采用文案表）",
     "每日任务": "『每日』任务面板与领取提示（v183 起采用文案表）",
     "副本面板": "副本面板（instance.py/instance_battle.py/instance_router.py 的面板/列表/地图/状态/引导/错误提示句壳）",
-    "武器特效": "武器/装备特效的玩家可见战斗日志文案（随 weapon_effects 域注册；条目字段存 <字段>_key，模板串只在本表）"
+    "武器特效": "武器/装备特效的玩家可见战斗日志文案（随 weapon_effects 域注册；条目字段存 <字段>_key，模板串只在本表）",
+    "效果名": "战斗效果 / 增益的中文名（搬自 content/combat_cmds.py:_EFFECT_CN；B 批 B-1）",
+    "机制名": "战斗机制名（技能标签用）（B 批 B-1，搬自 combat_cmds.py:_MECH_CN）",
+    "增益名": "玩家增益名（战斗状态行）（B 批 B-1，搬自 combat_cmds.py:_P_BUFF_NAMES）",
+    "减益名": "敌方减益名（战斗状态行）（B 批 B-1，搬自 combat_cmds.py:_E_BUFF_NAMES）",
+    "叠层名": "机制叠层名（战斗状态行）（B 批 B-1，搬自 combat_cmds.py:_STACK_NAMES）",
+    "资源名": "职业资源名（资源行）（B 批 B-1，搬自 combat_cmds.py:RESOURCE_STACK_CN）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
@@ -69,6 +75,346 @@
     "value": "【每日】",
     "category": "每日任务",
     "desc": "任务面板：每日段小标题"
+  },
+  "ebuff_name.burn": {
+    "value": "🔥灼烧",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.def_down": {
+    "value": "💔破甲",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.fire_mark": {
+    "value": "🔥火印",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.freeze": {
+    "value": "❄️冻结",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.ice_mark": {
+    "value": "❄️冰印",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mark": {
+    "value": "🎯标记",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mon_atk_down": {
+    "value": "😵攻↓",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mon_atk_up": {
+    "value": "⚔️攻↑",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mon_atk_up_strong": {
+    "value": "⚔️攻↑↑",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mon_def_up": {
+    "value": "🛡️防↑",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mon_spd_down": {
+    "value": "💨减速",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.mortal_wound": {
+    "value": "🤕重伤",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.poison": {
+    "value": "☠️中毒",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.shield": {
+    "value": "🛡️护盾",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.silence": {
+    "value": "🤐沉默",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.sleep": {
+    "value": "😴睡眠",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.spd_down": {
+    "value": "💨减速",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.spd_up": {
+    "value": "💨速↑",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.stun": {
+    "value": "🌀眩晕",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.summon": {
+    "value": "👥召唤",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.thunder_mark": {
+    "value": "⚡雷印",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "effect_name.all_stat_cc": {
+    "value": "全属性",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.arcane_field": {
+    "value": "奥术力场",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.arcane_matrix": {
+    "value": "奥术矩阵",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.arcane_shield": {
+    "value": "相位盾",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.atk_all": {
+    "value": "全队攻击",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.atk_matk_all": {
+    "value": "全队攻魔",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.atk_up": {
+    "value": "攻击",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.atk_up_strong": {
+    "value": "强攻",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.bless_shield": {
+    "value": "护盾",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.block_reflect": {
+    "value": "格挡反伤",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.burn_burst": {
+    "value": "引爆",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.cc_immune": {
+    "value": "免控",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.cleanse": {
+    "value": "净化",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.cleanse_all": {
+    "value": "净化全队",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.counter": {
+    "value": "反击",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.crit_all": {
+    "value": "全队暴击",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.crit_hit_buff": {
+    "value": "暴击命中",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.crit_up": {
+    "value": "暴击",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.def_up": {
+    "value": "防御",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.disengage_dodge": {
+    "value": "脱战闪避",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.dodge_buff": {
+    "value": "闪避",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.dodge_reduce_all": {
+    "value": "全队闪避",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.element_switch": {
+    "value": "换系",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.hunt_team_dmg": {
+    "value": "猎杀增伤",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.lifesteal": {
+    "value": "吸血",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.matk_all": {
+    "value": "全队魔攻",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.matk_up": {
+    "value": "魔攻",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.matk_up_strong": {
+    "value": "强魔攻",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.mon_atk_down": {
+    "value": "威压",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.protect": {
+    "value": "守护",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.rage_burst": {
+    "value": "爆发",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.reduce": {
+    "value": "减伤",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.reduce_all": {
+    "value": "全队减伤",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.reduce_shield_all": {
+    "value": "减伤护盾",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.shadow_dance": {
+    "value": "影舞",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.shield_all": {
+    "value": "全队护盾",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.shield_all_reduce": {
+    "value": "护盾减伤",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.shield_block": {
+    "value": "格挡盾",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.shield_self": {
+    "value": "护盾",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.spd_all": {
+    "value": "全队速度",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.spd_buff": {
+    "value": "加速",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.spd_up": {
+    "value": "速度",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.star_lock": {
+    "value": "星轨锁定",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.stealth": {
+    "value": "潜行",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.stealth_cc": {
+    "value": "影遁",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.taunt": {
+    "value": "嘲讽",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "effect_name.vuln": {
+    "value": "死亡标记",
+    "category": "效果名",
+    "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
   },
   "instance.already_in": {
     "value": "你已在战斗中！『攻击』『技能 <名称>』『防御』行动～",
@@ -1376,6 +1722,451 @@
     "category": "副本面板",
     "desc": "『副本』：通关停留超 30 分钟自动传出"
   },
+  "mech_name.arcane": {
+    "value": "奥术",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.arcane_burst": {
+    "value": "奥爆",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.bleed": {
+    "value": "流血",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.bless": {
+    "value": "神恩",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.bone_rush": {
+    "value": "骸骨",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.burn": {
+    "value": "灼烧",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.chi": {
+    "value": "气力",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.cleanse": {
+    "value": "净化",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.corros": {
+    "value": "腐蚀",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.curse": {
+    "value": "诅咒",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.curse_refresh": {
+    "value": "诅咒刷新",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.element_burst": {
+    "value": "元素引爆",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.element_burst_3": {
+    "value": "三系引爆",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.element_burst_all": {
+    "value": "全系引爆",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.element_multi_mark": {
+    "value": "多系印记",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.faith_unload": {
+    "value": "卸负",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.finisher": {
+    "value": "终结",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.fire_mark": {
+    "value": "火印",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.freeze": {
+    "value": "冰冻",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.guard_core_burst": {
+    "value": "磐核爆发",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.hunt_mark": {
+    "value": "猎印",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.ice_mark": {
+    "value": "冰印",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.iron": {
+    "value": "铁壁",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.judge": {
+    "value": "审判",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.lian_duan": {
+    "value": "连段",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.mark": {
+    "value": "标记",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.mark_burst": {
+    "value": "引爆",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.melody": {
+    "value": "旋律",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.melody_chant": {
+    "value": "吟唱",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.poison": {
+    "value": "中毒",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.poison_burst": {
+    "value": "毒爆",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.poison_burst_finisher": {
+    "value": "毒爆终结",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.rage": {
+    "value": "狂暴",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.sacrifice": {
+    "value": "献祭",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.shadow": {
+    "value": "影袭",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.shield": {
+    "value": "圣盾",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.silence": {
+    "value": "沉默",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.soul_mark": {
+    "value": "魂印",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.spd_down": {
+    "value": "减速",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.stun": {
+    "value": "眩晕",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.thunder_mark": {
+    "value": "雷印",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.wind": {
+    "value": "风印",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.zhan_yi": {
+    "value": "战意",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.zhan_yi_cash": {
+    "value": "战意兑换",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mech_name.zhan_yi_fury": {
+    "value": "战意狂暴",
+    "category": "机制名",
+    "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "pbuff_name.atk_down": {
+    "value": "😵攻↓",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.atk_up": {
+    "value": "⚔️攻击↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.atk_up_big": {
+    "value": "⚔️攻击↑↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.atk_up_small": {
+    "value": "⚔️攻击↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.atk_up_strong": {
+    "value": "⚔️攻击↑↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.block_pot": {
+    "value": "🧱格挡",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.cc_immune": {
+    "value": "🗿免疫控制",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.counter": {
+    "value": "🔄反击",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.crit_dmg_pot": {
+    "value": "💥暴伤",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.crit_up": {
+    "value": "💥暴击↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.crit_up_big": {
+    "value": "💥暴击↑↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.crit_up_small": {
+    "value": "💥暴击↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.def_up": {
+    "value": "🛡️防御↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.dodge_pot": {
+    "value": "💨闪避",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.dodge_up": {
+    "value": "💨闪避↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.echo_bless": {
+    "value": "✨回声祝福",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.execute_pot": {
+    "value": "💀处决",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.food_atk_up": {
+    "value": "🍖攻↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.food_crit_up": {
+    "value": "🍖暴击↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.food_def_up": {
+    "value": "🍖防↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.food_matk_up": {
+    "value": "🍖魔攻↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.food_spd_up": {
+    "value": "🍖速↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.food_spd_up_small": {
+    "value": "🍖速↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.freeze": {
+    "value": "❄️冻结",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.heal_up": {
+    "value": "✨治疗↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.lifesteal_pot": {
+    "value": "🩸吸血",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.magic_resist": {
+    "value": "🛡️魔抗↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.matk_up": {
+    "value": "🔮魔攻↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.matk_up_pot": {
+    "value": "🔮魔攻↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.matk_up_strong": {
+    "value": "🔮魔攻↑↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.mon_atk_down": {
+    "value": "😵敌攻↓",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.mortal_wound": {
+    "value": "🤕重伤",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.next_atk_up": {
+    "value": "⚔️蓄力",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.pene_magi_pot": {
+    "value": "🔮法穿",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.pene_pot": {
+    "value": "🗡️物穿",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.revenge_atk": {
+    "value": "⚔️复仇",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.silence": {
+    "value": "🤐沉默",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.spd_down": {
+    "value": "💨减速",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.spd_up": {
+    "value": "💨速度↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.spd_up_small": {
+    "value": "💨速度↑",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.spellblade_surge": {
+    "value": "🔮魔涌",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.stealth": {
+    "value": "🌫️潜行",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.stun": {
+    "value": "🌀眩晕",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pbuff_name.thorns_pot": {
+    "value": "🌵反伤",
+    "category": "增益名",
+    "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
   "quests.done": {
     "value": "📜 每日『{name}』完成！奖励：经验 +{exp} 金币 +{gold}",
     "params": [
@@ -1454,6 +2245,51 @@
     "category": "每日任务",
     "desc": "『每日』发布面板标题"
   },
+  "resource_name.arcane": {
+    "value": "奥术",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.chi": {
+    "value": "气",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.cp": {
+    "value": "连击点",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.energy": {
+    "value": "精力",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.faith": {
+    "value": "信仰值",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.lian_duan": {
+    "value": "连段",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.melody": {
+    "value": "旋律",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.rage": {
+    "value": "怒气",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "resource_name.zhan_yi": {
+    "value": "战意",
+    "category": "资源名",
+    "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
   "signin.already": {
     "value": "今天已经签过到啦！明天再来～",
     "category": "签到",
@@ -1515,6 +2351,61 @@
     ],
     "category": "签到",
     "desc": "每 7 天额外装备奖励（color/name 由装备实例给）"
+  },
+  "stack_name.bless": {
+    "value": "✨神恩",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.burn": {
+    "value": "🔥灼烧",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.chi": {
+    "value": "🌀气力",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.iron": {
+    "value": "🪨铁壁",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.judge": {
+    "value": "⚖️审判",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.mark": {
+    "value": "🎯标记",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.poison": {
+    "value": "☠️毒层",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.rage": {
+    "value": "🔥狂暴",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.shadow": {
+    "value": "🌑影袭",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.shield": {
+    "value": "🛡️圣盾",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
+  },
+  "stack_name.wind": {
+    "value": "💨风印",
+    "category": "叠层名",
+    "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
   },
   "supply.all_done": {
     "value": "  今天/本周的补给箱都已领过啦，明天再来吧～",

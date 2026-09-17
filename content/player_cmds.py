@@ -1545,7 +1545,7 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
         # v63/#99 汉化：effect key → 中文 tag（与技能列表 _skill_tag 同源映射；
         # 此前 spd_buff/atk_all 等英文 key 原样泄漏到『技能详情·特效』行）
         # ★ L7：真源 = 包内 `content/combat_cmds.py` 的模块级 `_EFFECT_CN`（不再经宿主类）
-        eff_cn = _combat_cmds_mod._EFFECT_CN.get(info["effect"], info["effect"])
+        eff_cn = _combat_cmds_mod._effect_cn(info["effect"])   # ★ B-1：真源 = 文案表 effect_name.*
         lines.append(f"特效：{eff_cn}")
     if info.get("team"):
         team_cn = {"heal_all": "治疗全队", "def_all": "防御全队", "reduce_all": "减伤全队",
