@@ -35,6 +35,173 @@
     "guards": "tests/test_texts_table.py：key 集合对账（AST 扫调用点 ↔ 本表，双向）+ 每条 params 与调用实参对账 + validate() 干净 + 缺 key 不静默；渲染逐字一致由 tests/test_v185_instance_admission.py（副本 805 格）与 周常行为快照（本表 weekly.*）钉住；副本日志域（instance.日志_*）另由本表的 INSTANCE_LOG_FROZEN（迁移前 26 分支真跑输出）与 INSTANCE_LOG_TEMPLATES（70 条模板骨架）逐字钉住。",
     "boundary": "排版结构（如分隔线 ━━━、缩进层级）与内容数据（任务名/怪名/任务 desc）不进表 —— 表只管“句壳”。"
   },
+  "adv.col_cnt": {
+    "value": " ×{n}",
+    "params": [
+      "n"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.col_empty": {
+    "value": "（暂无收藏品条目）",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.col_hint": {
+    "value": "（{desc}…）",
+    "params": [
+      "desc"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.col_missing": {
+    "value": "  ❌ ??? {hint}",
+    "params": [
+      "hint"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.col_owned": {
+    "value": "  ✅ {name}{cnt}",
+    "params": [
+      "name",
+      "cnt"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.col_tip": {
+    "value": "💡 收藏品来自支线/隐藏任务奖励与纪念品，『图鉴 垂钓』看彩蛋收藏鱼，『图鉴』看怪物",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.col_title": {
+    "value": "🏺 【收藏品图鉴】已收藏 {owned}/{total} 件",
+    "params": [
+      "owned",
+      "total"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_items_bestiary（B 批 C 档）"
+  },
+  "adv.fish_tip": {
+    "value": "💡 彩蛋收藏鱼钓到自动收进图鉴；对应成就见『成就 隐藏』",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_fish_bestiary（B 批 C 档）"
+  },
+  "adv.fish_title": {
+    "value": "🌈 【彩蛋收藏鱼】已收藏 {owned}/{total} · 累计钓获 {catch} 次",
+    "params": [
+      "owned",
+      "total",
+      "catch"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_fish_bestiary（B 批 C 档）"
+  },
+  "adv.fish_unknown": {
+    "value": "  ❌ ??? （垂钓时有极低概率邂逅）",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_fish_bestiary（B 批 C 档）"
+  },
+  "adv.fish_unknown_night": {
+    "value": "  ❌ ??? （夜晚垂钓有极低概率邂逅）",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_collect_fish_bestiary（B 批 C 档）"
+  },
+  "adv.item_empty": {
+    "value": "🎒 物品图鉴加载失败或暂无数据～",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_etc": {
+    "value": " 等",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_fail": {
+    "value": "🎒 物品图鉴加载失败（{err}）～",
+    "params": [
+      "err"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_group_head": {
+    "value": "{cat}（已拥有 {owned}/{total}）",
+    "params": [
+      "cat",
+      "owned",
+      "total"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_more": {
+    "value": "  …还有 {n} 种：『冒险手册 物品 {cat}』看更多",
+    "params": [
+      "n",
+      "cat"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_row_cnt": {
+    "value": "×{n}",
+    "params": [
+      "n"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_row_missing": {
+    "value": "❌{name}",
+    "params": [
+      "name"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_row_owned": {
+    "value": "✅{name}",
+    "params": [
+      "name"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_tip": {
+    "value": "💡 ✅=曾拥有 ×N=现持有 ｜ ❌=还没拿过 ｜ 『冒险手册 物品 <大类>』只看某类 ｜ 『+』翻页",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_title": {
+    "value": "🎒 【曾拥有物品】已拥有 {owned} · 全量 {all_n}（第 {page}/{pages} 页）",
+    "params": [
+      "owned",
+      "all_n",
+      "page",
+      "pages"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_uncats": {
+    "value": "🗂 未收集大类：{cats}",
+    "params": [
+      "cats"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "adv.item_uncats_tip": {
+    "value": "（『冒险手册 物品 <大类>』查看）",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
   "adv.mob_fuzzy": {
     "value": "👹 没有叫『{q}』的怪物，你是不是想找：{names}？\n发『怪物 <完整名字>』即可~",
     "params": [

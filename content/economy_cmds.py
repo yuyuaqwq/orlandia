@@ -4274,7 +4274,7 @@ class EconomyImpl(CommandBase):
             except Exception:
                 pass
             if not cat_items:
-                return "🎒 物品图鉴加载失败或暂无数据～"
+                return _T.static("adv.item_empty")
             # 大类过滤
             cat_filter = None
             if raw:
@@ -4315,7 +4315,7 @@ class EconomyImpl(CommandBase):
                 page = total_pages
             cat_page = cats_sorted[(page - 1) * per_page_cats:page * per_page_cats]
             lines = [
-                f"🎒 【曾拥有物品】已拥有 {total_poss} · 全量 {total_all}（第 {page}/{total_pages} 页）",
+                _T.text("adv.item_title", owned=total_poss, all_n=total_all, page=page, pages=total_pages),
                 "━━━━━━━━━━━━",
             ]
             for cat in cat_page:
@@ -4323,29 +4323,29 @@ class EconomyImpl(CommandBase):
                 owned_n = sum(1 for it in items if it[2])
                 # 已拥有在前
                 items_sorted = sorted(items, key=lambda it: (0 if it[2] else 1, it[0]))
-                lines.append(f"{cat}（已拥有 {owned_n}/{len(items)}）")
+                lines.append(_T.text("adv.item_group_head", cat=cat, owned=owned_n, total=len(items)))
                 shown = items_sorted[:_MAX_PER_CAT]
                 # 每行 4 个
                 row_parts = []
                 for nm, k, owned, cnt in shown:
                     if owned:
-                        row_parts.append(f"✅{nm}" + (f"×{cnt}" if cnt > 1 else ""))
+                        row_parts.append(_T.text("adv.item_row_owned", name=nm) + (_T.text("adv.item_row_cnt", n=cnt) if cnt > 1 else ""))
                     else:
-                        row_parts.append(f"❌{nm}")
+                        row_parts.append(_T.text("adv.item_row_missing", name=nm))
                 for i in range(0, len(row_parts), 4):
                     lines.append("  " + "　".join(row_parts[i:i + 4]))
                 if len(items_sorted) > _MAX_PER_CAT:
-                    lines.append(f"  …还有 {len(items_sorted) - _MAX_PER_CAT} 种：『冒险手册 物品 {cat}』看更多")
+                    lines.append(_T.text("adv.item_more", n=len(items_sorted) - _MAX_PER_CAT, cat=cat))
             if hidden_cats:
-                lines.append(f"🗂 未收集大类：{'、'.join(hidden_cats[:6])}" +
-                             (" 等" if len(hidden_cats) > 6 else "") +
-                             "（『冒险手册 物品 <大类>』查看）")
+                lines.append(_T.text("adv.item_uncats", cats='、'.join(hidden_cats[:6])) +
+                             (_T.static("adv.item_etc") if len(hidden_cats) > 6 else "") +
+                             _T.static("adv.item_uncats_tip"))
             lines.append("━━━━━━━━━━━━")
-            lines.append("💡 ✅=曾拥有 ×N=现持有 ｜ ❌=还没拿过 ｜ 『冒险手册 物品 <大类>』只看某类 ｜ 『+』翻页")
+            lines.append(_T.static("adv.item_tip"))
             self._record_list_state(qq_id, "冒险手册 物品", page, total_pages)
             return "\n".join(lines)
         except Exception as e:
-            return f"🎒 物品图鉴加载失败（{e}）～"
+            return _T.text("adv.item_fail", err=e)
 
     def _item_cat(self, v: dict):
         """物品大类归一（材料 type → 显示大类；装备/收藏品特殊；无 type 按结构特征推断）。"""
@@ -4423,17 +4423,17 @@ class EconomyImpl(CommandBase):
         owned_ids = {cf["id"] for cf in owned}
         _stats = db.get_stats(group_id, qq_id) or {}
         _total = int(_stats.get("catch_collect", 0) or 0)
-        lines = ["", "🌈 【彩蛋收藏鱼】已收藏 {}/{} · 累计钓获 {} 次".format(
+        lines = ["", _T.text("adv.fish_title", owned=len(owned), total=len(_b143.FISH_COLLECT), catch=_total).format(
             len(owned), len(_b143.FISH_COLLECT), _total), "━━━━━━━━━━━━"]
         for cf in _b143.FISH_COLLECT:
             if cf["id"] in owned_ids:
-                _cnt = f" ×{inv[cf['id']]}" if cf["id"] in inv else ""
-                lines.append(f"  ✅ {cf['name']}{_cnt}")
+                _cnt = _T.text("adv.col_cnt", n=inv[cf['id']]) if cf["id"] in inv else ""
+                lines.append(_T.text("adv.col_owned", name=cf['name'], cnt=_cnt))
             elif cf.get("time") == "night":
-                lines.append("  ❌ ??? （夜晚垂钓有极低概率邂逅）")
+                lines.append(_T.static("adv.fish_unknown_night"))
             else:
-                lines.append("  ❌ ??? （垂钓时有极低概率邂逅）")
-        lines.append("💡 彩蛋收藏鱼钓到自动收进图鉴；对应成就见『成就 隐藏』")
+                lines.append(_T.static("adv.fish_unknown"))
+        lines.append(_T.static("adv.fish_tip"))
         return "\n".join(lines)
 
     def _pet_dex_view(self, group_id, qq_id) -> str:
@@ -4481,20 +4481,20 @@ class EconomyImpl(CommandBase):
         _fish_names = {cf["name"] for cf in _b143.FISH_COLLECT}
         _defs = {n: v for n, v in _defs.items() if n not in _fish_names}
         owned = [n for n in _defs if n in inv]
-        lines = [f"🏺 【收藏品图鉴】已收藏 {len(owned)}/{len(_defs)} 件", "━━━━━━━━━━━━"]
+        lines = [_T.text("adv.col_title", owned=len(owned), total=len(_defs)), "━━━━━━━━━━━━"]
         if not _defs:
-            lines.append("（暂无收藏品条目）")
+            lines.append(_T.static("adv.col_empty"))
         for n in sorted(_defs):
             _v = _defs[n]
             if n in inv:
-                _cnt = f" ×{inv[n]}" if inv[n] > 1 else ""
-                lines.append(f"  ✅ {n}{_cnt}")
+                _cnt = _T.text("adv.col_cnt", n=inv[n]) if inv[n] > 1 else ""
+                lines.append(_T.text("adv.col_owned", name=n, cnt=_cnt))
             else:
                 _d = (_v or {}).get("desc", "")
-                _hint = f"（{_d[:30]}…）" if _d else ""
-                lines.append(f"  ❌ ??? {_hint}")
+                _hint = _T.text("adv.col_hint", desc=_d[:30]) if _d else ""
+                lines.append(_T.text("adv.col_missing", hint=_hint))
         lines.append("")
-        lines.append("💡 收藏品来自支线/隐藏任务奖励与纪念品，『图鉴 垂钓』看彩蛋收藏鱼，『图鉴』看怪物")
+        lines.append(_T.static("adv.col_tip"))
         return "\n".join(lines)
 
     @declared("encyclopedia")
