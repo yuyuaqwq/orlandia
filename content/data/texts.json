@@ -799,6 +799,133 @@
     "category": "效果名",
     "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
   },
+  "ency.affix_detail_chance": {
+    "value": "（概率 {pct}%）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "pct"
+    ]
+  },
+  "ency.affix_detail_effect": {
+    "value": "效果：{desc}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "desc"
+    ]
+  },
+  "ency.affix_detail_line": {
+    "value": "线：{line}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "line"
+    ]
+  },
+  "ency.affix_detail_own": {
+    "value": "归属：{kind}词条 · {qname}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "kind",
+      "qname"
+    ]
+  },
+  "ency.affix_detail_params": {
+    "value": "参数：{eff}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "eff"
+    ]
+  },
+  "ency.affix_detail_tip": {
+    "value": "💡 出现在装备『✨ 词条』栏；『百科 词条』看全部",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "ency.affix_detail_title": {
+    "value": "✨ 【{name}】",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "name"
+    ]
+  },
+  "ency.affix_detail_trigger": {
+    "value": "触发：{trigger}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "trigger"
+    ]
+  },
+  "ency.affix_detail_unique": {
+    "value": "唯一：同名词条全服不可叠加",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "ency.affix_hit_row": {
+    "value": "  · {name}（{qname}）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "name",
+      "qname"
+    ]
+  },
+  "ency.affix_hits_title": {
+    "value": "🔍 词条『{word}』命中 {n} 个：\n{rows}\n━━━━━━━━━━━━\n💡 用完整词条名查单个（如『百科 词条 破甲』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "word",
+      "n",
+      "rows"
+    ]
+  },
+  "ency.affix_kind_armor": {
+    "value": "防具",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "ency.affix_kind_weapon": {
+    "value": "武器",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "ency.affix_row": {
+    "value": "{idx:>2}. {name}（{qname}）{desc}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "idx",
+      "name",
+      "qname",
+      "desc"
+    ]
+  },
+  "ency.affix_tip": {
+    "value": "💡 『-』回上页｜『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "ency.affix_tip_more": {
+    "value": "💡 『+』下页｜『-』回上页｜『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "ency.affix_title": {
+    "value": "✨ 【词条百科】共 {n} 个 · 第{page}/{pages}页",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）",
+    "params": [
+      "n",
+      "page",
+      "pages"
+    ]
+  },
   "ency.eq_no_slot": {
     "value": "装备名册里没有『{slot}』部位……试试 武器/头盔/胸甲/护腿/靴子/戒指/项链",
     "category": "世界百科",
@@ -3714,6 +3841,36 @@
     "value": "嘲讽",
     "category": "团队特效名",
     "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "trigger_name.battle_start": {
+    "value": "战斗开始",
+    "category": "触发名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "trigger_name.on_hit": {
+    "value": "攻击命中后",
+    "category": "触发名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "trigger_name.on_taken": {
+    "value": "受击时",
+    "category": "触发名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "trigger_name.passive": {
+    "value": "被动判定",
+    "category": "触发名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "trigger_name.stat": {
+    "value": "常驻属性",
+    "category": "触发名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "trigger_name.turn_start": {
+    "value": "每刻开始",
+    "category": "触发名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
   },
   "we.abyss_barrier.log": {
     "value": "🌑 深渊屏障：最大生命 +{bonus}！（持续整场）",

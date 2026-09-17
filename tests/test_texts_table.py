@@ -261,7 +261,9 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "世界百科": PKG_ECONOMY_SRC,
          # C 档 5a：装备来源图标（11 键，搬自 economy_cmds.py 的 _src_icon）
          #   属性点四名（attr_name.*）归**既有分类「属性名」**（同族：属性中文名）
-         "来源图标": PKG_ECONOMY_SRC}
+         "来源图标": PKG_ECONOMY_SRC,
+         # C 档 5b：词条/装备触发时机中文名（6 键，搬自 economy_cmds.py 的 _trig_cn）
+         "触发名": PKG_ECONOMY_SRC}
 
 
 def _wired_paths(path):
@@ -846,7 +848,7 @@ def t1_table_selfcheck():
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
                         "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板",
-                        "副业图标", "冒险手册", "足迹", "世界百科", "来源图标"}, cats)
+                        "副业图标", "冒险手册", "足迹", "世界百科", "来源图标", "触发名"}, cats)
 
 
 def t2_key_and_params_accounting():

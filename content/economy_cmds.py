@@ -104,6 +104,17 @@ _SRC_ICON_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「�
 }
 _SRC_ICON = _T.names(_SRC_ICON_KEYS, prefix="src_icon")
 
+# ★ C 档 5b：词条/装备触发时机中文名（`trigger_name.*`）
+_TRIG_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "battle_start": "trigger_name.battle_start",
+    "on_hit": "trigger_name.on_hit",
+    "on_taken": "trigger_name.on_taken",
+    "passive": "trigger_name.passive",
+    "stat": "trigger_name.stat",
+    "turn_start": "trigger_name.turn_start",
+}
+_TRIG_CN = _T.names(_TRIG_KEYS, prefix="trigger_name")
+
 #: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
 _PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -5154,30 +5165,37 @@ class EconomyImpl(CommandBase):
                 _hits = _exact
             if _hits:
                 if len(_hits) > 1:
-                    _lk = [f"  · {_cit.AFFIXES[h[0]].get('name', h[0])}（{self._affix_q_label(h[0])}）" for h in _hits[:10]]
-                    return "🔍 词条『{}』命中 {} 个：\n{}\n━━━━━━━━━━━━\n💡 用完整词条名查单个（如『百科 词条 破甲』）".format(
-                        _q_word, len(_hits), "\n".join(_lk))
+                    _lk = [_T.text("ency.affix_hit_row",
+                                   name=_cit.AFFIXES[h[0]].get("name", h[0]),
+                                   qname=self._affix_q_label(h[0])) for h in _hits[:10]]
+                    return _T.text("ency.affix_hits_title", word=_q_word, n=len(_hits),
+                                   rows="\n".join(_lk))
                 _ak, _av = _hits[0]
                 _qname = self._affix_q_label(_ak)
-                _kind = "武器" if _av.get("kind") == "attack" else ("防具" if _av.get("kind") == "defense" else str(_av.get("kind", "?")))
-                _trig_cn = {"stat": "常驻属性", "on_hit": "攻击命中后", "on_taken": "受击时",
-                            "turn_start": "每刻开始", "battle_start": "战斗开始", "passive": "被动判定"}.get(
-                    _av.get("trigger"), str(_av.get("trigger", "?")))
+                _kind = (_T.static("ency.affix_kind_weapon") if _av.get("kind") == "attack"
+                         else _T.static("ency.affix_kind_armor") if _av.get("kind") == "defense"
+                         else str(_av.get("kind", "?")))
+                _trig_cn = _TRIG_CN.get(_av.get("trigger"), str(_av.get("trigger", "?")))
                 _eff = _av.get("effect") or {}
-                lines = [f"✨ 【{_av.get('name', _ak)}】", "━━━━━━━━━━━━"]
-                lines.append(f"归属：{_kind}词条 · {_qname}")
+                lines = [_T.text("ency.affix_detail_title", name=_av.get("name", _ak)),
+                         "━━━━━━━━━━━━"]
+                lines.append(_T.text("ency.affix_detail_own", kind=_kind, qname=_qname))
                 if _av.get("line"):
-                    lines.append(f"线：{_av['line']}")
-                lines.append(f"触发：{_trig_cn}" + (f"（概率 {int(_av['chance'] * 100)}%）" if _av.get("chance") else ""))
+                    lines.append(_T.text("ency.affix_detail_line", line=_av["line"]))
+                _trig_line = _T.text("ency.affix_detail_trigger", trigger=_trig_cn)
+                if _av.get("chance"):
+                    _trig_line += _T.text("ency.affix_detail_chance",
+                                          pct=int(_av["chance"] * 100))
+                lines.append(_trig_line)
                 if _av.get("desc"):
-                    lines.append(f"效果：{_av['desc']}")
+                    lines.append(_T.text("ency.affix_detail_effect", desc=_av["desc"]))
                 if _eff and not _av.get("desc"):
                     # 无玩家向 desc 才展示原始 effect 参数（全部 76 词条都有 desc，兜底防空）
-                    lines.append(f"参数：{_eff}")
+                    lines.append(_T.text("ency.affix_detail_params", eff=_eff))
                 if _av.get("unique"):
-                    lines.append("唯一：同名词条全服不可叠加")
+                    lines.append(_T.static("ency.affix_detail_unique"))
                 lines.append("")
-                lines.append(f"💡 出现在装备『✨ 词条』栏；『百科 词条』看全部")
+                lines.append(_T.static("ency.affix_detail_tip"))
                 return "\n".join(lines)
         # ---- 全量分页 ----
         _items = sorted(_cit.AFFIXES.items(), key=lambda kv: (0 if kv[1].get("kind") == "attack" else 1, kv[1].get("name", kv[0])))
@@ -5187,16 +5205,18 @@ class EconomyImpl(CommandBase):
         if _q_word and _q_word.isdigit():
             _page = max(1, min(int(_q_word), _pages))
         _view = _items[(_page - 1) * _per: _page * _per]
-        lines = [f"✨ 【词条百科】共 {len(_cit.AFFIXES)} 个 · 第{_page}/{_pages}页", "━━━━━━━━━━━━"]
+        lines = [_T.text("ency.affix_title", n=len(_cit.AFFIXES), page=_page,
+                         pages=_pages), "━━━━━━━━━━━━"]
         for _i, (_ak2, _av2) in enumerate(_view, (_page - 1) * _per + 1):
             _qcn = self._affix_q_label(_ak2)
             _desc = _av2.get("desc", "")
             if len(_desc) > 24:
                 _desc = _desc[:24] + "…"
-            lines.append(f"{_i:>2}. {_av2.get('name', _ak2)}（{_qcn}）{_desc}")
+            lines.append(_T.text("ency.affix_row", idx=_i, name=_av2.get("name", _ak2),
+                                 qname=_qcn, desc=_desc))
         lines.append("━━━━━━━━━━━━")
-        lines.append(f"💡 『+』下页｜『-』回上页｜『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）" if _page < _pages
-                     else "💡 『-』回上页｜『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）")
+        lines.append(_T.static("ency.affix_tip_more") if _page < _pages
+                     else _T.static("ency.affix_tip"))
         if qq_id:
             self._record_list_state(qq_id, "百科 词条", _page, _pages)
         return "\n".join(lines)
