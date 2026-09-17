@@ -1,4 +1,88 @@
 {
+  "adv.mob_fuzzy": {
+    "value": "👹 没有叫『{q}』的怪物，你是不是想找：{names}？\n发『怪物 <完整名字>』即可~",
+    "params": [
+      "q",
+      "names"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:monster（B 批 C 档）"
+  },
+  "adv.mob_not_found": {
+    "value": "👹 未收录『{q}』……试试『百科 {q2}』或先『图鉴』看看怪物列表？",
+    "params": [
+      "q",
+      "q2"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:monster（B 批 C 档）"
+  },
+  "adv.mob_row": {
+    "value": "  {mtype}·Lv.{lv} {area}（{map}）",
+    "params": [
+      "mtype",
+      "lv",
+      "area",
+      "map"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:monster（B 批 C 档）"
+  },
+  "adv.mob_tip": {
+    "value": "💡 前往对应地图后按区域探索/战斗即有机会遭遇；首领/精英带稀有掉落~",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:monster（B 批 C 档）"
+  },
+  "adv.mob_title": {
+    "value": "👹 【{name}】出现地点（共 {n} 处）：",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:monster（B 批 C 档）"
+  },
+  "adv.mob_usage": {
+    "value": "👹 想找怪物？发『怪物 <名称>』查刷新地点（例：『怪物 森林狼』『怪物 狼王·灰影』）。\n💡 也可以用『百科 <名称>』查材料掉落/地图怪物~",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:monster（B 批 C 档）"
+  },
+  "adv.mon_empty": {
+    "value": "📖 图鉴还是空的……去『探索』击败怪物，或『垂钓』邂逅彩蛋收藏鱼吧！",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_monster_view（B 批 C 档）"
+  },
+  "adv.mon_row": {
+    "value": "{i:>2}. {name} ×{kills}",
+    "params": [
+      "i",
+      "name",
+      "kills"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_monster_view（B 批 C 档）"
+  },
+  "adv.mon_tip": {
+    "value": "💡 击败新怪物自动收录 ｜ 『冒险手册 物品/收藏』看收集",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_monster_view（B 批 C 档）"
+  },
+  "adv.mon_title": {
+    "value": "📖 【怪物图鉴】已收录 {n} 种 · 累计击杀 {kills}(第 {page}/{pages} 页)",
+    "params": [
+      "n",
+      "kills",
+      "page",
+      "pages"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_monster_view（B 批 C 档）"
+  },
+  "adv.unknown_sub": {
+    "value": "📖 『冒险手册』子分类：区域/怪物/物品/收藏/垂钓（例：『冒险手册 物品』『足迹』）。\n💡 也可以直接发『足迹』看区域足迹、『图鉴』看怪物。",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:adventure_book（B 批 C 档）"
+  },
   "adventure.overview_collect": {
     "value": "🎣 收藏 鱼 {fish}/{fish_total} ｜ 收藏品 {def_owned}/{defs}",
     "category": "冒险手册",

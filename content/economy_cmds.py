@@ -3986,8 +3986,7 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "怪物").strip()
         if not raw:
             yield event.plain_result(
-                "👹 想找怪物？发『怪物 <名称>』查刷新地点（例：『怪物 森林狼』『怪物 狼王·灰影』）。\n"
-                "💡 也可以用『百科 <名称>』查材料掉落/地图怪物~"
+                _T.static("adv.mob_usage")
             )
             return
         locs = _cspace.MONSTER_LOCS.get(raw)
@@ -3995,15 +3994,15 @@ class EconomyImpl(CommandBase):
             fuzzy = [k for k in _cspace.MONSTER_LOCS if raw in k][:5]
             if fuzzy:
                 yield event.plain_result(
-                    f"👹 没有叫『{raw}』的怪物，你是不是想找：{' / '.join(fuzzy)}？\n发『怪物 <完整名字>』即可~"
+                    _T.text("adv.mob_fuzzy", q=raw, names=' / '.join(fuzzy))
                 )
             else:
-                yield event.plain_result(f"👹 未收录『{raw}』……试试『百科 {raw}』或先『图鉴』看看怪物列表？")
+                yield event.plain_result(_T.text("adv.mob_not_found", q=raw, q2=raw))
             return
-        lines = [f"👹 【{raw}】出现地点（共 {len(locs)} 处）：", "━━━━━━━━━━━━"]
+        lines = [_T.text("adv.mob_title", name=raw, n=len(locs)), "━━━━━━━━━━━━"]
         for sa_name, mname, lv, mtype in locs:
-            lines.append(f"  {mtype}·Lv.{lv} {sa_name}（{mname}）")
-        lines.append("💡 前往对应地图后按区域探索/战斗即有机会遭遇；首领/精英带稀有掉落~")
+            lines.append(_T.text("adv.mob_row", mtype=mtype, lv=lv, area=sa_name, map=mname))
+        lines.append(_T.static("adv.mob_tip"))
         yield event.plain_result("\n".join(lines))
 
     @declared("adventure_book")
@@ -4037,8 +4036,7 @@ class EconomyImpl(CommandBase):
                 yield event.plain_result(self._collect_fish_bestiary(group_id, qq_id))
                 return
             yield event.plain_result(
-                "📖 『冒险手册』子分类：区域/怪物/物品/收藏/垂钓（例：『冒险手册 物品』『足迹』）。\n"
-                "💡 也可以直接发『足迹』看区域足迹、『图鉴』看怪物。"
+                _T.static("adv.unknown_sub")
             )
             return
         # 总览
@@ -4219,17 +4217,17 @@ class EconomyImpl(CommandBase):
         page = self._parse_page(raw)
         rows = db.get_bestiary(group_id, qq_id)
         if not rows:
-            return "📖 图鉴还是空的……去『探索』击败怪物，或『垂钓』邂逅彩蛋收藏鱼吧！" \
+            return _T.static("adv.mon_empty") \
                    + self._collect_fish_bestiary(group_id, qq_id)
         total = sum(r["kills"] for r in rows)
         page_items, pages, page = self._page_items(rows, page, per_page=5)
-        lines = [f"📖 【怪物图鉴】已收录 {len(rows)} 种 · 累计击杀 {total}(第 {page}/{pages} 页)", "━━━━━━━━━━━━"]
+        lines = [_T.text("adv.mon_title", n=len(rows), kills=total, page=page, pages=pages), "━━━━━━━━━━━━"]
         for i, r in enumerate(page_items, (page - 1) * 5 + 1):
-            lines.append(f"{i:>2}. {r['name']} ×{r['kills']}")
+            lines.append(_T.text("adv.mon_row", i=i, name=r['name'], kills=r['kills']))
         lines.append("")
         if pages > 1 and page < pages:
             lines.append(self._tip("bestiary"))
-        lines.append("💡 击败新怪物自动收录 ｜ 『冒险手册 物品/收藏』看收集")
+        lines.append(_T.static("adv.mon_tip"))
         self._record_list_state(qq_id, "冒险手册 怪物", page, pages)
         return "\n".join(lines)
 
