@@ -373,6 +373,78 @@
     "category": "冒险手册",
     "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
   },
+  "attr.free_pts": {
+    "value": "🎯 自由属性点：{pts}",
+    "params": [
+      "pts"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.hint_agi": {
+    "value": "🏃 敏捷：{v}\n   ·每点＋0.8 速度 ＋ 0.4% 暴击",
+    "params": [
+      "v"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.hint_int": {
+    "value": "🧠 智力：{v}\n   ·每点＋1 魔攻 ＋ 1.5 魔力",
+    "params": [
+      "v"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.hint_str": {
+    "value": "💪 力量：{v}\n   ·每点＋1 攻击",
+    "params": [
+      "v"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.hint_vit": {
+    "value": "🧱 耐力：{v}\n   ·每点＋6 生命",
+    "params": [
+      "v"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.stat_row": {
+    "value": "{icon} {cname}：{final}({bonus:+d})",
+    "params": [
+      "icon",
+      "cname",
+      "final",
+      "bonus"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.stat_row_pct": {
+    "value": "{icon} {cname}：{final:.1f}%({bonus:+.1f}%)",
+    "params": [
+      "icon",
+      "cname",
+      "final",
+      "bonus"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "attr.title": {
+    "value": "📊 【{name} 属性面板】 Lv.{level}{live}",
+    "params": [
+      "name",
+      "level",
+      "live"
+    ],
+    "category": "属性面板",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
   "attr_name.agi": {
     "value": "敏捷",
     "category": "属性名",
@@ -392,6 +464,100 @@
     "value": "耐力",
     "category": "属性名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "build.missing_item": {
+    "value": "『{name}』(Lv.{lv})",
+    "params": [
+      "name",
+      "lv"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.missing_warn": {
+    "value": "⚠️ 还没学会：{missing}——『技能学习 <名称>』学会后重新『流派 {name}』即可补上",
+    "params": [
+      "missing",
+      "name"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.none": {
+    "value": "你的职业暂时没有流派方案～",
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.not_found": {
+    "value": "没有『{name}』流派！你的流派：{others}",
+    "params": [
+      "name",
+      "others"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.row": {
+    "value": "{icon} {name}(已学 {have}/{tot})",
+    "params": [
+      "icon",
+      "name",
+      "have",
+      "tot"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.row_desc": {
+    "value": "    {desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.slot_missing": {
+    "value": "  {n}. 🔒 {name}(未学会)",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.slot_row": {
+    "value": "  {n}. ⚔️ {name}",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.switched": {
+    "value": "✅ 已切换为【{icon} {name}】流派！技能栏已配置：",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.tip": {
+    "value": "💡 打法：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "build.title": {
+    "value": "⚔️ 【{cls}流派】—— 同一职业，不同打法！",
+    "params": [
+      "cls"
+    ],
+    "category": "流派",
+    "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
   },
   "cond_label.element_marks": {
     "value": "敌方{element}印记≥{n}层",
@@ -2145,6 +2311,41 @@
     "params": [
       "items"
     ]
+  },
+  "evolve.hidden_done": {
+    "value": "👑 你已完成全部传承！{title}",
+    "params": [
+      "title"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_status（B 批 C 档）"
+  },
+  "evolve.hidden_need_lv": {
+    "value": "{icon} 传承之路：下一阶【{name}】需要 Lv.{lv}，当前 Lv.{cur}。",
+    "params": [
+      "icon",
+      "name",
+      "lv",
+      "cur"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_status（B 批 C 档）"
+  },
+  "evolve.hidden_ready": {
+    "value": "{icon} 传承之路：下一阶【{name}】(Lv.{lv})已就绪！\n『转职 {name2}』接受传承。",
+    "params": [
+      "icon",
+      "name",
+      "lv",
+      "name2"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_status（B 批 C 档）"
+  },
+  "evolve.next_tier_fallback": {
+    "value": "下一阶",
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_status（B 批 C 档）"
   },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
@@ -4364,6 +4565,170 @@
     "category": "副业图标",
     "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
   },
+  "profile.attr_row": {
+    "value": "{icon} {cname}：{v}",
+    "params": [
+      "icon",
+      "cname",
+      "v"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.eq_empty_slot": {
+    "value": "  {slot}：—",
+    "params": [
+      "slot"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.eq_enh": {
+    "value": " +{enh}",
+    "params": [
+      "enh"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.eq_line": {
+    "value": "  {slot}：{color}{name}{enh}",
+    "params": [
+      "slot",
+      "color",
+      "name",
+      "enh"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.eq_none": {
+    "value": "  无",
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.equip_head": {
+    "value": "装备：\n{eqs}",
+    "params": [
+      "eqs"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.exp": {
+    "value": "✨ EXP：{exp}/{need} ({pct}%)",
+    "params": [
+      "exp",
+      "need",
+      "pct"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.gender": {
+    "value": "🧬 {gender}",
+    "params": [
+      "gender"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.gold": {
+    "value": "💰 金币：{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.level_cls": {
+    "value": "🛡 Lv.{lv} {cls}",
+    "params": [
+      "lv",
+      "cls"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.map_instance": {
+    "value": "副本战斗中",
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.pos": {
+    "value": "📍 位置：{pos}",
+    "params": [
+      "pos"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.race": {
+    "value": "🧬 {race}",
+    "params": [
+      "race"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.race_gender": {
+    "value": "🧬 {race} · {gender}",
+    "params": [
+      "race",
+      "gender"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.sp": {
+    "value": "💡 技能点：{sp}",
+    "params": [
+      "sp"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.stat_row": {
+    "value": "{icon} {cname}：{cur}/{mx}({bonus:+d})",
+    "params": [
+      "icon",
+      "cname",
+      "cur",
+      "mx",
+      "bonus"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.stat_row_pct": {
+    "value": "{icon} {cname}：{cur}/{mx}%({bonus:+d}%)",
+    "params": [
+      "icon",
+      "cname",
+      "cur",
+      "mx",
+      "bonus"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.title": {
+    "value": "⚔️ 【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "profile.title_eq": {
+    "value": "⚔️ [{title}] 【{name}】",
+    "params": [
+      "title",
+      "name"
+    ],
+    "category": "角色面板",
+    "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
   "quests.done": {
     "value": "📜 每日『{name}』完成！奖励：经验 +{exp} 金币 +{gold}",
     "params": [
@@ -4441,6 +4806,124 @@
     "value": "📜 今日任务已发布！",
     "category": "每日任务",
     "desc": "『每日』发布面板标题"
+  },
+  "race.row": {
+    "value": "{icon} {name}：{desc}",
+    "params": [
+      "icon",
+      "name",
+      "desc"
+    ],
+    "category": "种族面板",
+    "desc": "搬自 content/player_cmds.py:races（B 批 C 档）"
+  },
+  "race.talent_row": {
+    "value": "  · {line}",
+    "params": [
+      "line"
+    ],
+    "category": "种族面板",
+    "desc": "搬自 content/player_cmds.py:races（B 批 C 档）"
+  },
+  "race.tip": {
+    "value": "💡 种族天赋 = 有得有失，负面已配正面补偿(净强度≈不变)，选取舍不选碾压！",
+    "category": "种族面板",
+    "desc": "搬自 content/player_cmds.py:races（B 批 C 档）"
+  },
+  "race.title": {
+    "value": "🧬 【种族】6 大种族各有取舍(注册时选择：注册 <名字> <性别> <种族>)",
+    "category": "种族面板",
+    "desc": "搬自 content/player_cmds.py:races（B 批 C 档）"
+  },
+  "rank.empty": {
+    "value": "还没有人注册角色，快来当第一名！『注册 <名字> <性别>』",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_1": {
+    "value": "🥇",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_10": {
+    "value": "10.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_2": {
+    "value": "🥈",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_3": {
+    "value": "🥉",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_4": {
+    "value": "4.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_5": {
+    "value": "5.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_6": {
+    "value": "6.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_7": {
+    "value": "7.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_8": {
+    "value": "8.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.medal_9": {
+    "value": "9.",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.row_level": {
+    "value": "{medal} Lv.{lv} {icon}{name} ({cls})",
+    "params": [
+      "medal",
+      "lv",
+      "icon",
+      "name",
+      "cls"
+    ],
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.row_power": {
+    "value": "{medal} {power:,} 战力 Lv.{lv} {icon}{name} ({cls})",
+    "params": [
+      "medal",
+      "power",
+      "lv",
+      "icon",
+      "name",
+      "cls"
+    ],
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.title_level": {
+    "value": "🏆 【奥兰迪亚强者榜】 🏆",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "rank.title_power": {
+    "value": "🏆 【奥兰迪亚战力榜】 🏆",
+    "category": "排行榜",
+    "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
   },
   "resource_name.arcane": {
     "value": "奥术",
@@ -4598,6 +5081,317 @@
     ],
     "category": "签到",
     "desc": "每 7 天额外装备奖励（color/name 由装备实例给）"
+  },
+  "skill.no_skill": {
+    "value": "你的职业没有『{name}』技能！『技能列表』查看全部～",
+    "params": [
+      "name"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:skill_detail（B 批 C 档）"
+  },
+  "skill.only_n": {
+    "value": "你的职业只有 {n} 个技能！『技能列表』查看全部～",
+    "params": [
+      "n"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:skill_detail（B 批 C 档）"
+  },
+  "skill_bar.empty_slot": {
+    "value": " {n}. (空)",
+    "params": [
+      "n"
+    ],
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_view（B 批 C 档）"
+  },
+  "skill_bar.row": {
+    "value": " {n}. {name}({kind})",
+    "params": [
+      "n",
+      "name",
+      "kind"
+    ],
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_view（B 批 C 档）"
+  },
+  "skill_bar.title": {
+    "value": "🎛️ 【技能栏】(战斗中『技能 <槽位>』快捷施放)",
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_view（B 批 C 档）"
+  },
+  "skill_card.cast_head": {
+    "value": "⚡ 出招：{cast_txt}",
+    "params": [
+      "cast_txt"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.cast_instant": {
+    "value": "即时生效",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_cast_text（B 批 C 档）"
+  },
+  "skill_card.cast_passive": {
+    "value": "被动即时生效",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_cast_text（B 批 C 档）"
+  },
+  "skill_card.cast_time": {
+    "value": "约 {s:g} 秒(速度 50 基准，速度越快越快)",
+    "params": [
+      "s"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_cast_text（B 批 C 档）"
+  },
+  "skill_card.cond": {
+    "value": "⚔️ 条件转化：{cond}时激活『{label}』(威力 ×{mult})",
+    "params": [
+      "cond",
+      "label",
+      "mult"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.cost_mp": {
+    "value": "{n} 魔力",
+    "params": [
+      "n"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.cost_none": {
+    "value": "无",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.cost_res": {
+    "value": "{n} {name}",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.effect": {
+    "value": "效果：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.exclusive": {
+    "value": "专属：{branch}(Lv.{lv} 转职解锁)",
+    "params": [
+      "branch",
+      "lv"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.formula": {
+    "value": "📐 公式：{expr}",
+    "params": [
+      "expr"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.gain_cond": {
+    "value": "条件 ×{x:g}",
+    "params": [
+      "x"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.gain_dmg": {
+    "value": "伤害 ≈ {v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.gain_duration": {
+    "value": "持续 {n} 刻",
+    "params": [
+      "n"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.gain_heal": {
+    "value": "治疗 ≈ {v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.gain_lifesteal": {
+    "value": "吸血 {p}%",
+    "params": [
+      "p"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.gain_reduce": {
+    "value": "减伤 {p}%",
+    "params": [
+      "p"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.gain_stack": {
+    "value": "叠层 {n}",
+    "params": [
+      "n"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
+  "skill_card.growth_head": {
+    "value": "📈 数值成长：",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.growth_row": {
+    "value": "  {mark} Lv.{lv}: {gains}",
+    "params": [
+      "mark",
+      "lv",
+      "gains"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.growth_row_none": {
+    "value": "  {mark} Lv.{lv}: (无成长数值)",
+    "params": [
+      "mark",
+      "lv"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.learn_hint": {
+    "value": "💡 『技能学习 {name}』消耗 {cost} 技能点学会(当前 {pts} 点)",
+    "params": [
+      "name",
+      "cost",
+      "pts"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.maxed": {
+    "value": "✨ 已满级！",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.multi": {
+    "value": "连击：x{n}",
+    "params": [
+      "n"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.passive_note": {
+    "value": "⚙️ 被动技能，无需升级——学会后战斗自动生效",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.special": {
+    "value": "特效：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.st_learnable": {
+    "value": "📖 可学习(Lv.{lv})",
+    "params": [
+      "lv"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.st_learned": {
+    "value": "✅ 已学会 Lv.{lv}/{mx}",
+    "params": [
+      "lv",
+      "mx"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.st_locked": {
+    "value": "🔒 未学会(Lv.{lv} 解锁)",
+    "params": [
+      "lv"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.team": {
+    "value": "团队：{name}(副本中广播全队)",
+    "params": [
+      "name"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.title": {
+    "value": "📜 【{name}】｜{status}",
+    "params": [
+      "name",
+      "status"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.trait": {
+    "value": "特性：无视防御",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.type_cost": {
+    "value": "类型：{kind} ｜ 消耗：{cost}",
+    "params": [
+      "kind",
+      "cost"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_card.upgrade_hint": {
+    "value": "💡 『技能升级 {name}』花 {cost} 点升到 Lv.{lv}（{gains}，当前 {pts} 点）",
+    "params": [
+      "name",
+      "cost",
+      "lv",
+      "gains",
+      "pts"
+    ],
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_detail_message（B 批 C 档）"
+  },
+  "skill_detail.usage": {
+    "value": "格式：技能详情 <技能名/序号>，如『技能详情 火球术』或『技能详情 5』",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:skill_detail（B 批 C 档）"
   },
   "skill_panel.hint_bar": {
     "value": "『技能栏』查看 / 『设置技能 <槽位> <技能名>』配置快捷栏",
@@ -4777,15 +5571,35 @@
     "category": "叠层名",
     "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
   },
+  "stat_name.abyss_res": {
+    "value": "深渊抗性",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
   "stat_name.atk": {
     "value": "攻击",
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
   },
+  "stat_name.block": {
+    "value": "格挡",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.cdr": {
+    "value": "冷却缩减",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
   "stat_name.crit": {
     "value": "暴击",
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.crit_dmg": {
+    "value": "暴击伤害",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
   },
   "stat_name.def": {
     "value": "防御",
@@ -4797,15 +5611,60 @@
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
   },
+  "stat_name.elem_res": {
+    "value": "元素抗性",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.exp_bonus": {
+    "value": "经验加成",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.gold_bonus": {
+    "value": "金币加成",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
   "stat_name.heal": {
     "value": "治疗",
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
   },
+  "stat_name.heal_power": {
+    "value": "治疗强度",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
   "stat_name.hp": {
     "value": "生命",
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.lifesteal": {
+    "value": "吸血",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.lifesteal_magi": {
+    "value": "法术吸血",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.lifesteal_phys": {
+    "value": "物理吸血",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.luck": {
+    "value": "幸运",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.magic_reduce": {
+    "value": "魔法免伤",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
   },
   "stat_name.matk": {
     "value": "魔攻",
@@ -4822,10 +5681,60 @@
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
   },
+  "stat_name.pene_flat": {
+    "value": "固定物穿",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.pene_magi": {
+    "value": "法穿",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.pene_mflat": {
+    "value": "固定法穿",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.pene_phys": {
+    "value": "物穿",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.phys_reduce": {
+    "value": "物理免伤",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.precise": {
+    "value": "精准",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.shield_power": {
+    "value": "护盾强度",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
   "stat_name.spd": {
     "value": "速度",
     "category": "属性名",
     "desc": "搬自 reward.py / economy_cmds.py（B 批 B-1）"
+  },
+  "stat_name.summon_power": {
+    "value": "召唤强化",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.tenacity": {
+    "value": "韧性",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
+  },
+  "stat_name.thorns": {
+    "value": "反伤",
+    "category": "属性名",
+    "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
   },
   "supply.all_done": {
     "value": "  今天/本周的补给箱都已领过啦，明天再来吧～",

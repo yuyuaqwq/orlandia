@@ -657,7 +657,7 @@ async def profile(self, event: AstrMessageEvent, group_id, qq_id, player):
     # （playtest O114 洛洛实测：移动中被拉入副本，位置仍显示原城镇）
     _inst_row = self._instance_battle_for(group_id, qq_id)
     if _inst_row:
-        cur_map = "副本战斗中"
+        cur_map = _T.static("profile.map_instance")
     else:
         cur_map = (_cat_space.MAP_BY_ID.get(player["cur_map"]) or _cat_space.MAP_BY_ID.get(_cat_core.START_MAP, {}))
         cur_map = cur_map.get("name", "橡木镇")
@@ -668,37 +668,38 @@ async def profile(self, event: AstrMessageEvent, group_id, qq_id, player):
         if item:
             q = _cat_b143.QUALITY[item["quality"]]
             enh = item.get("enhance", 0)
-            enh_str = f" +{enh}" if enh > 0 else ""
-            eq_lines.append(f"  {_cat_b143.EQUIP_SLOTS[slot]}：{q['color']}{item['name']}{enh_str}")
+            enh_str = _T.text("profile.eq_enh", enh=enh) if enh > 0 else ""
+            eq_lines.append(_T.text("profile.eq_line", slot=_cat_b143.EQUIP_SLOTS[slot], color=q['color'],
+                                name=item['name'], enh=enh_str))
         else:
-            eq_lines.append(f"  {_cat_b143.EQUIP_SLOTS[slot]}：—")
-    eq_str = "\n".join(eq_lines) if eq_lines else "  无"
+            eq_lines.append(_T.text("profile.eq_empty_slot", slot=_cat_b143.EQUIP_SLOTS[slot]))
+    eq_str = "\n".join(eq_lines) if eq_lines else _T.static("profile.eq_none")
     need = _stats.exp_to_next(player["level"])
     exp_pct = min(100, int(player["exp"] / need * 100)) if need else 0
     lines = [
-        f"⚔️ 【{player['name']}】",
-        f"🛡 Lv.{player['level']} {display('classes', player['class_name'])}",
+        _T.text("profile.title", name=player['name']),
+        _T.text("profile.level_cls", lv=player['level'], cls=display('classes', player['class_name'])),
     ]
     # v95.24 性别 + v100.8 种族性别合并一行：🧬 银月精灵 · ♂男（存量档无性别则只显示种族）
     g = player.get("gender") or ""
     race_s = race_name(player.get('race'))
     gender_s = f"{'♂' if g == 'male' else '♀'} {'男' if g == 'male' else '女'}" if g else ""
     if race_s and gender_s:
-        lines.append(f"🧬 {race_s} · {gender_s}")
+        lines.append(_T.text("profile.race_gender", race=race_s, gender=gender_s))
     elif race_s:
-        lines.append(f"🧬 {race_s}")
+        lines.append(_T.text("profile.race", race=race_s))
     elif gender_s:
-        lines.append(f"🧬 {gender_s}")
+        lines.append(_T.text("profile.gender", gender=gender_s))
     lines.append("━━━━━━━━━━━━")
     # 阶段九：装备称号显示在角色名前（14 章 3.4）
     eq_title = player.get("equipped_title") or ""
     if eq_title:
-        lines[0] = f"⚔️ [{eq_title}] 【{player['name']}】"
+        lines[0] = _T.text("profile.title_eq", title=eq_title, name=player['name'])
     # v100.10 角色面板瘦身：只保留生命/魔力（当前/上限状态）+ 4 项基础属性（纯数值），
     # 战斗属性（攻击/防御/暴击等）详情去『属性』面板看，避免角色面板过于拥挤
     stat_rows = [
-        ("❤️", "hp", "max_hp", "生命"),
-        ("💙", "mp", "max_mp", "魔力"),
+        ("❤️", "hp", "max_hp", _T.static("stat_name.hp")),
+        ("💙", "mp", "max_mp", _T.static("stat_name.mp")),
     ]
     for icon, skey, fkey, cname in stat_rows:
         final = st[fkey]
@@ -706,9 +707,10 @@ async def profile(self, event: AstrMessageEvent, group_id, qq_id, player):
         # v105 P3(M01)：当前值双保险 clamp（get_player 已裁上限；此处防负数/脏档超限）
         cur = min(max(int(player.get(skey, 0) or 0), 0), int(final))
         if skey in PCT_STATS:
-            lines.append(f"{icon} {cname}：{cur}/{int(final*100)}%({int(bonus*100):+d}%)")
+            lines.append(_T.text("profile.stat_row_pct", icon=icon, cname=cname, cur=cur, mx=int(final*100),
+                             bonus=int(bonus*100)))
         else:
-            lines.append(f"{icon} {cname}：{cur}/{final}({int(bonus):+d})")
+            lines.append(_T.text("profile.stat_row", icon=icon, cname=cname, cur=cur, mx=final, bonus=int(bonus)))
     attr = player.get("attributes") or {}
     if isinstance(attr, str):
         try:
@@ -717,27 +719,27 @@ async def profile(self, event: AstrMessageEvent, group_id, qq_id, player):
         except Exception:
             attr = {}
     for icon, cname, key in (
-        ("💪", "力量", "str"),
-        ("🏃", "敏捷", "agi"),
-        ("🧠", "智力", "int"),
-        ("🧱", "耐力", "vit"),
+        ("💪", _T.static("attr_name.str"), "str"),
+        ("🏃", _T.static("attr_name.agi"), "agi"),
+        ("🧠", _T.static("attr_name.int"), "int"),
+        ("🧱", _T.static("attr_name.vit"), "vit"),
     ):
-        lines.append(f"{icon} {cname}：{attr.get(key, 0)}")
+        lines.append(_T.text("profile.attr_row", icon=icon, cname=cname, v=attr.get(key, 0)))
     # 资源块（金币/位置/技能点/EXP 独立成块，每项单独一行）
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"💰 金币：{player['gold']}")
+    lines.append(_T.text("profile.gold", gold=player['gold']))
     # v94 体力：角色面板显示体力（v100.8 冒号格式与全面板统一）
     lines.append(self._stamina_bar(player, sep="："))
-    lines.append(f"📍 位置：{cur_map}")
-    lines.append(f"💡 技能点：{player.get('skill_points', 0)}")
-    lines.append(f"✨ EXP：{player['exp']}/{need} ({exp_pct}%)")
+    lines.append(_T.text("profile.pos", pos=cur_map))
+    lines.append(_T.text("profile.sp", sp=player.get('skill_points', 0)))
+    lines.append(_T.text("profile.exp", exp=player['exp'], need=need, pct=exp_pct))
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"装备：\n{eq_str}")
+    lines.append(_T.text("profile.equip_head", eqs=eq_str))
     yield event.plain_result("\n".join(lines))
 
 async def leaderboard(self, event: AstrMessageEvent, group_id, qq_id):
     raw = self._strip_cmd(event, "排行").strip()
-    medals = ["🥇", "🥈", "🥉", "4.", "5.", "6.", "7.", "8.", "9.", "10."]
+    medals = [_T.static("rank.medal_1"), _T.static("rank.medal_2"), _T.static("rank.medal_3"), _T.static("rank.medal_4"), _T.static("rank.medal_5"), _T.static("rank.medal_6"), _T.static("rank.medal_7"), _T.static("rank.medal_8"), _T.static("rank.medal_9"), _T.static("rank.medal_10")]
     # v83.1：『排行 副业』→ 副业排行（原『副业 排行』参数保留兼容）
     if "副业" in raw:
         yield event.plain_result(self._prof_rank_text(group_id))
@@ -746,7 +748,7 @@ async def leaderboard(self, event: AstrMessageEvent, group_id, qq_id):
     if "战力" in raw:
         rows = db.all_players(group_id)
         if not rows:
-            yield event.plain_result("还没有人注册角色，快来当第一名！『注册 <名字> <性别>』")
+            yield event.plain_result(_T.static("rank.empty"))
             return
 
         def _pw(p):
@@ -766,44 +768,46 @@ async def leaderboard(self, event: AstrMessageEvent, group_id, qq_id):
                 return 0
 
         ranked = sorted(rows, key=_pw, reverse=True)[:10]
-        lines = ["🏆 【奥兰迪亚战力榜】 🏆", "━━━━━━━━━━━━"]
+        lines = [_T.static("rank.title_power"), "━━━━━━━━━━━━"]
         for i, p in enumerate(ranked):
-            lines.append(f"{medals[i]} {_pw(p):,} 战力 Lv.{p['level']} "
-                         f"{_cat_core.CLASSES[p['class_name']]['icon']}{p['name']} ({display('classes', p['class_name'])})")
+            lines.append(_T.text("rank.row_power", medal=medals[i], power=_pw(p), lv=p['level'],
+                             icon=_cat_core.CLASSES[p['class_name']]['icon'], name=p['name'],
+                             cls=display('classes', p['class_name'])))
         lines.append("")
         lines.append(self._tip("rank"))
         yield event.plain_result("\n".join(lines))
         return
     tops = db.top_players(group_id, 10)
     if not tops:
-        yield event.plain_result("还没有人注册角色，快来当第一名！『注册 <名字> <性别>』")
+        yield event.plain_result(_T.static("rank.empty"))
         return
-    lines = ["🏆 【奥兰迪亚强者榜】 🏆", "━━━━━━━━━━━━"]
+    lines = [_T.static("rank.title_level"), "━━━━━━━━━━━━"]
     for i, p in enumerate(tops):
         _ci = _cat_core.CLASSES.get(p['class_name'], {})  # v105 P1(M01#10)：脏 class_name 兜底
-        lines.append(f"{medals[i]} Lv.{p['level']} {_ci.get('icon', '❓')}{p['name']} ({display('classes', p['class_name'])})")
+        lines.append(_T.text("rank.row_level", medal=medals[i], lv=p['level'], icon=_ci.get('icon', '❓'),
+                         name=p['name'], cls=display('classes', p['class_name'])))
     lines.append("")
     lines.append(self._tip("rank"))
     yield event.plain_result("\n".join(lines))
 
 async def races(self, event: AstrMessageEvent):
     """阶段九：种族一览(08 章，注册前查看 6 族天赋)"""
-    lines = ["🧬 【种族】6 大种族各有取舍(注册时选择：注册 <名字> <性别> <种族>)", "━━━━━━━━━━━━"]
+    lines = [_T.static("race.title"), "━━━━━━━━━━━━"]
     for rid, r in _cat_core.RACES.items():
         t = r["talents"]
         tnames = r.get("talent_names", {})
         # v98.3：展示格式化全数据化 → core/race_talent_display.py
         from .race_talent_display import format_talent
         # v113.6 排版优化：种族描述一行 + 每个天赋独立一行（此前 '，'.join 全挤一行）
-        lines.append(f"{r['icon']} {r['name']}：{r['desc']}")
+        lines.append(_T.text("race.row", icon=r['icon'], name=r['name'], desc=r['desc']))
         for k, v in t.items():
             nm = tnames.get(k, k)
             text = format_talent(k, v, nm)
             if text is not None:
-                lines.append(f"  · {text}")
+                lines.append(_T.text("race.talent_row", line=text))
         lines.append("")
     lines.append("━━━━━━━━━━━━")
-    lines.append("💡 种族天赋 = 有得有失，负面已配正面补偿(净强度≈不变)，选取舍不选碾压！")
+    lines.append(_T.static("race.tip"))
     yield event.plain_result("\n".join(lines))
 
 async def evolve(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -941,22 +945,21 @@ async def _evolve_hidden_status(self, event, group_id, qq_id, player):
     next_tier = tier + 1
     need_lv = tlv.get(next_tier)
     if not need_lv:
-        yield event.plain_result(f"👑 你已完成全部传承！{self._tier_title(cls_id, tier, 1)}")
+        yield event.plain_result(_T.text("evolve.hidden_done", title=self._tier_title(cls_id, tier, 1)))
         return
     names = cls.get("evolve_branches", {}).get(next_tier, [])
     # v112：按玩家当前流派显示下一阶（3 流派线 T2/T3 名称按流派对齐）
     _p = max(0, int(player.get("evolve_path", 1) or 1) - 1)
-    nname = names[_p] if _p < len(names) else (names[0] if names else "下一阶")
+    nname = names[_p] if _p < len(names) else (names[0] if names else _T.static("evolve.next_tier_fallback"))
     # v130.2f.2 苦修改名收尾：下一阶展示名走 key→展示名映射（武僧→淬势者、大地武僧→锻势行者）；
     # 『转职 <展示名>』命令由 aliases（淬势者/锻势行者）路由可达，展示与命令口径一致
     nname = _BRANCH_KEY_DISPLAY.get(nname, nname)
     if player["level"] < need_lv:
         yield event.plain_result(
-            f"{cls['icon']} 传承之路：下一阶【{nname}】需要 Lv.{need_lv}，当前 Lv.{player['level']}。")
+            _T.text("evolve.hidden_need_lv", icon=cls['icon'], name=nname, lv=need_lv, cur=player['level']))
         return
     yield event.plain_result(
-        f"{cls['icon']} 传承之路：下一阶【{nname}】(Lv.{need_lv})已就绪！\n"
-        f"『转职 {nname}』接受传承。")
+        _T.text("evolve.hidden_ready", icon=cls['icon'], name=nname, lv=need_lv, name2=nname))
 
 async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, tgt_tier, req_path=1):
     """v108 职业树：隐藏职业通用传承转职（修为继承）。
@@ -1152,47 +1155,48 @@ async def attributes(self, event: AstrMessageEvent, group_id, qq_id, player):
     base = next((s["stats"] for s in sources if s["name"] == "基础"), {})
     attr = player.get("attributes") or {}  # v105 P1(M01#9)：attributes=None 脏档兜底
     lines = [
-        f"📊 【{player['name']} 属性面板】 Lv.{player['level']}{'（⚔️战斗内实时值，含 buff/减益）' if _battle_st is not None else ''}",
+        _T.text("attr.title", name=player['name'], level=player['level'],
+            live='（⚔️战斗内实时值，含 buff/减益）' if _battle_st is not None else ''),
         "━━━━━━━━━━━━",
     ]
     stat_rows = [
-        ("❤️", "hp", "max_hp", "生命"),
-        ("💙", "mp", "max_mp", "魔力"),
-        ("⚔️", "atk", "atk", "攻击"),
-        ("🛡️", "def", "def", "防御"),
-        ("🔮", "matk", "matk", "魔攻"),
-        ("✨", "mdef", "mdef", "魔防"),
-        ("💨", "spd", "spd", "速度"),
-        ("💥", "crit", "crit", "暴击"),
-        ("🌀", "dodge", "dodge", "闪避"),
-        ("🎯", "precise", "precise", "精准"),
+        ("❤️", "hp", "max_hp", _T.static("stat_name.hp")),
+        ("💙", "mp", "max_mp", _T.static("stat_name.mp")),
+        ("⚔️", "atk", "atk", _T.static("stat_name.atk")),
+        ("🛡️", "def", "def", _T.static("stat_name.def")),
+        ("🔮", "matk", "matk", _T.static("stat_name.matk")),
+        ("✨", "mdef", "mdef", _T.static("stat_name.mdef")),
+        ("💨", "spd", "spd", _T.static("stat_name.spd")),
+        ("💥", "crit", "crit", _T.static("stat_name.crit")),
+        ("🌀", "dodge", "dodge", _T.static("stat_name.dodge")),
+        ("🎯", "precise", "precise", _T.static("stat_name.precise")),
         # v106 穿透/韧性/幸运
-        ("🗡️", "pene_phys", "pene_phys", "物穿"),
-        ("🔮", "pene_magi", "pene_magi", "法穿"),
-        ("🪓", "pene_flat", "pene_flat", "固定物穿"),
-        ("🪄", "pene_mflat", "pene_mflat", "固定法穿"),
-        ("🧱", "tenacity", "tenacity", "韧性"),
-        ("🍀", "luck", "luck", "幸运"),
+        ("🗡️", "pene_phys", "pene_phys", _T.static("stat_name.pene_phys")),
+        ("🔮", "pene_magi", "pene_magi", _T.static("stat_name.pene_magi")),
+        ("🪓", "pene_flat", "pene_flat", _T.static("stat_name.pene_flat")),
+        ("🪄", "pene_mflat", "pene_mflat", _T.static("stat_name.pene_mflat")),
+        ("🧱", "tenacity", "tenacity", _T.static("stat_name.tenacity")),
+        ("🍀", "luck", "luck", _T.static("stat_name.luck")),
         # v106.1 冷却/抗性/成长
-        ("⏱️", "cdr", "cdr", "冷却缩减"),
-        ("🌡️", "elem_res", "elem_res", "元素抗性"),
-        ("🌑", "abyss_res", "abyss_res", "深渊抗性"),
-        ("📚", "exp_bonus", "exp_bonus", "经验加成"),
-        ("💰", "gold_bonus", "gold_bonus", "金币加成"),
+        ("⏱️", "cdr", "cdr", _T.static("stat_name.cdr")),
+        ("🌡️", "elem_res", "elem_res", _T.static("stat_name.elem_res")),
+        ("🌑", "abyss_res", "abyss_res", _T.static("stat_name.abyss_res")),
+        ("📚", "exp_bonus", "exp_bonus", _T.static("stat_name.exp_bonus")),
+        ("💰", "gold_bonus", "gold_bonus", _T.static("stat_name.gold_bonus")),
         # v106.2 治疗/护盾强度
-        ("💚", "heal_power", "heal_power", "治疗强度"),
-        ("🛡️", "shield_power", "shield_power", "护盾强度"),
+        ("💚", "heal_power", "heal_power", _T.static("stat_name.heal_power")),
+        ("🛡️", "shield_power", "shield_power", _T.static("stat_name.shield_power")),
         # v106.3 吸血/暴击伤害/格挡
-        ("🩸", "lifesteal", "lifesteal", "吸血"),
-        ("💢", "crit_dmg", "crit_dmg", "暴击伤害"),
-        ("🧱", "block", "block", "格挡"),
+        ("🩸", "lifesteal", "lifesteal", _T.static("stat_name.lifesteal")),
+        ("💢", "crit_dmg", "crit_dmg", _T.static("stat_name.crit_dmg")),
+        ("🧱", "block", "block", _T.static("stat_name.block")),
         # v106.4 反伤/物魔免/物法吸
-        ("🌵", "thorns", "thorns", "反伤"),
-        ("🪨", "phys_reduce", "phys_reduce", "物理免伤"),
-        ("🛡️", "magic_reduce", "magic_reduce", "魔法免伤"),
-        ("🩸", "lifesteal_phys", "lifesteal_phys", "物理吸血"),
-        ("🔮", "lifesteal_magi", "lifesteal_magi", "法术吸血"),
-        ("🧙", "summon_power", "summon_power", "召唤强化"),  # v107 召唤物系统
+        ("🌵", "thorns", "thorns", _T.static("stat_name.thorns")),
+        ("🪨", "phys_reduce", "phys_reduce", _T.static("stat_name.phys_reduce")),
+        ("🛡️", "magic_reduce", "magic_reduce", _T.static("stat_name.magic_reduce")),
+        ("🩸", "lifesteal_phys", "lifesteal_phys", _T.static("stat_name.lifesteal_phys")),
+        ("🔮", "lifesteal_magi", "lifesteal_magi", _T.static("stat_name.lifesteal_magi")),
+        ("🧙", "summon_power", "summon_power", _T.static("stat_name.summon_power")),  # v107 召唤物系统
     ]
     for icon, skey, fkey, cname in stat_rows:
         final = st.get(fkey, 0)  # v105：precise 无来源时 st 无键，.get 兜底（防 KeyError）
@@ -1201,16 +1205,16 @@ async def attributes(self, event: AstrMessageEvent, group_id, qq_id, player):
             continue
         bonus = final - base.get(skey, 0)
         if skey in PCT_STATS:
-            lines.append(f"{icon} {cname}：{final*100:.1f}%({bonus*100:+.1f}%)")
+            lines.append(_T.text("attr.stat_row_pct", icon=icon, cname=cname, final=final*100, bonus=bonus*100))
         else:
-            lines.append(f"{icon} {cname}：{final}({int(bonus):+d})")
+            lines.append(_T.text("attr.stat_row", icon=icon, cname=cname, final=final, bonus=int(bonus)))
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"🎯 自由属性点：{player.get('attr_pts', 0)}")
+    lines.append(_T.text("attr.free_pts", pts=player.get('attr_pts', 0)))
     # 加点分配（每项单独一行，说明换行缩进——v100.9 排版优化；v100.10 冒号统一）
-    lines.append(f"💪 力量：{attr.get('str', 0)}\n   ·每点＋1 攻击")
-    lines.append(f"🏃 敏捷：{attr.get('agi', 0)}\n   ·每点＋0.8 速度 ＋ 0.4% 暴击")
-    lines.append(f"🧠 智力：{attr.get('int', 0)}\n   ·每点＋1 魔攻 ＋ 1.5 魔力")
-    lines.append(f"🧱 耐力：{attr.get('vit', 0)}\n   ·每点＋6 生命")
+    lines.append(_T.text("attr.hint_str", v=attr.get('str', 0)))
+    lines.append(_T.text("attr.hint_agi", v=attr.get('agi', 0)))
+    lines.append(_T.text("attr.hint_int", v=attr.get('int', 0)))
+    lines.append(_T.text("attr.hint_vit", v=attr.get('vit', 0)))
     lines.append("━━━━━━━━━━━━")
     lines.append(self._tip("attr"))
     yield event.plain_result("\n".join(lines))
@@ -1439,7 +1443,7 @@ async def power(self, event: AstrMessageEvent, group_id, qq_id, player):
 async def skill_detail(self, event: AstrMessageEvent, group_id, qq_id, player):
     skill_name = self._strip_cmd(event, "技能详情").strip()
     if not skill_name:
-        yield event.plain_result("格式：技能详情 <技能名/序号>，如『技能详情 火球术』或『技能详情 5』")
+        yield event.plain_result(_T.static("skill_detail.usage"))
         return
     # 序号查看：『技能详情 5』→ 技能列表第 5 个技能
     if skill_name.isdigit():
@@ -1447,12 +1451,12 @@ async def skill_detail(self, event: AstrMessageEvent, group_id, qq_id, player):
         skill_items = list(skills.keys())
         idx = int(skill_name)
         if idx < 1 or idx > len(skill_items):
-            yield event.plain_result(f"你的职业只有 {len(skill_items)} 个技能！『技能列表』查看全部～")
+            yield event.plain_result(_T.text("skill.only_n", n=len(skill_items)))
             return
         skill_name = skill_items[idx - 1]
     msg = self._skill_detail_message(player, skill_name)
     if msg is None:
-        yield event.plain_result(f"你的职业没有『{skill_name}』技能！『技能列表』查看全部～")
+        yield event.plain_result(_T.text("skill.no_skill", name=skill_name))
         return
     yield event.plain_result(msg)
 
@@ -1466,7 +1470,7 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
         skill_items = list(skills.keys())
         idx = int(skill_name)
         if idx < 1 or idx > len(skill_items):
-            return f"你的职业只有 {len(skill_items)} 个技能！『技能列表』查看全部～"
+            return _T.text("skill.only_n", n=len(skill_items))
         skill_name = skill_items[idx - 1]
     info = skill_info(player["class_name"], skill_name)
     if not info:
@@ -1478,38 +1482,38 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
     mx = skill_max_level(info)
     if is_learned:
         slv = skill_level_of(player, skill_name)  # #259：兼容 skill_levels key 为中文名
-        status = f"✅ 已学会 Lv.{slv}/{mx}"
+        status = _T.text("skill_card.st_learned", lv=slv, mx=mx)
     elif info["lv"] <= player["level"]:
-        status = f"📖 可学习(Lv.{info['lv']})"
+        status = _T.text("skill_card.st_learnable", lv=info['lv'])
     else:
-        status = f"🔒 未学会(Lv.{info['lv']} 解锁)"
+        status = _T.text("skill_card.st_locked", lv=info['lv'])
     # v104 R3 P2-3：消耗行同源展示（mp + res_cost + 精力），与 combat.py 技能列表口径一致
     # v112：资源中文名数据驱动（v181.M-R2c 源 = EFFECT_RULES，新增资源只改数据）
     # v161 意见#70：消耗显示与技能列表统一——资源项带 `-` 前缀（消耗=扣减，与 res_gain 的 `+` 区分）
     _costs = []
     if info.get("mp"):
-        _costs.append(f"{info['mp']} 魔力")
+        _costs.append(_T.text("skill_card.cost_mp", n=info['mp']))
     for _rk, _rv in (info.get("res_cost") or {}).items():
         # v81 消耗格式统一：『x 精力』（原名在资源名后带 -x，玩家读起来像属性扣减歧义；
         # 与技能列表『消耗：精力 -22』口径仍一致，但详情行用直白语序）
         _cn = _RES_CN.get(_rk, _rk)
-        _costs.append(f"{_rv} {_cn}")
-    _cost_txt = " + ".join(_costs) if _costs else "无"  # v104 R3 P3-1：零消耗显示"无"（与技能列表口径一致）
+        _costs.append(_T.text("skill_card.cost_res", n=_rv, name=_cn))
+    _cost_txt = " + ".join(_costs) if _costs else _T.static("skill_card.cost_none")  # v104 R3 P3-1：零消耗显示"无"（与技能列表口径一致）
     lines = [
-        f"📜 【{display_name}】｜{status}",
+        _T.text("skill_card.title", name=display_name, status=status),
         f"━━━━━━━━━━━━",
         # v161 意见#71：移除冗余"需求等级"（状态行已显示 Lv.X 解锁/可学习）
-        f"类型：{info.get('kind','')} ｜ 消耗：{_cost_txt}",
+        _T.text("skill_card.type_cost", kind=info.get('kind',''), cost=_cost_txt),
         # v173.3 意见#94：技能详情补出招时间（cast 基准秒 @速度50，v154 速度折算）
-        f"⚡ 出招：{self._skill_cast_text(info)}",
+        _T.text("skill_card.cast_head", cast_txt=self._skill_cast_text(info)),
         # v162 回滚：desc 已通过 buff_turns 字段真实对齐（铁壁 buff_turns=8 真持续 8 刻），
         # 不再展示层替换（原 _desc_align_turns 会把 8 错改成 3）
-        f"效果：{info['desc']}",
+        _T.text("skill_card.effect", desc=info['desc']),
     ]
     # v160 表达式技能：公式翻译展示（exprs 逐级显示当前级公式；单条 expr 显示公式本身）
     _expr_show = self._skill_formula_text(info, slv if is_learned else 1)
     if _expr_show:
-        lines.append(f"📐 公式：{_expr_show}")
+        lines.append(_T.text("skill_card.formula", expr=_expr_show))
     # 玩家当前属性（表达式代入用；面板口径与战斗一致——称号加成省略，
     # 展示目的是比较各级数值曲线，非精确面板；learned_skills 传入让属性被动生效）
     # 仅表达式技能需要（旧百分比技能无玩家属性代入，省一次属性计算）
@@ -1526,14 +1530,14 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
         # v134.5 意见#57：LOL 式逐级数值——每级一行，展示 Lv.1→满级全部数值
         # （原只显示当前级单行）。维度与 _skill_upgrade_gains 同源。
         # v160：未学技能也显示（意见#64『技能详情没学也应该显示各个等级的数值』）
-        lines.append("📈 数值成长：")
+        lines.append(_T.static("skill_card.growth_head"))
         for _lv in range(1, mx + 1):
             _gains = self._skill_upgrade_gains(info, _lv, _stats)
             _mark = "▶" if (is_learned and _lv == slv) else " "
             if _gains:
-                lines.append(f"  {_mark} Lv.{_lv}: {' · '.join(_gains)}")
+                lines.append(_T.text("skill_card.growth_row", mark=_mark, lv=_lv, gains=' · '.join(_gains)))
             else:
-                lines.append(f"  {_mark} Lv.{_lv}: (无成长数值)")
+                lines.append(_T.text("skill_card.growth_row_none", mark=_mark, lv=_lv))
     owner = branch_skill_owner(player["class_name"], skill_name)
     if owner:
         # v130.2f.2 苦修改名收尾：专属归属分支 key → 展示名（武僧→淬势者、大地武僧→锻势行者）
@@ -1550,20 +1554,20 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
                 _disp_branch = _BRANCH_KEY_DISPLAY.get(_eb_list[_cand_path], _eb_list[_cand_path])
         except Exception:
             pass
-        lines.append(f"专属：{_disp_branch}(Lv.{_cat_core.EVOLVE_LEVELS[_own_tier]} 转职解锁)")
+        lines.append(_T.text("skill_card.exclusive", branch=_disp_branch, lv=_cat_core.EVOLVE_LEVELS[_own_tier]))
     _multi_disp = int(info.get("multi") or info.get("hits") or 0)
     if _multi_disp > 1:
-        lines.append(f"连击：x{_multi_disp}")
+        lines.append(_T.text("skill_card.multi", n=_multi_disp))
     if info.get("pierce"):
-        lines.append("特性：无视防御")
+        lines.append(_T.static("skill_card.trait"))
     if info.get("effect"):
         # v63/#99 汉化：effect key → 中文 tag（与技能列表 _skill_tag 同源映射；
         # 此前 spd_buff/atk_all 等英文 key 原样泄漏到『技能详情·特效』行）
         # ★ L7：真源 = 包内 `content/combat_cmds.py` 的模块级 `_EFFECT_CN`（不再经宿主类）
         eff_cn = _combat_cmds_mod._effect_cn(info["effect"])   # ★ B-1：真源 = 文案表 effect_name.*
-        lines.append(f"特效：{eff_cn}")
+        lines.append(_T.text("skill_card.special", name=eff_cn))
     if info.get("team"):
-        lines.append(f"团队：{_TEAM_CN.get(info['team'], info['team'])}(副本中广播全队)")
+        lines.append(_T.text("skill_card.team", name=_TEAM_CN.get(info['team'], info['team'])))
     if info.get("cond"):
         cond = info["cond"]
         ctype = cond.get("type")
@@ -1574,21 +1578,22 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
         from .battle_cond_labels import COND_LABELS
         label_fn = COND_LABELS.get(ctype)
         ctext = label_fn(cond) if label_fn else ctype
-        lines.append(f"⚔️ 条件转化：{ctext}时激活『{label}』(威力 ×{mult})")
+        lines.append(_T.text("skill_card.cond", cond=ctext, label=label, mult=mult))
     if not is_learned and info["lv"] <= player["level"]:
         cost = skill_learn_cost_for(player, info["lv"])
-        lines.append(f"💡 『技能学习 {display_name}』消耗 {cost} 技能点学会(当前 {player.get('skill_points',0)} 点)")
+        lines.append(_T.text("skill_card.learn_hint", name=display_name, cost=cost, pts=player.get('skill_points',0)))
     elif is_learned:
         slv = skill_level_of(player, skill_name)  # #259：兼容 skill_levels key 为中文名
         # v101.28l #439：被动技能详情不再提示升级（与『技能升级』的"无需升级"一致）+ 括号闭合
         if info.get("kind") == "被动":
-            lines.append("⚙️ 被动技能，无需升级——学会后战斗自动生效")
+            lines.append(_T.static("skill_card.passive_note"))
         elif slv < mx:
             cost = skill_upgrade_cost(slv, info)
             nxt = " · ".join(self._skill_upgrade_gains(info, slv + 1))
-            lines.append(f"💡 『技能升级 {display_name}』花 {cost} 点升到 Lv.{slv + 1}（{nxt}，当前 {player.get('skill_points',0)} 点）")
+            lines.append(_T.text("skill_card.upgrade_hint", name=display_name, cost=cost, lv=slv + 1, gains=nxt,
+                             pts=player.get('skill_points',0)))
         else:
-            lines.append("✨ 已满级！")
+            lines.append(_T.static("skill_card.maxed"))
     return "\n".join(lines)
 
 async def skill_learn(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1675,12 +1680,12 @@ def _skill_cast_text(self, info: dict) -> str:
     _ct_cost √(50/spd)）。被动技能无出招概念；无 cast 字段的技能回落普攻基准 1.0s。
     """
     if info.get("kind") == "被动":
-        return "被动即时生效"
+        return _T.static("skill_card.cast_passive")
     _c = float(info.get("cast") or 0)
     if _c <= 0:
         # 增益/治疗/嘲讽等即时类（v154 立即生效不读条）
-        return "即时生效"
-    return f"约 {_c:g} 秒(速度 50 基准，速度越快越快)"
+        return _T.static("skill_card.cast_instant")
+    return _T.text("skill_card.cast_time", s=_c)
 
 def _skill_formula_text(self, info: dict, lv: int = 1) -> str:
     """v160 表达式技能公式展示：exprs/expr/heal_formula 翻译成中文公式。
@@ -1733,9 +1738,9 @@ def _skill_upgrade_gains(self, info: dict, lv: int, stats: dict | None = None) -
         if _val > 0:
             # v162 修复：攻击类显示伤害/治疗类显示治疗，增益/嘲讽等不显示数值
             if kind == "治疗":
-                parts.append(f"治疗 ≈ {int(round(_val))}")
+                parts.append(_T.text("skill_card.gain_heal", v=int(round(_val))))
             elif kind in ("物理", "魔法", "真伤") or kind.startswith(("物理", "魔法")):
-                parts.append(f"伤害 ≈ {int(round(_val))}")
+                parts.append(_T.text("skill_card.gain_dmg", v=int(round(_val))))
     # v161：表达式技能已显示实际数值，跳过 power 百分比（避免 305 vs 101% 双数值矛盾）
     if info.get("power") and not _has_expr:
         # v162 修复：只有攻击类（物理/魔法/真伤）显示"伤害"，增益/嘲讽/被动不该显示伤害
@@ -1746,21 +1751,21 @@ def _skill_upgrade_gains(self, info: dict, lv: int, stats: dict | None = None) -
             # 圣光术 desc 115% vs 升级预览 110% 玩家以为升级降伤害）
             parts.append(f"{label} {int(info['power'] * skill_power_mult(lv, info) * 100)}%")
     if kind in ("增益", "嘲讽"):
-        parts.append(f"持续 {skill_buff_turns(lv)} 刻")
+        parts.append(_T.text("skill_card.gain_duration", n=skill_buff_turns(lv)))
     if info.get("cond"):
-        parts.append(f"条件 ×{skill_cond_mult(info['cond'], lv, info):g}")
+        parts.append(_T.text("skill_card.gain_cond", x=skill_cond_mult(info['cond'], lv, info)))
     if info.get("mech_val"):
         # v162：effect=reduce 的 mech_val 是减伤百分比（铁壁 45 = 减伤45%），显示"减伤 X%"而非"叠层 X"
         if info.get("effect") == "reduce":
             mv = float(info.get("mech_val") or 0)
             mv = (mv / 100.0) if mv > 1 else mv
-            parts.append(f"减伤 {int(round(mv * 100))}%")
+            parts.append(_T.text("skill_card.gain_reduce", p=int(round(mv * 100))))
         else:
-            parts.append(f"叠层 {skill_mech_val(info, lv)}")
+            parts.append(_T.text("skill_card.gain_stack", n=skill_mech_val(info, lv)))
     # v104 R3 P2-10：吸血成长预览同 battle 口径——按 lifesteal 数据字段判定
     # （原只认 effect=="lifesteal"，全表无技能带此 effect → 嗜血斩升级预览漏显示吸血）
     if info.get("lifesteal"):
-        parts.append(f"吸血 {int(skill_lifesteal_pct(info, lv) * 100)}%")
+        parts.append(_T.text("skill_card.gain_lifesteal", p=int(skill_lifesteal_pct(info, lv) * 100)))
     return parts
 
 async def skill_upgrade(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1828,15 +1833,15 @@ async def skill_upgrade(self, event: AstrMessageEvent, group_id, qq_id, player):
 
 async def skill_bar_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     bar = db.get_skill_bar(qq_id)
-    lines = ["🎛️ 【技能栏】(战斗中『技能 <槽位>』快捷施放)", "━━━━━━━━━━━━"]
+    lines = [_T.static("skill_bar.title"), "━━━━━━━━━━━━"]
     for i in range(6):
         sname = bar[i] if i < len(bar) else None
         if sname:
             info = skill_info(player["class_name"], sname)
             kind = info.get("kind", "") if info else ""
-            lines.append(f" {i+1}. {display('skills', sname)}({kind})")
+            lines.append(_T.text("skill_bar.row", n=i+1, name=display('skills', sname), kind=kind))
         else:
-            lines.append(f" {i+1}. (空)")
+            lines.append(_T.text("skill_bar.empty_slot", n=i+1))
     lines.append("━━━━━━━━━━━━")
     lines.append(self._tip("skill"))
     yield event.plain_result("\n".join(lines))
@@ -1872,15 +1877,16 @@ async def build_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     cid = player["class_name"]
     builds = _cat_quests.BUILDS.get(cid, {})
     if not builds:
-        yield event.plain_result("你的职业暂时没有流派方案～")
+        yield event.plain_result(_T.static("build.none"))
         return
     # 无参 → 流派列表
     if not raw:
-        lines = [f"⚔️ 【{display('classes', cid)}流派】—— 同一职业，不同打法！", "━━━━━━━━━━━━"]
+        lines = [_T.text("build.title", cls=display('classes', cid)), "━━━━━━━━━━━━"]
         for name, info in builds.items():
             learned_cnt = sum(1 for s in info["skills"] if is_skill_learned(cid, player["level"], s, player.get("learned_skills", [])))
-            lines.append(f"{info.get('icon','')} {name}(已学 {learned_cnt}/{len(info['skills'])})")
-            lines.append(f"    {info['desc']}")
+            lines.append(_T.text("build.row", icon=info.get('icon',''), name=name, have=learned_cnt,
+                             tot=len(info['skills'])))
+            lines.append(_T.text("build.row_desc", desc=info['desc']))
         lines.append("━━━━━━━━━━━━")
         lines.append(self._tip("build"))
         yield event.plain_result("\n".join(lines))
@@ -1888,7 +1894,7 @@ async def build_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     # 配置指定流派
     name = raw
     if name not in builds:
-        yield event.plain_result(f"没有『{name}』流派！你的流派：{'、'.join(builds.keys())}")
+        yield event.plain_result(_T.text("build.not_found", name=name, others='、'.join(builds.keys())))
         return
     info = builds[name]
     bar = []
@@ -1899,19 +1905,19 @@ async def build_view(self, event: AstrMessageEvent, group_id, qq_id, player):
         else:
             need = skill_info(cid, sname)
             need_lv = need["lv"] if need else 0
-            missing.append(f"『{sname}』(Lv.{need_lv})")
+            missing.append(_T.text("build.missing_item", name=sname, lv=need_lv))
     while len(bar) < 6:
         bar.append(None)
     db.set_skill_bar(qq_id, bar)
-    lines = [f"✅ 已切换为【{info.get('icon','')} {name}】流派！技能栏已配置："]
+    lines = [_T.text("build.switched", icon=info.get('icon',''), name=name)]
     for i, sname in enumerate(info["skills"], 1):
         if sname in bar:
-            lines.append(f"  {i}. ⚔️ {sname}")
+            lines.append(_T.text("build.slot_row", n=i, name=sname))
         else:
-            lines.append(f"  {i}. 🔒 {sname}(未学会)")
+            lines.append(_T.text("build.slot_missing", n=i, name=sname))
     if missing:
-        lines.append(f"⚠️ 还没学会：{'、'.join(missing)}——『技能学习 <名称>』学会后重新『流派 {name}』即可补上")
-    lines.append(f"💡 打法：{info['desc']}")
+        lines.append(_T.text("build.missing_warn", missing='、'.join(missing), name=name))
+    lines.append(_T.text("build.tip", desc=info['desc']))
     yield event.plain_result("\n".join(lines))
 
 async def delete_account(self, event: AstrMessageEvent, group_id, qq_id, player):

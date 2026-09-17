@@ -267,7 +267,16 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          # C 档 12：GM 面板 / 公会面板 / 修炼塔（行级句壳）
          "GM面板": os.path.join(PKG_CONTENT, "gm.py"),
          "公会面板": os.path.join(PKG_CONTENT, "social_guild.py"),
-         "修炼塔": os.path.join(PKG_CONTENT, "cmds_tower.py")}
+         "修炼塔": os.path.join(PKG_CONTENT, "cmds_tower.py"),
+         # C 档 10：player_cmds 的八个面板分类（同文件多分类，引用面 = 直接调用点）
+         "角色面板": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "属性面板": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "排行榜": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "种族面板": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "转职": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "技能栏": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "流派": os.path.join(PKG_CONTENT, "player_cmds.py"),
+         "技能详情": os.path.join(PKG_CONTENT, "player_cmds.py")}
 
 
 def _wired_paths(path):
@@ -847,12 +856,13 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
                         "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板",
                         "副业图标", "技能面板", "GM面板", "公会面板", "修炼塔",
+                        "角色面板", "属性面板", "排行榜", "种族面板", "转职", "技能栏", "流派", "技能详情",
                         "冒险手册", "足迹", "世界百科", "来源图标", "触发名"}, cats)
 
 
