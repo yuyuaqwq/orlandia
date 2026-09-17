@@ -161,7 +161,7 @@ _PIN = {
         'content/economy_cmds.py::shop': '26116239eefc8181717b6d8f520a2a1e5c5ff37cdd1365872b3a8feab870233f',
         'content/economy_cmds.py::buy': 'c58470fbc31e416d343aa363727372259e65af0bb8d3e21cdf9f43ad4345ae33',
         'content/talk_actions.py::action_apprentice_check': '3079da595d629cb8a83530cbfdaf221a85ee971804ae29895c47577748585edc',
-        'content/item_templates.py::tpl_teleport_portal': 'f833ca2a3eebd4c0fb13e365a049d0b3f484e906bb80f63c4481e15201cc2bd2',
+        'content/item_templates.py::tpl_teleport_portal': 'ebaf5f6548be45341c14570ae73c73398261f46a12aa703d619e9779d74d7503',
         'content/combat_cmds.py::roll_wild_encounter': '2c66022b9137474a748b8bfb1135c88e09e7fa6cbcab9214016e95ae786709a1',
     },
     'aux': {
@@ -174,7 +174,6 @@ _PIN = {
     'segments': {
         'E': [
             'content/talk_actions.py::action_apprentice_check',
-            'content/item_templates.py::tpl_teleport_portal',
             'content/combat_cmds.py::roll_wild_encounter',
         ],
         'C': [
@@ -184,6 +183,7 @@ _PIN = {
             'content/cmds_world.py::quest_view',
             'content/economy_cmds.py::shop',
             'content/economy_cmds.py::buy',
+            'content/item_templates.py::tpl_teleport_portal',
         ],
     },
     'tier': {
