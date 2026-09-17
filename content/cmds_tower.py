@@ -22,6 +22,7 @@ from __future__ import annotations
 from .commands import register
 from .flow import tower_progress as _TP
 from .cmds_env import shell as _shell
+from . import texts as _T          # 文案表（C 档 12）
 
 _SEP = "━━━━━━━━━━━━"
 
@@ -29,13 +30,13 @@ _SEP = "━━━━━━━━━━━━"
 def _tower_start(d: dict) -> str:
     """开战面板：7 行模板 + 战斗阵型面板插到第 4 行后（真源同款行序）。"""
     lines = [
-        f"🏯 【修炼塔·{d['fl_name']}】",
-        f"你踏入第 {d['floor']} 层，一个身影从阴影中浮现——",
-        f"👤 【{d['guard_name']}】Lv.{d['guard_lv']}（建议 Lv.{d['suggest_lv']}）",
-        f"📜 {d['desc']}",
+        _T.text("tower.title", name=d['fl_name']),
+        _T.text("tower.enter", floor=d['floor']),
+        _T.text("tower.guard", name=d['guard_name'], lv=d['guard_lv'], suggest=d['suggest_lv']),
+        _T.text("tower.desc", desc=d['desc']),
         f"{_SEP}",
-        f"奖励：经验 +{d['reward_exp']} 金币 +{d['reward_gold']}（击败后自动入账）",
-        f"你的行动：『攻击』『技能 <名称>』『防御』『逃跑』",
+        _T.text("tower.reward", exp=d['reward_exp'], gold=d['reward_gold']),
+        _T.text("tower.actions", ),
     ]
     if d["panel"] is not None:
         lines.insert(4, d["panel"])

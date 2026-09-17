@@ -50,6 +50,7 @@ import os
 
 # ★ W4（2026-09-14）：`C.GUILD_CONFIG` 兜底 → 包内门面（真源 `game/data/guild.py:3`）
 from . import catalog_b143 as _cat_b143
+from . import texts as _T          # 文案表（C 档 12）
 
 # ★ PKG-G：贡献账本形状（引擎 `membership.Contribution`）——按日窗口累计 / 跨窗口换桶
 from saintess_engine.membership import Contribution
@@ -458,22 +459,23 @@ def guild_info_lines(group_id, g, members, page_items, page, pages, player_looku
     roles = guild_roles()
     count = len(members)
     lines = [
-        f"{g['icon']} 【{g['name']}】Lv.{g['level']}",
+        _T.text("guild.title", icon=g['icon'], name=g['name'], level=g['level']),
         f"━━━━━━━━━━━━",
-        f"👥 成员 {count} 人 ｜ 经验 {g['exp']}/{exp_need}",
-        f"📜 {g['desc'] or '暂无宣言'}",
-        f"💡 公会加成：打怪经验 +{guild_exp_bonus_pct(g)}%",
+        _T.text("guild.members", count=count, exp=g['exp'], need=exp_need),
+        _T.text("guild.desc", desc=g['desc'] or '暂无宣言'),
+        _T.text("guild.exp_bonus", pct=guild_exp_bonus_pct(g)),
         f"━━━━━━━━━━━━",
-        f"成员(第 {page}/{pages} 页)：",
+        _T.text("guild.member_head", page=page, pages=pages),
     ]
     for i, m in enumerate(page_items, (page - 1) * per_page + 1):
         p = player_lookup(group_id, m["qq_id"])
         _label, _icon = roles.get(m["role"], ("成员", "⚔️"))
         name = p["name"] if p else m["qq_id"]
-        lines.append(f"{i:>2}. {_icon} {name}({_label}) Lv.{p['level'] if p else '?'} ｜ 贡献 {m['contribute']}")
+        lines.append(_T.text("guild.member_row", i=i, icon=_icon, name=name, label=_label,
+                         lv=p['level'] if p else '?', contribute=m['contribute']))
     lines.append("")
     if pages > 1 and page < pages:
-        lines.append(f"💡 『公会 {page+1}』看下一页(共 {pages} 页)")
+        lines.append(_T.text("guild.next_tip", next=page+1, pages=pages))
     return lines
 
 

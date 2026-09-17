@@ -49,6 +49,7 @@ from saintess_engine.records import rebuild_views
 # `host.C` 仍保留给 `display`（函数，无门面，见头注）。
 from .catalog_items import ITEMS            # 真源 `host.C.ITEMS`
 from .catalog_space import MAPS, MAP_BY_ID  # 真源 `host.C.MAPS` / `host.C.MAP_BY_ID`
+from . import texts as _T                   # 文案表（C 档 12）
 
 
 # ============ 权限 / 目标解析 / 查找（真源 GmCmds 内部方法） ============
@@ -160,12 +161,12 @@ def status_text(host, group_id, down: bool, msg: str, gms) -> str:
         p = db.get_player("", g)
         gm_names.append(f"{p.get('name') or g}({g})" if p else g)
     lines = [
-        "🖥️ 【服务器状态】",
-        f"状态：{'🔧 维护中' if down else '✅ 运行中'}",
-        f"公告：{msg}" if msg else None,
-        f"玩家数：{len(players)} 人",
-        f"最高等级：{players[0]['name']} Lv.{players[0]['level']}" if players else None,
-        f"GM 名单：{'、'.join(gm_names) if gm_names else '(未配置，默认拒绝)'}",
+        _T.static("gm.status_title"),
+        _T.text("gm.status_state", state='🔧 维护中' if down else '✅ 运行中'),
+        _T.text("gm.status_notice", msg=msg) if msg else None,
+        _T.text("gm.status_players", n=len(players)),
+        _T.text("gm.status_top", name=players[0]['name'], level=players[0]['level']) if players else None,
+        _T.text("gm.status_gm_list", names='、'.join(gm_names) if gm_names else '(未配置，默认拒绝)'),
     ]
     return "\n".join(x for x in lines if x)
 
@@ -222,13 +223,15 @@ def query_text(host, raw: str) -> str:
                 loc += f"·{sa.get('name')}"
                 break
     lines = [
-        f"🔍 【{p.get('name')}】({p.get('qq_id')})",
-        f"职业：{cls}｜种族：{p.get('race') or 'human'}｜性别：{p.get('gender') or '-'}",
-        f"等级：Lv.{p.get('level', 1)}｜经验：{p.get('exp', 0)}",
-        f"金币：{p.get('gold', 0)}｜体力：{p.get('stamina', 0)}/{100 + (p.get('level') or 1) * 2}",
-        f"HP：{p.get('hp')}/{p.get('max_hp')}｜MP：{p.get('mp')}/{p.get('max_mp')}",
-        f"位置：{loc or '?'}｜转职：T{p.get('class_tier', 0)}",
-        f"注册于：{p.get('created_at')}｜最近活跃：{p.get('last_active')}",
+        _T.text("gm.query_title", name=p.get('name'), qq=p.get('qq_id')),
+        _T.text("gm.query_class", cls=cls, race=p.get('race') or 'human', gender=p.get('gender') or '-'),
+        _T.text("gm.query_level", level=p.get('level', 1), exp=p.get('exp', 0)),
+        _T.text("gm.query_gold", gold=p.get('gold', 0), stamina=p.get('stamina', 0),
+            stamina_max=100 + (p.get('level') or 1) * 2),
+        _T.text("gm.query_hpmp", hp=p.get('hp'), max_hp=p.get('max_hp'), mp=p.get('mp'),
+            max_mp=p.get('max_mp')),
+        _T.text("gm.query_loc", loc=loc or '?', tier=p.get('class_tier', 0)),
+        _T.text("gm.query_time", created=p.get('created_at'), active=p.get('last_active')),
     ]
     return "\n".join(lines)
 

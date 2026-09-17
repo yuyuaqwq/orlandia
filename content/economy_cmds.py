@@ -5931,8 +5931,8 @@ class EconomyImpl(CommandBase):
         # 即"卸下旧装备再穿上新装备"的净变化；空槽穿第一件=新装备全加成）
         diff_parts = []
         if old_stats is not None:
-            keys = [("atk", "攻击"), ("def", "防御"), ("matk", "魔攻"), ("mdef", "魔防"),
-                    ("spd", "速度"), ("max_hp", "生命"), ("max_mp", "魔力"), ("crit", "暴击"), ("dodge", "闪避")]
+            keys = [("atk", _T.static("stat_name.atk")), ("def", _T.static("stat_name.def")), ("matk", _T.static("stat_name.matk")), ("mdef", _T.static("stat_name.mdef")),
+                    ("spd", _T.static("stat_name.spd")), ("max_hp", _T.static("stat_name.hp")), ("max_mp", _T.static("stat_name.mp")), ("crit", _T.static("stat_name.crit")), ("dodge", _T.static("stat_name.dodge"))]
             for k, label in keys:
                 diff = st[k] - old_stats[k]
                 if abs(diff) >= 1e-9:
@@ -5990,8 +5990,8 @@ class EconomyImpl(CommandBase):
         db.update_player(group_id, qq_id, equipment=equipment)
         st = player_final_stats(player["class_name"], player["level"], equipment, player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
         diff_parts = []
-        keys = [("atk", "攻击"), ("def", "防御"), ("matk", "魔攻"), ("mdef", "魔防"),
-                ("spd", "速度"), ("max_hp", "生命"), ("max_mp", "魔力"), ("crit", "暴击"), ("dodge", "闪避")]
+        keys = [("atk", _T.static("stat_name.atk")), ("def", _T.static("stat_name.def")), ("matk", _T.static("stat_name.matk")), ("mdef", _T.static("stat_name.mdef")),
+                ("spd", _T.static("stat_name.spd")), ("max_hp", _T.static("stat_name.hp")), ("max_mp", _T.static("stat_name.mp")), ("crit", _T.static("stat_name.crit")), ("dodge", _T.static("stat_name.dodge"))]
         for k, label in keys:
             diff = st[k] - old_stats[k]
             if abs(diff) >= 1e-9:

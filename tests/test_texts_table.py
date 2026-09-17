@@ -263,7 +263,11 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          #   属性点四名（attr_name.*）归**既有分类「属性名」**（同族：属性中文名）
          "来源图标": PKG_ECONOMY_SRC,
          # C 档 5b：词条/装备触发时机中文名（6 键，搬自 economy_cmds.py 的 _trig_cn）
-         "触发名": PKG_ECONOMY_SRC}
+         "触发名": PKG_ECONOMY_SRC,
+         # C 档 12：GM 面板 / 公会面板 / 修炼塔（行级句壳）
+         "GM面板": os.path.join(PKG_CONTENT, "gm.py"),
+         "公会面板": os.path.join(PKG_CONTENT, "social_guild.py"),
+         "修炼塔": os.path.join(PKG_CONTENT, "cmds_tower.py")}
 
 
 def _wired_paths(path):
@@ -843,12 +847,13 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
                         "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板",
-                        "副业图标", "技能面板", "冒险手册", "足迹", "世界百科", "来源图标", "触发名"}, cats)
+                        "副业图标", "技能面板", "GM面板", "公会面板", "修炼塔",
+                        "冒险手册", "足迹", "世界百科", "来源图标", "触发名"}, cats)
 
 
 def t2_key_and_params_accounting():

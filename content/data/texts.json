@@ -2266,6 +2266,186 @@
       "tot"
     ]
   },
+  "gm.query_class": {
+    "value": "职业：{cls}｜种族：{race}｜性别：{gender}",
+    "params": [
+      "cls",
+      "race",
+      "gender"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.query_gold": {
+    "value": "金币：{gold}｜体力：{stamina}/{stamina_max}",
+    "params": [
+      "gold",
+      "stamina",
+      "stamina_max"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.query_hpmp": {
+    "value": "HP：{hp}/{max_hp}｜MP：{mp}/{max_mp}",
+    "params": [
+      "hp",
+      "max_hp",
+      "mp",
+      "max_mp"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.query_level": {
+    "value": "等级：Lv.{level}｜经验：{exp}",
+    "params": [
+      "level",
+      "exp"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.query_loc": {
+    "value": "位置：{loc}｜转职：T{tier}",
+    "params": [
+      "loc",
+      "tier"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.query_time": {
+    "value": "注册于：{created}｜最近活跃：{active}",
+    "params": [
+      "created",
+      "active"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.query_title": {
+    "value": "🔍 【{name}】({qq})",
+    "params": [
+      "name",
+      "qq"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.status_gm_list": {
+    "value": "GM 名单：{names}",
+    "params": [
+      "names"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "gm.status_notice": {
+    "value": "公告：{msg}",
+    "params": [
+      "msg"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "gm.status_players": {
+    "value": "玩家数：{n} 人",
+    "params": [
+      "n"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "gm.status_state": {
+    "value": "状态：{state}",
+    "params": [
+      "state"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "gm.status_title": {
+    "value": "🖥️ 【服务器状态】",
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "gm.status_top": {
+    "value": "最高等级：{name} Lv.{level}",
+    "params": [
+      "name",
+      "level"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "guild.desc": {
+    "value": "📜 {desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.exp_bonus": {
+    "value": "💡 公会加成：打怪经验 +{pct}%",
+    "params": [
+      "pct"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.member_head": {
+    "value": "成员(第 {page}/{pages} 页)：",
+    "params": [
+      "page",
+      "pages"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.member_row": {
+    "value": "{i:>2}. {icon} {name}({label}) Lv.{lv} ｜ 贡献 {contribute}",
+    "params": [
+      "i",
+      "icon",
+      "name",
+      "label",
+      "lv",
+      "contribute"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.members": {
+    "value": "👥 成员 {count} 人 ｜ 经验 {exp}/{need}",
+    "params": [
+      "count",
+      "exp",
+      "need"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.next_tip": {
+    "value": "💡 『公会 {next}』看下一页(共 {pages} 页)",
+    "params": [
+      "next",
+      "pages"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.title": {
+    "value": "{icon} 【{name}】Lv.{level}",
+    "params": [
+      "icon",
+      "name",
+      "level"
+    ],
+    "category": "公会面板",
+    "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
   "help_panel.CMD_HELP": {
     "value": "⚔️《奥兰迪亚：余烬纪年》指令大全\n📌 【常用指令】\n━━━━━━━━━━━━\n『探索』 去附近转转（遇怪/偶遇） ｜ 『打怪』 战斗入口\n『地图』 看周围 ｜ 『位置』 精简导航\n『状态』 看属性 ｜ 『背包』 看物品\n『物品详情 <名称>』 看详情 ｜ 『技能列表』 看技能\n『采集』 『挖掘』 『垂钓』 收集材料 ｜ 『商店』 买东西\n『锻造』 做装备 ｜ 『副本』 组队闯关 ｜ 『帮助 <分类>』 分类指令大全\n━━━━━━━━━━━━\n以下是全部指令：\n📚『帮助 <分类>』看该分类全部指令\n👥角色系统  🤝 冒险系统\n⚔️战斗系统  ✨技能系统\n🔨副业系统  🎒物品系统\n👫社交系统  🗺️世界系统\n❓其他",
     "category": "帮助面板",
@@ -4737,6 +4917,54 @@
     "value": "嘲讽",
     "category": "团队特效名",
     "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "tower.actions": {
+    "value": "你的行动：『攻击』『技能 <名称>』『防御』『逃跑』",
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.desc": {
+    "value": "📜 {desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.enter": {
+    "value": "你踏入第 {floor} 层，一个身影从阴影中浮现——",
+    "params": [
+      "floor"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.guard": {
+    "value": "👤 【{name}】Lv.{lv}（建议 Lv.{suggest}）",
+    "params": [
+      "name",
+      "lv",
+      "suggest"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.reward": {
+    "value": "奖励：经验 +{exp} 金币 +{gold}（击败后自动入账）",
+    "params": [
+      "exp",
+      "gold"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.title": {
+    "value": "🏯 【修炼塔·{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
   },
   "trigger_name.battle_start": {
     "value": "战斗开始",
