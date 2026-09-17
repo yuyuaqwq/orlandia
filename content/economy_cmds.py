@@ -369,13 +369,13 @@ def _render_equip(d, lines, equipped):
     q = _b143.QUALITY[d["quality"]]
     enh = d.get("enhance", 0)
     enh_str = f" +{enh}" if enh > 0 else ""
-    equip_state = "(已装备)" if equipped else ""
+    equip_state = _T.static("item.equipped") if equipped else ""
     lines.append(f"{q['color']}【{d['name']}{enh_str}】({_b143.EQUIP_SLOTS[d['slot']]}){equip_state}")
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"品质：{q['name']} ｜ 需求等级：Lv.{d['lv']}")
+    lines.append(_T.text("item.eq_quality", qname=q['name'], lv=d['lv']))
     if d.get("weapon_type"):
         # 阶段八：武器不锁职业，只显示类型（20 章装备只限属性）
-        lines.append(f"类型：{C.display('weapon_types', d['weapon_type'])}")
+        lines.append(_T.text("item.eq_wtype", wtype=C.display('weapon_types', d['weapon_type'])))
         flavor_desc = _b143.WEAPON_FLAVOR.get(d["weapon_type"], {}).get("desc", "")
         if flavor_desc:
             lines.append(f"✦ {flavor_desc}")
@@ -388,7 +388,7 @@ def _render_equip(d, lines, equipped):
             stat_lines.append(f"{label} + {int(v * 100)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
     if stat_lines:
         # v101.21 排版：属性每项单独一行（鱼鱼：属性+两边空格+换行，别挤一行）
-        lines.append("属性：")
+        lines.append(_T.static("item.eq_stats"))
         for s in stat_lines:
             lines.append(f"  · {s}")
     # 阶段八：特效词条 v2（ID 列表 → 名称+描述）+ 传说专属
@@ -404,23 +404,23 @@ def _render_equip(d, lines, equipped):
             # v101.21 词条排版：『名称：描述』（类似属性面板的力量/智力每行一项）
             aff_lines.append(f"{info['name']}：{info['desc']}" if info.get("desc") else info["name"])
     if aff_lines:
-        lines.append("✨ 词条：")
+        lines.append(_T.static("item.eq_affix"))
         for a in aff_lines:
             lines.append(f"  · {a}")
     # v135 词条特色展示：词条标签 → 这件装备的『性格』（攻击型/防御型/元素/机动/成长）
     feat = _equip_affix_features(d)
     if feat:
-        lines.append(f"⭐ 词条特色：{'｜'.join(feat)}")
+        lines.append(_T.text("item.eq_feature", feat='｜'.join(feat)))
     if d.get("legendary"):
         lg = _cit.LEGENDARY_EFFECTS.get(d["legendary"])
         if lg:
-            lines.append(f"✨ 专属·{lg['name']}：{lg['desc']}")
+            lines.append(_T.text("item.eq_legendary", name=lg['name'], desc=lg['desc']))
     # 阶段八：属性需求（不锁职业，只锁力量/智力/敏捷/耐力）
     req = d.get("req")
     if req:
         req_names = _REQ_NAMES
         req_str = " + ".join(f"{req_names.get(k, k)} {v}" for k, v in req.items())
-        lines.append(f"需求：{req_str}")
+        lines.append(_T.text("item.req_line", req=req_str))
     # v10：附魔（v34：符文效果词条，带等级）
     # v104R3 M11 P3-5：属性附魔与符文效果分开标签（此前属性附魔也被叫"符文"）
     # v104R3 M11 P3-8：补附魔槽位占用显示（ENCHANT_SLOTS 按品质：蓝 1/紫 2/橙 2）
@@ -438,11 +438,11 @@ def _render_equip(d, lines, equipped):
             ench_lines.append(f"{label} + {int(v * 100)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
     _slots = _b143.ENCHANT_SLOTS.get(d.get("quality", ""), 0)
     if _slots:
-        lines.append(f"🔮 附魔槽：{len(d.get('enchant', []))}/{_slots}")
+        lines.append(_T.text("item.eq_slots", used=len(d.get('enchant', [])), total=_slots))
     if rune_lines:
-        lines.append("🔮 符文： " + "  ".join(rune_lines))
+        lines.append(_T.static("item.eq_runes") + "  ".join(rune_lines))
     if ench_lines:
-        lines.append("✨ 附魔： " + "  ".join(ench_lines))
+        lines.append(_T.static("item.eq_ench") + "  ".join(ench_lines))
     # v10：套装归属
     if d.get("set"):
         sinfo = _cit.SETS.get(d["set"])
@@ -455,11 +455,11 @@ def _render_equip(d, lines, equipped):
             if b4d:
                 b4_parts.append(b4d)
             b4_str = "  ".join(b4_parts)
-            lines.append(f"🎴 套装：{sinfo['icon']}{d['set']}" + (f"(4件:{b4_str})" if b4_str else ""))
+            lines.append(_T.text("item.eq_set", icon=sinfo['icon'], set=d['set']) + (_T.text("item.eq_set_bonus", bonus=b4_str) if b4_str else ""))
     if enh > 0:
         info = _cit.ENHANCE_TABLE.get(enh)
         # v104R3 M11 P3-6：括号前补空格（数值+两侧空格排版），× 倍率防误读为 +136%
-        lines.append(f"强化：+{enh} (属性 ×{info['mult']})" if info else f"强化：+{enh}")
+        lines.append(_T.text("item.eq_enh_mult", enh=enh, mult=info['mult']) if info else _T.text("item.eq_enh", enh=enh))
     # v136 原石孔位展示
     _socks = d.get("sockets") or {}
     if _socks:
@@ -468,20 +468,21 @@ def _render_equip(d, lines, equipped):
             if _sv:
                 _sock_lines.append(f"{_sk}:💎{_sv.get('name','')}")
             else:
-                _sock_lines.append(f"{_sk}:空")
-        lines.append("💎 幸运宝石： " + "  ".join(_sock_lines))
+                _sock_lines.append(_T.text("item.eq_sock_empty", tag=_sk))
+        lines.append(_T.static("item.eq_socks") + "  ".join(_sock_lines))
     if d.get("desc"):
-        lines.append(f"描述：{d['desc']}")
+        lines.append(_T.text("item.desc_line", desc=d['desc']))
     else:
         # v101.25g：存量背包装备可能无 desc 字段 → 名册兜底 / 按部位生成
         rid_list = _cit.EQUIP_ROSTER_BY_NAME.get(d["name"], [])
         rdesc = _cit.EQUIP_ROSTER[rid_list[0]].get("desc") if rid_list else None
-        lines.append(f"描述：{rdesc or _eq_random_desc(d['name'], d.get('slot', 'armor'), d.get('weapon_type'))}")
+        lines.append(_T.text("item.desc_line",
+                         desc=rdesc or _eq_random_desc(d['name'], d.get('slot', 'armor'), d.get('weapon_type'))))
     lines.append("")
     # v104R3 P3：装备详情"出售价"误导——实收 = 推导价×0.5（_sell_one 铁匠铺回收，v101.27 鱼鱼拍板），
     # 且坐骑 sell_bonus/锻造 craft_cost 上限会再浮动 → 改标实收口径并加"约"
     _pawn = int(d.get("price", 0) * 0.5)
-    lines.append(f"💡 『装备 {d['name']}』穿上它 ｜ 铁匠铺回收约 {_pawn} 金币")
+    lines.append(_T.text("item.eq_tip", name=d['name'], pawn=_pawn))
 
 
 def _render_material(d, lines, equipped):
@@ -490,17 +491,17 @@ def _render_material(d, lines, equipped):
     # v101.25g：MATERIALS 的 key 是 mat_ ID，按名查必须用 MATERIALS_BY_NAME（原 MATERIALS.get 恒空）
     mat = _cit.MATERIALS_BY_NAME.get(d["name"])
     q = _b143.QUALITY.get((mat or {}).get("quality", "white"), {})
-    mtype = (mat or {}).get("type", "材料")
+    mtype = (mat or {}).get("type", _T.static("item.mat_default_type"))
     lines.append(f"🧪 【{d['name']}】")
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"类型：{mtype} ｜ 品质：{q.get('color', '')}{q.get('name', '普通')}")
+    lines.append(_T.text("item.mat_type_line", mtype=mtype, color=q.get('color', ''), qname=q.get('name', '普通')))
     desc = (mat or {}).get("desc") or d.get("desc")
     if desc:
-        lines.append(f"描述：{desc}")
+        lines.append(_T.text("item.desc_line", desc=desc))
     lines.append("")
     # v104R3 P3：材料详情"出售价"误导——实收按店铺 8~9 折（矿石/兽材→铁匠铺 0.9、
     # 草药/精华→炼金铺 0.9、食材/织物/杂物→商店 0.8；收藏鱼 1.0 原价）
-    lines.append(f"💡 回收参考价 {d.get('price', 0)} 金币(实收按店铺 8~9 折) ｜ 『出售 {d['name']}』变现 ｜ 『喂养 {d['name']}』喂宠物")
+    lines.append(_T.text("item.mat_recycle", price=d.get('price', 0), name=d['name'], name2=d['name']))
 
 
 def _render_fish(d, lines, equipped):
@@ -510,13 +511,13 @@ def _render_fish(d, lines, equipped):
     q = _b143.QUALITY.get(d.get("quality") or (fish or {}).get("quality", "white"), {})
     lines.append(f"🐟 【{d['name']}】")
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"类型：鱼 ｜ 品质：{q.get('color', '')}{q.get('name', '普通')}")
+    lines.append(_T.text("item.fish_type_line", color=q.get('color', ''), qname=q.get('name', '普通')))
     desc = (fish or {}).get("desc") or d.get("desc")
     if desc:
-        lines.append(f"描述：{desc}")
+        lines.append(_T.text("item.desc_line", desc=desc))
     lines.append("")
     # v126.1 大鱼卖更贵：实收按个体重量加权（0.5~1.5×），底价仅为参考
-    lines.append(f"💡 出售参考价 {d.get('price', 0)} 金币（大鱼按重量加价） ｜ 『出售 {d['name']}』变现 ｜ 『喂养 {d['name']}』喂宠物")
+    lines.append(_T.text("item.fish_sell", price=d.get('price', 0), name=d['name'], name2=d['name']))
 
 
 def _render_rune(d, lines, equipped):
@@ -526,11 +527,12 @@ def _render_rune(d, lines, equipped):
     lines.append("━━━━━━━━━━━━")
     # v104R3 M11 P3-1：品质显示中文名+颜色（此前直出英文 ID "purple"，与图鉴/名称不一致）
     _rq = _b143.QUALITY.get(d.get("quality", ""), {})
-    lines.append(f"类型：符文 ｜ 品质：{_rq.get('color', '')}{_rq.get('name', '')} ｜ 等级：{_b143.RUNE_LEVEL_ROMAN.get(int(d.get('lvl', 1) or 1), '')}")
+    lines.append(_T.text("item.rune_type_line", color=_rq.get('color', ''), qname=_rq.get('name', ''),
+                     roman=_b143.RUNE_LEVEL_ROMAN.get(int(d.get('lvl', 1) or 1), '')))
     if d.get("desc"):
-        lines.append(f"效果：{d['desc']}")
+        lines.append(_T.text("item.effect_line", desc=d['desc']))
     lines.append("")
-    lines.append(f"💡 『附魔 <装备名> {d['name']}』刻印到装备 ｜ 出售价 {d.get('price', 0)} 金币")
+    lines.append(_T.text("item.rune_hint", name=d['name'], price=d.get('price', 0)))
 
 
 def _render_encyclopedia_equip(r):
@@ -545,18 +547,18 @@ def _render_encyclopedia_equip(r):
     el = [f"⚔️ {_q.get('color', '')}【{r['name']}】({_slot_nm}·Lv.{r.get('lv', '?')}·{_q.get('name', r.get('quality'))})",
           "━━━━━━━━━━━━"]
     if r.get("series"):
-        el.append(f"系列：{r['series']}")
-    el.append(f"需求：{_req_s}")
+        el.append(_T.text("item.series_line", series=r['series']))
+    el.append(_T.text("item.req_line", req=_req_s))
     if r.get("source"):
-        el.append(f"来源：{r['source']}")
+        el.append(_T.text("item.src_line", source=r['source']))
     if r.get("set"):
-        el.append(f"套装：{r['set']}")
+        el.append(_T.text("item.set_line", set=r['set']))
     if r.get("special"):
-        el.append(f"特效：{r['special']}")
+        el.append(_T.text("item.special_line", special=r['special']))
     if r.get("desc"):
         el.append(f"{r['desc']}")
     el.append("")
-    el.append(f"💡 图鉴预览（未拥有）——『百科装备 {_slot_nm}』看{_slot_nm}全部装备")
+    el.append(_T.text("item.dex_preview", slot=_slot_nm, slot2=_slot_nm))
     return "\n".join(el)
 
 
@@ -581,18 +583,18 @@ def _render_blueprint(d, lines, equipped):
     r = _cit.EQUIP_ROSTER.get(d.get("roster_id", ""), {}) if d.get("roster_id") else {}
     slot_cn = _b143.EQUIP_SLOTS.get(r.get("slot", ""), "") if r else ""
     series = r.get("series", "") if r else ""
-    _parts = [f"类型：图纸", f"品质：{q.get('name', '')}"]
+    _parts = [_T.text("item.bp_type", ), _T.text("item.bp_quality", qname=q.get('name', ''))]
     if series:
-        _parts.append(f"系列：{series}")
+        _parts.append(_T.text("item.series_line", series=series))
     if slot_cn:
-        _parts.append(f"部位：{slot_cn}")
+        _parts.append(_T.text("item.bp_slot", slot_cn=slot_cn))
     lines.append(f"📜 【{d['name']}】")
     lines.append("━━━━━━━━━━━━")
     lines.append(" ｜ ".join(_parts))
     if d.get("desc"):
-        lines.append(f"描述：{d['desc']}")
+        lines.append(_T.text("item.desc_line", desc=d['desc']))
     lines.append("")
-    lines.append(f"💡 到铁匠铺『锻造 {d.get('blueprint_for', '')}』系列装备 ｜ 出售价 {d.get('price', 0)} 金币")
+    lines.append(_T.text("item.bp_hint", bp=d.get('blueprint_for', ''), price=d.get('price', 0)))
 
 
 def _render_pet_egg(d, lines, equipped):
@@ -604,13 +606,14 @@ def _render_pet_egg(d, lines, equipped):
     if pdef:
         # v101.14 品质标签
         ql = C.pet_quality_label(pdef["key"])
-        lines.append(f"可孵化：{ql} {pdef['icon']}{pdef['name']}（{pdef.get('source', '怪物掉落')}）")
-        lines.append(f"描述：{pdef['desc']}")
-        lines.append(f"🎯 技能：{C.pet_skill_label(pdef['key'])}")
+        lines.append(_T.text("item.egg_hatch", ql=ql, icon=pdef['icon'], name=pdef['name'],
+                         src=pdef.get('source', '怪物掉落')))
+        lines.append(_T.text("item.desc_line", desc=pdef['desc']))
+        lines.append(_T.text("item.egg_skill", skill=C.pet_skill_label(pdef['key'])))
     else:
-        lines.append("神秘的蛋，『使用 宠物蛋』孵化试试？")
+        lines.append(_T.static("item.egg_plain"))
     lines.append("")
-    lines.append(f"💡 『使用 {d['name']}』孵化 ｜ 出售价 {d.get('price', 0)} 金币")
+    lines.append(_T.text("item.egg_hint", name=d['name'], price=d.get('price', 0)))
 
 
 def _render_mount(d, lines, equipped):
@@ -624,12 +627,12 @@ def _render_mount(d, lines, equipped):
         _Q = _b143.QUALITY  # ← from ..data.equipment import QUALITY as _Q（B14-3：宿主 data 取件切包内门面）
         q = _Q.get(mdef.get("quality", "white"), {})
         ql = f"{q.get('color', '⚪')}{q.get('name', '普通')}"
-        lines.append(f"坐骑：{ql} {mdef['icon']}{mdef['name']}（Lv.{mdef['lv']} 可骑乘）")
-        lines.append(f"效果：{mdef['desc']}")
+        lines.append(_T.text("item.mount_line", ql=ql, icon=mdef['icon'], name=mdef['name'], lv=mdef['lv']))
+        lines.append(_T.text("item.effect_line", desc=mdef['desc']))
     else:
-        lines.append("缰绳上残留着野兽的气息……")
+        lines.append(_T.static("item.mount_plain"))
     lines.append("")
-    lines.append(f"💡 『使用 {d['name']}』驯服 ｜ 出售价 {d.get('price', 0)} 金币")
+    lines.append(_T.text("item.mount_hint", name=d['name'], price=d.get('price', 0)))
 
 
 def _render_consumable(d, lines, equipped):
@@ -638,48 +641,48 @@ def _render_consumable(d, lines, equipped):
     lines.append(f"📦 【{d['name']}】")
     lines.append("━━━━━━━━━━━━")
     if d.get("type"):
-        lines.append(f"类型：{d['type']}")
+        lines.append(_T.text("item.cons_type", type=d['type']))
     if d.get("desc"):
-        lines.append(f"效果：{d['desc']}")
+        lines.append(_T.text("item.effect_line", desc=d['desc']))
     elif d.get("hot") or d.get("hot_mana"):
         # v104 M08 P2-5：食物持续恢复渲染（无 desc 兜底时不再只显示空白）
         _t = d.get("hot_turns", 3)
         parts = []
         if d.get("hot"):
-            parts.append(f"战斗中每刻回复 {int(d['hot'] * 100)}% 生命（{_t} 刻）")
+            parts.append(_T.text("item.hot_hp", pct=int(d['hot'] * 100), turns=_t))
         if d.get("hot_mana"):
-            parts.append(f"战斗中每刻回复 {int(d['hot_mana'] * 100)}% 魔力（{_t} 刻）")
+            parts.append(_T.text("item.hot_mp", pct=int(d['hot_mana'] * 100), turns=_t))
         if d.get("heal"):
             h = d["heal"]
-            parts.append(f"恢复 {int(h * 100)}% 生命" if h < 1 else f"恢复 {h} 点生命")
+            parts.append(_T.text("item.heal_pct", pct=int(h * 100)) if h < 1 else _T.text("item.heal_flat", hp=h))
         if d.get("mana"):
             m = d["mana"]
-            parts.append(f"恢复 {int(m * 100)}% 魔力" if m < 1 else f"恢复 {m} 点魔力")
+            parts.append(_T.text("item.mana_pct", pct=int(m * 100)) if m < 1 else _T.text("item.mana_flat", mp=m))
         if d.get("stamina"):
-            parts.append(f"{d['stamina']} 体力")
-        lines.append("效果：" + "、".join(parts))
+            parts.append(_T.text("item.stamina_line", stamina=d['stamina']))
+        lines.append(_T.static("item.effect_head") + "、".join(parts))
     elif d.get("food_effect"):
         # v104 M08 P2-5：效果料理渲染
-        lines.append(f"效果：战斗中获得【{d['food_effect']}】")
+        lines.append(_T.text("item.cons_food", effect=d['food_effect']))
     elif d.get("affix"):
         # v104 M08 P2-5：词条渲染（装备词条兜底，正常情况下装备走 _render_equip）
-        lines.append(f"效果：{d['affix']}")
+        lines.append(_T.text("item.cons_affix", affix=d['affix']))
     elif d.get("heal") or d.get("mana"):
         # v95.17 #147：heal<1 是百分比（v54 战斗外回复），详情直接显示原始小数误导 → 换算百分比
         parts = []
         if d.get("heal"):
             h = d["heal"]
-            parts.append(f"恢复 {int(h * 100)}% 生命" if h < 1 else f"恢复 {h} 点生命")
+            parts.append(_T.text("item.heal_pct", pct=int(h * 100)) if h < 1 else _T.text("item.heal_flat", hp=h))
         if d.get("mana"):
             m = d["mana"]
-            parts.append(f"恢复 {int(m * 100)}% 魔力" if m < 1 else f"恢复 {m} 点魔力")
+            parts.append(_T.text("item.mana_pct", pct=int(m * 100)) if m < 1 else _T.text("item.mana_flat", mp=m))
         if d.get("stamina"):
-            parts.append(f"{d['stamina']} 体力")
-        lines.append("效果：" + " + ".join(parts))
+            parts.append(_T.text("item.stamina_line", stamina=d['stamina']))
+        lines.append(_T.static("item.effect_head") + " + ".join(parts))
     lines.append("")
     if d.get("price"):
-        lines.append(f"💡 出售价 {d['price']} 金币")
-    lines.append(f"💡 『使用 {d['name']}』使用它")
+        lines.append(_T.text("item.cons_price", price=d['price']))
+    lines.append(_T.text("item.cons_use", name=d['name']))
 
 
 # 大类 → 渲染器（key 与 _item_category 返回值一致）；未知大类走默认消耗品
@@ -738,15 +741,15 @@ def _render_item_tags(d, lines):
     if not out:
         return
     lines.append("")
-    lines.append("个体：")
+    lines.append(_T.static("item.tags_head"))
     lines.extend(out)
     left = len(tags) - len(shown)
     if left > 0:
-        omit = cfg.get("omit", "……还有 {left} 条")
+        omit = cfg.get("omit", _T.static("item.tags_omit_cfg"))
         try:
             lines.append(omit.format(left=left))
         except (KeyError, TypeError, ValueError):
-            lines.append(f"……还有 {left} 条")
+            lines.append(_T.text("item.tags_omit", left=left))
 
 
 # v181.P4-7：采集限定条件词注册表 _GATHER_COND_CHECKERS + v125.2 启动校验
@@ -4295,8 +4298,8 @@ class EconomyImpl(CommandBase):
             if cat_filter:
                 cat_items = {cat_filter: cat_items[cat_filter]}
             # 大类顺序：玩家最关心的收集维度在前（装备/收藏品/消耗品/图纸…），材质次之
-            order = ["装备", "收藏品", "消耗品", "图纸", "鱼", "矿石", "草药", "木材",
-                     "兽材", "织物", "食材", "精华", "宝石", "杂物", "任务道具", "其他"]
+            order = [_T.static("item_cat.equip"), _T.static("item_cat.collection"), _T.static("item_cat.consumable"), _T.static("item_cat.blueprint"), _T.static("item_cat.fish"), _T.static("item_cat.ore"), _T.static("item_cat.herb"), _T.static("item_cat.wood"),
+                     _T.static("item_cat.beast"), _T.static("item_cat.fabric"), _T.static("item_cat.ingredient"), _T.static("item_cat.essence"), _T.static("item_cat.gem"), _T.static("item_cat.misc"), _T.static("item_cat.quest_item"), _T.static("item_cat.other")]
             cats_sorted = sorted(cat_items.keys(),
                                  key=lambda c: (order.index(c) if c in order else 99, c))
             # 默认只展示已拥有 ≥1 的大类（紧凑）；未收集大类折叠提示，可『冒险手册 物品 <大类>』直达
@@ -5089,9 +5092,9 @@ class EconomyImpl(CommandBase):
             _t = _m.get("type") or _T.static("ency.mat_type_unknown")
             _by_type.setdefault(_t, []).append(_m.get("name", _k))
         # 显示顺序：craft 原料大分类在前，任务/杂物/收藏垫底；未收录分类自动追加
-        _order = ["兽材", "矿石", "木材", "织物", "草药", "宝石", "精华",
-                  "食材", "材料", "鱼", "鱼王", "图纸", "传说", "元素", "符文", "工具",
-                  "宝物", "垃圾", "任务道具", "收藏", "杂物"]
+        _order = [_T.static("item_cat.beast"), _T.static("item_cat.ore"), _T.static("item_cat.wood"), _T.static("item_cat.fabric"), _T.static("item_cat.herb"), _T.static("item_cat.gem"), _T.static("item_cat.essence"),
+                  _T.static("item_cat.ingredient"), _T.static("item_cat.material"), _T.static("item_cat.fish"), _T.static("item_cat.king_fish"), _T.static("item_cat.blueprint"), _T.static("item_cat.legend"), _T.static("item_cat.element"), _T.static("item_cat.rune"), _T.static("item_cat.tool"),
+                  _T.static("item_cat.treasure"), _T.static("item_cat.junk"), _T.static("item_cat.quest_item"), _T.static("item_cat.collect"), _T.static("item_cat.misc")]
         _order = [t for t in _order if t in _by_type]
         _rest = sorted(t for t in _by_type if t not in _order)
         _order += _rest

@@ -4214,6 +4214,592 @@
     "category": "副本面板",
     "desc": "『副本』：通关停留超 30 分钟自动传出"
   },
+  "item.bp_hint": {
+    "value": "💡 到铁匠铺『锻造 {bp}』系列装备 ｜ 出售价 {price} 金币",
+    "params": [
+      "bp",
+      "price"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_blueprint（B 批 C 档）"
+  },
+  "item.bp_quality": {
+    "value": "品质：{qname}",
+    "params": [
+      "qname"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_blueprint（B 批 C 档）"
+  },
+  "item.bp_slot": {
+    "value": "部位：{slot_cn}",
+    "params": [
+      "slot_cn"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_blueprint（B 批 C 档）"
+  },
+  "item.bp_type": {
+    "value": "类型：图纸",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_blueprint（B 批 C 档）"
+  },
+  "item.cons_affix": {
+    "value": "效果：{affix}",
+    "params": [
+      "affix"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.cons_food": {
+    "value": "效果：战斗中获得【{effect}】",
+    "params": [
+      "effect"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.cons_price": {
+    "value": "💡 出售价 {price} 金币",
+    "params": [
+      "price"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.cons_type": {
+    "value": "类型：{type}",
+    "params": [
+      "type"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.cons_use": {
+    "value": "💡 『使用 {name}』使用它",
+    "params": [
+      "name"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.desc_line": {
+    "value": "描述：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.dex_preview": {
+    "value": "💡 图鉴预览（未拥有）——『百科装备 {slot}』看{slot2}全部装备",
+    "params": [
+      "slot",
+      "slot2"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_encyclopedia_equip（B 批 C 档）"
+  },
+  "item.effect_head": {
+    "value": "效果：",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.effect_line": {
+    "value": "效果：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_rune（B 批 C 档）"
+  },
+  "item.egg_hatch": {
+    "value": "可孵化：{ql} {icon}{name}（{src}）",
+    "params": [
+      "ql",
+      "icon",
+      "name",
+      "src"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_pet_egg（B 批 C 档）"
+  },
+  "item.egg_hint": {
+    "value": "💡 『使用 {name}』孵化 ｜ 出售价 {price} 金币",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_pet_egg（B 批 C 档）"
+  },
+  "item.egg_plain": {
+    "value": "神秘的蛋，『使用 宠物蛋』孵化试试？",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_pet_egg（B 批 C 档）"
+  },
+  "item.egg_skill": {
+    "value": "🎯 技能：{skill}",
+    "params": [
+      "skill"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_pet_egg（B 批 C 档）"
+  },
+  "item.eq_affix": {
+    "value": "✨ 词条：",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_ench": {
+    "value": "✨ 附魔： ",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_enh": {
+    "value": "强化：+{enh}",
+    "params": [
+      "enh"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_enh_mult": {
+    "value": "强化：+{enh} (属性 ×{mult})",
+    "params": [
+      "enh",
+      "mult"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_feature": {
+    "value": "⭐ 词条特色：{feat}",
+    "params": [
+      "feat"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_legendary": {
+    "value": "✨ 专属·{name}：{desc}",
+    "params": [
+      "name",
+      "desc"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_quality": {
+    "value": "品质：{qname} ｜ 需求等级：Lv.{lv}",
+    "params": [
+      "qname",
+      "lv"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_runes": {
+    "value": "🔮 符文： ",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_set": {
+    "value": "🎴 套装：{icon}{set}",
+    "params": [
+      "icon",
+      "set"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_set_bonus": {
+    "value": "(4件:{bonus})",
+    "params": [
+      "bonus"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_slots": {
+    "value": "🔮 附魔槽：{used}/{total}",
+    "params": [
+      "used",
+      "total"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_sock_empty": {
+    "value": "{tag}:空",
+    "params": [
+      "tag"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_socks": {
+    "value": "💎 幸运宝石： ",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_stats": {
+    "value": "属性：",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_tip": {
+    "value": "💡 『装备 {name}』穿上它 ｜ 铁匠铺回收约 {pawn} 金币",
+    "params": [
+      "name",
+      "pawn"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.eq_wtype": {
+    "value": "类型：{wtype}",
+    "params": [
+      "wtype"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.equipped": {
+    "value": "(已装备)",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.fish_sell": {
+    "value": "💡 出售参考价 {price} 金币（大鱼按重量加价） ｜ 『出售 {name}』变现 ｜ 『喂养 {name2}』喂宠物",
+    "params": [
+      "price",
+      "name",
+      "name2"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_fish（B 批 C 档）"
+  },
+  "item.fish_type_line": {
+    "value": "类型：鱼 ｜ 品质：{color}{qname}",
+    "params": [
+      "color",
+      "qname"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_fish（B 批 C 档）"
+  },
+  "item.heal_flat": {
+    "value": "恢复 {hp} 点生命",
+    "params": [
+      "hp"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.heal_pct": {
+    "value": "恢复 {pct}% 生命",
+    "params": [
+      "pct"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.hot_hp": {
+    "value": "战斗中每刻回复 {pct}% 生命（{turns} 刻）",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.hot_mp": {
+    "value": "战斗中每刻回复 {pct}% 魔力（{turns} 刻）",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.mana_flat": {
+    "value": "恢复 {mp} 点魔力",
+    "params": [
+      "mp"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.mana_pct": {
+    "value": "恢复 {pct}% 魔力",
+    "params": [
+      "pct"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.mat_default_type": {
+    "value": "材料",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_material（B 批 C 档）"
+  },
+  "item.mat_recycle": {
+    "value": "💡 回收参考价 {price} 金币(实收按店铺 8~9 折) ｜ 『出售 {name}』变现 ｜ 『喂养 {name2}』喂宠物",
+    "params": [
+      "price",
+      "name",
+      "name2"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_material（B 批 C 档）"
+  },
+  "item.mat_type_line": {
+    "value": "类型：{mtype} ｜ 品质：{color}{qname}",
+    "params": [
+      "mtype",
+      "color",
+      "qname"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_material（B 批 C 档）"
+  },
+  "item.mount_hint": {
+    "value": "💡 『使用 {name}』驯服 ｜ 出售价 {price} 金币",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_mount（B 批 C 档）"
+  },
+  "item.mount_line": {
+    "value": "坐骑：{ql} {icon}{name}（Lv.{lv} 可骑乘）",
+    "params": [
+      "ql",
+      "icon",
+      "name",
+      "lv"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_mount（B 批 C 档）"
+  },
+  "item.mount_plain": {
+    "value": "缰绳上残留着野兽的气息……",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_mount（B 批 C 档）"
+  },
+  "item.req_line": {
+    "value": "需求：{req}",
+    "params": [
+      "req"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
+  },
+  "item.rune_hint": {
+    "value": "💡 『附魔 <装备名> {name}』刻印到装备 ｜ 出售价 {price} 金币",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_rune（B 批 C 档）"
+  },
+  "item.rune_type_line": {
+    "value": "类型：符文 ｜ 品质：{color}{qname} ｜ 等级：{roman}",
+    "params": [
+      "color",
+      "qname",
+      "roman"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_rune（B 批 C 档）"
+  },
+  "item.series_line": {
+    "value": "系列：{series}",
+    "params": [
+      "series"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_encyclopedia_equip（B 批 C 档）"
+  },
+  "item.set_line": {
+    "value": "套装：{set}",
+    "params": [
+      "set"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_encyclopedia_equip（B 批 C 档）"
+  },
+  "item.special_line": {
+    "value": "特效：{special}",
+    "params": [
+      "special"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_encyclopedia_equip（B 批 C 档）"
+  },
+  "item.src_line": {
+    "value": "来源：{source}",
+    "params": [
+      "source"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_encyclopedia_equip（B 批 C 档）"
+  },
+  "item.stamina_line": {
+    "value": "{stamina} 体力",
+    "params": [
+      "stamina"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_consumable（B 批 C 档）"
+  },
+  "item.tags_head": {
+    "value": "个体：",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_item_tags（B 批 C 档）"
+  },
+  "item.tags_omit": {
+    "value": "……还有 {left} 条",
+    "params": [
+      "left"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_item_tags（B 批 C 档）"
+  },
+  "item.tags_omit_cfg": {
+    "value": "……还有 {left} 条",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_render_item_tags（B 批 C 档）"
+  },
+  "item_cat.beast": {
+    "value": "兽材",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.blueprint": {
+    "value": "图纸",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.collect": {
+    "value": "收藏",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.collection": {
+    "value": "收藏品",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.consumable": {
+    "value": "消耗品",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.element": {
+    "value": "元素",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.equip": {
+    "value": "装备",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.essence": {
+    "value": "精华",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.fabric": {
+    "value": "织物",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.fish": {
+    "value": "鱼",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.gem": {
+    "value": "宝石",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.herb": {
+    "value": "草药",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.ingredient": {
+    "value": "食材",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.junk": {
+    "value": "垃圾",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.king_fish": {
+    "value": "鱼王",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.legend": {
+    "value": "传说",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.material": {
+    "value": "材料",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.misc": {
+    "value": "杂物",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.ore": {
+    "value": "矿石",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.other": {
+    "value": "其他",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.quest_item": {
+    "value": "任务道具",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_cat.rune": {
+    "value": "符文",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.tool": {
+    "value": "工具",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.treasure": {
+    "value": "宝物",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials（B 批 C 档）"
+  },
+  "item_cat.wood": {
+    "value": "木材",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
   "mech_name.arcane": {
     "value": "奥术",
     "category": "机制名",
