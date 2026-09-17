@@ -65,6 +65,26 @@
     "category": "冒险手册",
     "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
   },
+  "attr_name.agi": {
+    "value": "敏捷",
+    "category": "属性名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "attr_name.int": {
+    "value": "智力",
+    "category": "属性名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "attr_name.str": {
+    "value": "力量",
+    "category": "属性名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "attr_name.vit": {
+    "value": "耐力",
+    "category": "属性名",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
   "cond_label.element_marks": {
     "value": "敌方{element}印记≥{n}层",
     "category": "条件文案",
@@ -779,6 +799,103 @@
     "category": "效果名",
     "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
   },
+  "ency.eq_no_slot": {
+    "value": "装备名册里没有『{slot}』部位……试试 武器/头盔/胸甲/护腿/靴子/戒指/项链",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "slot"
+    ]
+  },
+  "ency.eq_overview_reps": {
+    "value": "　代表：{reps}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "reps"
+    ]
+  },
+  "ency.eq_overview_row": {
+    "value": "◈ {slot} ×{n}　{qb}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "slot",
+      "n",
+      "qb"
+    ]
+  },
+  "ency.eq_overview_tip": {
+    "value": "💡 『百科装备 <部位>』列出该部位全部装备（武器/头盔/胸甲/护腿/靴子/戒指/项链）；『百科 <装备名>』看单件详情",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "ency.eq_overview_title": {
+    "value": "⚔️ 【装备名册】共 {n} 件 · 按部位/品质速览",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "n"
+    ]
+  },
+  "ency.eq_rep": {
+    "value": "{icon}{qname} {name}(Lv.{lv})",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "icon",
+      "qname",
+      "name",
+      "lv"
+    ]
+  },
+  "ency.eq_row": {
+    "value": "{idx:>2}. {color}【{name}】(Lv.{lv}){suffix}｜{req}｜{src}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "idx",
+      "color",
+      "name",
+      "lv",
+      "suffix",
+      "req",
+      "src"
+    ]
+  },
+  "ency.eq_row_set": {
+    "value": " {set}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "set"
+    ]
+  },
+  "ency.eq_tip_last": {
+    "value": "💡 『查看 <序号>』看单件详情；『-』回上页｜『百科 装备』回总览",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "ency.eq_tip_more": {
+    "value": "💡 『查看 <序号>』看单件详情；『+』下页｜『百科装备 {slot} {next}』下一页",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "slot",
+      "next"
+    ]
+  },
+  "ency.eq_title": {
+    "value": "⚔️ 【{slot}】共 {n} 件 · 第{page}/{pages}页",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）",
+    "params": [
+      "slot",
+      "n",
+      "page",
+      "pages"
+    ]
+  },
   "ency.gem_chain": {
     "value": "🔗 合成链：3 颗同级 → 1 颗上级（碎裂→黯淡→…→神话）",
     "category": "世界百科",
@@ -970,6 +1087,11 @@
     "value": "杂物",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.req_none": {
+    "value": "无需求",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
   },
   "ency.rune_row": {
     "value": "{idx:>2}. {color}【{name}】{qname} · {desc}",
@@ -3341,6 +3463,61 @@
     ],
     "category": "签到",
     "desc": "每 7 天额外装备奖励（color/name 由装备实例给）"
+  },
+  "src_icon.boss": {
+    "value": "👹",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.legend": {
+    "value": "🌟",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.任务": {
+    "value": "📕",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.副本Boss": {
+    "value": "👹",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.商店": {
+    "value": "💰",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.图纸": {
+    "value": "📜",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.宝藏": {
+    "value": "🗝️",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.支线": {
+    "value": "📕",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.精英": {
+    "value": "⚡",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.精英专属": {
+    "value": "⚡",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "src_icon.锻造": {
+    "value": "🔨",
+    "category": "来源图标",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
   },
   "stack_name.bless": {
     "value": "✨神恩",

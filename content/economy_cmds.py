@@ -77,6 +77,33 @@ _PROF_ICON_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「�
 }
 _PROF_ICON = _T.names(_PROF_ICON_KEYS, prefix="prof_icon")
 
+# ★ C 档 5a：属性点四名 → 文案真源（`attr_name.*`）
+#   本文件原有 **10 处** 同值内联 dict（_attr_cn/_attr_cn0/2/3、_REQ_NAMES、names、first_miss…），
+#   全部合并到这一张表（表格化后改文案只动 JSON）。
+_ATTR_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "agi": "attr_name.agi",
+    "int": "attr_name.int",
+    "str": "attr_name.str",
+    "vit": "attr_name.vit",
+}
+_ATTR_CN = _T.names(_ATTR_KEYS, prefix="attr_name")
+
+# ★ C 档 5a：装备来源图标（`src_icon.*`；装备名册总览的「代表」行）
+_SRC_ICON_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "boss": "src_icon.boss",
+    "legend": "src_icon.legend",
+    "任务": "src_icon.任务",
+    "副本Boss": "src_icon.副本Boss",
+    "图纸": "src_icon.图纸",
+    "商店": "src_icon.商店",
+    "宝藏": "src_icon.宝藏",
+    "支线": "src_icon.支线",
+    "精英": "src_icon.精英",
+    "精英专属": "src_icon.精英专属",
+    "锻造": "src_icon.锻造",
+}
+_SRC_ICON = _T.names(_SRC_ICON_KEYS, prefix="src_icon")
+
 #: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
 _PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -214,7 +241,7 @@ def _item_kind_type(t):
 #   域，读口 = `content/panel.py`（本文件上面已 `from .panel import STAT_NAMES`），
 #   本名保留为**别名**（8 处读点不动；表是 dict 查值/成员判定，无迭代 → 序无行为差异）。
 _STAT_NAMES = STAT_NAMES
-_REQ_NAMES = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+_REQ_NAMES = _ATTR_CN
 
 
 
@@ -501,7 +528,7 @@ def _render_encyclopedia_equip(r):
     r 为名册条目（无随机词条/强化；属性见 desc，与商店/掉落生成的同原型装备一致）。"""
     _q = _b143.QUALITY.get(r.get("quality", "white"), {})
     _slot_nm = _b143.EQUIP_SLOTS.get(r.get("slot", ""), r.get("slot", "?"))
-    _attr_cn = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+    _attr_cn = _ATTR_CN
     _req = r.get("req") or {}
     _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
     el = [f"⚔️ {_q.get('color', '')}【{r['name']}】({_slot_nm}·Lv.{r.get('lv', '?')}·{_q.get('name', r.get('quality'))})",
@@ -4583,7 +4610,7 @@ class EconomyImpl(CommandBase):
             # 重名多件 → 逐件列出（同名牌不同品质/Lv 是合法数据）
             if len(_roster_exact) > 1:
                 elines = [f"⚔️ 找到 {len(_roster_exact)} 件同名装备『{raw}』：", "━━━━━━━━━━━━"]
-                _attr_cn0 = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+                _attr_cn0 = _ATTR_CN
                 for _ri, _rx in enumerate(sorted(_roster_exact, key=lambda r: (r.get("lv", 0), r.get("quality", ""))), 1):
                     _qx = _b143.QUALITY.get(_rx.get("quality", "white"), {})
                     _sx = _b143.EQUIP_SLOTS.get(_rx.get("slot", ""), "?")
@@ -4608,7 +4635,7 @@ class EconomyImpl(CommandBase):
                 _rid_s = ""
             _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
             _slot_nm = _b143.EQUIP_SLOTS.get(_r.get("slot", ""), _r.get("slot", "?"))
-            _attr_cn = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+            _attr_cn = _ATTR_CN
             _req = _r.get("req") or {}
             _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
             elines = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_slot_nm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
@@ -4694,7 +4721,7 @@ class EconomyImpl(CommandBase):
             if _equip_like:
                 _efuzzy = [r for r in _cit.EQUIP_ROSTER.values() if raw in r.get("name", "")][:8]
                 if _efuzzy:
-                    _attr_cn2 = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+                    _attr_cn2 = _ATTR_CN
                     flines = [f"❓ 找到 {len(_efuzzy)} 件装备名含『{raw}』，用全名查询（或『百科装备 <部位>』浏览）："]
                     for _i, _r in enumerate(_efuzzy, 1):
                         _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
@@ -4742,7 +4769,7 @@ class EconomyImpl(CommandBase):
                 except Exception:
                     _gen_rid = ""
                 _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
-                _attr_cn = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+                _attr_cn = _ATTR_CN
                 _req = _r.get("req") or {}
                 _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
                 lines = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_slot_nm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
@@ -4962,31 +4989,36 @@ class EconomyImpl(CommandBase):
             _items = sorted((r for r in _roster.values() if r.get("slot") == _slot),
                             key=lambda r: (r.get("lv", 0), r.get("name", "")))
             if not _items:
-                return f"装备名册里没有『{_parts[1]}』部位……试试 武器/头盔/胸甲/护腿/靴子/戒指/项链"
+                return _T.text("ency.eq_no_slot", slot=_parts[1])
             _per = 12
             _pages = (len(_items) + _per - 1) // _per
             _page = min(_page, _pages)
             _view = _items[(_page - 1) * _per: _page * _per]
             _nm = _slot_cn.get(_slot, _parts[1])
-            lines = [f"⚔️ 【{_nm}】共 {len(_items)} 件 · 第{_page}/{_pages}页", "━━━━━━━━━━━━"]
+            lines = [_T.text("ency.eq_title", slot=_nm, n=len(_items),
+                              page=_page, pages=_pages), "━━━━━━━━━━━━"]
             for _ri, _r in enumerate(_view, (_page - 1) * _per + 1):
                 _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
                 _lv = _r.get("lv", "?")
                 _src = _r.get("source", "")
                 _req = _r.get("req") or {}
-                _attr_cn = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
-                _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
-                _set = f" {_r.get('set', '')}" if _r.get("set") else ""
-                lines.append(f"{_ri:>2}. {_q.get('color', '')}【{_r['name']}】(Lv.{_lv}){_set}｜{_req_s}｜{_src or '?'}")
+                _attr_cn = _ATTR_CN
+                _req_s = ("、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items())
+                          if _req else _T.static("ency.req_none"))
+                _set = (_T.text("ency.eq_row_set", set=_r.get("set", ""))
+                        if _r.get("set") else "")
+                lines.append(_T.text("ency.eq_row", idx=_ri, color=_q.get("color", ""),
+                                     name=_r["name"], lv=_lv, suffix=_set,
+                                     req=_req_s, src=_src or "?"))
             lines.append("━━━━━━━━━━━━")
-            lines.append(f"💡 『查看 <序号>』看单件详情；『+』下页｜『百科装备 {_parts[1]} {_page+1}』下一页" if _page < _pages
-                         else f"💡 『查看 <序号>』看单件详情；『-』回上页｜『百科 装备』回总览")
+            lines.append(_T.text("ency.eq_tip_more", slot=_parts[1], next=_page + 1)
+                         if _page < _pages else _T.static("ency.eq_tip_last"))
             # v167.1：记录列表状态 → +/-/= 通用翻页可用（cmd 用 '百科装备 <部位>' 可被百科正则重建）
             if qq_id:
                 self._record_list_state(qq_id, f"百科装备 {_slot_word}", _page, _pages)
             return "\n".join(lines)
         # ---- 总览（无部位词）----
-        lines = ["⚔️ 【装备名册】共 {} 件 · 按部位/品质速览".format(len(_roster)), "━━━━━━━━━━━━"]
+        lines = [_T.text("ency.eq_overview_title", n=len(_roster)), "━━━━━━━━━━━━"]
         for _slot_k in _slot_cn:
             _items = [r for r in _roster.values() if r.get("slot") == _slot_k]
             if not _items:
@@ -5006,16 +5038,15 @@ class EconomyImpl(CommandBase):
                     continue
                 _top = _pool[0]
                 _src = _top.get("source", "?")
-                _src_icon = {"图纸": "📜", "锻造": "🔨", "商店": "💰", "boss": "👹",
-                             "副本Boss": "👹", "精英": "⚡", "精英专属": "⚡",
-                             "legend": "🌟", "任务": "📕", "支线": "📕", "宝藏": "🗝️"}.get(_src, "·")
-                _reps.append("{}{} {}(Lv.{})".format(_src_icon, _b143.QUALITY[_q]["name"], _top["name"], _top.get("lv", "?")))
+                _src_icon = _SRC_ICON.get(_src, "·")
+                _reps.append(_T.text("ency.eq_rep", icon=_src_icon,
+                                     qname=_b143.QUALITY[_q]["name"], name=_top["name"],
+                                     lv=_top.get("lv", "?")))
             lines.append("")
-            lines.append(f"◈ {_nm} ×{_cnt}　{_qb}")
-            lines.append("　代表：" + "　".join(_reps))
+            lines.append(_T.text("ency.eq_overview_row", slot=_nm, n=_cnt, qb=_qb))
+            lines.append(_T.text("ency.eq_overview_reps", reps="　".join(_reps)))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 『百科装备 <部位>』列出该部位全部装备（武器/头盔/胸甲/护腿/靴子/戒指/项链）；"
-                     "『百科 <装备名>』看单件详情")
+        lines.append(_T.static("ency.eq_overview_tip"))
         return "\n".join(lines)
 
     def _ency_browse_materials(self) -> str:
@@ -5571,7 +5602,7 @@ class EconomyImpl(CommandBase):
                     _slot_map_c = {v: k for k, v in _b143.EQUIP_SLOTS.items()}
                     _slot_map_c.update(_SLOT_ALIASES)
                     _slot_c = _slot_map_c.get(_parts_cmd[1])
-                    _attr_cn3 = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+                    _attr_cn3 = _ATTR_CN
                     if _slot_c:
                         _items_c = sorted((r for r in _cit.EQUIP_ROSTER.values() if r.get("slot") == _slot_c),
                                           key=lambda r: (r.get("lv", 0), r.get("name", "")))
@@ -5728,7 +5759,7 @@ class EconomyImpl(CommandBase):
         if not req:
             return True, "", []
         attr = player.get("attributes") or {}
-        names = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+        names = _ATTR_CN
         missing = []
         missing_keys = []
         for k, need in req.items():
@@ -5840,7 +5871,7 @@ class EconomyImpl(CommandBase):
         if not ok_req:
             # v101.25 #321：按实际缺失属性生成加点引导（缺耐力引导『加点 耐力』，
             # 不再写死『加点 力量 N』误导玩家）
-            first_miss = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}.get(miss_keys[0], "力量") if miss_keys else "力量"
+            first_miss = _ATTR_CN.get(miss_keys[0], "力量") if miss_keys else "力量"
             yield event.plain_result(f"属性不够，穿不上【{d['name']}】！{req_msg}\n加点后属性达标才能装备(『属性』查看、『加点 {first_miss} N』加点)")
             return
         # 等级限制
