@@ -62,7 +62,9 @@ import re
 import sys
 import time
 
+from saintess_engine.dialogue import Cursor
 from saintess_engine.formation import alive_units, formation_view
+from saintess_engine.presence import Lookup, Presence, minutes_left
 
 from . import catalog_core as _cat_core
 from . import catalog_items as _cat_items
@@ -179,6 +181,35 @@ from .profession_quests import DAILY_META_KEYS as _DAILY_META_KEYS
 
 # v104 M23 许愿井彩蛋概率（真源 world.py:47；唯一常量定义点搬到本模块，宿主薄壳再导出同名）
 WISH_WELL_EGG_CHANCE = 0.05
+
+
+# ============================================================
+# ③ 引擎形状装配（U1-I4 L5）—— 多表首命中 / 在场清单编号 / 展示分钟 / 会话游标
+# ------------------------------------------------------------
+# 本模块的四类「手算 / 多份同义实现」换成 `saintess_engine` 形状；判据实现与全部取值
+# 仍在本模块与 `content/wild.py`：
+#   · `Lookup`       —— **真值链**多表首命中（与 `A.get(k) or B.get(k)` 同口径，空 mapping 穿透）
+#   · `Presence`     —— `slots`：静态清单在前、限时项**续号**；`slot_at`：1-based 取用
+#   · `minutes_left` —— `max(1, ceil(remain/60))`（限时展示口径，下限 1）
+#   · `Cursor`       —— 会话游标**值**（「跟谁 + 在哪」两个不透明串）
+# ⚠ 存档面零改动：游标**存储**仍在 `content/persistence/world.py`（键与 JSON 文本一字不动）。
+# ⚠ 三份 NPC 列表实现的**成员集合分歧**（口径分歧 ①）逐字保留 —— `Lookup` 只替「查表」，
+#   不替「HIDDEN 豁免 / 地图级短路 / 一律过滤」这三条各自的判据。
+# ============================================================
+_LOOKUP_TOWN = Lookup(_cat_quests.NPCS)                              # 城镇单表（`_current_npcs`）
+_LOOKUP = Lookup(_cat_quests.NPCS, _wild.ALL_WILD)                   # 两表真值链（会话取 NPC）
+_LOOKUP_ALL = Lookup(_cat_quests.NPCS, _wild.ALL_WILD, _cat_quests.HIDDEN_NPCS)   # 交付解析
+_LOOKUP_HIDDEN = Lookup(_cat_quests.HIDDEN_NPCS)                     # 副本层单表
+_LOOKUP_HIDDEN_FIRST = Lookup(_cat_quests.HIDDEN_NPCS, _cat_quests.NPCS)   # 地图面板：HIDDEN 优先
+_LOOKUP_WILD = Lookup(_wild.ALL_WILD)                                # 野外/隐藏单表
+#: 在场清单（本模块只借它的 `slots` / `slot_at` 两个**纯编号**口；判据仍在 `wild.py`）
+_PRESENCE = Presence(_LOOKUP_TOWN,
+                     keep=lambda row_id, row: True,
+                     place_of=lambda row_id, row, day: None)
+#: 对话形状的**注入面**（L3 适配层 `content/dialogue.py` 建的 `Dialogue`；本模块只借不改）
+_TALK = _dlg._CFG
+_TALK_SUBJECT_KEY = "npc"       # 存档 schema 字段名（`Cursor` 的**注入键名**，schema 不动）
+_TALK_NODE_KEY = "node"
 
 
 # ============================================================
@@ -850,12 +881,8 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
     npc_ids = (cur_sa_obj.get("npcs") if cur_sa_obj else None) or cur_map.get("npcs", [])
     if cur_map.get("inline_npcs"):
         npc_ids = cur_map["inline_npcs"]
-    npcs = []
-    for nid in npc_ids:
-        if nid in _cat_quests.HIDDEN_NPCS:
-            npcs.append((nid, _cat_quests.HIDDEN_NPCS[nid]))
-        elif nid in _cat_quests.NPCS:
-            npcs.append((nid, _cat_quests.NPCS[nid]))
+    # 查表走引擎 `Lookup`（HIDDEN 优先的真值链；缺席静默丢弃）—— 成员集合与豁免判据逐字不变
+    npcs = [(nid, n) for nid, n, _t in _LOOKUP_HIDDEN_FIRST.rows(npc_ids)]
     # v95.30 城镇 NPC 随机性：酱油 NPC 按 游走(roam)/概率(appear)/时段(period) 过滤显示
     # （功能 NPC 恒显示；隐藏 NPC 走副本层逻辑不参与；无子区域(地图级)不做过滤）
     npcs = [(nid, n) for nid, n in npcs
@@ -1122,12 +1149,8 @@ def _hurry_section(self, player: dict, cur_map: dict, cur_sa: str,
         npc_ids = (cur_sa_obj.get("npcs") if cur_sa_obj else None) or cur_map.get("npcs", [])
         if cur_map.get("inline_npcs"):
             npc_ids = cur_map["inline_npcs"]
-        npcs = []
-        for nid in npc_ids:
-            if nid in _cat_quests.HIDDEN_NPCS:
-                npcs.append((nid, _cat_quests.HIDDEN_NPCS[nid]))
-            elif nid in _cat_quests.NPCS:
-                npcs.append((nid, _cat_quests.NPCS[nid]))
+        # 与 `_map_blocks` 同口径：HIDDEN 优先的真值链（成员集合与豁免判据逐字不变）
+        npcs = [(nid, n) for nid, n, _t in _LOOKUP_HIDDEN_FIRST.rows(npc_ids)]
         npcs = [(nid, n) for nid, n in npcs
                 if nid in _cat_quests.HIDDEN_NPCS or not cur_sa or _wild.town_npc_visible(nid, n, cur_sa)]
         if npcs:
@@ -2306,16 +2329,17 @@ def _home_view(self, group_id, qq_id, cur_map_id):
 
 def _current_npcs(self, player):
     """v86 子区域：当前所在位置可交互的 NPC 列表(子区域优先，回退地图级)。
-    v95.30 随机性：酱油 NPC 按 游走/概率/时段 过滤（功能 NPC 恒在）。"""
+    v95.30 随机性：酱油 NPC 按 游走/概率/时段 过滤（功能 NPC 恒在）。
+    ★ U1-I4 L5：查表走引擎 `Lookup`（**城镇单表** —— 三份列表实现成员集合不同，口径分歧 ①：
+    本处只含 `NPCS`、一律过滤；含 `HIDDEN_NPCS` 并豁免过滤的是 `_map_blocks`/`_hurry_section`）。"""
     cur_map = player["cur_map"]
     m = _cat_space.MAP_BY_ID.get(cur_map, {})
     sa_id = player.get("cur_subarea") or ""
     for sa in (m.get("subareas") or []):
         if sa["id"] == sa_id:
-            npc_ids = sa.get("npcs") or []
-            return [_cat_quests.NPCS[nid] for nid in npc_ids if nid in _cat_quests.NPCS
-                    and _wild.town_npc_visible(nid, _cat_quests.NPCS[nid], sa_id)]
-    return [_cat_quests.NPCS[nid] for nid in m.get("npcs", []) if nid in _cat_quests.NPCS]
+            return [row for nid, row, _t in _LOOKUP_TOWN.rows(sa.get("npcs") or [])
+                    if _wild.town_npc_visible(nid, row, sa_id)]
+    return [row for _nid, row, _t in _LOOKUP_TOWN.rows(m.get("npcs", []))]
 
 
 def _present_wild_hints(self, group_id, qq_id, cur_map) -> list:
@@ -2333,7 +2357,7 @@ def _present_wild_hints(self, group_id, qq_id, cur_map) -> list:
         wnpc = _wild.ALL_WILD.get(nid)
         if not wnpc:
             continue
-        remain_min = max(1, -(-int(ev.get("remain", 0)) // 60))  # ceil(remain/60)
+        remain_min = minutes_left(ev.get("remain", 0))  # max(1, ceil(remain/60)) —— 引擎口径
         lines.append(f"  {wnpc.get('icon', '')}{wnpc.get('name', nid)} ⏳剩{remain_min}分")
     return lines
 
@@ -2350,16 +2374,19 @@ def _start_talk_list(self, group_id, qq_id) -> list:
     if not npcs and not wild_evs:
         return ["这里没有 NPC。输入『地图』看看哪里有 NPC～"]
     lines = ["👥 这里的 NPC："]
-    for i, n in enumerate(npcs, 1):
-        lines.append(f"{i:>2}. {n['icon']}{n['name']}({n['title']})")
-    # 在场野外旅人：续在城镇 NPC 之后编号（带 ⏳ 剩余分钟）
-    for j, ev in enumerate(wild_evs, len(npcs) + 1):
+    # 编号走引擎 `Presence.slots`：静态 1..N、限时续号 N+1..；查不到表的限时项**跳号**（逐字保留）
+    for i, kind, item in _PRESENCE.slots(npcs, wild_evs):
+        if kind == "static":
+            n = item
+            lines.append(f"{i:>2}. {n['icon']}{n['name']}({n['title']})")
+            continue
+        ev = item
         nid = ev.get("data", {}).get("npc_id") or ""
         wnpc = _wild.ALL_WILD.get(nid)
         if not wnpc:
             continue
-        remain_min = max(1, -(-int(ev.get("remain", 0)) // 60))  # ceil(remain/60)
-        lines.append(f"{j:>2}. {wnpc.get('icon', '')}{wnpc.get('name', nid)} ⏳剩{remain_min}分")
+        remain_min = minutes_left(ev.get("remain", 0))  # 与 `_present_wild_hints` 同口径
+        lines.append(f"{i:>2}. {wnpc.get('icon', '')}{wnpc.get('name', nid)} ⏳剩{remain_min}分")
     lines.append(self._tip("npc_list"))
     return lines
 
@@ -2378,7 +2405,7 @@ def _find_npc_in_map(self, player, name_key):
     for sa in (m.get("subareas") or []):
         if sa["id"] == sa_id:
             for nid in sa.get("npcs", []):
-                npc = _cat_quests.NPCS.get(nid)
+                npc = _LOOKUP_TOWN.first(nid)[0]
                 if npc and (name_key in npc["name"] or name_key in nid):
                     if not _wild.town_npc_visible(nid, npc, sa_id):
                         player["_npc_absent"] = (nid, npc, sa_id)
@@ -2386,7 +2413,7 @@ def _find_npc_in_map(self, player, name_key):
             break
     # 地图级 NPC（含其他子区域）
     for nid in m.get("npcs", []):
-        npc = _cat_quests.NPCS.get(nid)
+        npc = _LOOKUP_TOWN.first(nid)[0]
         if npc and (name_key in npc["name"] or name_key in nid):
             if not _wild.town_npc_visible(nid, npc, sa_id):
                 player["_npc_absent"] = (nid, npc, sa_id)
@@ -2779,19 +2806,22 @@ async def find_npc(self, event: AstrMessageEvent):
         npcs = self._current_npcs(player)
         wild_evs = _timed.list_timed(group_id, qq_id, type_key="wild_npc",
                                 data_match={"map": player["cur_map"]})
-        total = len(npcs) + len(wild_evs)
+        # 编号走引擎 `Presence`：静态 + 限时**同一编号系**（`find_npc` 与『对话』列表同源）
+        slots = _PRESENCE.slots(npcs, wild_evs)
+        total = len(slots)
         idx = int(name_key)
         if idx < 1 or idx > total:
             yield event.plain_result(f"这里没有第 {idx} 位 NPC(共 {total} 位)！『对话』查看列表～")
             return
-        if idx <= len(npcs):
-            npc = npcs[idx - 1]
+        _slot = _PRESENCE.slot_at(slots, idx)
+        if _slot[1] == "static":
+            npc = _slot[2]
             npc_id = next((nid for nid, n in _cat_quests.NPCS.items() if n is npc), None)
         else:
             # v127.5 限时NPC：序号命中在场野外旅人（不在 _cat_quests.NPCS，不能走反查）
-            _ev = wild_evs[idx - len(npcs) - 1]
+            _ev = _slot[2]
             npc_id = _ev.get("data", {}).get("npc_id") or ""
-            _w = _wild.ALL_WILD.get(npc_id)
+            _w = _LOOKUP_WILD.first(npc_id)[0]
             if not _w:
                 yield event.plain_result("这位旅人似乎已经离开了……")
                 return
@@ -2809,7 +2839,7 @@ async def find_npc(self, event: AstrMessageEvent):
         if inst_row and inst_row["state"].get("mode") == "map":
             stage_npcs = self._stage_npcs(group_id, qq_id)
             for nid in stage_npcs:
-                n = _cat_quests.HIDDEN_NPCS.get(nid, {})
+                n = _LOOKUP_HIDDEN.first(nid)[0] or {}
                 if n and (name_key in n.get("name", "") or name_key in nid):
                     npc_id, npc = nid, n
                     break
@@ -2929,7 +2959,7 @@ def _grant_wild_unlock_flags(self, group_id, qq_id, npc_id):
     本函数零改动。flag 存任意 NPC 桶即可，unlock_met 已改全桶扫描。
     返回首次授予的提示行；无授予返回 None。
     """
-    npc = (_wild.ALL_WILD or {}).get(npc_id)
+    npc = _LOOKUP_WILD.first(npc_id)[0]
     if not isinstance(npc, dict):
         return None
     cfg = npc.get("unlock_flags") or {}
@@ -2948,7 +2978,7 @@ def _teach_by_npc(self, group_id, qq_id, player, npc_id):
     返回提示行列表；NPC 不在映射表时返回空列表（保持原行为）。
     v112：配置读 NPC 数据（teach_skills/teach_hint），无配置返回空列表。
     """
-    npc = (_wild.ALL_WILD or {}).get(npc_id, {})
+    npc = _LOOKUP_WILD.first(npc_id)[0] or {}
     if not isinstance(npc, dict):
         npc = {}
     cfg_skills = npc.get("teach_skills") or {}
@@ -3518,8 +3548,10 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
             return
         yield event.plain_result("你现在没有正在进行的对话。输入『对话 <NPC名>』开始交谈～")
         return
-    npc_id = st.get("npc", "")
-    npc = _cat_quests.NPCS.get(npc_id) or _wild.ALL_WILD.get(npc_id)
+    # 会话游标**值**（引擎 `Cursor`）：还原不出时回落原始 schema 取值（口径分歧 ⑦ 逐字保留）
+    _cur = Cursor.of(st, subject_key=_TALK_SUBJECT_KEY, node_key=_TALK_NODE_KEY)
+    npc_id = _cur.subject if _cur is not None else st.get("npc", "")
+    npc = _LOOKUP.first(npc_id)[0]                       # 两表真值链（原 `or` 链同口径）
     if not npc:
         db.clear_talk_state(group_id, qq_id)
         yield event.plain_result("这位 NPC 似乎已经离开了……")
@@ -3564,25 +3596,26 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
             f"你正在和 {npc['name']} 对话——直接回复数字选选项，回复 0 结束对话～\n"
             f"💡 想找别的 NPC？先回复 0 结束当前对话再说")
         return
-    cur_node_id = st.get("node", dlg.get("start", ""))
+    cur_node_id = _cur.node if _cur is not None else st.get("node", dlg.get("start", ""))
     node = _dlg.dialogue_node(dlg, cur_node_id)
     ctx = self._talk_ctx(group_id, qq_id, npc_id)
-    opts = _dlg.visible_options(dlg, node, ctx)
     if raw.isdigit():
         idx = int(raw)
         if idx == 0:
             db.clear_talk_state(group_id, qq_id)
             yield event.plain_result(f"{npc['name']}：那就再会了，冒险者。")
             return
-        if idx < 1 or idx > len(opts):
+        # 1-based 取可见选项走引擎 `Dialogue.pick`（越界 → None，不抛）
+        opt = _TALK.of(dlg).pick(node, idx, ctx, expand=ctx.get("side_menu_expand"))
+        if opt is None:
             # v101.28l #426：单选项时不再显示"1-1"（越界文案）
-            _sel_hint = "回复 1 选择" if len(opts) == 1 else f"回复 1-{len(opts)} 选择"
+            _n = len(_dlg.visible_options(dlg, node, ctx))   # 文案需要可见选项总数
+            _sel_hint = "回复 1 选择" if _n == 1 else f"回复 1-{_n} 选择"
             yield event.plain_result(f"没有这个选项！{_sel_hint}，回复 0 结束。")
             return
-        opt = opts[idx - 1]
         player = self._player(group_id, qq_id)
         action = opt.get("action") or {}
-        nxt = opt.get("next", "__end__")
+        nxt = _TALK.next_of(opt)                          # `next`，缺失 → 结束哨兵
         # v124.3（审计）：apprentice_check 已注册为动作（talk_actions.py），
         # 主循环不再特判——条件型动作经 _apply_talk_action_async 返回的路由分发：
         #   "fail"（材料不足）→ 走选项 fail_next；"__end__"（副业未解锁 #101.29）→ 结束对话
@@ -3593,14 +3626,14 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
             yield event.plain_result("\n".join(lines))
             return
         if _route == "fail":
-            nxt = opt.get("fail_next", nxt)
+            nxt = _TALK.next_of(opt, failed=True)         # `fail_next`（存在但假值也不回落）
         # v95.11：talk 型主线与目标 NPC 对话即达成（active 空进度遗留态 → ready，修复主线卡死）
         notices += self._talk_quest_progress(group_id, qq_id, npc_id)
         # v105 P3：对话动作链落地后补成就判定（拜师/转职/任务交付等动作改 DB 后立即解锁——
         # 原实现无此调用，『拜师学艺/全知全能』等依赖学徒数的成就要等下次事件才判定，
         # 全知全能(第 8 条拜师)的全副业经验 +10% 加成也因此延迟生效）
         _ach.check_achievements(group_id, qq_id)
-        if _dlg.is_end(nxt):
+        if _TALK.is_end(nxt):
             db.clear_talk_state(group_id, qq_id)
             lines = notices + [f"{npc['name']}：那就再会了，冒险者。"]
             yield event.plain_result("\n".join(lines))
@@ -3689,7 +3722,8 @@ async def turn_in(self, event: AstrMessageEvent, group_id, qq_id, player):
             continue
         if sq.get("status") == "done":  # v95.12：已交付支线不重复接取/交付
             continue
-        npc = _cat_quests.NPCS.get(sqd["giver"]) or _wild.ALL_WILD.get(sqd["giver"]) or _cat_quests.HIDDEN_NPCS.get(sqd["giver"])  # R3 P1-4：副本内 NPC（潮汐祭司）交付解析
+        # R3 P1-4：副本内 NPC（潮汐祭司）交付解析 —— 三表真值链走引擎 `Lookup`
+        npc = _LOOKUP_ALL.first(sqd["giver"])[0]
         obj = sqd["objective"]
         # 收集型：实时检查背包材料（不依赖 ready 状态）
         if obj.get("collect"):
@@ -3708,8 +3742,9 @@ async def turn_in(self, event: AstrMessageEvent, group_id, qq_id, player):
                     yield event.plain_result("\n".join(lines))
                     return
                 else:
-                    giver = (_cat_quests.NPCS.get(sqd["giver"]) or _wild.ALL_WILD.get(sqd["giver"]) or _cat_quests.HIDDEN_NPCS.get(sqd["giver"]) or {}).get("name", "？")  # R3 P1-4
-                    giver_map = _cat_space.MAP_BY_ID.get((_cat_quests.NPCS.get(sqd["giver"]) or _wild.ALL_WILD.get(sqd["giver"]) or _cat_quests.HIDDEN_NPCS.get(sqd["giver"]) or {}).get("map", ""), {}).get("name", "？")
+                    _row = _LOOKUP_ALL.first(sqd["giver"])[0] or {}   # 三表真值链（同一条链两处取值）
+                    giver = _row.get("name", "？")
+                    giver_map = _cat_space.MAP_BY_ID.get(_row.get("map", ""), {}).get("name", "？")
                     waiting.append((sqd["name"], giver, giver_map))
             else:
                 collect_missing = (sqd["name"], obj["collect"], have, need)
@@ -3730,8 +3765,9 @@ async def turn_in(self, event: AstrMessageEvent, group_id, qq_id, player):
                 yield event.plain_result("\n".join(lines))
                 return
             else:
-                giver = (_cat_quests.NPCS.get(sqd["giver"]) or _wild.ALL_WILD.get(sqd["giver"]) or _cat_quests.HIDDEN_NPCS.get(sqd["giver"]) or {}).get("name", "？")  # R3 P1-4
-                giver_map = _cat_space.MAP_BY_ID.get((_cat_quests.NPCS.get(sqd["giver"]) or _wild.ALL_WILD.get(sqd["giver"]) or _cat_quests.HIDDEN_NPCS.get(sqd["giver"]) or {}).get("map", ""), {}).get("name", "？")
+                _row = _LOOKUP_ALL.first(sqd["giver"])[0] or {}   # 三表真值链（同一条链两处取值）
+                giver = _row.get("name", "？")
+                giver_map = _cat_space.MAP_BY_ID.get(_row.get("map", ""), {}).get("name", "？")
                 waiting.append((sqd["name"], giver, giver_map))
     # O100：无当场可交付时，列出全部"已达成待交付"任务（带位置），不再只报第一条
     if waiting:
