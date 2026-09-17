@@ -541,7 +541,7 @@ def _render_encyclopedia_equip(r):
     _slot_nm = _b143.EQUIP_SLOTS.get(r.get("slot", ""), r.get("slot", "?"))
     _attr_cn = _ATTR_CN
     _req = r.get("req") or {}
-    _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
+    _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
     el = [f"⚔️ {_q.get('color', '')}【{r['name']}】({_slot_nm}·Lv.{r.get('lv', '?')}·{_q.get('name', r.get('quality'))})",
           "━━━━━━━━━━━━"]
     if r.get("series"):
@@ -4588,14 +4588,14 @@ class EconomyImpl(CommandBase):
                             _conf_names.append(_cn)
                 _conf_txt = "、".join(_conf_names) + "(不能共存)" if _conf_names else "无"
                 lines = [
-                    f"💎 【{q_name}符文·{st_name}】",
+                    _T.text("ency.rune_detail_title", qname=q_name, name=st_name),
                     "━━━━━━━━━━━━",
-                    f"效果：{st_desc}",
-                    f"品质：{q_name}",
-                    f"等级：I / II / III(等级越高效果越强，高等级更稀有)",
-                    f"冲突：{_conf_txt}",
-                    f"获取：打怪概率掉落(精英/Boss 概率更高)",
-                    f"使用：『附魔 <装备名> {q_name}符文·{st_name}』",
+                    _T.text("ency.rune_detail_effect", desc=st_desc),
+                    _T.text("ency.rune_detail_quality", qname=q_name),
+                    _T.text("ency.rune_detail_level", ),
+                    _T.text("ency.rune_detail_conflict", names=_conf_txt),
+                    _T.text("ency.rune_detail_obtain", ),
+                    _T.text("ency.rune_detail_use", qname=q_name, name=st_name),
                 ]
                 yield event.plain_result("\n".join(lines))
                 return
@@ -4605,10 +4605,11 @@ class EconomyImpl(CommandBase):
                 _mk_rune_item2 = _h('rune_item')  # ← from ..core.runes import rune_item as _mk_rune_item2
                 _ri2 = _mk_rune_item2(_rs["effect"], 1) or {}
                 _rune_lines.append(
-                    f"  💎 {_b143.QUALITY[_rs['quality']]['name']}符文·{_rs.get('name', _rn)}"
-                    f"({_ri2.get('desc') or _rs['desc']})"
+                    _T.text("ency.rune_list_row", qname=_b143.QUALITY[_rs['quality']]['name'],
+                        name=_rs.get('name', _rn), desc=_ri2.get('desc') or _rs['desc'])
                 )
-            yield event.plain_result("没找到这颗符文！可用：\n" + "\n".join(_rune_lines))
+            yield event.plain_result(_T.text("ency.rune_none",
+                                                   rows="\n".join(_rune_lines)))
             return
         # 2. 材料查询（含词条材料来源）
         # v101.29：MATERIALS 的 key 是 mat_ ID（v48 后），按中文名查必须用 MATERIALS_BY_NAME
@@ -4626,7 +4627,7 @@ class EconomyImpl(CommandBase):
                     _qx = _b143.QUALITY.get(_rx.get("quality", "white"), {})
                     _sx = _b143.EQUIP_SLOTS.get(_rx.get("slot", ""), "?")
                     _reqx = _rx.get("req") or {}
-                    _reqsx = "、".join(f"{_attr_cn0.get(k, k)}{v}" for k, v in _reqx.items()) if _reqx else "无需求"
+                    _reqsx = "、".join(f"{_attr_cn0.get(k, k)}{v}" for k, v in _reqx.items()) if _reqx else _T.static("ency.req_none")
                     elines.append(f"{_ri}. {_qx.get('color', '')}【{_rx['name']}】({_sx}·Lv.{_rx.get('lv', '?')}·{_qx.get('name', '')})｜{_reqsx}｜{_rx.get('source', '?')}")
                 elines.append("━━━━━━━━━━━━")
                 elines.append("💡 『百科装备 <部位>』按部位浏览可区分")
@@ -4648,7 +4649,7 @@ class EconomyImpl(CommandBase):
             _slot_nm = _b143.EQUIP_SLOTS.get(_r.get("slot", ""), _r.get("slot", "?"))
             _attr_cn = _ATTR_CN
             _req = _r.get("req") or {}
-            _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
+            _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
             elines = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_slot_nm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
                      "━━━━━━━━━━━━"]
             # ---- 属性值 / 词条 / 专属：与真实生成（generate_roster_equip）同口径 ----
@@ -4733,13 +4734,14 @@ class EconomyImpl(CommandBase):
                 _efuzzy = [r for r in _cit.EQUIP_ROSTER.values() if raw in r.get("name", "")][:8]
                 if _efuzzy:
                     _attr_cn2 = _ATTR_CN
-                    flines = [f"❓ 找到 {len(_efuzzy)} 件装备名含『{raw}』，用全名查询（或『百科装备 <部位>』浏览）："]
+                    flines = [_T.text("ency.eq_fuzzy2_head", n=len(_efuzzy), q=raw)]
                     for _i, _r in enumerate(_efuzzy, 1):
                         _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
                         _snm = _b143.EQUIP_SLOTS.get(_r.get("slot", ""), "?")
                         _req = _r.get("req") or {}
-                        _reqs = "、".join(f"{_attr_cn2.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
-                        flines.append(f"  {_i}. {_q.get('color', '')}【{_r['name']}】({_snm}·Lv.{_r.get('lv', '?')})｜{_reqs}")
+                        _reqs = "、".join(f"{_attr_cn2.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
+                        flines.append(_T.text("ency.eq_fuzzy2_row", i=_i, color=_q.get('color', ''), name=_r['name'], slot=_snm,
+                                          lv=_r.get('lv', '?'), req=_reqs))
                     yield event.plain_result("\n".join(flines))
                     return
             # 精确匹配优先
@@ -4747,17 +4749,17 @@ class EconomyImpl(CommandBase):
             if mat:
                 mat_key = mat["name"]
                 srcs = _cspace.ENCY_MATERIAL_SOURCE.get(mat_key, [])
-                lines = [f"🧪 【{mat_key}】", "━━━━━━━━━━━━"]
+                lines = [_T.text("ency.mat_detail_title", name=mat_key), "━━━━━━━━━━━━"]
                 if mat.get("desc"):
-                    lines.append(f"描述：{mat['desc']}")
+                    lines.append(_T.text("ency.mat_detail_desc", desc=mat['desc']))
                 if srcs:
-                    lines.append("掉落来源：")
+                    lines.append(_T.static("ency.mat_detail_src_head"))
                     for mname, mstr in srcs:
-                        lines.append(f"  🗺️ {mname} → {mstr}")
+                        lines.append(_T.text("ency.mat_detail_src_row", map=mname, how=mstr))
                 else:
-                    lines.append("掉落来源：暂无(可能是任务/NPC 奖励)")
+                    lines.append(_T.static("ency.mat_detail_src_none"))
                 lines.append("")
-                lines.append(f"💡 出售价 {mat['price']} 金币")
+                lines.append(_T.text("ency.mat_detail_price", price=mat['price']))
                 yield event.plain_result("\n".join(l for l in lines if l))
                 return
         # 2.25 装备单查（v167.1）：按名册精确/模糊匹配——此前『百科 <装备名>』查不到装备
@@ -4782,7 +4784,7 @@ class EconomyImpl(CommandBase):
                 _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
                 _attr_cn = _ATTR_CN
                 _req = _r.get("req") or {}
-                _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
+                _req_s = "、".join(f"{_attr_cn.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
                 lines = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_slot_nm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
                          "━━━━━━━━━━━━"]
                 # ---- 属性值 / 词条 / 专属：与真实生成（generate_roster_equip）同口径 ----
@@ -4864,11 +4866,12 @@ class EconomyImpl(CommandBase):
                 yield event.plain_result("\n".join(lines))
                 return
             # 模糊多个 → 列候选
-            flines = [f"❓ 找到 {len(_roster_hits)} 件名字含『{raw}』的装备，用全名查询："]
+            flines = [_T.text("ency.eq_fuzzy_head", n=len(_roster_hits), q=raw)]
             for _i, _r in enumerate(_roster_hits, 1):
                 _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
                 _snm = _b143.EQUIP_SLOTS.get(_r.get("slot", ""), "?")
-                flines.append(f"  {_i}. {_q.get('color', '')}【{_r['name']}】({_snm}·Lv.{_r.get('lv', '?')})")
+                flines.append(_T.text("ency.eq_fuzzy_row", i=_i, color=_q.get('color', ''), name=_r['name'], slot=_snm,
+                                  lv=_r.get('lv', '?')))
             yield event.plain_result("\n".join(flines))
             return
         # 2.5 副本钥匙/信物查询（v134 意见#36：玩家打副本卡主线不知道钥匙哪掉 → 通用百科）
@@ -4878,11 +4881,12 @@ class EconomyImpl(CommandBase):
         _inst_by_key = {inst["key_item"]: inst for inst in _key_hits if inst.get("key_item")}
         if raw in _inst_by_key:
             inst = _inst_by_key[raw]
-            lines = [f"🔑 【{raw}】", "━━━━━━━━━━━━"]
-            lines.append(f"用途：『{inst['name']}』入场钥匙")
-            lines.append(f"获取：{inst.get('key_source', '？？？')}")
-            lines.append(f"副本：{inst['name']}（Lv.{inst.get('lv', '?')}+ · {inst.get('desc', '')[:40]}")
-            lines.append("💡 『副本』看全部副本列表；已通关该副本可免钥匙入场")
+            lines = [_T.text("ency.key_detail_title", name=raw), "━━━━━━━━━━━━"]
+            lines.append(_T.text("ency.key_detail_use", inst=inst['name']))
+            lines.append(_T.text("ency.key_detail_src", src=inst.get('key_source', '？？？')))
+            lines.append(_T.text("ency.key_detail_inst", name=inst['name'], lv=inst.get('lv', '?'),
+                             desc=inst.get('desc', '')[:40]))
+            lines.append(_T.static("ency.key_detail_tip"))
             yield event.plain_result("\n".join(lines))
             return
         # v134.2 修复：副本名匹配覆盖全部副本（不只带钥匙的）——
@@ -4890,7 +4894,7 @@ class EconomyImpl(CommandBase):
         _inst_by_name = {inst["name"]: inst for inst in _cspace.INSTANCES.values()}
         if raw in _inst_by_name:
             inst = _inst_by_name[raw]
-            lines = [f"🏰 【{inst['name']}】", "━━━━━━━━━━━━"]
+            lines = [_T.text("ency.inst_detail_title", name=inst['name']), "━━━━━━━━━━━━"]
             if inst.get("desc"):
                 lines.append(f"{inst['desc']}")
             # 进入条件：等级 / 人数
@@ -4898,44 +4902,44 @@ class EconomyImpl(CommandBase):
             _min_p = inst.get("min_players", 1)
             _max_p = inst.get("max_players", _min_p)
             _ppl = f"{_min_p}-{_max_p} 人" if _max_p != _min_p else f"{_min_p} 人"
-            lines.append(f"⚔️ 推荐等级 Lv.{_lv}+ · {_ppl} · {inst.get('icon', '🏰')}")
+            lines.append(_T.text("ency.inst_detail_lv", lv=_lv, ppl=_ppl, icon=inst.get('icon', '🏰')))
             # 钥匙需求（有钥匙才显示；无钥匙副本显示免钥匙）
             ki = inst.get("key_item")
             if ki:
-                lines.append(f"🔑 入场需要『{ki}』：{inst.get('key_source', '？？？')}")
+                lines.append(_T.text("ency.inst_detail_key", item=ki, src=inst.get('key_source', '？？？')))
             else:
-                lines.append("🔑 无需钥匙，直接进入")
-            lines.append(f"💡 『副本 {inst['name']}』开启挑战；『百科 <钥匙名>』看钥匙获取（若需）")
+                lines.append(_T.static("ency.inst_detail_nokey"))
+            lines.append(_T.text("ency.inst_detail_tip", name=inst['name']))
             yield event.plain_result("\n".join(lines))
             return
         # 3. 地图查询
         if raw in _cspace.ENCY_MAP_MONSTERS:
             entries = _cspace.ENCY_MAP_MONSTERS[raw]
             mdef = next((m for m in _cspace.MAPS if m["name"] == raw), None)
-            lines = [f"🗺️ 【{raw}】", "━━━━━━━━━━━━"]
+            lines = [_T.text("ency.map_detail_title", name=raw), "━━━━━━━━━━━━"]
             if mdef and mdef.get("desc"):
                 lines.append(f"{mdef['desc']}")
             if entries:
-                lines.append("怪物：")
+                lines.append(_T.static("ency.map_detail_monsters"))
                 for mstr, lv, mtype in entries:
-                    lines.append(f"  {mtype}·Lv.{lv} {mstr}")
+                    lines.append(_T.text("ency.map_detail_row", mtype=mtype, lv=lv, mname=mstr))
             yield event.plain_result("\n".join(lines))
             return
         # 4. 怪物查询
         if raw in _cspace.ENCY_MONSTER_MAP:
             locs = _cspace.ENCY_MONSTER_MAP[raw]
-            lines = [f"👹 【{raw}】", "━━━━━━━━━━━━"]
-            lines.append("出现地点：")
+            lines = [_T.text("ency.mon_detail_title", name=raw), "━━━━━━━━━━━━"]
+            lines.append(_T.static("ency.mon_detail_locs"))
             for mname, mtype in locs:
-                lines.append(f"  {mtype} · {mname}")
+                lines.append(_T.text("ency.mon_detail_row", mtype=mtype, mname=mname))
             yield event.plain_result("\n".join(lines))
             return
         # 5. 怪物名模糊匹配
         fuzzy = [k for k in _cspace.ENCY_MONSTER_MAP if raw in k][:5]
         if fuzzy:
-            yield event.plain_result(f"你是不是要找：{'、'.join(fuzzy)}？输入『百科 <完整名>』查看～")
+            yield event.plain_result(_T.text("ency.fuzzy_hint", names='、'.join(fuzzy)))
             return
-        yield event.plain_result(f"百科里没有『{raw}』！试试查材料(如『百科 狼皮』)、怪物(如『百科 光耀狼』)或地图(如『百科 远境草甸』)～")
+        yield event.plain_result(_T.text("ency.not_found", q=raw))
 
     # ================= v167 百科分类浏览（三种摘要，数据源与单查一致） =================
     def _ency_browse_instances(self) -> str:
@@ -5634,7 +5638,7 @@ class EconomyImpl(CommandBase):
                             _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
                             _snm = _b143.EQUIP_SLOTS.get(_r.get("slot", ""), "?")
                             _req = _r.get("req") or {}
-                            _reqs = "、".join(f"{_attr_cn3.get(k, k)}{v}" for k, v in _req.items()) if _req else "无需求"
+                            _reqs = "、".join(f"{_attr_cn3.get(k, k)}{v}" for k, v in _req.items()) if _req else _T.static("ency.req_none")
                             el = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_snm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
                                   "━━━━━━━━━━━━"]
                             if _r.get("series"):

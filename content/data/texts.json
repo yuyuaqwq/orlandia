@@ -926,6 +926,49 @@
       "pages"
     ]
   },
+  "ency.eq_fuzzy2_head": {
+    "value": "❓ 找到 {n} 件装备名含『{q}』，用全名查询（或『百科装备 <部位>』浏览）：",
+    "params": [
+      "n",
+      "q"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_fuzzy2_row": {
+    "value": "  {i}. {color}【{name}】({slot}·Lv.{lv})｜{req}",
+    "params": [
+      "i",
+      "color",
+      "name",
+      "slot",
+      "lv",
+      "req"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_fuzzy_head": {
+    "value": "❓ 找到 {n} 件名字含『{q}』的装备，用全名查询：",
+    "params": [
+      "n",
+      "q"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.eq_fuzzy_row": {
+    "value": "  {i}. {color}【{name}】({slot}·Lv.{lv})",
+    "params": [
+      "i",
+      "color",
+      "name",
+      "slot",
+      "lv"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
   "ency.eq_no_slot": {
     "value": "装备名册里没有『{slot}』部位……试试 武器/头盔/胸甲/护腿/靴子/戒指/项链",
     "category": "世界百科",
@@ -1023,6 +1066,14 @@
       "pages"
     ]
   },
+  "ency.fuzzy_hint": {
+    "value": "你是不是要找：{names}？输入『百科 <完整名>』查看～",
+    "params": [
+      "names"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
   "ency.gem_chain": {
     "value": "🔗 合成链：3 颗同级 → 1 颗上级（碎裂→黯淡→…→神话）",
     "category": "世界百科",
@@ -1114,6 +1165,46 @@
       "ch"
     ]
   },
+  "ency.inst_detail_key": {
+    "value": "🔑 入场需要『{item}』：{src}",
+    "params": [
+      "item",
+      "src"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.inst_detail_lv": {
+    "value": "⚔️ 推荐等级 Lv.{lv}+ · {ppl} · {icon}",
+    "params": [
+      "lv",
+      "ppl",
+      "icon"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.inst_detail_nokey": {
+    "value": "🔑 无需钥匙，直接进入",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.inst_detail_tip": {
+    "value": "💡 『副本 {name}』开启挑战；『百科 <钥匙名>』看钥匙获取（若需）",
+    "params": [
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.inst_detail_title": {
+    "value": "🏰 【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
   "ency.inst_key": {
     "value": " · 🔑需『{name}』",
     "category": "世界百科",
@@ -1177,6 +1268,111 @@
       "n"
     ]
   },
+  "ency.key_detail_inst": {
+    "value": "副本：{name}（Lv.{lv}+ · {desc}",
+    "params": [
+      "name",
+      "lv",
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.key_detail_src": {
+    "value": "获取：{src}",
+    "params": [
+      "src"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.key_detail_tip": {
+    "value": "💡 『副本』看全部副本列表；已通关该副本可免钥匙入场",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.key_detail_title": {
+    "value": "🔑 【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.key_detail_use": {
+    "value": "用途：『{inst}』入场钥匙",
+    "params": [
+      "inst"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.map_detail_monsters": {
+    "value": "怪物：",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.map_detail_row": {
+    "value": "  {mtype}·Lv.{lv} {mname}",
+    "params": [
+      "mtype",
+      "lv",
+      "mname"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.map_detail_title": {
+    "value": "🗺️ 【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mat_detail_desc": {
+    "value": "描述：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mat_detail_price": {
+    "value": "💡 出售价 {price} 金币",
+    "params": [
+      "price"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mat_detail_src_head": {
+    "value": "掉落来源：",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mat_detail_src_none": {
+    "value": "掉落来源：暂无(可能是任务/NPC 奖励)",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mat_detail_src_row": {
+    "value": "  🗺️ {map} → {how}",
+    "params": [
+      "map",
+      "how"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mat_detail_title": {
+    "value": "🧪 【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
   "ency.mat_row_rep": {
     "value": "{cat} ×{n}　例：{names}",
     "category": "世界百科",
@@ -1215,10 +1411,110 @@
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
   },
+  "ency.mon_detail_locs": {
+    "value": "出现地点：",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mon_detail_row": {
+    "value": "  {mtype} · {mname}",
+    "params": [
+      "mtype",
+      "mname"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.mon_detail_title": {
+    "value": "👹 【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.not_found": {
+    "value": "百科里没有『{q}』！试试查材料(如『百科 狼皮』)、怪物(如『百科 光耀狼』)或地图(如『百科 远境草甸』)～",
+    "params": [
+      "q"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
   "ency.req_none": {
     "value": "无需求",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "ency.rune_detail_conflict": {
+    "value": "冲突：{names}",
+    "params": [
+      "names"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_detail_effect": {
+    "value": "效果：{desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_detail_level": {
+    "value": "等级：I / II / III(等级越高效果越强，高等级更稀有)",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_detail_obtain": {
+    "value": "获取：打怪概率掉落(精英/Boss 概率更高)",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_detail_quality": {
+    "value": "品质：{qname}",
+    "params": [
+      "qname"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_detail_title": {
+    "value": "💎 【{qname}符文·{name}】",
+    "params": [
+      "qname",
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_detail_use": {
+    "value": "使用：『附魔 <装备名> {qname}符文·{name}』",
+    "params": [
+      "qname",
+      "name"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_list_row": {
+    "value": "  💎 {qname}符文·{name}({desc})",
+    "params": [
+      "qname",
+      "name",
+      "desc"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
+  },
+  "ency.rune_none": {
+    "value": "没找到这颗符文！可用：\n{rows}",
+    "params": [
+      "rows"
+    ],
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:encyclopedia（B 批 C 档）"
   },
   "ency.rune_row": {
     "value": "{idx:>2}. {color}【{name}】{qname} · {desc}",
