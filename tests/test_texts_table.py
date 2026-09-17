@@ -231,7 +231,12 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "增益名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          "减益名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          "叠层名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
-         "资源名": os.path.join(PKG_CONTENT, "combat_cmds.py")}
+         "资源名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         # ★ B-1 A 档（2026-09-17）：we_procs 的三张战斗日志文案表 + time_weather 的天气/季节名
+         #   引用面 = 各自文件里的 `_*_KEYS` 字面量表（`_scan_calls` ②「字面量也算引用」）
+         "战斗日志": os.path.join(PKG_CONTENT, "mech", "we_procs.py"),
+         "天气名": os.path.join(PKG_CONTENT, "time_weather.py"),
+         "季节名": os.path.join(PKG_CONTENT, "time_weather.py")}
 
 
 def _wired_paths(path):
@@ -814,7 +819,7 @@ def t1_table_selfcheck():
     check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
-                        "战斗日志", "天气名"}, cats)
+                        "战斗日志", "天气名", "季节名"}, cats)
 
 
 def t2_key_and_params_accounting():
