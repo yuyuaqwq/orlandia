@@ -3568,7 +3568,7 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "附魔")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能附魔装备！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("enhance.need_smith"))
             return
         parts = raw.strip().split()
         if not parts:
@@ -3579,10 +3579,8 @@ class EconomyImpl(CommandBase):
                 for k, r in _cit.RUNES.items()
             )
             yield event.plain_result(
-                "附魔哪件装备？输入『附魔 <装备名> <属性/符文>』\n"
-                f"属性附魔：{'、'.join(r['label'] for r in _b143.ENCHANT_RECIPES.values())}\n"
-                f"符文(MC 式，独特效果+等级)：{_rune_list}\n"
-                "例：『附魔 烈焰之刃 攻击』『附魔 烈焰之刃 史诗符文·残忍 II』\n"
+                _T.text("enhance.panel", stats='、'.join(r['label'] for r in _b143.ENCHANT_RECIPES.values()),
+                    runes=_rune_list)
                 + self._tip("enchant")
             )
             return
@@ -3598,7 +3596,7 @@ class EconomyImpl(CommandBase):
         prof_lv = db.get_prof_level(group_id, qq_id, "enchant")
         if prof_lv < 2:
             yield event.plain_result(
-                f"附魔需要附魔副业 Lv.2(你 Lv.{prof_lv})！多附魔升级吧～"
+                _T.text("enhance.prof_gate", lv=prof_lv)
             )
             return
         # v130.7 意见#30：『附魔 <序号> <属性/符文>』——装备名支持序号（取数列表与『背包』面板同源 db.get_inventory 全局序号）
@@ -3606,10 +3604,10 @@ class EconomyImpl(CommandBase):
             _items = db.get_inventory(group_id, qq_id)
             idx = int(item_name)
             if idx < 1 or idx > len(_items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(_items)} 件)！『背包』查看～")
+                yield event.plain_result(_T.text("enhance.idx_missing", idx=idx, total=len(_items)))
                 return
             if not _items[idx - 1]["data"].get("slot"):
-                yield event.plain_result(f"背包第 {idx} 件『{_items[idx-1]['data']['name']}』不是装备，不能附魔！『背包』查看～")
+                yield event.plain_result(_T.text("enhance.idx_not_equip", idx=idx, name=_items[idx-1]['data']['name']))
                 return
             item_name = _items[idx - 1]["data"]["name"]
         # ---- v34 符文路径：第二参数含"符文"则走符文附魔 ----
@@ -3622,7 +3620,7 @@ class EconomyImpl(CommandBase):
                     rune = it
                     break
             if not rune:
-                yield event.plain_result(f"背包里没有『{stat_label}』！打怪有概率掉落符文～")
+                yield event.plain_result(_T.text("enhance.rune_missing", label=stat_label))
                 return
             rd = rune["data"]
             target = None
@@ -3639,7 +3637,7 @@ class EconomyImpl(CommandBase):
                         target = {"key": f"eq_equipped_{slot}", "data": ed, "_equipped": slot}
                         break
             if not target:
-                yield event.plain_result(f"背包里没有叫『{item_name}』的装备！(已装备的也可以直接『附魔 <装备名> <属性/符文>』)")
+                yield event.plain_result(_T.text("enhance.not_found", name=item_name))
                 return
             d = target["data"]
             slots = _b143.ENCHANT_SLOTS.get(d.get("quality", ""), 0)
@@ -3648,11 +3646,11 @@ class EconomyImpl(CommandBase):
             if prof_lv >= _clife.ENCHANT_SLOT_UNLOCK.get(d.get("quality", ""), 99):
                 slots += 1
             if slots <= 0:
-                yield event.plain_result(f"【{d['name']}】({_b143.QUALITY[d['quality']]['name']})没有附魔槽，只有蓝/紫/橙装备可以附魔！")
+                yield event.plain_result(_T.text("enhance.no_slot", item=d['name'], quality=_b143.QUALITY[d['quality']]['name']))
                 return
             enchanted = d.get("enchant", [])
             if len(enchanted) >= slots:
-                yield event.plain_result(f"【{d['name']}】的 {slots} 个附魔槽已满！先『卸下』旧装备换新的吧～")
+                yield event.plain_result(_T.text("enhance.slots_full_unequip", item=d['name'], slots=slots))
                 return
             # v34 冲突检查：新符文与已有效果冲突则拒绝
             conflict_hit = None
@@ -3661,10 +3659,10 @@ class EconomyImpl(CommandBase):
                     conflict_hit = _cit.RUNE_EFFECT_NAMES.get(en["effect"], en["effect"])
                     break
             if conflict_hit:
-                yield event.plain_result(f"符文冲突！『{rd['name']}』与『{conflict_hit}』效果相斥，不能共存于同一件装备～")
+                yield event.plain_result(_T.text("enhance.rune_conflict", rune=rd['name'], other=conflict_hit))
                 return
             if rd.get("effect") in [e.get("effect") for e in enchanted]:
-                yield event.plain_result(f"【{d['name']}】已经有『{rd['name']}』的效果了！")
+                yield event.plain_result(_T.text("enhance.rune_dup", item=d['name'], rune=rd['name']))
                 return
             # v101.28i 符文等级解锁：附魔 Lv.2 刻 lvl.1、Lv.4 刻 lvl.2、Lv.6 刻 lvl.3（附魔等级不再是摆设）
             # v125.2 B3：符文等级门数据下沉 prof_config.RUNE_LEVEL_GATE（原 {1:2, 2:4, 3:6} 硬编码）
@@ -3672,7 +3670,7 @@ class EconomyImpl(CommandBase):
             _need_lv = _clife.RUNE_LEVEL_GATE.get(_rune_lv, 2)
             if prof_lv < _need_lv:
                 yield event.plain_result(
-                    f"『{rd['name']}』是 {_rune_lv} 级符文，需要附魔副业 Lv.{_need_lv}(你 Lv.{prof_lv})！多附魔练练手艺吧～"
+                    _T.text("enhance.rune_lv_gate", rune=rd['name'], rune_lv=_rune_lv, need=_need_lv, lv=prof_lv)
                 )
                 return
             # v94 体力：附魔消耗 10 体力（v105 P1：移到此处——符文/装备/槽位/冲突/等级校验全过后才扣，防白扣）
@@ -3700,13 +3698,13 @@ class EconomyImpl(CommandBase):
             _lv_msg = ""
             new_lv, leveled = db.add_prof_exp(group_id, qq_id, "enchant", 1)
             if leveled:
-                _lv_msg = f"\n🌟 附魔副业提升到 Lv.{new_lv}！"
+                _lv_msg = _T.text("enhance.prof_levelup", lv=new_lv)
             _done, _msg = self._daily_prof_bump(group_id, qq_id, "enchant")
             if _msg:
                 _lv_msg += "\n" + _msg.strip()
             yield event.plain_result(
-                f"💎 符文刻印成功！【{d['name']}】获得『{rd['name']}』({rd['desc']})\n"
-                f"(已用 {len(enchanted)}/{slots} 槽){_lv_msg}"
+                _T.text("enhance.rune_ok", item=d['name'], rune=rd['name'], desc=rd['desc'],
+                    used=len(enchanted), slots=slots, levelup=_lv_msg)
             )
             return
         # ---- 原属性附魔路径（v10） ----
@@ -3717,7 +3715,8 @@ class EconomyImpl(CommandBase):
                 stat_key = k
                 break
         if not stat_key:
-            yield event.plain_result(f"没有『{stat_label}』这个附魔属性！可用：{'、'.join(r['label'] for r in _b143.ENCHANT_RECIPES.values())}")
+            yield event.plain_result(_T.text("enhance.stat_none", label=stat_label,
+                                         stats='、'.join(r['label'] for r in _b143.ENCHANT_RECIPES.values())))
             return
         items = db.get_inventory(group_id, qq_id)
         target = None
@@ -3734,7 +3733,7 @@ class EconomyImpl(CommandBase):
                     target = {"key": f"eq_equipped_{slot}", "data": ed, "_equipped": slot}
                     break
         if not target:
-            yield event.plain_result(f"背包里没有叫『{item_name}』的装备！(已装备的也可以直接『附魔 <装备名> <属性/符文>』)")
+            yield event.plain_result(_T.text("enhance.not_found", name=item_name))
             return
         d = target["data"]
         slots = _b143.ENCHANT_SLOTS.get(d.get("quality", ""), 0)
@@ -3743,28 +3742,28 @@ class EconomyImpl(CommandBase):
         if prof_lv >= _clife.ENCHANT_SLOT_UNLOCK.get(d.get("quality", ""), 99):
             slots += 1
         if slots <= 0:
-            yield event.plain_result(f"【{d['name']}】({_b143.QUALITY[d['quality']]['name']})没有附魔槽，只有蓝/紫/橙装备可以附魔！")
+            yield event.plain_result(_T.text("enhance.no_slot", item=d['name'], quality=_b143.QUALITY[d['quality']]['name']))
             return
         enchanted = d.get("enchant", [])
         if len(enchanted) >= slots:
-            yield event.plain_result(f"【{d['name']}】的 {slots} 个附魔槽已满！先『出售』旧装备，或等新装备吧～")
+            yield event.plain_result(_T.text("enhance.slots_full_sell", item=d['name'], slots=slots))
             return
         rec = _b143.ENCHANT_RECIPES[stat_key]
         # v105 M11 P1：同属性附魔去重——符文路径有去重(2041-2043)而属性路径没有，
         # 同武器『附魔 攻击』×3 可叠白板攻击 ×54%（atk ratio 0.18×3），实现不一致且明显失衡
         if stat_key in [e.get("stat") for e in enchanted]:
             yield event.plain_result(
-                f"【{d['name']}】已经附魔过『{rec['label']}』了，同一属性不能重复附魔！(换新装备再附魔吧)"
+                _T.text("enhance.stat_dup", item=d['name'], stat=rec['label'])
             )
             return
         mat_name = C.enchant_match_material(stat_key, items)
         if not mat_name:
             yield event.plain_result(
-                f"背包里没有{rec['label']}系材料(需要含有：{'/'.join(rec['mats'])}的材料)！打怪掉落材料～"
+                _T.text("enhance.no_mat", stat=rec['label'], mats='/'.join(rec['mats']))
             )
             return
         if player["gold"] < rec["cost"]:
-            yield event.plain_result(f"附魔需要 {rec['cost']} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("enhance.no_gold", cost=rec['cost'], gold=player['gold']))
             return
         # v94 体力：附魔消耗 10 体力（v105 P1：移到此处——属性名/装备/槽位/材料/金币校验全过后才扣，防白扣）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["enchant"], player, "附魔")
@@ -3796,8 +3795,8 @@ class EconomyImpl(CommandBase):
             # F1 P0-1：背包格原子写回（替代 remove+add 两步非原子替换）
             db.update_item_data(group_id, qq_id, target["key"], d)
         sn = _STAT_CN                      # ★ B 批 B-1：真源 = 文案表 stat_name.*
-        val_str = f"+{int(v * 100)}%" if stat_key in _ccore.PCT_STATS else f"+{v}"
-        big_str = "🌟 大成功！" if big else ""
+        val_str = _T.text("enhance.val_pct", pct=int(v * 100)) if stat_key in _ccore.PCT_STATS else _T.text("enhance.val", v=v)
+        big_str = _T.static("enhance.big_success") if big else ""
         # 阶段九：附魔次数 + 成就判定
         db.bump_stats(group_id, qq_id, enchant_count=1)
         C.check_achievements(group_id, qq_id, player)
@@ -3805,13 +3804,14 @@ class EconomyImpl(CommandBase):
         _lv_msg = ""
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "enchant", 1)
         if leveled:
-            _lv_msg = f"\n🌟 附魔副业提升到 Lv.{new_lv}！"
+            _lv_msg = _T.text("enhance.prof_levelup", lv=new_lv)
         _done, _msg = self._daily_prof_bump(group_id, qq_id, "enchant")
         if _msg:
             _lv_msg += "\n" + _msg.strip()
         yield event.plain_result(
-            f"🔮 附魔成功！【{d['name']}】获得 {sn.get(stat_key, stat_key)} {val_str}{big_str}\n"
-            f"(消耗 {mat_name} x1 + {rec['cost']} 金币；已用 {len(enchanted)}/{slots} 槽){_lv_msg}"
+            _T.text("enhance.ok", item=d['name'], stat=sn.get(stat_key, stat_key), val=val_str, big=big_str,
+                mat=mat_name, cost=rec['cost'], used=len(enchanted), slots=slots,
+                levelup=_lv_msg)
         )
 
     # ================= V2 批新增：『重铸 <装备名>』（唯一新增指令；现有『附魔』一行未改）=================
@@ -3835,8 +3835,7 @@ class EconomyImpl(CommandBase):
         item_name = (raw or "").strip()
         if not item_name:
             yield event.plain_result(
-                "重铸哪件装备？输入『重铸 <装备名>』(如：重铸 烈焰之刃，背包序号也可)\n"
-                "重铸会把该装备的随机词条整体重掷；连续 %d 轮未出金，第 %d 轮必出金。"
+                _T.static("reroll.usage")
                 % (_reroll.pity_rounds(), _reroll.pity_rounds() + 1)
             )
             return
@@ -3851,11 +3850,11 @@ class EconomyImpl(CommandBase):
         affixes = list(d.get("affixes") or [])
         if cap <= 0:
             yield event.plain_result(
-                f"【{d['name']}】({qname})没有词条槽，不能重铸！只有蓝/紫/橙装备可以重铸。")
+                _T.text("reroll.no_slot", name=d['name'], qname=qname))
             return
         if len(affixes) > cap:
             yield event.plain_result(
-                f"【{d['name']}】的词条槽已满({len(affixes)}/{cap})，无法重铸！先换一件装备吧～")
+                _T.text("reroll.full", name=d['name'], have=len(affixes), cap=cap))
             return
         # 材料：沿用『附魔』同族材料一件（全族包含匹配，取第一件；复用既有匹配器）
         items = db.get_inventory(group_id, qq_id)
@@ -3868,11 +3867,11 @@ class EconomyImpl(CommandBase):
             _kw = "/".join(sorted({kw for r in _b143.ENCHANT_RECIPES.values()
                                    for kw in (r.get("mats") or [])}))
             yield event.plain_result(
-                f"背包里没有重铸材料(需要含有：{_kw}的材料)！打怪掉落材料～")
+                _T.text("reroll.no_material", kws=_kw))
             return
         cost = _reroll.gold_cost(d.get("lv", 1))
         if player["gold"] < cost:
-            yield event.plain_result(f"重铸需要 {cost} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("reroll.no_gold", cost=cost, gold=player['gold']))
             return
         # 校验全过 → 消耗材料 + 金币（材料一次命中一处堆，口径同『附魔』）
         for it in items:
@@ -3904,14 +3903,14 @@ class EconomyImpl(CommandBase):
         else:
             db.update_item_data(group_id, qq_id, target["key"], d)
         _names = "、".join(
-            f"{_cit.AFFIXES.get(a, {}).get('name', a)}{'(金)' if _is_gold(a) else ''}"
+            f"{_cit.AFFIXES.get(a, {}).get('name', a)}{_T.static("reroll.gold_tag") if _is_gold(a) else ''}"
             for a in new_ids)
-        _tail = ("\n🌟 连续未出金达上限，保底触发（本轮必出金）！" if forced
-                 else ("\n✨ 本轮出金，保底计数归零！" if hit else ""))
+        _tail = (_T.static("reroll.pity_tail") if forced
+                 else (_T.static("reroll.hit_tail") if hit else ""))
         yield event.plain_result(
-            f"🔁 重铸成功！【{d['name']}】随机词条整体重掷：{_names or '（无）'}\n"
-            f"(消耗 {mat_name} x{_reroll.material_count()} + {cost} 金币；"
-            f"连续未出金 {new_streak}/{_reroll.pity_rounds()} 轮){_tail}"
+            _T.text("reroll.success", name=d['name'], affixes=_names or '（无）', mat=mat_name,
+                mat_n=_reroll.material_count(), cost=cost, streak=new_streak,
+                pity=_reroll.pity_rounds(), tail=_tail)
         )
 
     @declared("set_view")
@@ -3926,9 +3925,9 @@ class EconomyImpl(CommandBase):
             if item and item.get("set"):
                 counts[item["set"]] = counts.get(item["set"], 0) + 1
         if not counts:
-            yield event.plain_result("你还没有穿戴任何套装部件！名册装备/商店/锻造获得的装备自带系列套装(同系列 = 同套装)，穿 2 件起生效～")
+            yield event.plain_result(_T.static("setview.empty"))
             return
-        lines = ["🎴 【套装状态】", "━━━━━━━━━━━━"]
+        lines = [_T.static("setview.title"), "━━━━━━━━━━━━"]
         any_active = False
         for sname, cnt in counts.items():
             info = _set_info(sname)
@@ -3940,7 +3939,7 @@ class EconomyImpl(CommandBase):
                 b2 = b2_raw.get("desc", "") or ""
             else:
                 b2 = "  ".join(
-                    f"{sn} +{int(v * 100)}%"
+                    _T.text("setview.bonus_stat", sn=sn, pct=int(v * 100))
                     for k, v in b2_raw.items()
                     if isinstance(v, (int, float)) and not isinstance(v, bool)
                     for sn in [_STAT_CN.get(k, k)]
@@ -3949,11 +3948,11 @@ class EconomyImpl(CommandBase):
             b4_parts = []
             for k, v in info.get("bonus_4_stats", {}).items():
                 sn = _STAT_CN.get(k, k)
-                b4_parts.append(f"{sn} +{int(v * 100)}%")
+                b4_parts.append(_T.text("setview.bonus_stat", sn=sn, pct=int(v * 100)))
             b4_desc = info.get("bonus_4", {}).get("desc", "")
             if b4_desc:
                 b4_parts.append(b4_desc)
-            b4 = "  ".join(b4_parts) or "(待解锁)"
+            b4 = "  ".join(b4_parts) or _T.static("setview.locked")
             # 阶段八：5 件效果（数据先行）
             b5 = info.get("bonus_5", {}).get("desc", "")
             active_2 = cnt >= 2
@@ -3962,19 +3961,19 @@ class EconomyImpl(CommandBase):
             if active_2 or active_4 or active_5:
                 any_active = True
             lines.append(
-                f"{info['icon']}{sname}({min(cnt, 5)}/5 件)"
-                + (" ✅" if active_2 else "")
-                + (" ⭐" if active_4 else "")
-                + (" 👑" if active_5 else "")
+                _T.text("setview.head", icon=info['icon'], sname=sname, cnt=min(cnt, 5))
+                + (_T.static("setview.mark_2") if active_2 else "")
+                + (_T.static("setview.mark_4") if active_4 else "")
+                + (_T.static("setview.mark_5") if active_5 else "")
             )
-            lines.append(f"  2件：{b2}" + ("(已激活)" if active_2 else ""))
-            lines.append(f"  4件：{b4}" + ("(已激活)" if active_4 else ""))
+            lines.append(_T.text("setview.row_2", b2=b2) + (_T.static("setview.activated") if active_2 else ""))
+            lines.append(_T.text("setview.row_4", b4=b4) + (_T.static("setview.activated") if active_4 else ""))
             if b5:
-                lines.append(f"  5件：{b5}" + ("(已激活)" if active_5 else ""))
+                lines.append(_T.text("setview.row_5", b5=b5) + (_T.static("setview.activated") if active_5 else ""))
         if not any_active:
-            lines.append("穿满 2 件同套装即激活 2 件效果，4 件激活 4 件效果！继续收集吧～")
+            lines.append(_T.static("setview.need_more"))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 套装部件：名册装备/商店/锻造获得的装备自带系列套装(如『橡木』『圣光』『银铃』)，穿 2 件起生效")
+        lines.append(_T.static("setview.tip"))
         yield event.plain_result("\n".join(lines))
 
     @declared("monster")

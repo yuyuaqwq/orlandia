@@ -2312,6 +2312,212 @@
       "items"
     ]
   },
+  "enhance.big_success": {
+    "value": "🌟 大成功！",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.idx_missing": {
+    "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.idx_not_equip": {
+    "value": "背包第 {idx} 件『{name}』不是装备，不能附魔！『背包』查看～",
+    "params": [
+      "idx",
+      "name"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能附魔装备！(先『地图』移动到铁匠铺)",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.no_gold": {
+    "value": "附魔需要 {cost} 金币，你只有 {gold}。",
+    "params": [
+      "cost",
+      "gold"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.no_mat": {
+    "value": "背包里没有{stat}系材料(需要含有：{mats}的材料)！打怪掉落材料～",
+    "params": [
+      "stat",
+      "mats"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.no_slot": {
+    "value": "【{item}】({quality})没有附魔槽，只有蓝/紫/橙装备可以附魔！",
+    "params": [
+      "item",
+      "quality"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.not_found": {
+    "value": "背包里没有叫『{name}』的装备！(已装备的也可以直接『附魔 <装备名> <属性/符文>』)",
+    "params": [
+      "name"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.ok": {
+    "value": "🔮 附魔成功！【{item}】获得 {stat} {val}{big}\n(消耗 {mat} x1 + {cost} 金币；已用 {used}/{slots} 槽){levelup}",
+    "params": [
+      "item",
+      "stat",
+      "val",
+      "big",
+      "mat",
+      "cost",
+      "used",
+      "slots",
+      "levelup"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.panel": {
+    "value": "附魔哪件装备？输入『附魔 <装备名> <属性/符文>』\n属性附魔：{stats}\n符文(MC 式，独特效果+等级)：{runes}\n例：『附魔 烈焰之刃 攻击』『附魔 烈焰之刃 史诗符文·残忍 II』\n",
+    "params": [
+      "stats",
+      "runes"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.prof_gate": {
+    "value": "附魔需要附魔副业 Lv.2(你 Lv.{lv})！多附魔升级吧～",
+    "params": [
+      "lv"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.prof_levelup": {
+    "value": "\n🌟 附魔副业提升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.rune_conflict": {
+    "value": "符文冲突！『{rune}』与『{other}』效果相斥，不能共存于同一件装备～",
+    "params": [
+      "rune",
+      "other"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.rune_dup": {
+    "value": "【{item}】已经有『{rune}』的效果了！",
+    "params": [
+      "item",
+      "rune"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.rune_lv_gate": {
+    "value": "『{rune}』是 {rune_lv} 级符文，需要附魔副业 Lv.{need}(你 Lv.{lv})！多附魔练练手艺吧～",
+    "params": [
+      "rune",
+      "rune_lv",
+      "need",
+      "lv"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.rune_missing": {
+    "value": "背包里没有『{label}』！打怪有概率掉落符文～",
+    "params": [
+      "label"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.rune_ok": {
+    "value": "💎 符文刻印成功！【{item}】获得『{rune}』({desc})\n(已用 {used}/{slots} 槽){levelup}",
+    "params": [
+      "item",
+      "rune",
+      "desc",
+      "used",
+      "slots",
+      "levelup"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.slots_full_sell": {
+    "value": "【{item}】的 {slots} 个附魔槽已满！先『出售』旧装备，或等新装备吧～",
+    "params": [
+      "item",
+      "slots"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.slots_full_unequip": {
+    "value": "【{item}】的 {slots} 个附魔槽已满！先『卸下』旧装备换新的吧～",
+    "params": [
+      "item",
+      "slots"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.stat_dup": {
+    "value": "【{item}】已经附魔过『{stat}』了，同一属性不能重复附魔！(换新装备再附魔吧)",
+    "params": [
+      "item",
+      "stat"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.stat_none": {
+    "value": "没有『{label}』这个附魔属性！可用：{stats}",
+    "params": [
+      "label",
+      "stats"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.val": {
+    "value": "+{v}",
+    "params": [
+      "v"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "enhance.val_pct": {
+    "value": "+{pct}%",
+    "params": [
+      "pct"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
   "evolve.hidden_done": {
     "value": "👑 你已完成全部传承！{title}",
     "params": [
@@ -4925,6 +5131,77 @@
     "category": "排行榜",
     "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
   },
+  "reroll.full": {
+    "value": "【{name}】的词条槽已满({have}/{cap})，无法重铸！先换一件装备吧～",
+    "params": [
+      "name",
+      "have",
+      "cap"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.gold_tag": {
+    "value": "(金)",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.hit_tail": {
+    "value": "\n✨ 本轮出金，保底计数归零！",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.no_gold": {
+    "value": "重铸需要 {cost} 金币，你只有 {gold}。",
+    "params": [
+      "cost",
+      "gold"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.no_material": {
+    "value": "背包里没有重铸材料(需要含有：{kws}的材料)！打怪掉落材料～",
+    "params": [
+      "kws"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.no_slot": {
+    "value": "【{name}】({qname})没有词条槽，不能重铸！只有蓝/紫/橙装备可以重铸。",
+    "params": [
+      "name",
+      "qname"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.pity_tail": {
+    "value": "\n🌟 连续未出金达上限，保底触发（本轮必出金）！",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.success": {
+    "value": "🔁 重铸成功！【{name}】随机词条整体重掷：{affixes}\n(消耗 {mat} x{mat_n} + {cost} 金币；连续未出金 {streak}/{pity} 轮){tail}",
+    "params": [
+      "name",
+      "affixes",
+      "mat",
+      "mat_n",
+      "cost",
+      "streak",
+      "pity",
+      "tail"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "reroll.usage": {
+    "value": "重铸哪件装备？输入『重铸 <装备名>』(如：重铸 烈焰之刃，背包序号也可)\n重铸会把该装备的随机词条整体重掷；连续 %d 轮未出金，第 %d 轮必出金。",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
   "resource_name.arcane": {
     "value": "奥术",
     "category": "资源名",
@@ -4989,6 +5266,94 @@
     "value": "❄️ 冬",
     "category": "季节名",
     "desc": "搬自 time_weather.py:SEASON_CN（B 批 B-1）"
+  },
+  "setview.activated": {
+    "value": "(已激活)",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.bonus_stat": {
+    "value": "{sn} +{pct}%",
+    "params": [
+      "sn",
+      "pct"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.empty": {
+    "value": "你还没有穿戴任何套装部件！名册装备/商店/锻造获得的装备自带系列套装(同系列 = 同套装)，穿 2 件起生效～",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.head": {
+    "value": "{icon}{sname}({cnt}/5 件)",
+    "params": [
+      "icon",
+      "sname",
+      "cnt"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.locked": {
+    "value": "(待解锁)",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.mark_2": {
+    "value": " ✅",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.mark_4": {
+    "value": " ⭐",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.mark_5": {
+    "value": " 👑",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.need_more": {
+    "value": "穿满 2 件同套装即激活 2 件效果，4 件激活 4 件效果！继续收集吧～",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.row_2": {
+    "value": "  2件：{b2}",
+    "params": [
+      "b2"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.row_4": {
+    "value": "  4件：{b4}",
+    "params": [
+      "b4"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.row_5": {
+    "value": "  5件：{b5}",
+    "params": [
+      "b5"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.tip": {
+    "value": "💡 套装部件：名册装备/商店/锻造获得的装备自带系列套装(如『橡木』『圣光』『银铃』)，穿 2 件起生效",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
+  },
+  "setview.title": {
+    "value": "🎴 【套装状态】",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:set_view（B 批 C 档）"
   },
   "shield_log.atonement_shield": {
     "value": "⚖️ 赎罪之盾：治疗溢出转化为 {shield} 点护盾！",
