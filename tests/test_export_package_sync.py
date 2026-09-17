@@ -84,7 +84,9 @@ FROZEN_COUNTS = {
     #     ⇒ 1006 → 1090（净增 84 键）。
     #   ★ 2026-09-18 C 档 14（B-2 第 2 片）：player_cmds「散落/尾巴」—— 14 函数 97 处替换 / 93 新键
     #     （4 处幂等复用 skill.only_n ×2 / skill.no_skill ×2）⇒ 1090 → 1183。
-    "texts": 1183,
+    #   ★ 2026-09-18 C 档 15（B-2 第 6 片）：item_templates「道具模板文案族」—— 44 个模板函数
+    #     111 处替换 / 105 新键（6 条 occ='all' 共键各覆盖 2 处）⇒ 1183 → 1288。
+    "texts": 1288,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,

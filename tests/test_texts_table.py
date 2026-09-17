@@ -194,6 +194,7 @@ SOCIAL_SRC = PKG_SOCIAL_SRC
 ECONOMY_SRC = os.path.join(_PD, "game", "commands", "economy.py")
 PKG_ECONOMY_SRC = os.path.join(PKG_CONTENT, "economy_cmds.py")
 PKG_PLAYER_SRC = os.path.join(PKG_CONTENT, "player_cmds.py")   # C 档 14（B-2 第 2 片）：player 散落/尾巴
+PKG_ITEM_TPL_SRC = os.path.join(PKG_CONTENT, "item_templates.py")  # C 档 15（B-2 第 6 片）：道具模板文案族
 # ★ P5E-DELETE（2026-09-15，删壳批）：同 SOCIAL_SRC 的处置 —— [13] 段（经济域逐字冻结）
 #   原扫宿主 `game/commands/economy.py`（随壳删除），改指包内真源 `content/cmds_economy.py`。
 ECONOMY_SRC = PKG_ECONOMY_SRC
@@ -291,7 +292,9 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "技能学习": PKG_PLAYER_SRC,
          "注销": PKG_PLAYER_SRC,
          "转职": PKG_PLAYER_SRC,
-         "技能栏": PKG_PLAYER_SRC}
+         "技能栏": PKG_PLAYER_SRC,
+         # ★ C 档 15（B-2 第 6 片）：道具模板（`ItemResult(text=…)` 文案族 44 个模板函数 · 105 键）
+         "道具模板": PKG_ITEM_TPL_SRC}
 
 
 def _wired_paths(path):
@@ -880,6 +883,7 @@ def t1_table_selfcheck():
                         "角色面板", "属性面板", "排行榜", "种族面板", "转职", "技能栏", "流派", "技能详情",
                         "经济面板",
                         "快捷指令", "注册", "身份绑定", "加点洗点", "技能学习", "注销",
+                        "道具模板",
                         "冒险手册", "足迹", "世界百科", "来源图标", "触发名"}, cats)
 
 

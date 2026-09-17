@@ -7580,6 +7580,720 @@
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
   },
+  "tpl.affixroll.in_battle": {
+    "value": "命运之墨要在铁匠铺使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_re_roll_affix（B 批 C 档）"
+  },
+  "tpl.anchor.done": {
+    "value": "临时锚点已安置在【{map}】，24 小时内可一键返回！",
+    "params": [
+      "map"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_anchor（B 批 C 档）"
+  },
+  "tpl.anchor.in_battle": {
+    "value": "星砂要在野外安置，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_anchor（B 批 C 档）"
+  },
+  "tpl.anchor.town": {
+    "value": "星砂锚点只能放在野外——城镇随时能回，用不上它～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_anchor（B 批 C 档）"
+  },
+  "tpl.bag.done": {
+    "value": "🎒 你展开【{name}】——背包扩容登记 +1(已用 {cur}/{limit} 次，每格 +{slots} 格)！",
+    "params": [
+      "name",
+      "cur",
+      "limit",
+      "slots"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_bag_expand（B 批 C 档）"
+  },
+  "tpl.bag.in_battle": {
+    "value": "布袋要在整理背包时使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_bag_expand（B 批 C 档）"
+  },
+  "tpl.bag.limit": {
+    "value": "你的背包扩容次数已达上限({limit} 次)！",
+    "params": [
+      "limit"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_bag_expand（B 批 C 档）"
+  },
+  "tpl.bait.done": {
+    "value": "🎣 你给鱼钩挂上了【{name}】——{tip}！(仅限下一次垂钓)",
+    "params": [
+      "name",
+      "tip"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_bait（B 批 C 档）"
+  },
+  "tpl.bait.in_battle": {
+    "value": "鱼饵只能在水边使用，战斗结束后再挂饵吧～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_bait（B 批 C 档）"
+  },
+  "tpl.bait.no_water": {
+    "value": "鱼饵只能在水边使用——这里没有水域，到有钓点的地方再挂饵吧～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_bait（B 批 C 档）"
+  },
+  "tpl.bsr.bad_cfg": {
+    "value": "【{name}】效果配置异常，使用失败～",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_battle_start_resource（B 批 C 档）"
+  },
+  "tpl.bsr.done": {
+    "value": "🍖 你喝下了【{name}】——战斗开始时预充生效！(30 分钟内有效){extra}",
+    "params": [
+      "name",
+      "extra"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_battle_start_resource（B 批 C 档）"
+  },
+  "tpl.bsr.flavor": {
+    "value": "烈酒入喉，气机澎湃！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_battle_start_resource（B 批 C 档）"
+  },
+  "tpl.bsr.wrong_time": {
+    "value": "【{name}】需在战斗开始前使用！战斗中用不上～",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_battle_start_resource（B 批 C 档）"
+  },
+  "tpl.buff.battle_only": {
+    "value": "战斗药水只能在战斗中使用！(输入『攻击』进入战斗后使用)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_buff（B 批 C 档）"
+  },
+  "tpl.chest.bp": {
+    "value": "📜 宝箱里还有：{name}！",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_open_chest（B 批 C 档）"
+  },
+  "tpl.chest.gold": {
+    "value": "💰 获得 {gold} 金币！",
+    "params": [
+      "gold"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_open_chest（B 批 C 档）"
+  },
+  "tpl.chest.open": {
+    "value": "🎁 你打开了【{name}】！",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_open_chest（B 批 C 档）"
+  },
+  "tpl.clearred.done": {
+    "value": "🎫 券面符文亮起，笼罩你的杀气消散了！你不再是红名了。",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_clear_red（B 批 C 档）"
+  },
+  "tpl.clearred.in_battle": {
+    "value": "你正在战斗中，无法使用清除券！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_clear_red（B 批 C 档）"
+  },
+  "tpl.clearred.not_red": {
+    "value": "你现在不是红名，用不着这张券～(留着防身吧)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_clear_red（B 批 C 档）"
+  },
+  "tpl.collection.done": {
+    "value": "🏅 你点亮了图鉴收藏【{name}】！(纯收藏，已登记)",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_collection（B 批 C 档）"
+  },
+  "tpl.collection.in_battle": {
+    "value": "纪念章只是收藏品，战斗中不能使用～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_collection（B 批 C 档）"
+  },
+  "tpl.compass.in_battle": {
+    "value": "罗盘要在野外寻宝时使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_compass（B 批 C 档）"
+  },
+  "tpl.compass.tip": {
+    "value": "接下来 30 分钟探索开出的宝箱品质+1 档！(不叠加，与幸运符互斥)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_compass（B 批 C 档）"
+  },
+  "tpl.enhance.done": {
+    "value": "🔧 星铁强化剂渗入装备纹理，泛着星火微光……\n",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_enhance_boost（B 批 C 档）"
+  },
+  "tpl.enhance.in_battle": {
+    "value": "强化剂要留着到铁匠铺用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_enhance_boost（B 批 C 档）"
+  },
+  "tpl.firework.cooldown": {
+    "value": "🎆 烟花还在冷却中(冷却 10 分钟)！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_firework（B 批 C 档）"
+  },
+  "tpl.firework.daily": {
+    "value": "🎆 今天的烟花份额已经放过了(每日限 1 次)！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_firework（B 批 C 档）"
+  },
+  "tpl.firework.done": {
+    "value": "🎆 你点燃了【庆典烟花】——璀璨烟火冲天而起！(全群广播接线后可见)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_firework（B 批 C 档）"
+  },
+  "tpl.firework.in_battle": {
+    "value": "烟花要在庆祝时点燃，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_firework（B 批 C 档）"
+  },
+  "tpl.fishnet.bait_conflict": {
+    "value": "你已经挂了鱼饵，鱼网不能与鱼饵叠加使用～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_fish_net（B 批 C 档）"
+  },
+  "tpl.fishnet.in_battle": {
+    "value": "鱼网要在水边使用时，战斗结束后再下网吧～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_fish_net（B 批 C 档）"
+  },
+  "tpl.fishnet.no_water": {
+    "value": "鱼网只能在水边使用——这里没有水域，到有钓点的地方再下网吧～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_fish_net（B 批 C 档）"
+  },
+  "tpl.fishnet.tip": {
+    "value": "下次垂钓渔获数量×2！(不与鱼饵叠加)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_fish_net（B 批 C 档）"
+  },
+  "tpl.food_out.full": {
+    "value": "❤️ 你现在的状态是满的({cur}/{mx})，用不着【{name}】～",
+    "params": [
+      "cur",
+      "mx",
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_food_out_battle（B 批 C 档）"
+  },
+  "tpl.food_out.recover_hp": {
+    "value": "恢复 {hp} 点生命",
+    "params": [
+      "hp"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_food_out_battle（B 批 C 档）"
+  },
+  "tpl.food_out.recover_mp": {
+    "value": "恢复 {mp} 点魔力",
+    "params": [
+      "mp"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_food_out_battle（B 批 C 档）"
+  },
+  "tpl.food_out.used": {
+    "value": "🍖 你吃下了【{name}】，{msgs}！\n{tail}",
+    "params": [
+      "name",
+      "msgs",
+      "tail"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_food_out_battle（B 批 C 档）"
+  },
+  "tpl.garden.in_battle": {
+    "value": "种植箱要在花圃布置，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_garden_slot（B 批 C 档）"
+  },
+  "tpl.grapple.in_battle": {
+    "value": "钩索要在野外攀爬时使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_grapple（B 批 C 档）"
+  },
+  "tpl.grapple.tip": {
+    "value": "下次探索必定抵达 1 个相邻未探索地图，并免 1 次移动消耗！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_grapple（B 批 C 档）"
+  },
+  "tpl.grapple.town": {
+    "value": "钩索只在野外有用——城里到处是路，用不上它～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_grapple（B 批 C 档）"
+  },
+  "tpl.harvest.in_battle": {
+    "value": "锄头要在采集时使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_harvest_boost（B 批 C 档）"
+  },
+  "tpl.harvest.tip": {
+    "value": "接下来 30 分钟采集/挖掘产出品质+1 档！(不叠加)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_harvest_boost（B 批 C 档）"
+  },
+  "tpl.heal.full_hp": {
+    "value": "❤️ 你现在的生命是满的({cur}/{mx})，用不着【{name}】～",
+    "params": [
+      "cur",
+      "mx",
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_heal（B 批 C 档）"
+  },
+  "tpl.heal.used": {
+    "value": "💊 你使用了【{name}】，恢复 {hp} 点生命！\n❤️ {cur}/{mx}{tail}",
+    "params": [
+      "name",
+      "hp",
+      "cur",
+      "mx",
+      "tail"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_heal（B 批 C 档）"
+  },
+  "tpl.heal_mana.full": {
+    "value": "❤️💙 你的生命和魔力都是满的({hp}/{max_hp} · {mp}/{max_mp})，用不着【{name}】～",
+    "params": [
+      "hp",
+      "max_hp",
+      "mp",
+      "max_mp",
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_heal_mana（B 批 C 档）"
+  },
+  "tpl.lantern.in_battle": {
+    "value": "提灯要在野外探索时点亮，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_lantern（B 批 C 档）"
+  },
+  "tpl.lantern.night_only": {
+    "value": "🌙 矿工提灯只在夜间(19:00-06:00)才管用——白天用太浪费啦～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_lantern（B 批 C 档）"
+  },
+  "tpl.lantern.tip": {
+    "value": "接下来 30 分钟(夜间)探索宝藏/稀有档概率+50%！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_lantern（B 批 C 档）"
+  },
+  "tpl.lucky.done": {
+    "value": "🍀 幸运护符泛起微光，你的气息变得祥和……\n",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_lucky（B 批 C 档）"
+  },
+  "tpl.mail.in_battle": {
+    "value": "信鸦要在驿站放飞，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_mail（B 批 C 档）"
+  },
+  "tpl.mana.full_mp": {
+    "value": "💙 你现在的魔力是满的({cur}/{mx})，用不着【{name}】～",
+    "params": [
+      "cur",
+      "mx",
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_mana（B 批 C 档）"
+  },
+  "tpl.mana.used": {
+    "value": "💙 你使用了【{name}】，恢复 {mp} 点魔力！\n💙 {cur}/{mx}{tail}",
+    "params": [
+      "name",
+      "mp",
+      "cur",
+      "mx",
+      "tail"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_mana（B 批 C 档）"
+  },
+  "tpl.mount.done": {
+    "value": "🐾 缰绳上的封印解开，{icon}【{name}】顺从地蹭了蹭你！\n",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_mount（B 批 C 档）"
+  },
+  "tpl.mount.odd": {
+    "value": "这缰绳上的气息有点古怪……",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_mount（B 批 C 档）"
+  },
+  "tpl.mount.owned": {
+    "value": "你已经拥有『{name}』了！",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_mount（B 批 C 档）"
+  },
+  "tpl.none.generic": {
+    "value": "『{name}』不能使用。",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_none（B 批 C 档）"
+  },
+  "tpl.none.material": {
+    "value": "『{name}』不能直接使用——这是材料，可『烹饪』『锻造』『炼金』等副业加工成成品～",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_none（B 批 C 档）"
+  },
+  "tpl.none.quest": {
+    "value": "你使用了『{name}』。",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_none（B 批 C 档）"
+  },
+  "tpl.petegg.hatched": {
+    "value": "🥚 宠物蛋微微颤动……裂开了！\n🎉 {icon} 【{name}】破壳而出，成为了你的伙伴！(图鉴 {dex}/{total})\n",
+    "params": [
+      "icon",
+      "name",
+      "dex",
+      "total"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_pet_egg（B 批 C 档）"
+  },
+  "tpl.petegg.odd": {
+    "value": "这枚宠物蛋有点奇怪……",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_pet_egg（B 批 C 档）"
+  },
+  "tpl.petegg.owned": {
+    "value": "你已经有一只宠物啦！先『放生』再孵化新品种吧～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_pet_egg（B 批 C 档）"
+  },
+  "tpl.petegg.same": {
+    "value": "你已经有一只【该品种】宠物啦！可以『出售』这颗蛋，或『放生』后重新孵化(图鉴记录保留)。",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_pet_egg（B 批 C 档）"
+  },
+  "tpl.petegg.weak": {
+    "value": "宠物蛋里的生命气息微弱……",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_pet_egg（B 批 C 档）"
+  },
+  "tpl.petrename.in_battle": {
+    "value": "神药要在宠物身边使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_pet_rename（B 批 C 档）"
+  },
+  "tpl.pick.missing": {
+    "value": "【{name}】内容配置缺失……",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_weapon_pick（B 批 C 档）"
+  },
+  "tpl.pick.opened": {
+    "value": "🎁 你打开了【{name}】，里面是几件新手武器——挑一件顺手的：",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_weapon_pick（B 批 C 档）"
+  },
+  "tpl.pick.opened_hint": {
+    "value": "💡 回复对应数字领取（如回复 1）；回复 0 收起来下次再选",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_weapon_pick（B 批 C 档）"
+  },
+  "tpl.pick.pending": {
+    "value": "🎁 你正捧着【{name}】还没选好：",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_weapon_pick（B 批 C 档）"
+  },
+  "tpl.pick.pending_hint": {
+    "value": "💡 回复对应数字领取；回复 0 收起来",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_weapon_pick（B 批 C 档）"
+  },
+  "tpl.pick.row": {
+    "value": "  {i}. {label}",
+    "params": [
+      "i",
+      "label"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_weapon_pick（B 批 C 档）"
+  },
+  "tpl.portal.already": {
+    "value": "你已经在这座方碑所在的城镇了！(传送卷轴没有消耗)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_teleport_portal（B 批 C 档）"
+  },
+  "tpl.portal.done": {
+    "value": "🌀 传送卷轴展开，星辉流转——你抵达了【{town}】({icon}{portal})！\n📍 当前方碑锚点：{anchors}\n",
+    "params": [
+      "town",
+      "icon",
+      "portal",
+      "anchors"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_teleport_portal（B 批 C 档）"
+  },
+  "tpl.portal.in_battle": {
+    "value": "战斗中无法使用传送卷轴！先解决眼前的敌人吧～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_teleport_portal（B 批 C 档）"
+  },
+  "tpl.portal.no_anchor": {
+    "value": "🌀 传送卷轴泛起微光又暗淡下去——还没有可用的方碑锚点！\n",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_teleport_portal（B 批 C 档）"
+  },
+  "tpl.purify.none": {
+    "value": "✨ 你展开【{name}】，但此刻你身上没有需要净化的负面状态～",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_purify（B 批 C 档）"
+  },
+  "tpl.reforge.in_battle": {
+    "value": "重铸券要到铁匠铺使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_reforge（B 批 C 档）"
+  },
+  "tpl.rename.in_battle": {
+    "value": "契约要在闲时签订，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_rename（B 批 C 档）"
+  },
+  "tpl.reset.in_battle": {
+    "value": "泉水要在城镇静心饮用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_reset_voucher（B 批 C 档）"
+  },
+  "tpl.resource_amp.out": {
+    "value": "🕯️ 你点燃了【{name}】——开场后持续生效！(战斗开始后生效，先到先得)",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_resource_amp（B 批 C 档）"
+  },
+  "tpl.runechest.empty": {
+    "value": "符文匣里空空如也……(符文数据缺失)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_open_rune_chest（B 批 C 档）"
+  },
+  "tpl.runechest.open": {
+    "value": "📦 你打开了【{item}】！\n✨ 匣中泛起微光——符文【{rune}】！\n",
+    "params": [
+      "item",
+      "rune"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_open_rune_chest（B 批 C 档）"
+  },
+  "tpl.scout.danger": {
+    "value": "⚠️ 危险度：Lv.{lv}（{kind}）",
+    "params": [
+      "lv",
+      "kind"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.scout.desc": {
+    "value": "📝 {desc}",
+    "params": [
+      "desc"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.scout.head": {
+    "value": "🔭 你举起【{name}】眺望{place}……",
+    "params": [
+      "name",
+      "place"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.scout.in_battle": {
+    "value": "望远镜要在野外眺望时使用，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.scout.no_info": {
+    "value": "（没有找到这张地图的信息……）",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.scout.region": {
+    "value": "📍 区域：{region} · 章节 {chapter}",
+    "params": [
+      "region",
+      "chapter"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.scout.subarea_head": {
+    "value": "🗺️ 子区域：",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_scout（B 批 C 档）"
+  },
+  "tpl.seed.in_battle": {
+    "value": "种子要在花圃播种，战斗中用不上～",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_seed_planter（B 批 C 档）"
+  },
+  "tpl.stamina.full": {
+    "value": "🍖 你肚子还饱着呢(体力 {cur}/{mx})，先活动活动再吃吧～",
+    "params": [
+      "cur",
+      "mx"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_stamina（B 批 C 档）"
+  },
+  "tpl.stamina.used": {
+    "value": "🍖 你吃下了【{name}】！\n⚡ 恢复 {gain} 点体力({cur}/{mx})",
+    "params": [
+      "name",
+      "gain",
+      "cur",
+      "mx"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_stamina（B 批 C 档）"
+  },
+  "tpl.tip_fallback": {
+    "value": "看看『帮助』了解更多",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_rand_tip（B 批 C 档）"
+  },
+  "tpl.tome.done": {
+    "value": "📖 你参悟了技能书，学会了隐藏技能『{name}』！\n「{desc}」",
+    "params": [
+      "name",
+      "desc"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_skill_tome（B 批 C 档）"
+  },
+  "tpl.tome.learned": {
+    "value": "『{name}』你早已掌握，这本书对你没有用了。",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_skill_tome（B 批 C 档）"
+  },
+  "tpl.tome.missing": {
+    "value": "你翻开【{name}】，但其中的技艺晦涩难解……(技能数据缺失)",
+    "params": [
+      "name"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_skill_tome（B 批 C 档）"
+  },
+  "tpl.tome.need_lv": {
+    "value": "书中的技艺需要 Lv.{need} 才能参悟，你才 Lv.{lv}。",
+    "params": [
+      "need",
+      "lv"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_skill_tome（B 批 C 档）"
+  },
+  "tpl.tome.wrong_class": {
+    "value": "书页上流转着【{cls}】一脉的印记，与你的力量不合……",
+    "params": [
+      "cls"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_skill_tome（B 批 C 档）"
+  },
+  "tpl.toy.in_battle": {
+    "value": "玩偶的变身效果在战斗中不生效！(纯展示，战斗无效)",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_toy_form（B 批 C 档）"
+  },
+  "tpl.toy.tip": {
+    "value": "接下来 30 分钟你将呈现 NPC 形态(纯展示无属性)！",
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_toy_form（B 批 C 档）"
+  },
+  "tpl.v140.todo": {
+    "value": "📭 你端详着【{name}】——{system}系统尚未开放，先收好吧！",
+    "params": [
+      "name",
+      "system"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_v140_system_todo（B 批 C 档）"
+  },
+  "tpl.v140.used": {
+    "value": "✨ 你使用了【{name}】！{tip}",
+    "params": [
+      "name",
+      "tip"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:_v140_mark（B 批 C 档）"
+  },
+  "tpl.vila.done": {
+    "value": "🧭 卷轴展开，光芒闪过——你回到了{town}！",
+    "params": [
+      "town"
+    ],
+    "category": "道具模板",
+    "desc": "搬自 content/item_templates.py:tpl_return_vila（B 批 C 档）"
+  },
   "trigger_name.battle_start": {
     "value": "战斗开始",
     "category": "触发名",

@@ -79,7 +79,10 @@ CLASS = {
     "content/economy_cmds.py::shop": "C",
     "content/economy_cmds.py::buy": "C",
     "content/talk_actions.py::action_apprentice_check": "E",
-    "content/item_templates.py::tpl_teleport_portal": "E",
+    # ↓ 2026-09-18 由 E 改判 C：C 档 15（B-2 第 6 片）把本段的展示句壳迁进文案表（`ItemResult(text=…)`
+    #   改 `_T.text/_T.static`）——源码逐字变了，故不再与冻结基线相等（行为不变：输出文本逐字一致，
+    #   由经济域/文案表门禁守）。
+    "content/item_templates.py::tpl_teleport_portal": "C",
     "content/combat_cmds.py::roll_wild_encounter": "E",
 }
 
