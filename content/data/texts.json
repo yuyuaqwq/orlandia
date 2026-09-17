@@ -245,6 +245,63 @@
     "category": "冒险手册",
     "desc": "搬自 content/economy_cmds.py:_monster_view（B 批 C 档）"
   },
+  "adv.pet_fail": {
+    "value": "🐾 宠物图鉴加载失败（{err}），请联系管理～",
+    "params": [
+      "err"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_line": {
+    "value": "{color}{icon}{name}{quality} · {tag}",
+    "params": [
+      "color",
+      "icon",
+      "name",
+      "quality",
+      "tag"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_row": {
+    "value": "  {line}",
+    "params": [
+      "line"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_tag_hatched": {
+    "value": "✅孵过",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_tag_new": {
+    "value": "❌未得",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_tag_team": {
+    "value": "🐾在队",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_tip": {
+    "value": "💡 宠物蛋『使用』孵化即收录；放生后仍留图鉴；当前跟随标🐾",
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
+  "adv.pet_title": {
+    "value": "🐾 【宠物图鉴】({own}/{tot})",
+    "params": [
+      "own",
+      "tot"
+    ],
+    "category": "冒险手册",
+    "desc": "搬自 content/economy_cmds.py:_pet_dex_view（B 批 C 档）"
+  },
   "adv.unknown_sub": {
     "value": "📖 『冒险手册』子分类：区域/怪物/物品/收藏/垂钓（例：『冒险手册 物品』『足迹』）。\n💡 也可以直接发『足迹』看区域足迹、『图鉴』看怪物。",
     "category": "冒险手册",
@@ -4361,6 +4418,74 @@
     ],
     "category": "签到",
     "desc": "每 7 天额外装备奖励（color/name 由装备实例给）"
+  },
+  "skill_panel.hint_bar": {
+    "value": "『技能栏』查看 / 『设置技能 <槽位> <技能名>』配置快捷栏",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_cast": {
+    "value": "战斗中『技能 <槽位>』或『技能 <技能名>』施放",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_detail": {
+    "value": "『技能详情 <名称/序号>』查看单个技能",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_learn": {
+    "value": "『技能学习 <名称>』消耗技能点学会技能",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_list": {
+    "value": "『技能列表』查看全部技能(可翻页)",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_passive": {
+    "value": "⚙️ 被动技能无需施放，学会后战斗自动生效(『技能列表』可见<被动>标签)",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_reset": {
+    "value": "『技能洗点』重置技能(500金币返还技能点)",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.hint_upgrade": {
+    "value": "『技能升级 <名称>』消耗技能点升级(满级依技能 3~5)",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.learned": {
+    "value": "✅ 已学：{have}/{total} ｜ 🔒 未学：{left}",
+    "params": [
+      "have",
+      "total",
+      "left"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.points": {
+    "value": "💡 技能点：{pts}(每升 1 级+1)",
+    "params": [
+      "pts"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skill_panel.title": {
+    "value": "⚔️ 【技能系统】 {icon}{cls} Lv.{level}",
+    "params": [
+      "icon",
+      "cls",
+      "level"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
   },
   "src_icon.boss": {
     "value": "👹",

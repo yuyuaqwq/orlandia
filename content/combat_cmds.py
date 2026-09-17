@@ -1970,19 +1970,20 @@ def _skill_panel(self, player: dict) -> str:
     have = len(learned)
     pts = player.get("skill_points", 0)
     lines = [
-        f"⚔️ 【技能系统】 {cls_info.get('icon','')}{_display('classes', cls)} Lv.{player['level']}",
+        _T.text("skill_panel.title", icon=cls_info.get('icon',''), cls=_display('classes', cls),
+            level=player['level']),
         "━━━━━━━━━━━━",
-        f"💡 技能点：{pts}(每升 1 级+1)",
-        f"✅ 已学：{have}/{total} ｜ 🔒 未学：{total - have}",
+        _T.text("skill_panel.points", pts=pts),
+        _T.text("skill_panel.learned", have=have, total=total, left=total - have),
         "━━━━━━━━━━━━",
-        "『技能列表』查看全部技能(可翻页)",
-        "『技能详情 <名称/序号>』查看单个技能",
-        "『技能学习 <名称>』消耗技能点学会技能",
-        "『技能升级 <名称>』消耗技能点升级(满级依技能 3~5)",
-        "『技能栏』查看 / 『设置技能 <槽位> <技能名>』配置快捷栏",
-        "『技能洗点』重置技能(500金币返还技能点)",
-        "战斗中『技能 <槽位>』或『技能 <技能名>』施放",
-        "⚙️ 被动技能无需施放，学会后战斗自动生效(『技能列表』可见<被动>标签)",
+        _T.static("skill_panel.hint_list"),
+        _T.static("skill_panel.hint_detail"),
+        _T.static("skill_panel.hint_learn"),
+        _T.static("skill_panel.hint_upgrade"),
+        _T.static("skill_panel.hint_bar"),
+        _T.static("skill_panel.hint_reset"),
+        _T.static("skill_panel.hint_cast"),
+        _T.static("skill_panel.hint_passive"),
     ]
     return "\n".join(lines)
 

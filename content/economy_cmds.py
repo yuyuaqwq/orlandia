@@ -4452,17 +4452,19 @@ class EconomyImpl(CommandBase):
                 key = pd.get("key") or ""
                 owned = key in dex
                 q = q_map.get(pd.get("quality", ""), {})
-                tag = "🐾在队" if key == cur_key else ("✅孵过" if owned else "❌未得")
-                rows.append((owned, f"{q.get('color', '')}{pd.get('icon', '')}{pd.get('name', key)}{q.get('name', '')} · {tag}"))
+                tag = _T.static("adv.pet_tag_team") if key == cur_key else (_T.static("adv.pet_tag_hatched") if owned else _T.static("adv.pet_tag_new"))
+                rows.append((owned, _T.text("adv.pet_line", color=q.get('color', ''), icon=pd.get('icon', ''),
+                                        name=pd.get('name', key), quality=q.get('name', ''),
+                                        tag=tag)))
             # 已孵过排前
             rows.sort(key=lambda x: (not x[0]))
-            lines = [f"🐾 【宠物图鉴】({len(dex)}/{len(_clife.PET_POOL)})", "━━━━━━━━━━━━"]
-            lines += [f"  {r[1]}" for r in rows]
+            lines = [_T.text("adv.pet_title", own=len(dex), tot=len(_clife.PET_POOL)), "━━━━━━━━━━━━"]
+            lines += [_T.text("adv.pet_row", line=r[1]) for r in rows]
             lines.append("━━━━━━━━━━━━")
-            lines.append("💡 宠物蛋『使用』孵化即收录；放生后仍留图鉴；当前跟随标🐾")
+            lines.append(_T.static("adv.pet_tip"))
             return "\n".join(lines)
         except Exception as e:
-            return f"🐾 宠物图鉴加载失败（{e}），请联系管理～"
+            return _T.text("adv.pet_fail", err=e)
 
     def _collect_items_bestiary(self, group_id, qq_id):
         """v134.1 意见#41：『图鉴 收藏』特殊收藏品一览——type=收藏 的物品（不含彩蛋收藏鱼，
