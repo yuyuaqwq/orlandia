@@ -21,7 +21,8 @@
     "团队特效名": "技能团队特效名（技能详情·团队行；B 批 B-1，搬自 player_cmds.py:team_cn）",
     "条件文案": "技能详情面板「条件转化」行的条件说明文案（B 批 B-1 B 档，搬自 battle_cond_labels.py:COND_LABELS；槽位由调用方按 c 配置算好后传入）",
     "宠物技能描述": "宠物技能一句话描述（面板「宠物」详情；B 批 B-1 B 档，搬自 pets.py:_PET_SKILL_DESC；槽位 iv=间隔刻数、pct=技能值百分比）",
-    "帮助面板": "『帮助 <分类>』的 11 份面板长文本（B 批 B-1 B 档，搬自 misc_cmds.py:CMD_HELP*；纯文本无槽位，含分隔线 ━━━ 与 emoji，逐字节照搬）"
+    "帮助面板": "『帮助 <分类>』的 11 份面板长文本（B 批 B-1 B 档，搬自 misc_cmds.py:CMD_HELP*；纯文本无槽位，含分隔线 ━━━ 与 emoji，逐字节照搬）",
+    "副业图标": "副业面板的副业图标（B 批 B-1 B 档，搬自 economy_cmds.py:icons；8 个 id → emoji 图标，玩家可见展示用；与「叠层名/减益名」同类）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
@@ -2660,6 +2661,46 @@
     ],
     "category": "宠物技能描述",
     "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "prof_icon.alchemy": {
+    "value": "🧪",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.cooking": {
+    "value": "🍳",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.craft": {
+    "value": "🔨",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.enchant": {
+    "value": "✨",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.enhance": {
+    "value": "⚒️",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.fishing": {
+    "value": "🎣",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.gather": {
+    "value": "🌿",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.mining": {
+    "value": "⛏️",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
   },
   "quests.done": {
     "value": "📜 每日『{name}』完成！奖励：经验 +{exp} 金币 +{gold}",

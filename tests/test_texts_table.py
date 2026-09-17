@@ -250,7 +250,9 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "宠物技能描述": os.path.join(PKG_CONTENT, "pets.py"),
          # ★ B 批 B-1 B 档（2026-09-17）：『帮助 <分类>』11 份面板长文本（无槽位，纯句壳）
          #   引用面 = `_T.static("help_panel.*")` 的 11 个直接调用点 + `_HELP_PANEL_KEYS` 字面量表
-         "帮助面板": os.path.join(PKG_CONTENT, "misc_cmds.py")}
+         "帮助面板": os.path.join(PKG_CONTENT, "misc_cmds.py"),
+         # ★ B 批 B-1 B 档（2026-09-17）末批：副业面板图标（8 个 id → emoji；同「叠层名」类展示名词）
+         "副业图标": PKG_ECONOMY_SRC}
 
 
 def _wired_paths(path):
@@ -830,11 +832,12 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
-                        "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板"}, cats)
+                        "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板",
+                        "副业图标"}, cats)
 
 
 def t2_key_and_params_accounting():

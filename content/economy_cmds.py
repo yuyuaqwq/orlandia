@@ -64,6 +64,19 @@ _STAT_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死
 }
 _STAT_CN = _T.names(_STAT_KEYS, prefix="stat_name")
 
+# ★ B 批 B-1 B 档：副业图标 → 文案真源（`prof_icon.*`；副业面板行首图标）
+_PROF_ICON_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
+    "alchemy": "prof_icon.alchemy",
+    "cooking": "prof_icon.cooking",
+    "craft": "prof_icon.craft",
+    "enchant": "prof_icon.enchant",
+    "enhance": "prof_icon.enhance",
+    "fishing": "prof_icon.fishing",
+    "gather": "prof_icon.gather",
+    "mining": "prof_icon.mining",
+}
+_PROF_ICON = _T.names(_PROF_ICON_KEYS, prefix="prof_icon")
+
 #: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
 _PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -1499,7 +1512,7 @@ class EconomyImpl(CommandBase):
         profs = db.get_professions(group_id, qq_id)
         activated = db.get_activated_profs(group_id, qq_id)
         lines = [f"🧵 【副业面板】(当前已激活 {len(activated)} 条)", "━━━━━━━━━━━━"]
-        icons = {"gather": "🌿", "mining": "⛏️", "fishing": "🎣", "alchemy": "🧪", "craft": "🔨", "cooking": "🍳", "enhance": "⚒️", "enchant": "✨"}
+        icons = _PROF_ICON               # ★ B 批 B-1 B 档：真源 = 文案表 prof_icon.*
         total = 0
         for key, p in profs.items():
             if key not in activated:

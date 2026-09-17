@@ -2631,6 +2631,46 @@
     "category": "宠物技能描述",
     "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
   },
+  "prof_icon.alchemy": {
+    "value": "🧪",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.cooking": {
+    "value": "🍳",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.craft": {
+    "value": "🔨",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.enchant": {
+    "value": "✨",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.enhance": {
+    "value": "⚒️",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.fishing": {
+    "value": "🎣",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.gather": {
+    "value": "🌿",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
+  "prof_icon.mining": {
+    "value": "⛏️",
+    "category": "副业图标",
+    "desc": "搬自 content/economy_cmds.py:icons（B 批 B-1 B 档）"
+  },
   "quests.done": {
     "value": "📜 每日『{name}』完成！奖励：经验 +{exp} 金币 +{gold}",
     "params": [
