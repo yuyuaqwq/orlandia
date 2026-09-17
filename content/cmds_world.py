@@ -40,6 +40,8 @@ from .cmds_env import shell as _shell
 from .commands import register
 from .wild import ALL_WILD
 from .world_cmds import db, _DAILY_META_KEYS   # B2-W2：清死 import（C/_host_attr 全仓零调用点）
+# ★ U1-D2 L4：面板目标行改走引擎目标行骨架（`quests_flow._obj_lines` = 注册表 + 声明序）
+from . import quests_flow as _qf
 # ★ U1-I4 L6：导师行取用 → 引擎多表首命中形状（单表**真值**链）
 from saintess_engine.presence import Lookup
 
@@ -70,12 +72,26 @@ def _kill_prog_count(obj, prog):
 
 
 # 任务目标类型 → 进度展示行（v101.3：加新目标类型 = 加一行，quest_view 零改动）
+# ★ U1-D2 L4：**行文表逐字未动**；选型/行序改走引擎骨架（`_panel_text_of` 是把
+#   引擎的 `text_of(type_key, obj, prog, st)` 适配到本表的薄模板）。
 _OBJ_PROGRESS_LINES = {
     "kill":    lambda obj, prog: f"  进度：{_kill_prog_count(obj, prog)}/{obj['count']}",
     "collect": lambda obj, prog: f"  收集：{prog.get(obj['collect'], 0)}/{obj['count']}",
     "explore": lambda obj, prog: f"  前往：{MAP_BY_ID.get(obj['explore'], {}).get('name', '？')}",
     "talk":    lambda obj, prog: f"  交谈：与 {NPCS.get(obj['talk'], {}).get('name', '？')} 对话",
 }
+
+
+def _panel_text_of(type_key, obj, prog, st):
+    """面板目标行模板（**内容侧声明序里首个可展示的型**，与原「查表首命中即 break」同义）。
+
+    `未登记型 / 值为空` → `None`（不出行）——面板口只认 `_OBJ_PROGRESS_LINES` 那 4 型
+    （`find`/`use` 由面板上面的专门分支处理，DESIGN §2.3 口径②）。
+    """
+    _fn = _OBJ_PROGRESS_LINES.get(type_key)
+    if _fn is None or not obj.get(type_key):
+        return None
+    return _fn(obj, prog)
 
 
 # ============================================================
@@ -131,10 +147,12 @@ def quest_view(env) -> list:
                     else:
                         lines.append(f"  收集：{have}/{need}")
                 else:
-                    for _k, _fn in _OBJ_PROGRESS_LINES.items():
-                        if obj.get(_k):
-                            lines.append(_fn(obj, prog))
-                            break
+                    # v101.3：目标类型展示查表化（kill/collect/explore/talk，顺序与原 if-elif 一致）
+                    # ★ U1-D2 L4：改走引擎「有序目标注册表 + 行骨架」（内容侧 text_of = 上面
+                    #   那 4 型行文表）；与原「查表首命中即 break」同义（首个可展示的型出一行）
+                    for _t in _qf._obj_lines(obj, progress=prog, text_of=_panel_text_of):
+                        lines.append(_t)
+                        break
     else:
         lines.append("【主线】已全部完成！🎊")
     # 支线（v101.25i3：已完成任务不进面板，鱼鱼：交了还显示）

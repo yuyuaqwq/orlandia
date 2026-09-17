@@ -18,8 +18,20 @@
 · `BAR_STATE_PREFIX`（真源 `:749`）**不在本文件重复** —— 包内已有同一张表
   （`content/mech/params.py:123`，同名同值 `"bar:"`；引擎经 `config.bar_prefix()` 取）。
 · 条数值/阈值/衰减 = `MECH_CFG["enemy_bar"]`（`content/mech/class_data.py` 单源，切片已含 shaken）。
+
+★ U1-D2 L7（装配形状迁移）：`apply_bar_procs` 里的「手写判重 + `insert(0)`」已改走引擎
+声明编译器 `saintess_engine.battle.declarations`（去重键 `(action, key)`、写策略 `prepend`；
+模块级 `_DECL`）——**执行序与行为逐字不变**（门禁④ 144 格 + 旧实现 exec 逐格比）。
 """
 from __future__ import annotations
+
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+
+#: 声明编译器（U1-D2 L7）：去重键 = `(action, key)`、写策略 = **前插**
+#: （`insert(0)` 的执行序语义 —— 见下方 `apply_bar_procs` 的顺序契约）。
+_DECL = Compiler(events=_ENGINE_EVENTS,
+                 key_of=lambda d: (d.get("action"), d.get("key")), owner_key=None)
 
 
 # ============================================================
@@ -56,7 +68,8 @@ def apply_bar_procs(actor: dict) -> None:
         return
     from ..apply import _SKILL_LOOKUP as _PKG_SKILLS
     skill_info = _PKG_SKILLS.skill_info
-    trig = actor.setdefault("triggers", {})
+    # 宿主容器预置：旧实现在 **零命中** 时也会建出空 `triggers`（可观测副作用，逐字保留）
+    actor.setdefault("triggers", {})
     for field, spec in (BAR_INJECT_FIELDS or {}).items():
         key = (spec or {}).get("key") if isinstance(spec, dict) else ""
         if not key:
@@ -73,13 +86,11 @@ def apply_bar_procs(actor: dict) -> None:
                 break
         if not found:
             continue
-        lst = trig.setdefault("skill_hit", [])
-        if not any(isinstance(e, dict) and e.get("action") == "bar_gain"
-                   and e.get("key") == key for e in lst):
-            entry = {"action": "bar_gain", "key": key, "field": field}
-            if per_hit:
-                entry["per_hit"] = True
-            lst.insert(0, entry)
+        entry = {"action": "bar_gain", "key": key, "field": field}
+        if per_hit:
+            entry["per_hit"] = True
+        # 幂等 + 前插：命中 `(action, key)` 已有条目 → 保留既有（不重排、不重复挂）
+        _DECL.mount(actor, {"skill_hit": [entry]}, merge="prepend")
 
 
 __all__ = ["apply_bar_procs"]

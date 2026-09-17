@@ -2588,51 +2588,56 @@ def _take_main_quest(self, group_id, qq_id, npc_id, npc):
 
 
 def _obj_text(self, obj):
-    if obj.get("kill"):
-        return f"击败 {obj['kill']} ×{obj['count']}"
-    if obj.get("collect"):
+    """v124 目标单行摘要（取接取通知/交付面板的单行目标行；转调引擎目标行骨架）。
+
+    ★ U1-D2 L4：本段与 `quests_flow.obj_text` 原为**逐字同文的两份**（DESIGN §2.1 Q1），
+    现统一为**单点模板**（`quests_flow._one_text_of`）—— 行文一字未改，只是不再各写一份。
+    """
+    from . import quests_flow as qf
+    return qf.obj_text(obj)
+
+
+def _obj_text_lines_of(type_key, obj, prog, st):
+    """交付面板的**多行**目标模板（复合目标逐行；行文逐字保留，不出的型 → None）。
+
+    本出口自己的 `text_of`：`find` 行按任务状态分「已找到 / (探索有概率遇到) / （未找到）」
+    三态（DESIGN §2.1 Q1 —— 与 `obj_text` 单行口径**故意不同**，不许合并）。
+    """
+    from . import quests_flow as qf
+    if not obj.get(type_key):
+        return None
+    if type_key == "kill":
+        return f"击败 {obj['kill']} ×{qf._OBJECTIVES.need_of(obj, 'kill')}"
+    if type_key == "collect":
         # v125.1 P2：s64 等 collect_count 无 count 的复合目标不再 KeyError
-        return f"收集 {obj['collect']} ×{obj.get('collect_count') or obj.get('count', 1)}"
-    if obj.get("explore"):
+        return f"收集 {obj['collect']} ×{qf._OBJECTIVES.need_of(obj, 'collect')}"
+    if type_key == "explore":
         return f"前往 {_cat_space.MAP_BY_ID.get(obj['explore'], {}).get('name', '？')}"
-    if obj.get("find"):
-        # v97.1 告示委托：在指定地图探索概率找到目标
-        return f"在 {_cat_space.MAP_BY_ID.get(obj.get('map', ''), {}).get('name', '？')} 寻找 {obj['find']}(探索有概率遇到)"
-    if obj.get("use"):
-        # v124 use 目标：使用指定物品达成
+    if type_key == "find":
+        _mname = _cat_space.MAP_BY_ID.get(obj.get("map", ""), {}).get("name", "")
+        if st == "ready":
+            return f"{'在 ' + _mname + ' ' if _mname else ''}寻找 {obj['find']}（已找到）"
+        if _mname:
+            return f"在 {_mname} 寻找 {obj['find']}(探索有概率遇到)"
+        return f"寻找 {obj['find']}（未找到）"
+    if type_key == "use":
         return f"使用 {obj['use']}"
-    if obj.get("talk"):
+    if type_key == "talk":
         npc = _cat_quests.NPCS.get(obj["talk"], {})
         return f"与 {npc.get('name', '？')} 交谈"
-    return "？"
+    return None
 
 
 def _obj_text_lines(self, obj, st=None):
     """v124.2 复合 objective 逐行渲染（如 s18 kill 腐牙萨满·嚎骨 + find 白桦 两行都显示）。
     find 行按任务状态标 已找到/未找到（find 无进度存档，以 ready 态为准）；
-    纯 find 委托（有 map）保留『探索有概率遇到』机制提示，与原 _obj_text 文案一致。"""
-    lines = []
-    if obj.get("kill"):
-        lines.append(f"击败 {obj['kill']} ×{obj['count']}")
-    if obj.get("collect"):
-        # v125.1 P2：s64 等 collect_count 无 count 的复合目标不再 KeyError
-        lines.append(f"收集 {obj['collect']} ×{obj.get('collect_count') or obj.get('count', 1)}")
-    if obj.get("explore"):
-        lines.append(f"前往 {_cat_space.MAP_BY_ID.get(obj['explore'], {}).get('name', '？')}")
-    if obj.get("find"):
-        _mname = _cat_space.MAP_BY_ID.get(obj.get("map", ""), {}).get("name", "")
-        if st == "ready":
-            lines.append(f"{'在 ' + _mname + ' ' if _mname else ''}寻找 {obj['find']}（已找到）")
-        elif _mname:
-            lines.append(f"在 {_mname} 寻找 {obj['find']}(探索有概率遇到)")
-        else:
-            lines.append(f"寻找 {obj['find']}（未找到）")
-    if obj.get("use"):
-        lines.append(f"使用 {obj['use']}")
-    if obj.get("talk"):
-        npc = _cat_quests.NPCS.get(obj["talk"], {})
-        lines.append(f"与 {npc.get('name', '？')} 交谈")
-    return lines or ["？"]
+    纯 find 委托（有 map）保留『探索有概率遇到』机制提示，与原 _obj_text 文案一致。
+
+    ★ U1-D2 L4：三份目标行渲染的**多行**那一路 —— 行序/覆盖面走引擎目标行骨架
+    （复合目标全出、行序 = 内容侧声明序），行文仍由本出口的 `_obj_text_lines_of` 给。
+    """
+    from . import quests_flow as qf
+    return qf._obj_lines(obj, state=st, text_of=_obj_text_lines_of) or ["？"]
 
 
 def _quest_reputation(self, group_id, qq_id, npc_id):

@@ -13,8 +13,16 @@
 
 **注入面**：`content/persistence/handles.py`（`bind(db_path=…, clock=…, flush_log=…, lock=…)`）；
 宿主装配点 = `game/store/store_factory.py`。纯包环境（编辑器）需注入自己的句柄 —— 见 B19/B20 接点。
+
+★ U1-D2 L5（形状迁移）：命名计数改走引擎 `store/counters`（`CounterSpec`/`Counters`）。
+`STAT_FIELDS` 就是 `CounterSpec.fields`（**白名单 fail-closed**，口径分歧 ⑦）；
+`day_kills`/`day_date` 这对「日计数」**不进白名单**（口径分歧 ⑤：周期归零归 `periodic.PeriodCounter`）。
+表结构仍由 `persistence/tables.json` 建（**一字节不动**）；对外签名与返回**逐键逐值不变**。
 """
-from .handles import _connect, _lock
+from saintess_engine.store import Column, DeclaredRepository, TableSpec
+from saintess_engine.store.counters import CounterSpec, declare_counters
+
+from .handles import _connect, _lock, get_db
 
 """奥兰迪亚·余烬纪年存储层 - stats"""
 
@@ -26,30 +34,56 @@ STAT_FIELDS = {
     "enchant_count", "world_events", "catch_collect", "chests_opened",
 }
 
+#: 计数器形状（**形状在引擎、取值在这里**）：`stats` = 单主键 + 一行多列（口径分歧 ⑥）。
+_CNT_SPEC = CounterSpec("stats", owner="qq_id", fields=tuple(sorted(STAT_FIELDS)))
+#: `achievements` = 复合主键 `(qq_id, ach_key)` + 计数格（与 bestiary 同形的另一处落点）。
+_ACH_SPEC = CounterSpec("achievements", owner="qq_id",
+                        fields=("progress", "claimed"), subject="ach_key")
+_CNT = None
+_CNT_ACH = None
+
+
+def _cnt():
+    """stats 计数器读写口（表由 `tables.json` 建；此处只把既有表装配成引擎形状）。"""
+    global _CNT
+    if _CNT is None:
+        db = get_db()
+        _CNT = declare_counters(
+            db, _CNT_SPEC,
+            repo=DeclaredRepository(db, TableSpec("stats", [Column("qq_id", "TEXT", pk=True)])))
+    return _CNT
+
+
+def _cnt_ach():
+    """achievements 计数器读写口（复合键 `(qq_id, ach_key)`）。"""
+    global _CNT_ACH
+    if _CNT_ACH is None:
+        db = get_db()
+        _CNT_ACH = declare_counters(
+            db, _ACH_SPEC,
+            repo=DeclaredRepository(
+                db, TableSpec("achievements",
+                              [Column("qq_id", "TEXT", pk=True),
+                               Column("ach_key", "TEXT", pk=True)])))
+    return _CNT_ACH
+
 
 def init_stats(group_id, qq_id):
     with _lock:
         conn = _connect()
         try:
-            conn.execute(
-                "INSERT OR IGNORE INTO stats (qq_id) VALUES (?)", (qq_id,)
-            )
+            _cnt().init(conn, qq_id)
             conn.commit()
         finally:
             conn.close()
 
 def bump_stats(group_id, qq_id, **fields):
-    bad = [k for k in fields if k not in STAT_FIELDS]
-    if bad:  # B2 加固（2026-08-10）：动态列名前白名单校验
-        raise ValueError(f"bump_stats 非法字段: {bad}（不在 stats 表白名单）")
+    # B2 加固（2026-08-10）：动态列名前白名单校验（白名单 = `CounterSpec.fields`，
+    # fail-closed 由引擎 `Counters.bump` 当场 `ValueError`；口径分歧 ⑦）
     with _lock:
         conn = _connect()
         try:
-            sets = ", ".join(f"{k}={k}+?" for k in fields)
-            conn.execute(
-                f"UPDATE stats SET {sets} WHERE qq_id=?",
-                (*fields.values(), qq_id),
-            )
+            _cnt().bump(conn, qq_id, **fields)
             conn.commit()
         finally:
             conn.close()
@@ -58,10 +92,7 @@ def get_stats(group_id, qq_id):
     with _lock:
         conn = _connect()
         try:
-            row = conn.execute(
-                "SELECT * FROM stats WHERE qq_id=?", (qq_id,)
-            ).fetchone()
-            return dict(row) if row else {}
+            return _cnt().read(conn, qq_id)
         finally:
             conn.close()
 
@@ -69,11 +100,10 @@ def set_achievement(group_id, qq_id, ach_key, progress, claimed=0):
     with _lock:
         conn = _connect()
         try:
-            conn.execute(
-                "INSERT INTO achievements (qq_id, ach_key, progress, claimed) VALUES (?,?,?,?) "
-                "ON CONFLICT(qq_id, ach_key) DO UPDATE SET progress=excluded.progress, claimed=excluded.claimed",
-                (qq_id, ach_key, progress, claimed),
-            )
+            _cnt_ach().repo.upsert(conn, {
+                "qq_id": qq_id, "ach_key": ach_key,
+                "progress": progress, "claimed": claimed,
+            })
             conn.commit()
         finally:
             conn.close()
@@ -82,10 +112,7 @@ def get_achievements(group_id, qq_id):
     with _lock:
         conn = _connect()
         try:
-            rows = conn.execute(
-                "SELECT * FROM achievements WHERE qq_id=?", (qq_id,)
-            ).fetchall()
-            return [dict(r) for r in rows]
+            return _cnt_ach().read_subject(conn, qq_id)
         finally:
             conn.close()
 

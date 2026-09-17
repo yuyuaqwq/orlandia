@@ -26,10 +26,16 @@
 本族参数表 → 包内 `content/mech/element_data.py`（真源行号见该文件头注）：`ELEMENT_REACTIONS`(`:80-90`) /
 `REACTION_TABLE`(`:147-152`) / `ELEMENT_MARKS_MAX`(`:142`) / `MECH_CFG["element"]`(`:474-480`)。
 ★ B10-L2 收口（2026-09-13）：宿主 `battle_element_procs.py` 已改**薄壳**（再导出本模块）⇒ 本模块 = 唯一实现。
+★ U1-D2 L7（装配形状迁移）：`apply_element_procs` 里的「手写判重 + `append`」已改走引擎
+声明编译器 `saintess_engine.battle.declarations`（去重键 `action`、写策略 `replace`；
+模块级 `_DECL`）——**追加序铁律**（`elem_counter` 恒先于 `elem_reaction`）与行为**逐字不变**
+（门禁④ 144 格 + 旧实现 exec 逐格比）。
 """
 from __future__ import annotations
 
 from saintess_engine.battle.effects import register_action
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
 # 印记 key（元素 → 印记）
 ELEMENT_MARKS = {"fire": "fire_mark", "ice": "ice_mark", "thunder": "thunder_mark"}
@@ -302,6 +308,12 @@ __all__ = ["elem_reaction", "elem_counter", "class_element_switch", "elem_conv_a
 #         （包内 `skills.json` 有：`元素流转` = {'effect': 'element_switch', ...}）。
 #   本块**追加在 `__all__` 之后** → 既有逐字对拍（`d2_misc_verify.py` A4）不受影响。
 # ============================================================
+#: 声明编译器（U1-D2 L7）：去重键 = `action`（每条订阅只该有一条）、
+#: 写策略 = `replace`（命中就地浅盖；载荷是常量字面量 ⇒ 与旧「命中即跳过」逐字等价）。
+_DECL = Compiler(events=_ENGINE_EVENTS,
+                 key_of=lambda d: d.get("action"), owner_key=None)
+
+
 def apply_element_procs(actor: dict) -> None:
     """学了带 `element` / `element_from_main` / `element_switch` 的技能才挂元素机制。
 
@@ -334,18 +346,17 @@ def apply_element_procs(actor: dict) -> None:
             break
     if not has_elem and not has_switch:
         return
-    trig = actor.setdefault("triggers", {})
+    # 宿主容器预置：旧实现在 **零命中** 时也会建出空 `triggers`（可观测副作用，逐字保留）
+    actor.setdefault("triggers", {})
     if has_elem:
-        lst = trig.setdefault("dmg_calc", [])
         # 顺序铁律：**克制先判、反应后算**——反应会清印（`clear: True`），
         #   若反应先跑，克制判定（读目标印记/状态）就会因印记已被清而失效
         #   （实测：冰打火印+雷印目标，反应先清雷印 → 冰克雷不触发）。
-        for act in ("elem_counter", "elem_reaction"):
-            if not any(isinstance(e, dict) and e.get("action") == act for e in lst):
-                lst.append({"action": act})
+        #   ⇒ 载荷表序 = 追加序 = 执行序（`elem_counter` 恒在 `elem_reaction` 之前）。
+        _DECL.mount(actor, {"dmg_calc": [{"action": "elem_counter"},
+                                         {"action": "elem_reaction"}]},
+                    merge="replace")
     # 元素转化订阅：不仅学「元素流转」要挂——元素转化标记也可能来自其它来源
     #   （装备/消耗品/后续机制），`elem_conv_apply` 无标记时零行为，故零成本常挂。
     if has_elem or has_switch:
-        lst2 = trig.setdefault("act_cast", [])
-        if not any(isinstance(e, dict) and e.get("action") == "elem_conv_apply" for e in lst2):
-            lst2.append({"action": "elem_conv_apply"})
+        _DECL.mount(actor, {"act_cast": [{"action": "elem_conv_apply"}]}, merge="replace")

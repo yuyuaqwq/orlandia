@@ -20,7 +20,19 @@ B10-L4 判定依据：宿主 75 行 = 动作 22 行（已搬）+ 装配 25 行�
 
 from __future__ import annotations
 
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.battle.effects import register_action
+
+
+# 数据行 → `actor["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。
+# ★ `key_of=action` = 全 actor 只留一条 `wb_gm_dmg_mult` 订阅；命中 `merge="replace"` 就地
+#   浅盖 `factor`；倍率回落 1.0 走 `purge`（撤回语义逐字保留）。
+_DECL = Compiler(
+    events=_ENGINE_EVENTS,
+    key_of=lambda d: d.get("action"),
+    owner_key=None,
+)
 
 
 @register_action("wb_gm_dmg_mult")
@@ -54,18 +66,14 @@ def apply_gm_dmg_mult(actor: dict, mult: float) -> bool:
         m = float(mult or 1.0)
     except (TypeError, ValueError):
         return False
-    trig = actor.setdefault("triggers", {})
-    lst = trig.setdefault("taken_calc", [])
-    for e in lst:
-        if isinstance(e, dict) and e.get("action") == "wb_gm_dmg_mult":
-            if m == 1.0:
-                lst.remove(e)          # 倍率被 GM 改回 1 → 撤掉声明
-                return False
-            e["factor"] = m
-            return True
+    actor.setdefault("triggers", {}).setdefault("taken_calc", [])   # 容器显式落位（旧实现同）
     if m == 1.0:
-        return False
-    lst.append({"action": "wb_gm_dmg_mult", "factor": m})
+        _DECL.purge(actor, event="taken_calc",
+                    match=lambda d: (isinstance(d, dict)
+                                     and d.get("action") == "wb_gm_dmg_mult"))
+        return False                                               # 倍率被 GM 改回 1 → 撤掉声明
+    _DECL.mount(actor, {"taken_calc": [{"action": "wb_gm_dmg_mult", "factor": m}]},
+                merge="replace")
     return True
 
 

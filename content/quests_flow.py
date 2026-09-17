@@ -52,6 +52,7 @@ B14-2：序表**单点移入门面** `content/catalog_quests.py`（那里带集�
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
 
 # ★ B14-2（2026-09-14）：数据名改从**包内门面**直取 —— 宿主 `game/data` 删掉后本模块仍能活；
 #   门面同包、只读包内域、不 import 宿主（`game.*`）。
@@ -80,6 +81,13 @@ SIDE_QUEST_ORDER = [q["id"] for q in _cq.SIDE_QUESTS]
 # 宿主替身口（存储层 / 内容聚合层 / 同级服务 / 发放与结算）—— 引擎 wire 形状
 # ============================================================
 from saintess_engine.wire import Wire, WireMissing
+
+# ★ U1-D2 L4（2026-09-17）：任务块的**三件形状**（账本状态机 / 目标进度折叠 / 目标行）
+#   改走引擎 `saintess_engine/quest/`：`QuestLog`（读口 + 状态迁移）、`Objective`/`Objectives`
+#   （有序目标类型注册表 + 折叠 + 行骨架）。**取值一个都没进引擎**：字段名（`main_*`）、
+#   状态词（pending/active/ready/done）、目标类型词、需求数两种口径、三份行文模板全部
+#   仍在本文件注册（见下面 `_QL_*` / `_OBJECTIVES` 注入面）。
+from saintess_engine.quest import Objective, Objectives, QuestLog
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
@@ -226,24 +234,232 @@ class _Dom:
 C = _Dom()
 
 
-def obj_text(obj):
-    if obj.get("kill"):
-        return f"击败 {obj['kill']} ×{obj['count']}"
-    if obj.get("collect"):
+# ============================================================
+# ★ U1-D2 L4：引擎 `quest` 形状的**注入面**（取值全在这里，引擎零默认值）
+# ============================================================
+# ── 账本：字段名 / 状态词 / 子账本声明 ────────────────────────────────────────
+# ⚠ 两套词表（**实测现状，不许顺手统一**）：顶层主线用 `main_quest`/`main_status`/
+#   `main_progress`/`completed_main`；子账本（side/daily）**条目**用裸 `status`/`progress`。
+#   引擎 `QuestLog` 的一份 `fields` 覆盖不了两套（角色键只有一个 `status`）⇒ 内容侧建
+#   **两个外壳**：`_log()` 读主线顶层、`_lane_log()` 读/迁 side·daily 条目。
+#   （设计稿 §2.2 假设一套 fields 通吃；这是设计↔实现的**口径出入**，登记在 out/LANDING.md）
+_QL_FIELDS = {"current": "main_quest", "status": "main_status",
+              "progress": "main_progress", "archive": "completed_main",
+              "lanes": "side"}
+_QL_ENTRY_FIELDS = {"current": "main_quest", "status": "status",
+                    "progress": "progress", "archive": "completed_main",
+                    "lanes": "side"}
+#: 状态词（`pending`/`active`/`done` 是内容约定；`ready` 是内容侧第四态，按值显式传）
+_QL_STATES = {"todo": "pending", "live": "active", "ended": "done"}
+#: 子账本声明（口径分歧③：side 的进度是 mapping、daily 的是整格 int）
+_QL_LANES = (("side", {"progress": dict}), ("daily", {"progress": int}))
+
+
+def _log(raw=None):
+    """主线账本外壳（顶层 `main_*` 词表）。构造 O(1)，不落库。"""
+    return QuestLog(raw, fields=_QL_FIELDS, states=_QL_STATES, lanes=_QL_LANES)
+
+
+def _lane_log(raw=None):
+    """side / daily 子账本外壳（**条目**词表：裸 `status`/`progress`）。"""
+    return QuestLog(raw, fields=_QL_ENTRY_FIELDS, states=_QL_STATES, lanes=_QL_LANES)
+
+
+def _expire_daily(quests):
+    """跨天清理（口径分歧⑪：**系统钟**，实现逐字留在 `content.persistence.quests`）。
+
+    单点转调而非直调 `db.expire_daily` —— 让「本模块是否真的依赖跨天清理」可被替身观测。
+    """
+    return db.expire_daily(quests)
+
+
+# ── 目标类型注册表：15 键（11 型 + 4 修饰键），四个回调全是取值 ────────────────
+def _ml_name(value, ev):
+    """击杀名匹配（前缀精确：`==` 或 `「目标」·` 开头 —— v104 M20 P2 口径逐字保留）。"""
+    name = ev.get("name")
+    if name == value:
+        return True
+    return isinstance(name, str) and name.startswith(str(value) + "·")
+
+
+_KILL_KINDS = ("kill", "kill_variant", "kill_any", "kill_elite", "kill_boss")
+
+
+def _m_kill(value, ev):
+    """`kill` 型命中：击杀事件 + 目标名前缀精确。"""
+    return ev.get("kind") in _KILL_KINDS and _ml_name(value, ev)
+
+
+def _m_collect(value, ev):
+    """`collect` 型命中：采集事件 + 物品名一致（主线/支线的**达标数**另有专门口径）。"""
+    return ev.get("kind") == "collect" and ev.get("collect") == value
+
+
+def _m_explore(value, ev):
+    """`explore` 型命中：到达的地图 = 目标地图。"""
+    return bool(value) and ev.get("map") == value
+
+
+def _m_find(value, ev):
+    """`find` 型：告示委托靠探索概率（无事件驱动）⇒ **永不命中**（只出行文）。"""
+    return False
+
+
+def _m_use(value, ev):
+    """`use` 型命中：使用物品事件 + 物品名一致。"""
+    return ev.get("kind") == "use" and ev.get("use") == value
+
+
+def _m_talk(value, ev):
+    """`talk` 型命中：与目标 NPC 对话。"""
+    return ev.get("kind") == "talk" and ev.get("talk") == value
+
+
+def _m_any(value, ev):
+    """`kill_any` 型命中：任意击杀（v95.13 支线 / 每日通用击杀）。"""
+    return ev.get("kind") in _KILL_KINDS
+
+
+def _m_elite(value, ev):
+    """`kill_elite` 型命中：精英击杀（每日 lane）。"""
+    return bool(ev.get("is_elite"))
+
+
+def _m_boss(value, ev):
+    """`kill_boss` 型命中：首领击杀（每日 lane）。"""
+    return bool(ev.get("is_boss"))
+
+
+def _n_count(objective, engine=None):
+    """`kill` 需求数 = `count`（旧写法 `obj['count']` 下标读，缺失照样 KeyError）。"""
+    return objective["count"]
+
+
+def _n_collect(objective, engine=None):
+    """`collect` 需求数 = `collect_count or count`（口径分歧④第一种，逐字保留）。"""
+    return objective.get("collect_count") or objective.get("count", 1)
+
+
+def _n_one(objective, engine=None):
+    """单键达成型（explore/find/use/talk）：需求数恒 1。"""
+    return 1
+
+
+def _n_any(objective, engine=None):
+    """单键计数型（kill_any/kill_elite/kill_boss/complete_side/collect_any）= 首个正整数。
+
+    这就是 `daily_need` 的旧口径（面板/每日同源）；都没有定义 → 0（旧 `daily_need` 回读
+    定义表后仍无 → None，那一层由内容侧保留）。
+    """
+    for _v in objective.values():
+        if isinstance(_v, bool) or not isinstance(_v, int):
+            continue
+        if _v > 0:
+            return _v
+    return 0
+
+
+def _f_kill(objective, progress, ev):
+    """击杀进度补丁：`{目标名: 旧值 + 1}`（进度键 = **目标名**，口径分歧⑦）。"""
+    _key = objective["kill"]
+    _base = progress.get(_key, 0) if isinstance(progress, Mapping) else 0
+    return {_key: _base + 1}
+
+
+def _f_any(objective, progress, ev):
+    """通用击杀计数补丁（`kill_any` 支线用 `progress["any"]`，v95.13 防卡死）。"""
+    _base = progress.get("any", 0) if isinstance(progress, Mapping) else 0
+    return {"any": _base + 1}
+
+
+def _f_use(objective, progress, ev):
+    """`use` 进度补丁：`{"use": 物品名}`（旧实现是**覆盖**，调用方用 `accept` 落格）。"""
+    return {"use": objective["use"]}
+
+
+#: 有序目标类型注册表：**声明序 = 判定序 = 展示序**（旧三份渲染口的固定 `if` 序）。
+#: `need` 全部自带 ⇒ 不注入 `need_of`（未注册类型走 `unknown` 默认 = 不出行）。
+_OBJECTIVES = Objectives(
+    Objective("kill", match=_m_kill, need=_n_count, fold=_f_kill,
+              modifiers=("count",)),
+    Objective("collect", match=_m_collect, need=_n_collect,
+              modifiers=("count", "collect_count")),
+    Objective("explore", match=_m_explore, need=_n_one, multi=True,
+              modifiers=("map",)),
+    Objective("find", match=_m_find, need=_n_one, multi=True,
+              modifiers=("map", "chance")),
+    Objective("use", match=_m_use, need=_n_one, fold=_f_use, multi=True,
+              modifiers=("map",)),
+    Objective("talk", match=_m_talk, need=_n_one),
+    Objective("kill_any", match=_m_any, need=_n_any, fold=_f_any,
+              modifiers=("count",)),
+    Objective("kill_elite", match=_m_elite, need=_n_any,
+              modifiers=("count",)),
+    Objective("kill_boss", match=_m_boss, need=_n_any,
+              modifiers=("count",)),
+    Objective("complete_side", need=_n_any),
+    Objective("collect_any", need=_n_any),
+)
+
+#: 内容侧**声明序**（行序/取值序都按它；`_obj_in_order` 用它把目标 mapping 还原成声明序）
+_OBJ_ORDER = tuple(_OBJECTIVES.keys())
+
+
+def _need_main_collect(obj):
+    """主线 collect 需求数 = **只看 `count`**（口径分歧④第二种，逐字保留；别统一掉）。"""
+    return obj.get("count", 1)
+
+
+def _kill_event(monster):
+    """击杀事件（引擎只透传；事件键由内容侧定）—— 本入口只从击杀路径进来，故 kind 恒 `kill`。"""
+    return {"kind": "kill", "name": monster.get("name"),
+            "is_elite": monster.get("is_elite"), "is_boss": monster.get("is_boss")}
+
+
+def _obj_in_order(obj):
+    """目标 mapping → 按内容侧声明序前置的视图（其余键保持原相对序）。
+
+    旧三份渲染口都是**固定 `if` 序**（kill → collect → explore → find → use → talk），与目标
+    mapping 的插入序无关；引擎 `lines()` 按**插入序**出行 ⇒ 交给引擎前先把声明序还原出来。
+    """
+    order = _OBJ_ORDER
+    return {**{k: obj[k] for k in order if k in obj},
+            **{k: v for k, v in obj.items() if k not in order}}
+
+
+def _obj_lines(obj, *, progress=None, state=None, text_of=None):
+    """目标行**骨架**：引擎注册表 + 内容侧声明序 + 该出口自己的 `text_of` 模板。"""
+    return _OBJECTIVES.lines(_obj_in_order(obj), progress=progress, state=state,
+                             text_of=text_of)
+
+
+def _one_text_of(type_key, obj, prog, st):
+    """接取/交付通知的**单行**目标模板（`obj_text` 口径；行文逐字保留，不出的型 → None）。"""
+    if not obj.get(type_key):
+        return None
+    if type_key == "kill":
+        return f"击败 {obj['kill']} ×{_OBJECTIVES.need_of(obj, 'kill')}"
+    if type_key == "collect":
         # v125.1 P2：s64 等 collect_count 无 count 的复合目标不再 KeyError
-        return f"收集 {obj['collect']} ×{obj.get('collect_count') or obj.get('count', 1)}"
-    if obj.get("explore"):
+        return f"收集 {obj['collect']} ×{_OBJECTIVES.need_of(obj, 'collect')}"
+    if type_key == "explore":
         return f"前往 {_cs.MAP_BY_ID.get(obj['explore'], {}).get('name', '？')}"
-    if obj.get("find"):
+    if type_key == "find":
         # v97.1 告示委托：在指定地图探索概率找到目标
         return f"在 {_cs.MAP_BY_ID.get(obj.get('map', ''), {}).get('name', '？')} 寻找 {obj['find']}(探索有概率遇到)"
-    if obj.get("use"):
+    if type_key == "use":
         # v124 use 目标：使用指定物品达成
         return f"使用 {obj['use']}"
-    if obj.get("talk"):
+    if type_key == "talk":
         npc = _cq.NPCS.get(obj["talk"], {})
         return f"与 {npc.get('name', '？')} 交谈"
-    return "？"
+    return None
+
+
+def obj_text(obj):
+    """目标单行摘要（取接取通知 / 交付面板用；未注册目标 → `"？"`，口径分歧⑤）。"""
+    _lines = _obj_lines(obj, text_of=_one_text_of)
+    return _lines[0] if _lines else "？"
 
 
 def sq_unlocked(quests, sq):
@@ -254,19 +470,20 @@ def sq_unlocked(quests, sq):
     if not u:
         return True
     us = u if isinstance(u, list) else [u]
+    _lane, _main = _lane_log(quests), _log(quests)
     for x in us:
         if not isinstance(x, dict):
             continue
         _typ = x.get("type") or ("side" if x.get("side") else "main" if x.get("main") else None)
         _tid = x.get("id") or x.get("side") or x.get("main") or ""
         if _typ == "side":
-            # 支线完成 = side dict 中该任务 status==done
-            _sq = (quests.get("side") or {}).get(_tid) or {}
-            if _sq.get("status") != "done":
+            # 支线完成 = side 条目状态 == ended（引擎读口；**条目缺失 → todo ≠ ended**，
+            # 与旧 `(_sq or {}).get("status") != "done"` 同义）
+            if _lane.status_of("side", _tid) != _QL_STATES["ended"]:
                 return False
         elif _typ == "main":
-            _cm = quests.get("completed_main") or []
-            if _tid not in _cm and quests.get("main_quest") != _tid:
+            # 主线完成 = 在 completed_main 历史里 **或** 正是当前环（引擎读口 done/current）
+            if _tid not in (_main.done or []) and _main.current != _tid:
                 return False
     return True
 
@@ -292,7 +509,8 @@ def available_quest_list(player, quests, mq) -> list:
     支线按 _cq.SIDE_QUESTS 顺序；告示委托（board）不在此列（须去告示板指名接取）。
     """
     available = []
-    if mq and quests.get("main_status") == "pending":
+    _side = _log(quests).lane()
+    if mq and _log(quests).status == _QL_STATES["todo"]:
         giver = _cq.NPCS.get(mq["giver"]) or _w.ALL_WILD.get(mq["giver"]) or {}
         if giver.get("map") == player["cur_map"]:
             available.append({
@@ -300,7 +518,7 @@ def available_quest_list(player, quests, mq) -> list:
                 "line": f"主线『{mq['name']}』（{giver.get('name', '？')}发布）",
             })
     for sq in _cq.SIDE_QUESTS:
-        if sq["id"] in (quests.get("side") or {}):
+        if sq["id"] in _side:
             continue
         # v124 链式支线：unlock 前置未满足不出现在可接列表
         if not sq_unlocked(quests, sq):
@@ -331,23 +549,17 @@ def update_explore_quests(group_id, qq_id, map_id):
     quests = db.get_quests(group_id, qq_id)
     changed = False
     # 主线 explore（v105：仅已接取(active)时触发——pending 未接取到达目标图不得自动完成+发奖）
-    main_id = quests.get("main_quest")
-    if main_id and quests.get("main_status") == "active":
+    main_id = _log(quests).current
+    if main_id and _log(quests).status == _QL_STATES["live"]:
         mq = next((q for q in _cq.MAIN_QUESTS if q["id"] == main_id), None)
-        if mq and mq["objective"].get("explore") == map_id:
+        if mq and _OBJECTIVES.hits(mq["objective"], {"kind": "explore", "map": map_id}):
             # v124.3：奖励统一走 _grant_quest_rewards（exp/gold/升级 + reward_item 全格式
             # + reward_pet/reward_mount/unlock_class）——此前 explore 自动完成只有
             # reward_item 单值，reward_pet 配了也静默不发
             grant_quest_rewards(group_id, qq_id, mq, lines)
-            completed = list(quests.get("completed_main", []))
-            completed.append(main_id)
-            quests["completed_main"] = completed
-            quests["main_quest"] = mq["next"]
-            # v105 M19 P1：explore 自动完成必须重置 main_status=pending（与 _take_main_quest
-            # 交付分支一致）——此前遗留 "active" 导致任务面板显示"进行中"而非"未接取"、
-            # 对话树 quest_pending 接取入口不亮（q1_5 完成后 q1_6 需 3-4 轮对话才兜底接取）
-            quests["main_status"] = "pending"
-            quests["main_progress"] = {}
+            # 交付四步（历史追加 current / 当前环换 next / 状态回未接取 / 进度清空）走引擎；
+            # 旧实现手写这四步（v105 M19 P1 注释里的「与 _take_main_quest 交付分支一致」）。
+            quests = _log(quests).deliver(lane=None, next_of=lambda _cur: mq["next"])
             changed = True
             lines.append(f"📜 主线『{mq['name']}』达成！奖励：经验 +{mq['reward_exp']} 金币 +{mq['reward_gold']}")
             # v105 M19 P2：explore 自动完成补发声望（奖励本体已并入 _grant_quest_rewards）
@@ -361,17 +573,18 @@ def update_explore_quests(group_id, qq_id, map_id):
             else:
                 lines.append("🎊 恭喜！你完成了全部主线任务，成为奥兰迪亚的传说！")
     # 支线 explore
-    side = dict(quests.get("side", {}))
-    for sid, sq in list(side.items()):
-        if sq.get("status") == "active":
+    _lane = _lane_log(quests)
+    for sid, sq in list(_lane.lane("side").items()):
+        if _lane.status_of("side", sid) == _QL_STATES["live"]:
             sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
-            if sqd and sqd["objective"].get("explore") == map_id:
-                sq["status"] = "ready"
+            if sqd and _OBJECTIVES.hits(sqd["objective"], {"kind": "explore", "map": map_id}):
+                # 条目置 ready（引擎改状态；进度不动，与旧实现只写 status 同义）
+                quests = _lane.set_status("ready", lane="side", key=sid)
+                _lane = _lane_log(quests)
                 changed = True
                 _g = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
                 lines.append(f"📜 支线『{sqd['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(sqd['giver'])}吧～")
     if changed:
-        quests["side"] = side
         db.save_quests(group_id, qq_id, quests)
     return lines
 
@@ -380,16 +593,18 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
     lines = []
     player = db.get_player(group_id, qq_id)
     quests = db.get_quests(group_id, qq_id)
-    main_id = quests.get("main_quest")
+    main_id = _log(quests).current
     if not main_id:
         lines.append("🎊 主线任务已全部完成，你已是奥兰迪亚的传说！")
         return lines
     mq = next((q for q in _cq.MAIN_QUESTS if q["id"] == main_id), None)
     # 存档容错：main_quest 指向已不存在的任务（旧存档/主线数据变更）→ 重置回主线起点
     if not mq and main_id:
-        quests["main_quest"] = "q1_1"
-        quests["main_status"] = "pending"
-        quests["main_progress"] = {}
+        # 引擎无「换当前环且不追加历史」的迁移口（`deliver` 是唯一改 current 的动作，但它
+        # 会追加 archive）⇒ 用 `accept(entry=…)` 把三格一次性写回（仍走引擎的建条目路径）
+        quests = _log(quests).accept(lane=None, key=main_id,
+                                     entry={_QL_FIELDS["current"]: "q1_1"},
+                                     status=_QL_STATES["todo"], progress={})
         main_id = "q1_1"
         mq = next((q for q in _cq.MAIN_QUESTS if q["id"] == main_id), None)
     if not mq or mq["giver"] != npc_id:
@@ -399,31 +614,33 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
         if mq:
             lines.append(f"📜 当前主线『{mq['name']}』由 {need_npc} 发布。")
         return lines
-    st = quests.get("main_status", "pending")
+    st = _log(quests).status
     # v105 P0：collect 型主线（q5_5 圣光百合）——背包材料足够即置 ready
     # （对齐支线逻辑 talk_actions.py:111-113 实时数背包；交付时再扣材料）
     # 放在状态分发前：pending 接取时材料已齐 → 直接可交付；active 回来找 NPC → 置 ready
     obj0 = mq["objective"]
-    if obj0.get("collect") and st != "ready" and db.count_item(group_id, qq_id, obj0["collect"]) >= obj0.get("count", 1):
-        quests["main_status"] = "ready"
-        quests["main_progress"] = {obj0["collect"]: obj0.get("count", 1)}
+    if obj0.get("collect") and st != "ready" and db.count_item(group_id, qq_id, obj0["collect"]) >= _need_main_collect(obj0):
+        # 主线 collect 口径 = 只看 `count`（口径分歧④第二种；与 `collect` 型的
+        # `collect_count or count` 故意不同 —— 这一处逐字保留）
+        quests = _log(quests).accept(lane=None, key=main_id, status="ready",
+                                     progress={obj0["collect"]: _need_main_collect(obj0)})
         db.save_quests(group_id, qq_id, quests)
         st = "ready"
     if st == "pending":
         # v169.1：主线 min_level 硬门槛（高经验主线防跨级接取；suggest_lv 仅软提示保留）
         if mq.get("min_level") and player["level"] < mq["min_level"]:
             return lines + [f"🛡️ 『{mq['name']}』需要 Lv.{mq['min_level']} 才能接取！（你当前 Lv.{player['level']}）先去提升实力吧～"]
-        quests["main_status"] = "active"
-        quests["main_progress"] = {}
+        quests = _log(quests).accept(lane=None, key=main_id,
+                                     status=_QL_STATES["live"], progress={})
         # talk 型任务：与发布 NPC 交谈即达成目标（对话即完成）
         obj = mq["objective"]
         if obj.get("talk") and obj["talk"] == npc_id:
-            quests["main_status"] = "ready"
-            quests["main_progress"] = {obj["talk"]: 1}
+            quests = _log(quests).accept(lane=None, key=main_id, status="ready",
+                                         progress={obj["talk"]: 1})
         # v105 P2：explore 型主线接取时已在目标地图 → 直接置 ready（免出图重进）
         if obj.get("explore") and player.get("cur_map") == obj["explore"]:
-            quests["main_status"] = "ready"
-            quests["main_progress"] = {obj["explore"]: 1}
+            quests = _log(quests).accept(lane=None, key=main_id, status="ready",
+                                         progress={obj["explore"]: 1})
         db.save_quests(group_id, qq_id, quests)
         lines.append(f"📜 【接取任务】『{mq['name']}』")
         if mq.get("story"):
@@ -433,17 +650,17 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
         # v95.25 #138：主线等级建议（软提示，不拦截接取）——suggest_lv 在 quests.py 数据里
         if mq.get("suggest_lv") and player["level"] < mq["suggest_lv"]:
             lines.append(f"  ⚠️ 建议等级 Lv.{mq['suggest_lv']}，你才 Lv.{player['level']}——可以先练练级再挑战！")
-        if quests["main_status"] == "ready":
+        if _log(quests).status == "ready":
             lines.append("  ✨ 交谈完成！再与这位 NPC 对话即可交付任务。")
     elif st == "ready":
         # 交任务领奖
         obj = mq.get("objective") or {}
         # v105 P0：collect 型主线交付时扣材料（先复核背包，材料被消耗则回到进行中）
         if obj.get("collect"):
-            need = obj.get("count", 1)
+            need = _need_main_collect(obj)
             if db.count_item(group_id, qq_id, obj["collect"]) < need:
-                quests["main_status"] = "active"
-                quests["main_progress"] = {}
+                quests = _log(quests).accept(lane=None, key=main_id,
+                                             status=_QL_STATES["live"], progress={})
                 db.save_quests(group_id, qq_id, quests)
                 lines.append(f"📜 交付『{mq['name']}』需要 {obj['collect']} ×{need}，你背包里不够了，先去凑齐吧～")
                 return lines
@@ -454,12 +671,9 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
         # + reward_pet/reward_mount/unlock_class）——此前主线交付只支持 reward_item
         # 单值 + reward_pet，eq:/list 随机/坐骑/隐藏职业配了不发
         grant_quest_rewards(group_id, qq_id, mq, lines)
-        completed = list(quests.get("completed_main", []))
-        completed.append(main_id)
-        quests["completed_main"] = completed
-        quests["main_quest"] = mq["next"]
-        quests["main_status"] = "pending"
-        quests["main_progress"] = {}
+        # 交付四步走引擎：历史追加 current（**保序不去重**，口径分歧①）→ current 换 next →
+        # 状态回 todo → 进度清空。与 `_take_main_quest` / explore 完成三处**同一份语义**。
+        quests = _log(quests).deliver(lane=None, next_of=lambda _cur: mq["next"])
         db.save_quests(group_id, qq_id, quests)
         lines.append(f"✅ 【任务完成】『{mq['name']}』！")
         if mq.get("ending"):
@@ -521,7 +735,7 @@ def side_available_list(group_id, qq_id, npc_id, npc) -> list:
     """
     player = db.get_player(group_id, qq_id) or {}
     quests = db.get_quests(group_id, qq_id)
-    side = quests.get("side", {}) or {}
+    side = _lane_log(quests).lane("side")
     out = []
     for sq in _cq.SIDE_QUESTS:
         if sq["giver"] != npc_id:
@@ -568,9 +782,9 @@ def offer_side_quest(group_id, qq_id, npc_id, sid) -> list:
     if not sq:
         return []
     quests = db.get_quests(group_id, qq_id)
-    side = dict(quests.get("side", {}))
-    side[sid] = {"status": "active", "progress": {}}
-    quests["side"] = side
+    # 接取 = 建条目（引擎 `accept`：status=live、进度按 side 的 dict 口径清空）
+    quests = _lane_log(quests).accept(lane="side", key=sid, status=_QL_STATES["live"],
+                                      progress={})
     db.save_quests(group_id, qq_id, quests)
     return [
         f"📜 【支线】『{sq['name']}』{sq['desc']}",
@@ -589,7 +803,7 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
     player = db.get_player(group_id, qq_id) or {}
     lines = []
     quests = db.get_quests(group_id, qq_id)
-    side = dict(quests.get("side", {}))
+    side = _lane_log(quests).lane("side")
     available = side_available_list(group_id, qq_id, npc_id, npc)
     av_ids = {a["sid"] for a in available}
     changed = False
@@ -599,7 +813,8 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
         if sq["id"] in side:
             continue
         if sq["id"] in av_ids:
-            side[sq["id"]] = {"status": "active", "progress": {}}
+            quests = _lane_log(quests).accept(lane="side", key=sq["id"],
+                                              status=_QL_STATES["live"], progress={})
             changed = True
             lines.append(f"📜 【支线】『{sq['name']}』{sq['desc']}")
             lines.append(f"  奖励：经验 +{sq['reward_exp']} 金币 +{sq['reward_gold']}")
@@ -628,15 +843,15 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
                 )
                 continue
     if changed:
-        quests["side"] = side
         db.save_quests(group_id, qq_id, quests)
     # v95.4：该 NPC 有已完成支线 → 提示交付入口（反馈：可交任务找不到交付方式）
     # v95.15 #73：代词按 NPC 性别（迷路骑士等男性 NPC 用"他"）
     # v95.16 #75：按是否有对话树区分交付引导（无对话树 NPC 的『对话』没有交付选项）
     _ta = "她" if npc.get("gender") == "女" else "他"
-    for sid, sq in list(quests.get("side", {}).items()):
+    _lane = _lane_log(quests)
+    for sid, sq in list(_lane.lane("side").items()):
         sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
-        if sqd and sqd["giver"] == npc_id and sq.get("status") == "ready":
+        if sqd and sqd["giver"] == npc_id and _lane.status_of("side", sid) == "ready":
             if _cq.DIALOGUES.get(npc_id):
                 lines.append(f"✅ 『{sqd['name']}』已完成！与{_ta}对话即可交付～")
             else:
@@ -734,14 +949,14 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
     sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
     if not sqd:
         return ["未知支线任务。"]
-    sq = quests.get("side", {}).get(sid)
+    sq = _lane_log(quests).entry("side", sid)
     if not sq:
         return ["这个任务还没完成呢。"]
     obj = sqd["objective"]
     # 收集型：实时检查背包材料（不依赖 ready 状态）
     if obj.get("collect"):
         # v87 复合目标：kill+collect（魔剑士试炼），collect_count 独立于 kill count
-        need = obj.get("collect_count") or obj.get("count", 1)  # v125.1 P2：s64 等 collect_count 无 count 不再 KeyError
+        need = _OBJECTIVES.need_of(obj, "collect")  # v125.1 P2：s64 等 collect_count 无 count 不再 KeyError
         _ckey = C.resolve("materials", obj["collect"])
         have = db.count_item(group_id, qq_id, _ckey)
         if have < need:
@@ -751,7 +966,7 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
             kp = (sq.get("progress") or {}).get(obj["kill"], 0)
             if kp < obj["count"]:
                 return [f"还要击败 {obj['kill']} ×{obj['count'] - kp}(当前 {kp}/{obj['count']})！"]
-    elif sq.get("status") != "ready":
+    elif _lane_log(quests).status_of("side", sid) != "ready":
         return ["这个任务还没完成呢。"]
     # v124 分支任务：第一次交付输出选项，等待玩家回复数字
     br = sqd.get("branch")
@@ -760,7 +975,9 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
         if sq.get("branch_wait"):
             return [f"{br.get('prompt', '')}\n{_tip('quest_branch')}\n" + "\n".join(
                 f"  {o.get('key', str(i + 1))}. {o.get('label', '')}" for i, o in enumerate(opts))]
-        quests["side"][sid] = {**sq, "status": "ready", "branch_wait": True}
+        # 置「可交 + 分支等待」（分支等待是**存档里的一个布尔键**，改名即改存档）
+        quests = _lane_log(quests).accept(lane="side", key=sid,
+                                          entry={**sq, "branch_wait": True}, status="ready")
         db.save_quests(group_id, qq_id, quests)
         _o = [f"  {o.get('key', str(i + 1))}. {o.get('label', '')}" for i, o in enumerate(opts)]
         return [f"{br.get('prompt', '')}\n{_tip('quest_branch')}\n" + "\n".join(_o)]
@@ -788,7 +1005,7 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
             db.set_talk_flag(group_id, qq_id, sqd.get("giver", ""), _cf)
     # 收集类：扣除材料
     if obj.get("collect"):
-        need = obj.get("collect_count") or obj.get("count", 1)  # v125.1 P2：s64 等 collect_count 无 count 不再 KeyError
+        need = _OBJECTIVES.need_of(obj, "collect")  # v125.1 P2：s64 等 collect_count 无 count 不再 KeyError
         for _ in range(need):
             db.remove_item(group_id, qq_id, _ckey)
         # v126.2：鱼获个体属性在 item_data.tags，remove_item 自动截断，无需额外同步
@@ -800,8 +1017,9 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
     # reward_pet/reward_mount/unlock_class）——逻辑与支线原实现完全一致（列表随机 /
     # eq: 名册 / items→materials 顺序），返回结算后 player 供下方 _rule_fire 使用
     player = grant_quest_rewards(group_id, qq_id, sqd, lines)
-    # v95.12：交付后保留条目标记 done（无 completed_side 列），防止 _offer_side_quests 自动重接
-    quests["side"][sid] = {"status": "done"}
+    # v95.12：交付后条目标记 done（无 completed_side 列），防止 _offer_side_quests 自动重接
+    # 子账本交付 = 条目置**最小终态一格**（引擎 `deliver`；口径分歧①：不追加历史）
+    quests = _lane_log(quests).deliver(lane="side", key=sid)
     db.save_quests(group_id, qq_id, quests)
     # v104 M20：行会委托每日（complete_side）——支线交付完成 +1，达标发奖
     _bump_daily_progress(group_id, qq_id, "complete_side", lines)
@@ -823,32 +1041,32 @@ def talk_quest_progress(group_id, qq_id, npc_id) -> list:
     v105 P0/P2：collect 型主线对话时实时数背包（材料足够 → ready）；
     explore 型主线已在目标地图 → ready（免出图重进）。"""
     quests = db.get_quests(group_id, qq_id)
-    if quests.get("main_status") != "active":
+    if _log(quests).status != _QL_STATES["live"]:
         return []
-    mid = quests.get("main_quest")
+    mid = _log(quests).current
     if not mid:
         return []
     mq = next((q for q in _cq.MAIN_QUESTS if q["id"] == mid), None)
     if not mq:
         return []
     obj = mq.get("objective", {})
-    if obj.get("talk") == npc_id:
-        quests["main_status"] = "ready"
-        quests["main_progress"] = {npc_id: 1}
+    if _OBJECTIVES.hits(obj, {"kind": "talk", "talk": npc_id}):
+        quests = _log(quests).accept(lane=None, key=mid, status="ready",
+                                     progress={npc_id: 1})
         db.save_quests(group_id, qq_id, quests)
         return ["✨ 交谈完成！再与这位 NPC 对话即可交付任务。"]
     if obj.get("collect") and mq.get("giver") == npc_id:
-        need = obj.get("count", 1)
+        need = _need_main_collect(obj)
         if db.count_item(group_id, qq_id, obj["collect"]) >= need:
-            quests["main_status"] = "ready"
-            quests["main_progress"] = {obj["collect"]: need}
+            quests = _log(quests).accept(lane=None, key=mid, status="ready",
+                                         progress={obj["collect"]: need})
             db.save_quests(group_id, qq_id, quests)
             return [f"✨ 材料已齐（{obj['collect']} ×{need}）！再与这位 NPC 对话即可交付任务。"]
     if obj.get("explore") and mq.get("giver") == npc_id:
         player = db.get_player(group_id, qq_id)
         if player.get("cur_map") == obj["explore"]:
-            quests["main_status"] = "ready"
-            quests["main_progress"] = {obj["explore"]: 1}
+            quests = _log(quests).accept(lane=None, key=mid, status="ready",
+                                         progress={obj["explore"]: 1})
             db.save_quests(group_id, qq_id, quests)
             return ["✨ 目标地点已到达！再与这位 NPC 对话即可交付任务。"]
     return []
@@ -862,11 +1080,11 @@ def update_use_quests(group_id, qq_id, item_name):
     if not item_name:
         return ""
     quests = db.get_quests(group_id, qq_id)
-    side = quests.get("side") or {}
+    _lane = _lane_log(quests)
     lines = []
     changed = False
-    for sid, sq in list(side.items()):
-        if sq.get("status") != "active":
+    for sid, sq in list(_lane.lane("side").items()):
+        if _lane.status_of("side", sid) != _QL_STATES["live"]:
             continue
         sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
         if not sqd:
@@ -878,12 +1096,15 @@ def update_use_quests(group_id, qq_id, item_name):
                 _pm = db.get_player(group_id, qq_id) or {}
                 if _pm.get("cur_map") != _need_map:
                     continue
-            side[sid] = {"status": "ready", "progress": {"use": item_name}}
+            # 进度补丁由注册表给（`use` 型 fold = 覆盖成 `{"use": 物品名}`）
+            quests = _lane.accept(lane="side", key=sid, status="ready",
+                                  progress=_OBJECTIVES.fold(
+                                      obj, {}, {"kind": "use", "use": item_name}))
+            _lane = _lane_log(quests)
             changed = True
             giver = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
             lines.append(f"✨ 『{sqd['name']}』目标达成！回去找 {giver.get('name', '发布人')} 交付吧～")
     if changed:
-        quests["side"] = side
         db.save_quests(group_id, qq_id, quests)
     return "\n".join(lines)
 
@@ -906,34 +1127,32 @@ def quest_kill_progress(group_id, qq_id, monster):
     lines = []
     quests = db.get_quests(group_id, qq_id)
     changed = False
+    ev = _kill_event(monster)
     # 主线（仅处理已接且进行中的任务；击杀达到目标则变为可交状态）
-    main_id = quests.get("main_quest")
+    main_id = _log(quests).current
     if main_id:
         mq = next((q for q in _cq.MAIN_QUESTS if q["id"] == main_id), None)
-        if mq and quests.get("main_status") == "active":
+        if mq and _log(quests).status == _QL_STATES["live"]:
             prog = dict(quests.get("main_progress", {}))
             obj = mq["objective"]
-            if obj.get("kill") and (monster["name"] == obj["kill"] or monster["name"].startswith(obj["kill"] + "·")):
-                # v95.7 #33：精英/头目变体名包含目标怪名（如『野猪』←『野猪·首领』）也计入任务进度
-                # v105 M19 P2：进度 key 统一记 obj['kill']（此前记 monster['name']，杀精英变体时
-                # 计数入账但面板按 obj['kill'] 读 → 显示 0/N；现精英击杀也计入基础怪 key）
-                # v104 M20 P2：in 后缀包含误伤面过大（『野猪』命中巨型野猪/风车野猪/铁甲野猪/
-                # 岛野猪，『霜巨魔』顶 3 只霜巨魔王），改前缀精确：== 或 「目标·」开头，仅命中
-                # 同名怪与「·」后缀精英/Boss 变体
-                prog[obj["kill"]] = prog.get(obj["kill"], 0) + 1
-                quests["main_progress"] = prog
-                changed = True
-                if prog.get(obj["kill"], 0) >= obj["count"]:
-                    quests["main_status"] = "ready"
-                    _g = _cq.NPCS.get(mq["giver"]) or _w.ALL_WILD.get(mq["giver"]) or {}
-                    lines.append(f"📜 主线『{mq['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(mq['giver'])}吧～")
-                else:
-                    lines.append(f"📜 主线『{mq['name']}』：{prog[obj['kill']]}/{obj['count']}")
+            if obj.get("kill"):
+                # 命中判定 + 进度补丁都由注册表给（`kill` 型 fold = `{目标名: 旧值 + 1}`）
+                patch = _OBJECTIVES.fold(obj, prog, ev)
+                if patch:
+                    prog.update(patch)
+                    quests = _log(quests).bump(patch, lane=None)
+                    changed = True
+                    if prog.get(obj["kill"], 0) >= _OBJECTIVES.need_of(obj, "kill"):
+                        quests = _log(quests).set_status("ready", lane=None)
+                        _g = _cq.NPCS.get(mq["giver"]) or _w.ALL_WILD.get(mq["giver"]) or {}
+                        lines.append(f"📜 主线『{mq['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(mq['giver'])}吧～")
+                    else:
+                        lines.append(f"📜 主线『{mq['name']}』：{prog[obj['kill']]}/{obj['count']}")
     # 每日
     # v94：先清跨天任务（daily 里 _date 不是今天 → 清空），避免旧任务残留
-    if db.expire_daily(quests):
+    if _expire_daily(quests):
         changed = True
-    daily = dict(quests.get("daily", {}))
+    daily = dict(_log(quests).lane("daily"))
     # v125.1 P0 修复：跳过全部元数据键（_date/_completed/_repeat）——原只跳过 _date，
     # _completed(int)/_repeat(dict) 被 dq["objective"] 下标 → TypeError 每日首战必崩
     for dkey, dq in list(daily.items()):
@@ -941,11 +1160,8 @@ def quest_kill_progress(group_id, qq_id, monster):
             continue
         dobj = dq["objective"]
         prog = dq.get("progress", 0)
-        if dobj.get("kill_any"):
-            prog += 1
-        elif dobj.get("kill_elite") and monster.get("is_elite"):
-            prog += 1
-        elif dobj.get("kill_boss") and monster.get("is_boss"):
+        # 命中判定走注册表（每日击杀型 3 键 = kill_any / kill_elite / kill_boss 的 match）
+        if _OBJECTIVES.hits(dobj, ev):
             prog += 1
         dq["progress"] = prog
         changed = True
@@ -957,44 +1173,33 @@ def quest_kill_progress(group_id, qq_id, monster):
     # 无条件写回：即使全部完成（daily 为空）也要清空 quests，否则任务残留会无限重复发奖励
     quests["daily"] = daily
     # 支线（击杀型）
-    side = dict(quests.get("side", {}))
-    for sid, sq in list(side.items()):
-        if sq.get("status") != "active":
+    _lane = _lane_log(quests)
+    for sid, sq in list(_lane.lane("side").items()):
+        if _lane.status_of("side", sid) != _QL_STATES["live"]:
             continue
         sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
         if not sqd:
             continue
         obj = sqd["objective"]
-        if obj.get("kill_any"):
-            # v95.13 修复：kill_any 支线（护送商货等）此前无计数分支，任务永久卡死
-            prog = dict(sq.get("progress", {}))
-            prog["any"] = prog.get("any", 0) + 1
-            sq["progress"] = prog
-            changed = True
-            if prog["any"] >= obj["kill_any"]:
-                sq["status"] = "ready"
-                _g = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
-                lines.append(f"📜 支线『{sqd['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(sqd['giver'])}吧～")
-            else:
-                lines.append(f"📜 支线『{sqd['name']}』：{prog['any']}/{obj['kill_any']}")
-        elif obj.get("kill") and (monster["name"] == obj["kill"] or monster["name"].startswith(obj["kill"] + "·")):
-            # v105 M19 P2：进度 key 统一记 obj['kill']（与主线一致、与面板/交付校验读取一致）
-            # v104 补测发现：支线此前只精确 ==（杀精英变体不推进），现与主线同款前缀精确匹配
-            # v104 M20 P2：in 后缀包含误伤面过大（『盗贼』命中盗贼头目·黑鸦、『霜巨魔』顶 3 只
-            # 霜巨魔王、『月狼』命中月狼王·银鬃），改前缀精确：== 或 「目标·」开头
-            prog = dict(sq.get("progress", {}))
-            # v105 M19 P2：进度 key 统一记 obj['kill']（与主线一致、与面板/交付校验读取一致）
-            prog[obj["kill"]] = prog.get(obj["kill"], 0) + 1
-            sq["progress"] = prog
-            changed = True
-            if prog.get(obj["kill"], 0) >= obj["count"]:
-                sq["status"] = "ready"
-                _g = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
-                lines.append(f"📜 支线『{sqd['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(sqd['giver'])}吧～")
-            else:
-                lines.append(f"📜 支线『{sqd['name']}』：{prog[obj['kill']]}/{obj['count']}")
-    if side:
-        quests["side"] = side
+        prog = dict(sq.get("progress", {}))
+        # v95.13 修复：kill_any 支线（护送商货等）此前无计数分支，任务永久卡死
+        # v105 M19 P2 / v104 M20 P2：击杀进度键统一记 obj['kill']，名字前缀精确匹配
+        patch = _OBJECTIVES.fold(obj, prog, ev)
+        if not patch:
+            continue
+        prog.update(patch)
+        quests = _lane.bump(patch, lane="side", key=sid)
+        _lane = _lane_log(quests)
+        changed = True
+        _key = next(iter(patch))
+        _need = _OBJECTIVES.need_of(obj, _OBJECTIVES.hits(obj, ev)[0])
+        if prog.get(_key, 0) >= _need:
+            quests = _lane.set_status("ready", lane="side", key=sid)
+            _lane = _lane_log(quests)
+            _g = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
+            lines.append(f"📜 支线『{sqd['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(sqd['giver'])}吧～")
+        else:
+            lines.append(f"📜 支线『{sqd['name']}』：{prog[_key]}/{_need}")
     if changed:
         db.save_quests(group_id, qq_id, quests)
     return lines

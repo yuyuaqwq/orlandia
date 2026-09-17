@@ -37,6 +37,9 @@ from __future__ import annotations
 import os
 from typing import Optional
 
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+
 _HERE = os.path.dirname(os.path.abspath(__file__))   # <pkg>/content/mech（端口新增：读包内域文件用）
 
 # ============================================================
@@ -84,6 +87,17 @@ _EVENT_MAP = {
 def _map_event(old_ev: str) -> tuple:
     """旧事件 → saintess_engine 事件；不在表 = 同名直通。"""
     return _EVENT_MAP.get(old_ev, (old_ev,))
+
+
+# 数据行 → `actor["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。
+# ★ `key_of=key` = 同 aid 同事件同 key 只留一条（吃重复食物幂等，判重与旧实现逐字同义）；
+#   `owner_key="_owner"` = **挂载期注入**归属（与 `fire()` 的消费期兜底注入配套）。
+_DECL = Compiler(
+    events=_ENGINE_EVENTS,
+    map_event=_map_event,
+    key_of=lambda d: d.get("key"),
+    owner_key="_owner",
+)
 
 
 # ============================================================
@@ -239,21 +253,11 @@ def install_food_fx(actor: dict, aids: list, logs: list) -> None:
     #   而 `content/apply.py` 已把七族列全（import 即注册）。所以这里**不是**静默 try/except，
     #   而是显式声明「无需运行时注册」。想验证：`from content.mech import equip` 后
     #   `saintess_engine.effects.ACTION_HANDLERS` 里就有 we_* 名词（见端口对拍门禁 §5）。
-    tr = actor.setdefault("triggers", {})
+    actor.setdefault("triggers", {})          # 容器显式落位（旧实现同：本 aid 无声明也建键）
     ef = actor.setdefault("effects", {})
     for aid in aids:
-        raw = food_trigger_decls(aid)
-        for old_ev, effs in raw.items():
-            for b2_ev in _map_event(old_ev):
-                bucket = tr.setdefault(b2_ev, [])
-                for _e in effs:
-                    # 幂等：同 aid 同事件同 type 不重复挂（吃重复食物）
-                    _dup = any(
-                        isinstance(x, dict) and x.get("key") == _e.get("key")
-                        for x in bucket
-                    )
-                    if not _dup:
-                        bucket.append(dict(_e, _owner=actor))
+        # 幂等挂载（同 aid 同事件同 key 不重复挂）：判重 + 追加 + `_owner` 注入三件已并入引擎
+        _DECL.mount(actor, food_trigger_decls(aid), owner=actor, merge="keep")
         pd = food_period_decl(aid)
         if pd:
             entry = ef.get(pd["key"])

@@ -93,6 +93,9 @@ import logging
 
 from typing import Optional
 
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+
 # ============================================================
 # 旧事件集 → saintess_engine 19 事件映射
 # ============================================================
@@ -158,6 +161,18 @@ def map_event(old_ev: str) -> tuple:
         logging.getLogger(__name__).warning(
             "装配层事件名 %r 不在引擎事件全集里（fire 会静默忽略 → 该触发器永不生效）", old_ev)
     return (old_ev,)
+
+
+# 数据行 → `actor["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。
+# ★ `key_of=None` = **不去重**，逐字保留三流展开 `extend` 的非幂等语义（靠 `content/apply.py`
+#   的 `_content_applied` 保险丝保证每场只装配一次）；旧名展开仍走上面的 `map_event`
+#   （未知名告警 + 直通，语义一字未改）。
+_DECL = Compiler(
+    events=_ENGINE_EVENTS,
+    map_event=map_event,
+    key_of=None,
+    owner_key=None,
+)
 
 
 # ============================================================
@@ -1394,9 +1409,8 @@ def legendary_triggers(actor: dict) -> dict:
         raw = legendary_triggers_for_key(lid, actor)
         if not raw:
             continue
-        for old_ev, effs in raw.items():
-            for b2_ev in map_event(old_ev):
-                out.setdefault(b2_ev, []).extend(list(effs))
+        for ev, effs in _DECL.compile(raw).items():
+            out.setdefault(ev, []).extend(effs)
     return out
 
 
@@ -1431,9 +1445,8 @@ def weapon_triggers(actor: dict) -> dict:
         raw = triggers_for_key(key, actor)
         if not raw:
             continue  # 未支持 key：静默跳过（范围外）
-        for old_ev, effs in raw.items():
-            for b2_ev in map_event(old_ev):
-                out.setdefault(b2_ev, []).extend(list(effs))
+        for ev, effs in _DECL.compile(raw).items():
+            out.setdefault(ev, []).extend(effs)
     return out
 
 
@@ -1455,9 +1468,8 @@ def affix_triggers(actor: dict) -> dict:
         raw = affix_triggers_for_key(aid, actor)
         if not raw:
             continue
-        for old_ev, effs in raw.items():
-            for b2_ev in map_event(old_ev):
-                out.setdefault(b2_ev, []).extend(list(effs))
+        for ev, effs in _DECL.compile(raw).items():
+            out.setdefault(ev, []).extend(effs)
     return out
 
 
@@ -1490,9 +1502,8 @@ def apply_to_actor(actor: dict) -> None:
             merged.setdefault(ev, []).extend(effs)
     except Exception:
         pass  # 传说专属装配异常不阻断其余（容错铁律）
-    tr = actor.setdefault("triggers", {})
-    for ev, effs in merged.items():
-        tr.setdefault(ev, []).extend(effs)
+    actor.setdefault("triggers", {})          # 容器显式落位（旧实现同：本 actor 无声明也建键）
+    _DECL.mount(actor, merged)
     # 2) 被动常驻：heal amp（vital_band 等 proc_heal amp 4 key）→ effects["heal_amp_pct"] 条目
     amp = 0.0
     for key in equipped_weapon_keys(actor):

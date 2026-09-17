@@ -42,10 +42,15 @@
      1 参面不适用于本族 —— 详见本批设计稿 `out/U1-I5_DESIGN.md` §3。
    · 动作查表改用引擎 `has()` 先探（未注册 / 非法键一律静默不崩）—— 本批**唯一**行为差异，
      方向 = 变安全，详见设计稿 §4.3。
+4. **★ U1-D2 L7（装配形状迁移）**：`apply_cond_procs` 里的「手写判重 + `append`」已改走引擎
+   声明编译器 `saintess_engine.battle.declarations`（去重键 `action`、写策略 `replace`；
+   模块级 `_DECL`）——**行为逐字不变**（门禁④ 144 格 + 旧实现 exec 逐格比）。
 """
 from __future__ import annotations
 
 from saintess_engine.battle.effects import register_action
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.conditions import Conditions        # ★ U1-I5：条件注册表 = 引擎 conditions.Conditions
 
 # 敌方减益键（控制/属性降）；DOT/印记类走 effects 层数判定
@@ -203,6 +208,12 @@ __all__ = ["skill_cond_mult_act", "COND_PREDICATES", "register_cond", "apply_con
 #         真源里的未使用 import，原样保留不删）
 #   本块**追加在 `__all__` 之后** → 既有逐字对拍（`d2_misc_verify.py` A4）不受影响。
 # ============================================================
+#: 声明编译器（U1-D2 L7）：去重键 = `action`（同一 actor 只挂一条条件乘区）、
+#: 写策略 = `replace`（命中就地浅盖；载荷是常量字面量 ⇒ 与旧「命中即跳过」逐字等价）。
+_DECL = Compiler(events=_ENGINE_EVENTS,
+                 key_of=lambda d: d.get("action"), owner_key=None)
+
+
 def apply_cond_procs(actor: dict) -> None:
     """装配：扫已学技能 → 存在带 cond 的技能才挂 dmg_calc/heal_calc 条件乘区。"""
     cn = actor.get("class_name") or ""
@@ -223,9 +234,8 @@ def apply_cond_procs(actor: dict) -> None:
             break
     if not has_cond:
         return
-    trig = actor.setdefault("triggers", {})
+    # 宿主容器预置：旧实现在 **零命中** 时也会建出空 `triggers`（可观测副作用，逐字保留）
+    actor.setdefault("triggers", {})
     for ev in ("dmg_calc", "heal_calc"):
-        lst = trig.setdefault(ev, [])
-        if not any(isinstance(e, dict) and e.get("action") == "skill_cond_mult"
-                   for e in lst):
-            lst.append({"action": "skill_cond_mult"})
+        # 幂等挂载：`action` 去重（命中就地浅盖同值常量 ⇒ 等价于旧「命中即跳过」）
+        _DECL.mount(actor, {ev: [{"action": "skill_cond_mult"}]}, merge="replace")

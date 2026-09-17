@@ -13,6 +13,11 @@
 
 **注入面**：`content/persistence/handles.py`（`bind(db_path=…, clock=…, flush_log=…, lock=…)`）；
 宿主装配点 = `game/store/store_factory.py`。纯包环境（编辑器）需注入自己的句柄 —— 见 B19/B20 接点。
+
+★ U1-D2 L5（形状迁移）：改走引擎 `store/snapshots` 的 **`ttl=None`（不过期门）** 那一支
+（口径分歧 ②：元素使用记录**没有**时间维度，`SnapshotSpec` 不声明 `stamp`/`stamp_key`）。
+`props_use_claim_atomic` 的 `atomic()` 事务边界**逐字保留**（读→判→写仍在同一事务内）。
+表结构仍由 `persistence/tables.json` 建（**一字节不动**）；对外签名与返回**逐键逐值不变**。
 """
 """奥兰迪亚·余烬纪年存储层 - props_use（场景元素每日彩蛋使用记录，v87.12）
 
@@ -22,7 +27,26 @@
 """
 import json
 
-from .handles import _connect, _lock, atomic
+from saintess_engine.store import Column, DeclaredRepository, TableSpec
+from saintess_engine.store.snapshots import SnapshotSpec, declare_snapshot
+
+from .handles import _connect, _lock, atomic, get_db
+
+#: 快照形状（**形状在引擎、取值在这里**）：owner=qq_id / blob=used / **无时间维度**。
+_SNAP_SPEC = SnapshotSpec("props_use", owner="qq_id", blob="used")
+_SNAP = None
+
+
+def _snap():
+    """props_use 快照仓储（表由 `tables.json` 建；此处只把既有表装配成引擎快照口）。"""
+    global _SNAP
+    if _SNAP is None:
+        db = get_db()
+        repo = DeclaredRepository(
+            db, TableSpec("props_use", [Column("qq_id", "TEXT", pk=True)]),
+            json_fields=("used",))
+        _SNAP = declare_snapshot(db, _SNAP_SPEC, repo=repo)
+    return _SNAP
 
 
 def get_props_use(qq_id):
@@ -31,12 +55,8 @@ def get_props_use(qq_id):
     with _lock:
         conn = _connect()
         try:
-            row = conn.execute(
-                "SELECT used FROM props_use WHERE qq_id=?", (qq_id,)
-            ).fetchone()
-            if not row:
-                return {}
-            return json.loads(row["used"] or "{}")
+            # ttl=None = 不过期门（本表无时间维度；等价 raw）
+            return _snap().get(conn, qq_id, now=None, ttl=None) or {}
         finally:
             conn.close()
 
@@ -48,11 +68,7 @@ def mark_props_use(qq_id, key, date):
     with _lock:
         conn = _connect()
         try:
-            conn.execute(
-                "INSERT INTO props_use (qq_id, used) VALUES (?,?) "
-                "ON CONFLICT(qq_id) DO UPDATE SET used=excluded.used",
-                (qq_id, json.dumps(used, ensure_ascii=False)),
-            )
+            _snap().put(conn, qq_id, used)
             conn.commit()
         finally:
             conn.close()
@@ -65,25 +81,13 @@ def props_use_claim_atomic(qq_id, key, date):
     记为今天已用（调用方据此发放奖励），False 表示今天已被拿走（并发后手/重复调用）。
     """
     with atomic() as conn:
-        row = conn.execute(
-            "SELECT used FROM props_use WHERE qq_id=?", (qq_id,)
-        ).fetchone()
-        used = {}
-        if row and row["used"]:
-            try:
-                used = json.loads(row["used"] or "{}")
-                if not isinstance(used, dict):
-                    used = {}
-            except (ValueError, TypeError):
-                used = {}
+        used = _snap().get(conn, qq_id, now=None, ttl=None)
+        if not isinstance(used, dict):
+            used = {}
         if used.get(key) == date:
             return False
         used[key] = date
-        conn.execute(
-            "INSERT INTO props_use (qq_id, used) VALUES (?,?) "
-            "ON CONFLICT(qq_id) DO UPDATE SET used=excluded.used",
-            (qq_id, json.dumps(used, ensure_ascii=False)),
-        )
+        _snap().put(conn, qq_id, used)
         return True
 
 __all__ = [

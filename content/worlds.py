@@ -29,6 +29,9 @@ import time
 import uuid
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
+
+from saintess_engine.store import Column, DeclaredRepository, TableSpec
+from saintess_engine.store.snapshots import SnapshotSpec, declare_snapshot
 # ============================================================
 # ① 宿主替身口（B13-L2 搬包 2026-09-14；正文 `db.xxx(...)` / `C.xxx` 一行未改）
 #    写法照抄包内 `content/world_cmds.py`（B9 线2）：注入优先 → sys.modules → importlib，
@@ -67,6 +70,40 @@ instance_worlds: Dict[str, dict] = {}
 
 EVENT_STATE_PREFIX = "instance_world_"
 
+# ============================================================
+# ★ U1-D2 L5：副本大陆落库形状改走引擎快照（`store/snapshots`）。
+#   `event_state` 是共享 KV 表（U1-I4 门禁钉着 talk_/wildmeta_/timed_events_ 键族），
+#   本批**只**把 `instance_world_` 键族装配成「owner=key / blob=value / 载荷内 created_at」
+#   的快照；口径分歧 ⑩：`sweep` 只扫自己那张表，`instance_world_` 前缀扫描留在本文件第二层。
+# ============================================================
+_SNAP_SPEC = SnapshotSpec("event_state", owner="key", blob="value",
+                          stamp_key="created_at", expired_key="_expired")
+_SNAP = None
+
+
+def _snap():
+    """副本大陆快照仓储（表由 `persistence/tables.json` 建；此处只装配既有表）。"""
+    global _SNAP
+    if _SNAP is None:
+        from .persistence.battle_state import _store_ready
+        from .persistence.handles import get_db
+        db = get_db()
+        repo = DeclaredRepository(
+            db, TableSpec("event_state", [Column("key", "TEXT", pk=True)]),
+            json_fields=("value",))
+        _SNAP = declare_snapshot(db, _SNAP_SPEC, prepare=_store_ready, repo=repo)
+    return _SNAP
+
+
+def _expire_instance_world(owner, payload):
+    """引擎过期回调：把 `instance_world_<wid>` 对应的内存大陆一并回收（幂等）。"""
+    try:
+        key = str(owner)
+        wid = key[len(EVENT_STATE_PREFIX):] if key.startswith(EVENT_STATE_PREFIX) else key
+        destroy_instance_world(wid)
+    except Exception:
+        pass
+
 
 # ============================================================
 # 内存态访问
@@ -83,25 +120,28 @@ def get_instance_world(world_id: str) -> Optional[dict]:
 def _restore_from_db(world_id: str) -> None:
     """重启后从 event_state 恢复大陆实例（惰性：首次访问才加载）。"""
     try:
-        from .persistence.world import get_event_state
-        raw = get_event_state(f"{EVENT_STATE_PREFIX}{world_id}")
-        if raw:
-            data = json.loads(raw) if isinstance(raw, str) else raw
-            if isinstance(data, dict):
-                # P0-2（2026-08-30 审计）：老档/异常路径落库的 set 被 default=str 串化成
-                # 字符串 → 重启恢复成字符集合 → 调查点重复刷奖。恢复后对 st.investigated
-                # 做校验：str 尝试 ast.literal_eval 解析回 list，失败/非 list 重置为空 list。
-                _st = data.get("st")
-                if isinstance(_st, dict) and isinstance(_st.get("investigated"), str):
-                    try:
-                        import ast
-                        _parsed = ast.literal_eval(_st["investigated"])
-                        if not isinstance(_parsed, list):
-                            _parsed = []
-                    except Exception:
+        from .persistence.handles import _connect, _lock
+        with _lock:
+            conn = _connect()
+            try:
+                data = _snap().raw(conn, f"{EVENT_STATE_PREFIX}{world_id}")
+            finally:
+                conn.close()
+        if data is not None:
+            # P0-2（2026-08-30 审计）：老档/异常路径落库的 set 被 default=str 串化成
+            # 字符串 → 重启恢复成字符集合 → 调查点重复刷奖。恢复后对 st.investigated
+            # 做校验：str 尝试 ast.literal_eval 解析回 list，失败/非 list 重置为空 list。
+            _st = data.get("st")
+            if isinstance(_st, dict) and isinstance(_st.get("investigated"), str):
+                try:
+                    import ast
+                    _parsed = ast.literal_eval(_st["investigated"])
+                    if not isinstance(_parsed, list):
                         _parsed = []
-                    _st["investigated"] = _parsed
-                instance_worlds[world_id] = data
+                except Exception:
+                    _parsed = []
+                _st["investigated"] = _parsed
+            instance_worlds[world_id] = data
     except Exception:
         # DB 不可用/损坏 → 当作不存在，调用方自行兜底
         instance_worlds.pop(world_id, None)
@@ -169,33 +209,24 @@ def destroy_instance_world(world_id: str) -> None:
         pass
 
 
-def _json_ready(obj):
-    """v116 兜底（store/battle_state 同构函数）：把 state 里可能残留的 Python set（如
-    phase BOSS 的 _phase_warned / instance st 的 investigated）递归深转成 list，保证
-    json.dumps 序列化不再抛 TypeError / 不再被 default=str 掩盖成字符串；其余类型原样返回。
-
-    P0-2（2026-08-30 审计）：worlds._persist 原先用 json.dumps(default=str) 兜底，
-    set 落库变成字符串，重启恢复成字符集合 → 调查点重复刷奖。本函数在写入前
-    显式清洗，与 store/battle_state.py:11-20 的 _json_ready 逻辑保持一致。
-    """
-    if isinstance(obj, set):
-        return [_json_ready(x) for x in obj]
-    if isinstance(obj, dict):
-        return {k: _json_ready(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_json_ready(x) for x in obj]
-    return obj
-
-
 def _persist(world_id: str) -> None:
-    """落库 event_state（重启防丢）。只落非战斗核心字段（st 也落，可恢复）。"""
+    """落库 event_state（重启防丢）。只落非战斗核心字段（st 也落，可恢复）。
+
+    ★ U1-D2 L5：写路径换引擎快照口（`put`），残留 set 的清洗走引擎 `prepare`
+    （注入口 = `persistence.battle_state._store_ready`，即原 `_json_ready` 口径）。
+    """
     data = instance_worlds.get(world_id)
     if data is None:
         return
     try:
-        from .persistence.world import set_event_state
-        set_event_state(f"{EVENT_STATE_PREFIX}{world_id}",
-                        json.dumps(_json_ready(data), ensure_ascii=False))
+        from .persistence.handles import _connect, _lock
+        with _lock:
+            conn = _connect()
+            try:
+                _snap().put(conn, f"{EVENT_STATE_PREFIX}{world_id}", data)
+                conn.commit()
+            finally:
+                conn.close()
     except Exception:
         pass
 
@@ -255,15 +286,25 @@ def cleanup_stale_instances(max_age_sec: int = 24 * 3600) -> int:
     """
     now = int(time.time())
     cleaned = 0
-    # 1. 内存 dict 轻扫（destroy 同时删内存 + DB 键）
-    stale = []
-    for wid, data in instance_worlds.items():
-        created = int(data.get("created_at", 0) or 0)
-        if created and now - created > max_age_sec:
-            stale.append(wid)
-    for wid in stale:
-        destroy_instance_world(wid)
-    cleaned += len(stale)
+    # 1. 内存 dict 轻扫：TTL 判定走引擎快照口（stamp = 载荷内 created_at，口径分歧 ①）；
+    #    过期者经 destroy_instance_world 一并回收（内存 + DB 键）。
+    from .persistence.handles import _connect as _pconn
+    from .persistence.handles import _lock as _plock
+    _snap_inst = _snap()
+    _keys = [f"{EVENT_STATE_PREFIX}{wid}" for wid in list(instance_worlds)]
+    _expired = []
+    if _keys:
+        with _plock:
+            _c = _pconn()
+            try:
+                for _key in _keys:
+                    if _snap_inst.get(_c, _key, now=now, ttl=max_age_sec) is None:
+                        _expired.append(_key)
+            finally:
+                _c.close()
+    for _key in _expired:
+        destroy_instance_world(_key[len(EVENT_STATE_PREFIX):])
+        cleaned += 1
     # 2. DB event_state 孤儿键扫描（内存已无该 world_id 的 instance_world_* 键）
     try:
         from .persistence.handles import _connect

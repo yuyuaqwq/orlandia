@@ -33,6 +33,11 @@
 4. **参数表单源**：`from .class_data import MECH_CASH, MECH_CFG, BAR_INJECT_FIELDS,
    BAR_STATE_PREFIX`（原表真源 = `game/data/battle_rules.py:624/742/749` +
    `game/data/battle_config.py:455`；本族动作经装配层消费它们）。
+5. **★ U1-D2 L7（装配形状迁移）**：6 处挂载点的「手写判重 + 手写追加」已改走引擎声明编译器
+   `saintess_engine.battle.declarations`（去重键/写策略**逐处**不同，见 `_DECL*` 定义块的注释）；
+   39 个动作体**只有 2 个**（`class_stance_guard_enter` / `class_guard_stance_enter`，各自含挂载点）
+   的挂载动作被换，其余 37 个 `getsource` **逐字节不变**；执行序（含旋律基础叠层的前插）与行为
+   **逐字不变**（门禁④ 144 格 + 旧实现 exec 逐格比）。
 
 依赖 battle 私有槽（动作读 `getattr(battle, …)`，与游戏仓同款；包侧引擎需提供）
 ------------------------------------------------------------------------------
@@ -88,6 +93,8 @@
 """
 from __future__ import annotations
 
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.battle.effects import register_action
 
 # 包内参数表单源（真源见 class_data.py 头注）。本族 39 个动作不直接读这些表（由装配层
@@ -98,6 +105,28 @@ from .class_data import (  # noqa: F401
     MECH_CASH,
     MECH_CFG,
 )
+
+
+# ============================================================
+# 声明编译器（U1-D2 L7）：本文件 **6 处挂载点 / 5 种去重口径**（逐处显式选编译器 + merge）
+# ------------------------------------------------------------
+# 去重键是「同一效果的身份由什么决定」，**逐处不同**（`U1-D2_DESIGN.md` §4.3 口径分歧①）：
+#   · `_DECL_AK`    `(action, key)` —— 同动词同目标态（`_melody_ensure_tick`）
+#   · `_DECL_TYPE`  `type`          —— 同类型态（`class_stance_guard_enter` / 旋律基础叠层）
+#   · `_DECL_JUDGE` `judge.key`     —— 同状态键（`class_guard_stance_enter`；见 out/LANDING.md
+#                                     §「§2.3 口径修正」：`(action,key)` 在此载荷上退化为常量
+#                                     `(None, None)`，会把两把不同姿态的减伤乘区合并成一条 = 改行为）
+#   · `_DECL`       **无去重**（`key_of=None`）—— 走 `merge="append"` 的纯追加口径
+#   （`apply_class_channels` / `apply_class_passives` / `apply_class_mech` 的纯追加点）
+# 写策略（`U1-D2_DESIGN.md` §4.3 口径分歧②）：`keep` = 命中保留既有（旧「命中即跳过」）、
+#   `append` = 旧裸 `append`、`prepend` = 旧 `insert(0)`（执行序语义）。
+# ============================================================
+_DECL = Compiler(events=_ENGINE_EVENTS, key_of=None, owner_key=None)
+_DECL_AK = Compiler(events=_ENGINE_EVENTS,
+                    key_of=lambda d: (d.get("action"), d.get("key")), owner_key=None)
+_DECL_TYPE = Compiler(events=_ENGINE_EVENTS, key_of=lambda d: d.get("type"), owner_key=None)
+_DECL_JUDGE = Compiler(events=_ENGINE_EVENTS,
+                       key_of=lambda d: (d.get("judge") or {}).get("key"), owner_key=None)
 
 
 # ============================================================
@@ -406,10 +435,9 @@ def _melody_ensure_tick(actor, kind: str) -> None:
     """
     if _MELODY_ENEMY_AURA_MAP.get(kind) is not None:
         return
-    lst = actor.setdefault("triggers", {}).setdefault("time_advance", [])
-    if not any(isinstance(e, dict) and e.get("action") == "class_melody_dirge_tick"
-               for e in lst):
-        lst.append({"action": "class_melody_dirge_tick"})
+    # 幂等挂载：`(action, key)` 去重 —— 该桶里本条载荷是唯一带此 action 的项
+    _DECL_AK.mount(actor, {"time_advance": [{"action": "class_melody_dirge_tick"}]},
+                   merge="keep")
 
 
 def _melody_ctrl_apply(battle, actor, foe, ckey: str, turns: float, logs) -> None:
@@ -1552,12 +1580,9 @@ def class_stance_guard_enter(battle, caster, target, params, logs):
     actor.setdefault("effects", {})["stance_guard"] = {
         "stacks": 1, "expire": now + turns}
     # 挂受击反击 trigger（幂等——同 key 不重复挂）
-    trig = actor.setdefault("triggers", {})
-    lst = trig.setdefault("on_taken", [])
-    if not any(isinstance(t, dict) and t.get("type") == "class_stance_counter"
-               for t in lst):
-        lst.append({"type": "class_stance_counter", "chance": 0.40,
-                    "atk_pct": 1.0, "label": "守护姿态"})
+    _DECL_TYPE.mount(actor, {"on_taken": [{"type": "class_stance_counter", "chance": 0.40,
+                                           "atk_pct": 1.0, "label": "守护姿态"}]},
+                     merge="keep")
     logs.append(f"🛡️ 进入守护姿态：受击反击 40%（{turns} 刻）！")
 
 
@@ -1625,12 +1650,12 @@ def class_guard_stance_enter(battle, caster, target, params, logs):
         now = 0.0
     owner.setdefault("effects", {})[key] = {"stacks": 1, "expire": now + turns}
     if reduce_v > 0:
-        lst = owner.setdefault("triggers", {}).setdefault("taken_calc", [])
-        if not any(isinstance(t, dict)
-                   and (t.get("judge") or {}).get("key") == key for t in lst):
-            lst.append({"type": "passive_taken_reduce",
-                        "judge": {"kind": "has_effect", "key": key},
-                        "reduce": reduce_v, "label": cfg.get("name") or key})
+        # 幂等 + 追加：`judge.key` 去重 —— 同状态键不重复挂；**不同姿态键并存**（旧口径逐字）
+        _DECL_JUDGE.mount(owner, {"taken_calc": [
+            {"type": "passive_taken_reduce",
+             "judge": {"kind": "has_effect", "key": key},
+             "reduce": reduce_v, "label": cfg.get("name") or key}]},
+            merge="keep")
     logs.append(f"🪨 进入{cfg.get('name') or key}：受伤 −{int(reduce_v * 100)}%（{turns} 刻）！")
 
 
@@ -2244,7 +2269,8 @@ def apply_class_channels(actor: dict, rules: dict) -> None:
     if not actor:
         return
     cn = actor.get("class_name") or ""
-    trig = actor.setdefault("triggers", {})
+    # 宿主容器预置：旧实现在 **零命中** 时也会建出空 `triggers`（可观测副作用，逐字保留）
+    actor.setdefault("triggers", {})
     for rk, rc in (rules or {}).items():
         if not isinstance(rc, dict):
             continue
@@ -2279,7 +2305,8 @@ def apply_class_channels(actor: dict, rules: dict) -> None:
             # per_dt 透传（tick 渠道：gain 按事件 dt 缩放——见 class_res_channel_gain）
             if per_dt:
                 d["per_dt"] = True
-            trig.setdefault(ev, []).append(d)
+            # 纯追加（无去重）：`type` 载荷取不到 `action` 键 ⇒ 引擎一律落格（旧裸 append 逐字）
+            _DECL.mount(actor, {ev: [d]}, merge="append")
 
 
 def _learned_mech_skills(actor: dict) -> list:
@@ -2340,7 +2367,8 @@ def apply_class_passives(actor: dict) -> None:
         return
     from ..apply import _SKILL_LOOKUP as _PKG_SKILLS
     skill_info = _PKG_SKILLS.skill_info
-    trig = actor.setdefault("triggers", {})
+    # 宿主容器预置：旧实现在 **零命中** 时也会建出空 `triggers`（可观测副作用，逐字保留）
+    actor.setdefault("triggers", {})
     _pending: dict = {}  # (event, agg) -> [(proc, entry)] 聚合族暂存（循环后归并单条）
     for s in names:
         try:
@@ -2419,7 +2447,8 @@ def apply_class_passives(actor: dict) -> None:
         if cfg.get("agg"):
             _pending.setdefault((ev, cfg.get("agg")), []).append((proc, d))
         else:
-            trig.setdefault(ev, []).append(d)
+            # 纯追加（无去重）：被动载荷取不到 `action` 键 ⇒ 引擎一律落格（旧裸 append 逐字）
+            _DECL.mount(actor, {ev: [d]}, merge="append")
         # also 段：同被动第二条事件钩子（如坚城之姿 taken_calc 减伤 + turn_start 免晕）——
         # 复用 d 的参数，覆盖 action/judge/额外字段
         for _also in (cfg.get("also") or []):
@@ -2437,7 +2466,7 @@ def apply_class_passives(actor: dict) -> None:
             if cfg.get("agg"):
                 _pending.setdefault((_ev2, cfg.get("agg")), []).append((proc, _d2))
             else:
-                trig.setdefault(_ev2, []).append(_d2)
+                _DECL.mount(actor, {_ev2: [_d2]}, merge="append")
         # 计数初始化（tenacity 每场 3 次：effects[left_key] = left_init——装配=开战时机）
         _le = cfg.get("left_key")
         if _le and cfg.get("left_init") is not None:
@@ -2447,7 +2476,7 @@ def apply_class_passives(actor: dict) -> None:
     for (ev, agg), entries in _pending.items():
         merged = _merge_agg_entry(agg, entries)
         if merged is not None:
-            trig.setdefault(ev, []).append(merged)
+            _DECL.mount(actor, {ev: [merged]}, merge="append")
 
 
 def _merge_agg_entry(agg: str, entries: list) -> dict:
@@ -2503,7 +2532,8 @@ def apply_class_mech(actor: dict) -> None:
         rules = _mech_cash_rules()
         if not rules:
             return
-        trig = actor.setdefault("triggers", {})
+        # 宿主容器预置：旧实现在 **零命中** 时也会建出空 `triggers`（可观测副作用，逐字保留）
+        actor.setdefault("triggers", {})
         # v181.M-R2：start_full 资源开局满额（读 EFFECT_RULES 条目 start_full 声明，
         # 源 core_resources.cls_you_xia v176（原表随 v181.M-R2c 退役，现单源 EFFECT_RULES energy.start_full）
         # 游侠精力开局满——装配层初始化 effects 条目）
@@ -2545,10 +2575,11 @@ def apply_class_mech(actor: dict) -> None:
                 _sc_r = _rc.get("start_classes") or []
                 if _per <= 0 or not _sc_r or _cn_r not in _sc_r:
                     continue
-                trig.setdefault("taken_calc", []).append(
+                _DECL.mount(actor, {"taken_calc": [
                     {"type": "passive_taken_reduce",
                      "judge": {"kind": "per_core", "res": _rk},
-                     "per_core": _per, "label": _rc.get("name") or _rk})
+                     "per_core": _per, "label": _rc.get("name") or _rk}]},
+                    merge="append")
         except Exception:
             pass  # 资源减伤装配异常不阻断开战（容错铁律）
         # v181.M-R2e B2：牧师信仰负载制装配——faith 条目声明 load_tiers（有档位表才挂，
@@ -2561,10 +2592,10 @@ def apply_class_mech(actor: dict) -> None:
                 _fsc = _fc.get("start_classes") or []
                 _cn2 = actor.get("class_name") or ""
                 if not _fsc or _cn2 in _fsc:
-                    trig.setdefault("heal_calc", []).append(
-                        {"type": "class_faith_load_tier", "res": "faith"})
-                    trig.setdefault("threshold", []).append(
-                        {"type": "class_faith_overload", "res": "faith"})
+                    _DECL.mount(actor, {"heal_calc": [
+                        {"type": "class_faith_load_tier", "res": "faith"}]}, merge="append")
+                    _DECL.mount(actor, {"threshold": [
+                        {"type": "class_faith_overload", "res": "faith"}]}, merge="append")
         except Exception:
             pass  # 负载制装配异常不阻断开战（容错铁律）
         # v181.M-melody：诗人旋律装配——class=cls_shi_ren 且学了 melody/melody_chant
@@ -2574,12 +2605,11 @@ def apply_class_mech(actor: dict) -> None:
                 (info.get("mech") in ("melody", "melody_chant"))
                 for _s, info in _learned_mech_skills(actor))
             if _has_melody:
-                _lst_mel = trig.setdefault("act_cast", [])
-                if not any(isinstance(e, dict) and e.get("type") == "class_melody_act"
-                           for e in _lst_mel):
-                    # ⚠️ 顺序契约：基础叠层排 act_cast 首位——被动族吟唱后置段
-                    # （二重唱 passive_melody_duet 读叠层后的强度）依赖先叠完基础层
-                    _lst_mel.insert(0, {"type": "class_melody_act"})
+                # ⚠️ 顺序契约：基础叠层排 act_cast 首位——被动族吟唱后置段
+                # （二重唱 passive_melody_duet 读叠层后的强度）依赖先叠完基础层
+                # 幂等（`type` 去重）+ 前插（旧 `insert(0)` 的执行序语义）
+                _DECL_TYPE.mount(actor, {"act_cast": [{"type": "class_melody_act"}]},
+                                 merge="prepend")
         except Exception:
             pass  # melody 装配异常不阻断开战（容错铁律）
         # v181.M-passive P1：被动 proc 装配（扫已学 kind=被动 → PASSIVE_PROC 表挂 triggers）
@@ -2622,13 +2652,13 @@ def apply_class_mech(actor: dict) -> None:
                         dm[_k] = cash[_k]
                 if owner == "target":
                     dm["owner"] = "target"
-                trig.setdefault("dmg_calc", []).append(dm)
+                _DECL.mount(actor, {"dmg_calc": [dm]}, merge="append")
                 if cash.get("clear"):
                     cl = {"action": "mech_cash_clear", "mech": mech,
                           "key": cash.get("key") or mech}
                     if owner == "target":
                         cl["owner"] = "target"
-                    trig.setdefault("skill_hit", []).append(cl)
+                    _DECL.mount(actor, {"skill_hit": [cl]}, merge="append")
                 continue
             if mode == "fury_enter":
                 # 血祭：施放时花 res 层战意 → 进入狂暴（mech_val = 消耗层，技能数据）
@@ -2638,7 +2668,7 @@ def apply_class_mech(actor: dict) -> None:
                       "label": cash.get("label") or cash.get("name") or mech}
                 if cash.get("icon"):
                     dm["icon"] = cash["icon"]
-                trig.setdefault("act_cast", []).append(dm)
+                _DECL.mount(actor, {"act_cast": [dm]}, merge="append")
                 continue
             if mode not in ("dmg_mult_clear", "dmg_mult_clear_target"):
                 continue
@@ -2657,20 +2687,20 @@ def apply_class_mech(actor: dict) -> None:
                     dm[_k] = cash[_k]
             if owner == "target":
                 dm["owner"] = "target"
-            trig.setdefault("dmg_calc", []).append(dm)
+            _DECL.mount(actor, {"dmg_calc": [dm]}, merge="append")
             # 连段阈值必暴（cash.crit_at）：act_cast 写一次性出手态（先于伤害管线）
             if cash.get("crit_at"):
-                trig.setdefault("act_cast", []).append(
+                _DECL.mount(actor, {"act_cast": [
                     {"action": "mech_cash_finisher_crit", "mech": mech, "key": key,
                      "crit_at": float(cash.get("crit_at") or 0),
-                     "hit_key": "finisher_crit_ready"})
+                     "hit_key": "finisher_crit_ready"}]}, merge="append")
             if cash.get("clear"):
                 cl = {"action": "mech_cash_clear", "mech": mech, "key": key}
                 if owner == "target":
                     cl["owner"] = "target"
                 if cash.get("clear_extra"):
                     cl["clear_extra"] = cash["clear_extra"]
-                trig.setdefault("skill_hit", []).append(cl)
+                _DECL.mount(actor, {"skill_hit": [cl]}, merge="append")
     except Exception:
         pass  # 技能机制装配异常不阻断开战（容错铁律）
 

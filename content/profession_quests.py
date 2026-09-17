@@ -49,6 +49,12 @@ from ._pkgref import PkgModule as _PkgModule
 # ============================================================
 from saintess_engine.wire import Wire, WireMissing
 
+# ★ U1-D2 L4：每日 lane 的**进度容器形态（int）与达标数**改问引擎目标注册表
+#   （`quests_flow` 是那套注入面的唯一落点：字段名/状态词/目标类型/需求数口径都注册在
+#   那里）。本模块只借读口，不复制一份注册表 —— 模块级 import 无环（quests_flow 不
+#   import profession_quests；它走 `_HostAttr("services.quests", …)` 惰性宿主口）。
+from . import quests_flow as _qf
+
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
 
@@ -159,17 +165,22 @@ def _daily_repeat_pct(repeat):
 
 def daily_need(dq):
     """每日任务需求数（面板显示用）。objective 单键值即达标数（kill_any:10 等）。
-    v125.1 P2：存档缺 objective 时回读 DAILY_QUESTS 定义；仍无定义返回 None，
+
+    ★ U1-D2 L4：达标数改问引擎目标注册表 `need_of`（= 首个正整数取值，旧口径逐字等价；
+    口径分歧④）。存档缺 objective 时回读 DAILY_QUESTS 定义；仍无定义返回 None，
     面板只显示实际进度，不再兜底假 99。"""
-    dobj = (dq or {}).get("objective") or {}
-    for _v in dobj.values():
-        if isinstance(_v, int) and _v > 0:
-            return _v
+    _dobj = (dq or {}).get("objective") or {}
+    if _qf._OBJECTIVES.complete(_dobj):
+        _n = _qf._OBJECTIVES.need_of(_dobj)
+        if _n > 0:
+            return _n
     _def = next((q for q in _cq.DAILY_QUESTS if q.get("name") == (dq or {}).get("name")), None)
     if _def:
-        for _v in (_def.get("objective") or {}).values():
-            if isinstance(_v, int) and _v > 0:
-                return _v
+        _dobj = _def.get("objective") or {}
+        if _qf._OBJECTIVES.complete(_dobj):
+            _n = _qf._OBJECTIVES.need_of(_dobj)
+            if _n > 0:
+                return _n
     return None
 
 
@@ -221,7 +232,7 @@ def bump_daily_progress(group_id, qq_id, obj_key, lines=None):
     调用点：_complete_side_quest（complete_side）、interact_prop 材料元素（collect_any）。
     """
     quests = db.get_quests(group_id, qq_id)
-    daily = dict(quests.get("daily", {}) or {})
+    daily = dict(_qf._log(quests).lane("daily"))
     if not daily:
         return
     changed = False
@@ -229,9 +240,10 @@ def bump_daily_progress(group_id, qq_id, obj_key, lines=None):
         if dkey in DAILY_META_KEYS:  # 跨天/计数元数据，不是任务
             continue
         dobj = dq.get("objective") or {}
-        need = dobj.get(obj_key)
-        if not need:
+        if not dobj.get(obj_key):
             continue
+        # ★ U1-D2 L4：达标数问引擎注册表（`complete_side`/`collect_any` 的 need = 首个正整数）
+        need = _qf._OBJECTIVES.need_of(dobj, obj_key)
         dq["progress"] = int(dq.get("progress", 0)) + 1
         changed = True
         if dq["progress"] >= need:
@@ -290,9 +302,10 @@ def draw_daily(group_id, qq_id, player):
     import datetime as _dt
     quests = db.get_quests(group_id, qq_id)
     # v94 跨天清理：昨天的任务过期，先清空再判断（旧存档无 _date 视为过期）
-    if db.expire_daily(quests):
+    if _qf._expire_daily(quests):
         db.save_quests(group_id, qq_id, quests)
-    daily = quests.get("daily") or {}
+    # ★ U1-D2 L4：每日 lane 一律经引擎账本读口取（日键 / 元数据键的判定在这份 lane 上做）
+    daily = _qf._log(quests).lane("daily")
     # v116 §3.4 每日防刷：已完成任务（_completed 计数）≥ 上限 → 不再抽新任务
     completed = int(daily.get("_completed", 0) or 0)
     if completed >= DAILY_LIMIT:

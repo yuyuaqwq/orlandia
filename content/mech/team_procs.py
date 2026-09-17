@@ -35,6 +35,8 @@
 ✅ **B10-L2 收口（2026-09-13）**：宿主 `game/services/battle_team_procs.py` 已改**薄壳**
 （`from content.mech.team_procs import …` 再导出，零实现）⇒ **本模块 = 唯一实现**。
 """
+from saintess_engine.battle.declarations import Compiler
+from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.battle.effects import apply_effects, register_action
 
 # 团队态统一前缀（effects 容器命名空间；避免与引擎/其它模块 key 撞名）
@@ -137,15 +139,19 @@ def _res_stacks(owner, key) -> float:
         return 0.0
 
 
+# 数据行 → `owner["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。
+# ★ `key_of=(action, key)` + `merge="replace"` = 同动词同目标态只留一条、命中就地浅盖 ——
+#   与 `_mount` 旧手写判重 + `t.update(decl)` 逐字同义。
+_DECL = Compiler(
+    events=_ENGINE_EVENTS,
+    key_of=lambda d: (d.get("action"), d.get("key")),
+    owner_key=None,
+)
+
+
 def _mount(owner, event: str, decl: dict) -> None:
     """挂触发器（幂等：同 action+key 只留一条，重复施放只刷新态）。"""
-    lst = owner.setdefault("triggers", {}).setdefault(event, [])
-    for t in lst:
-        if (isinstance(t, dict) and t.get("action") == decl.get("action")
-                and t.get("key") == decl.get("key")):
-            t.update(decl)
-            return
-    lst.append(decl)
+    _DECL.mount(owner, {event: [decl]}, merge="replace")
 
 
 def _norm_pct(v: float) -> float:

@@ -13,26 +13,94 @@
 
 **注入面**：`content/persistence/handles.py`（`bind(db_path=…, clock=…, flush_log=…, lock=…)`）；
 宿主装配点 = `game/store/store_factory.py`。纯包环境（编辑器）需注入自己的句柄 —— 见 B19/B20 接点。
+
+★ U1-D2 L5（形状迁移）：快照读写改走引擎 `store/snapshots`（`SnapshotSpec`/`SnapshotRepo`）。
+表结构仍由 `persistence/tables.json` 建（**一字节不动**），这里只把 `battle_state` 表装配成
+「owner 键 → 单行 JSON 快照 + `updated_at` 时间戳 + 24h 惰性过期门」的形状：
+`stamp="updated_at"`（口径分歧 ①：最后活动）、`keep=_keep_instance`（副本行留痕）、
+`on_expire=_on_battle_expire`（`inst:` 前缀兜底销毁）。对外签名与返回**逐键逐值不变**。
 """
 import json
 import time
-from .handles import _connect, _lock, clock, _wire_attr
+
+from saintess_engine.store import Column, DeclaredRepository, TableSpec
+from saintess_engine.store.snapshots import SnapshotSpec, declare_snapshot
+
+from .handles import _connect, _lock, clock, _wire_attr, get_db
 
 """奥兰迪亚·余烬纪年存储层 - battle_state"""
 # v104 M02 P2：普通战斗 24h 无活动自动回收（battle_state 永久残留泄漏；PVP 另有 5 分钟超时在 combat.py）
 BATTLE_STALE_SEC = 24 * 3600
 
+#: 快照形状（**形状在引擎、取值在这里**）：owner=qq_id / blob=state / stamp=updated_at /
+#: 附加展示名列 monster（I0-B8）/ 过期标记键 _expired（副本行留痕用）。
+_SNAP_SPEC = SnapshotSpec("battle_state", owner="qq_id", blob="state",
+                          stamp="updated_at",
+                          extra=(Column("monster", "TEXT", notnull=True),),
+                          pk=("qq_id",), expired_key="_expired")
+_SNAP = None
 
-def _json_ready(obj):
-    """v116 兜底：把 state 里可能残留的 Python set（如 phase BOSS 的 _phase_warned）
-    递归深转成 list，保证 json.dumps 序列化不再抛 TypeError；其余类型原样返回。"""
+
+class _KeepExtraRepo(DeclaredRepository):
+    """快照 upsert 适配：`battle_state` 有 NOT NULL 的展示名列（`monster`），而快照写路径
+    （引擎的过期打标 `_mark_expired`）只带 owner + blob。这里在写前把**既有行**的其余列
+    合并回来 —— 打标保留路径因此不丢展示名、也不违反 NOT NULL。
+
+    新建行仍必须由调用方给全列：`save_battle` 走全行 upsert；blob-only 的 `put` 建不出
+    battle_state 新行（NOT NULL 约束），这是表结构（`tables.json`，本批一字节不动）决定的。
+    """
+
+    def upsert(self, conn, data):
+        missing = [c for c in self.columns(conn) if c not in data]
+        if missing:
+            row = self.get(conn, *[data[c] for c in self.pk])
+            if row is not None:
+                data = dict(data)
+                for c in missing:
+                    if c in row:
+                        data[c] = row[c]
+        super().upsert(conn, data)
+
+
+def _store_ready(obj):
+    """写入引擎快照前的 set 清洗（`prepare` 注入口；规则逐字 = 原 `_json_ready`）：
+    把 state 里可能残留的 Python set（如 phase BOSS 的 `_phase_warned`）递归深转成 list，
+    保证引擎侧的 `json.dumps` 序列化不再抛 TypeError；其余类型原样返回。"""
     if isinstance(obj, set):
-        return [_json_ready(x) for x in obj]
+        return [_store_ready(x) for x in obj]
     if isinstance(obj, dict):
-        return {k: _json_ready(v) for k, v in obj.items()}
+        return {k: _store_ready(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
-        return [_json_ready(x) for x in obj]
+        return [_store_ready(x) for x in obj]
     return obj
+
+
+def _snap():
+    """battle_state 快照仓储（表由 `tables.json` 建；此处只把既有表装配成引擎快照口）。"""
+    global _SNAP
+    if _SNAP is None:
+        db = get_db()
+        repo = _KeepExtraRepo(
+            db, TableSpec("battle_state", [Column("qq_id", "TEXT", pk=True)]),
+            json_fields=("state",))
+        _SNAP = declare_snapshot(db, _SNAP_SPEC, prepare=_store_ready, repo=repo)
+    return _SNAP
+
+
+def _keep_instance(owner, payload):
+    """过期也不删的判据（口径分歧 ②）：副本战斗行**留痕**，命令层给「副本已过期」提示后清理。"""
+    return payload.get("type") == "instance"
+
+
+def _on_battle_expire(owner, payload):
+    """过期副本行的兜底销毁（v141 P0-3）：`world_id` 为 `inst:` 前缀才碰，异常吞（幂等）。"""
+    try:
+        _wid = payload.get("world_id") or ""
+        if isinstance(_wid, str) and _wid.startswith("inst:"):
+            from ..worlds import destroy_instance_world as _diw
+            _diw(_wid)
+    except Exception:
+        pass
 
 
 def _monster_display_name(state):
@@ -84,15 +152,18 @@ def save_battle(group_id, qq_id, state: dict):
                         state["stamina_charged"] = True
                 except (ValueError, TypeError):
                     pass
-            conn.execute(
-                # I0-B8：monster 列存展示主目标昵称——多对多阵列（state.enemies）压缩换位后首单位
-                # 可能非原主目标，故优先取 enemies[0]，单怪回落 enemy 名；旧档遗留敌名仍可显示。
-                # A0-A1：写入前经 _json_ready 清洗残留 set（phase BOSS 旧档 _phase_warned），
-                # 避免 json.dumps 抛 TypeError 致存档崩溃。
-                "INSERT INTO battle_state (qq_id, monster, state, updated_at) VALUES (?,?,?,?) "
-                "ON CONFLICT(qq_id) DO UPDATE SET monster=excluded.monster, state=excluded.state, updated_at=excluded.updated_at",
-                (qq_id, _monster_display_name(state), json.dumps(_json_ready(state), ensure_ascii=False), int(clock())),
-            )
+            # I0-B8：monster 列存展示主目标昵称——多对多阵列（state.enemies）压缩换位后首单位
+            # 可能非原主目标，故优先取 enemies[0]，单怪回落 enemy 名；旧档遗留敌名仍可显示。
+            # A0-A1：写入前经 `_store_ready` 清洗残留 set（phase BOSS 旧档 _phase_warned），
+            # 避免 json 序列化抛 TypeError 致存档崩溃；清洗规则由引擎 `prepare` 注入口承载。
+            snap = _snap()
+            body = snap.prepare(state) if snap.prepare is not None else state
+            snap.repo.upsert(conn, {
+                "qq_id": qq_id,
+                "monster": _monster_display_name(state),
+                "state": body,
+                "updated_at": int(clock()),
+            })
             conn.commit()
         finally:
             conn.close()
@@ -101,45 +172,22 @@ def get_battle(group_id, qq_id):
     with _lock:
         conn = _connect()
         try:
-            row = conn.execute(
-                "SELECT monster, state, updated_at FROM battle_state WHERE qq_id=?",
-                (qq_id,),
-            ).fetchone()
-            if not row:
-                return None
             # v104 M02 P2：超 24h 无活动的战斗记录回收（普通战斗此前永久保留；
             # 表无 created_at 列，用 updated_at 判定更合理——战斗长时间无操作即视为废弃）
-            updated = row["updated_at"] or 0
-            if updated and clock() - updated > BATTLE_STALE_SEC:
-                state = json.loads(row["state"])
-                # v104 M04 P2：副本战斗行不静默删除——保留行并打 _expired 标记，
-                # 由命令层（instance.py _instance_expired_hint）给出"副本已过期"提示后清理；
-                # 本函数仍返回 None，战斗路由（_in_battle 等）不会把过期副本当战斗中。
-                # 普通战斗维持原行为：直接回收。
-                if state.get("type") == "instance":
-                    state["_expired"] = True
-                    conn.execute(
-                        "UPDATE battle_state SET state=? WHERE qq_id=?",
-                        (json.dumps(state, ensure_ascii=False), qq_id),
-                    )
-                    conn.commit()
-                    # v141 兜底（P0-3，2026-08-30 审计）：instance 行超 BATTLE_STALE_SEC
-                    # 只打 _expired 标记不销毁大陆 → 大陆实例泄漏（内存 + event_state 键）。
-                    # 命令层（instance.py）会补 30min 超时销毁；这里做 24h 过期兜底：
-                    # state 里带 world_id 且为 inst: 前缀 → 直接销毁大陆实例（幂等）。
-                    # 正常 instance 战斗（未过期）不碰；非 inst: 前缀（异常数据）不碰。
-                    try:
-                        _wid = state.get("world_id") or ""
-                        if isinstance(_wid, str) and _wid.startswith("inst:"):
-                            from ..worlds import destroy_instance_world as _diw
-                            _diw(_wid)
-                    except Exception:
-                        pass
-                    return None
-                conn.execute("DELETE FROM battle_state WHERE qq_id=?", (qq_id,))
+            # v104 M04 P2：副本战斗行不静默删除——保留行并打 _expired 标记，
+            # 由命令层（instance.py _instance_expired_hint）给出"副本已过期"提示后清理；
+            # 本函数仍返回 None，战斗路由（_in_battle 等）不会把过期副本当战斗中。
+            # 普通战斗维持原行为：直接回收。
+            snap = _snap()
+            state = snap.get(conn, qq_id, now=clock(), ttl=BATTLE_STALE_SEC,
+                             keep=_keep_instance, on_expire=_on_battle_expire)
+            if state is None:
+                # 过期出口的内务（删行 / 打标）由引擎写出，提交仍由本函数掌握
                 conn.commit()
                 return None
-            state = json.loads(row["state"])
+            row = snap.repo.get(conn, qq_id)
+            if not row:
+                return None
             return {"state": state, "monster": state.get("enemy", {}), "name": row["monster"], "updated_at": row["updated_at"]}
         finally:
             conn.close()
@@ -149,13 +197,11 @@ def get_battle_raw(group_id, qq_id):
     with _lock:
         conn = _connect()
         try:
-            row = conn.execute(
-                "SELECT monster, state, updated_at FROM battle_state WHERE qq_id=?",
-                (qq_id,),
-            ).fetchone()
-            if not row:
+            snap = _snap()
+            state = snap.raw(conn, qq_id)
+            if state is None:
                 return None
-            state = json.loads(row["state"])
+            row = snap.repo.get(conn, qq_id)
             return {"state": state, "monster": state.get("enemy", {}), "name": row["monster"], "updated_at": row["updated_at"]}
         finally:
             conn.close()
@@ -164,9 +210,7 @@ def clear_battle(group_id, qq_id):
     with _lock:
         conn = _connect()
         try:
-            conn.execute(
-                "DELETE FROM battle_state WHERE qq_id=?", (qq_id,)
-            )
+            _snap().drop(conn, qq_id)
             conn.commit()
         finally:
             conn.close()
@@ -179,7 +223,7 @@ __all__ = [
     "_connect",
     "_lock",
     "BATTLE_STALE_SEC",
-    "_json_ready",
+    "_store_ready",
     "_monster_display_name",
     "save_battle",
     "get_battle",
