@@ -18,13 +18,298 @@
     "天气名": "天气中文名（B 批 B-1，搬自 time_weather.py）",
     "季节名": "季节中文名（B 批 B-1，搬自 time_weather.py）",
     "属性名": "属性中文名（装备/附魔/套装属性行；B 批 B-1，搬自 reward.py:_CN + economy_cmds.py:sn×3）",
-    "团队特效名": "技能团队特效名（技能详情·团队行；B 批 B-1，搬自 player_cmds.py:team_cn）"
+    "团队特效名": "技能团队特效名（技能详情·团队行；B 批 B-1，搬自 player_cmds.py:team_cn）",
+    "条件文案": "技能详情面板「条件转化」行的条件说明文案（B 批 B-1 B 档，搬自 battle_cond_labels.py:COND_LABELS；槽位由调用方按 c 配置算好后传入）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
     "howto": "改文案只动本文件；改逻辑才动代码。{slot} 由调用方渲染；未知槽原样保留（不静默丢字）。",
     "guards": "tests/test_texts_table.py：key 集合对账（AST 扫调用点 ↔ 本表，双向）+ 每条 params 与调用实参对账 + validate() 干净 + 缺 key 不静默；渲染逐字一致由 tests/test_v185_instance_admission.py（副本 805 格）与 周常行为快照（本表 weekly.*）钉住；副本日志域（instance.日志_*）另由本表的 INSTANCE_LOG_FROZEN（迁移前 26 分支真跑输出）与 INSTANCE_LOG_TEMPLATES（70 条模板骨架）逐字钉住。",
     "boundary": "排版结构（如分隔线 ━━━、缩进层级）与内容数据（任务名/怪名/任务 desc）不进表 —— 表只管“句壳”。"
+  },
+  "cond_label.element_marks": {
+    "value": "敌方{element}印记≥{n}层",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "element",
+      "n"
+    ]
+  },
+  "cond_label.enemy_broken": {
+    "value": "敌方被破防",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_cursed": {
+    "value": "敌方带诅咒",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_debuff": {
+    "value": "敌方有减益",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_def_high": {
+    "value": "敌方防御高",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_frozen": {
+    "value": "敌方被冻结",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_full_hp": {
+    "value": "敌方满血",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_hp_high": {
+    "value": "敌方血量>{pct}%",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "pct"
+    ]
+  },
+  "cond_label.enemy_hp_low": {
+    "value": "敌方血量<{pct}%",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "pct"
+    ]
+  },
+  "cond_label.enemy_hunt_full": {
+    "value": "敌方猎印已满{n}层",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.enemy_hunt_mark": {
+    "value": "敌方有猎印",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_low_hp": {
+    "value": "敌方血量<{hp}%",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "hp"
+    ]
+  },
+  "cond_label.enemy_mark_full": {
+    "value": "敌方{mech}印记已满{n}层",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "mech",
+      "n"
+    ]
+  },
+  "cond_label.enemy_marked": {
+    "value": "敌方被标记",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_marks": {
+    "value": "敌方印记总层≥{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.enemy_poison_stacks": {
+    "value": "敌方中毒≥{n}层",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.enemy_shaken_gt": {
+    "value": "敌方破绽/震慑中",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_shaken_ratio": {
+    "value": "敌方破绽每{step}点",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "step"
+    ]
+  },
+  "cond_label.enemy_shaken_scale": {
+    "value": "敌方破绽越高",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_silenced": {
+    "value": "敌方被沉默",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_slowed": {
+    "value": "敌方减速中",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.enemy_stunned": {
+    "value": "敌方被眩晕",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.faith_full": {
+    "value": "信念满{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.faith_lt": {
+    "value": "信念<{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.guard_core": {
+    "value": "持有磐核",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.melody_buff": {
+    "value": "当前旋律为增益系",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.melody_stacks": {
+    "value": "旋律强度≥{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.player_buffed": {
+    "value": "自身有增益",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.player_chi_stacks": {
+    "value": "自身气力≥{n}点",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.player_combo": {
+    "value": "上一招·{last}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "last"
+    ]
+  },
+  "cond_label.player_combo_stacks": {
+    "value": "链值≥{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "cond_label.player_first": {
+    "value": "先手行动",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.player_hp_high": {
+    "value": "自身血量>{pct}%",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "pct"
+    ]
+  },
+  "cond_label.player_hp_low": {
+    "value": "自身血量<{pct}%",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "pct"
+    ]
+  },
+  "cond_label.player_mech_stacks": {
+    "value": "自身{mech}层≥{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "mech",
+      "n"
+    ]
+  },
+  "cond_label.player_rage_form": {
+    "value": "狂暴形态中",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.player_res_stacks": {
+    "value": "自身{res}≥{n}",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "res",
+      "n"
+    ]
+  },
+  "cond_label.player_shield": {
+    "value": "自身有护盾",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.player_spd_up": {
+    "value": "自身加速中",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.player_stance": {
+    "value": "守护姿态生效",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.player_untouched": {
+    "value": "本场未受击",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.revenge": {
+    "value": "已承伤",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
+  },
+  "cond_label.speed_ratio": {
+    "value": "速度比≥{ratio}x",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）",
+    "params": [
+      "ratio"
+    ]
+  },
+  "cond_label.stealth": {
+    "value": "潜行中",
+    "category": "条件文案",
+    "desc": "搬自 content/battle_cond_labels.py:COND_LABELS（B 批 B-1 B 档）"
   },
   "control_log.everfrost_domain": {
     "value": "🧊 永冻领域：目标被冻结 {turns} 刻！",
