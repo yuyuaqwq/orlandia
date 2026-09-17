@@ -245,7 +245,9 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "团队特效名": os.path.join(PKG_CONTENT, "player_cmds.py"),
          # ★ B 批 B-1 B 档（2026-09-17）：技能详情「条件转化」行的条件说明（44 键，带槽位）。
          #   引用面 = battle_cond_labels.py 里 `_T.text/_T.static` 的**直接调用点**（字面量键 + 槽位实参）
-         "条件文案": os.path.join(PKG_CONTENT, "battle_cond_labels.py")}
+         "条件文案": os.path.join(PKG_CONTENT, "battle_cond_labels.py"),
+         # ★ B 批 B-1 B 档（2026-09-17）：宠物技能一句话描述（8 条模板，槽位 iv/pct）
+         "宠物技能描述": os.path.join(PKG_CONTENT, "pets.py")}
 
 
 def _wired_paths(path):
@@ -825,11 +827,11 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
-                        "属性名", "团队特效名", "条件文案"}, cats)
+                        "属性名", "团队特效名", "条件文案", "宠物技能描述"}, cats)
 
 
 def t2_key_and_params_accounting():

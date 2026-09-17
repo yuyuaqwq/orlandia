@@ -36,6 +36,7 @@ def bind_host(pets=None):
 # ① 包内取件（门面 / 域读口）—— 本模块的全部数据来源
 # ============================================================
 from . import catalog_life as _cl                                          # noqa: E402
+from . import texts as _T                       # 文案表（B 批 B-1 B 档：宠物技能描述）
 from .catalog_b143 import (PET_MAX_LEVEL, PET_SKILL_UNLOCK_LV,             # noqa: E402
                            QUALITY)
 from .catalog_rules import _PET_EGG_PRICE, PET_EXP_GRADE                   # noqa: E402
@@ -72,15 +73,17 @@ def pet_quality_label(pet_key):
 
 
 # 宠物技能类型 → 描述模板（v101.3：加新技能类型 = 加一行，改文案不动逻辑）
+# ★ B 批 B-1 B 档（2026-09-17）：**句壳已搬进文案真源** `pet_skill_desc.*`（8 条，带槽位）；
+#   本表此后只剩「p/iv → 槽位值」的换算（铁律 2：代码只传槽位）。
 _PET_SKILL_DESC = {
-    "atk_pct":  lambda p, iv: f"每 {iv} 刻 {int(p['skill_value']*100)}% 攻击伤害",
-    "matk_pct": lambda p, iv: f"每 {iv} 刻 {int(p['skill_value']*100)}% 魔攻伤害",
-    "heal_pct": lambda p, iv: f"每 {iv} 刻回复 {int(p['skill_value']*100)}% 生命",
-    "block":    lambda p, iv: f"每 {iv} 刻 {int(p['skill_value']*100)}% 概率挡一次攻击",
-    "lifesteal": lambda p, iv: f"每 {iv} 刻 {int(p['skill_value']*100)}% 攻击伤害并吸血回复一半",
-    "pierce":   lambda p, iv: f"每 {iv} 刻 {int(p['skill_value']*100)}% 攻击伤害并破防 2 刻",
-    "buff_atk": lambda p, iv: f"每 {iv} 刻为 {int(p['skill_value']*100)}% 攻击加成(2 刻)",
-    "crit_up":  lambda p, iv: f"每 {iv} 刻为 {int(p['skill_value']*100)}% 暴击加成(2 刻)",
+    "atk_pct": lambda p, iv: _T.text("pet_skill_desc.atk_pct", iv=iv, pct=int(p['skill_value'] * 100)),
+    "matk_pct": lambda p, iv: _T.text("pet_skill_desc.matk_pct", iv=iv, pct=int(p['skill_value'] * 100)),
+    "heal_pct": lambda p, iv: _T.text("pet_skill_desc.heal_pct", iv=iv, pct=int(p['skill_value'] * 100)),
+    "block": lambda p, iv: _T.text("pet_skill_desc.block", iv=iv, pct=int(p['skill_value'] * 100)),
+    "lifesteal": lambda p, iv: _T.text("pet_skill_desc.lifesteal", iv=iv, pct=int(p['skill_value'] * 100)),
+    "pierce": lambda p, iv: _T.text("pet_skill_desc.pierce", iv=iv, pct=int(p['skill_value'] * 100)),
+    "buff_atk": lambda p, iv: _T.text("pet_skill_desc.buff_atk", iv=iv, pct=int(p['skill_value'] * 100)),
+    "crit_up": lambda p, iv: _T.text("pet_skill_desc.crit_up", iv=iv, pct=int(p['skill_value'] * 100)),
 }
 
 

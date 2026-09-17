@@ -2504,6 +2504,78 @@
     "category": "增益名",
     "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
   },
+  "pet_skill_desc.atk_pct": {
+    "value": "每 {iv} 刻 {pct}% 攻击伤害",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.block": {
+    "value": "每 {iv} 刻 {pct}% 概率挡一次攻击",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.buff_atk": {
+    "value": "每 {iv} 刻为 {pct}% 攻击加成(2 刻)",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.crit_up": {
+    "value": "每 {iv} 刻为 {pct}% 暴击加成(2 刻)",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.heal_pct": {
+    "value": "每 {iv} 刻回复 {pct}% 生命",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.lifesteal": {
+    "value": "每 {iv} 刻 {pct}% 攻击伤害并吸血回复一半",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.matk_pct": {
+    "value": "每 {iv} 刻 {pct}% 魔攻伤害",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "pet_skill_desc.pierce": {
+    "value": "每 {iv} 刻 {pct}% 攻击伤害并破防 2 刻",
+    "params": [
+      "iv",
+      "pct"
+    ],
+    "category": "宠物技能描述",
+    "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
   "quests.done": {
     "value": "📜 每日『{name}』完成！奖励：经验 +{exp} 金币 +{gold}",
     "params": [
