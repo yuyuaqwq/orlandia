@@ -4903,34 +4903,35 @@ class EconomyImpl(CommandBase):
     def _ency_browse_instances(self) -> str:
         """『百科 副本』：全部副本一览（含等级/人数/钥匙/主线章）——比『副本』指令的
         开本列表更全（那是按玩家等级上锁的玩法引导），这里是百科向完整编目。"""
-        lines = ["🏰 【副本百科】共 {} 个副本".format(len(_cspace.INSTANCES)), "━━━━━━━━━━━━"]
+        lines = [_T.text("ency.inst_title", n=len(_cspace.INSTANCES)), "━━━━━━━━━━━━"]
         for _i, (_kid, inst) in enumerate(_cspace.INSTANCES.items(), 1):
             _lv = inst.get("lv", "?")
             _mn = inst.get("min_players", 1)
             _mx = inst.get("max_players", _mn)
             if _mx <= 1:
-                _ppl = "单人"
+                _ppl = _T.static("ency.inst_solo")
             elif _mn == _mx:
-                _ppl = f"{_mn}人"
+                _ppl = _T.text("ency.inst_ppl_same", n=_mn)
             else:
-                _ppl = f"{_mn}-{_mx}人"
-            _line = f"{_i}. {inst.get('icon', '🏰')} {inst['name']}（Lv.{_lv}+ · {_ppl}）"
+                _ppl = _T.text("ency.inst_ppl_range", mn=_mn, mx=_mx)
+            _line = _T.text("ency.inst_row", i=_i, icon=inst.get("icon", "🏰"),
+                            name=inst["name"], lv=_lv, ppl=_ppl)
             # 主线章（desc 里的（主线第 N 章））——与单查 desc 同源
             _ch = ""
             _m = re.search(r"主线第\s*([^）)章]+)\s*章", inst.get("desc", "") or "")
             if _m:
-                _ch = f" · 主线第{_m.group(1)}章"
+                _ch = _T.text("ency.inst_chapter", ch=_m.group(1))
             _line += _ch
             # 钥匙需求并入标题行（有钥匙的副本才占一格）
             _ki = inst.get("key_item")
             if _ki:
-                _line += f" · 🔑需『{_ki}』"
+                _line += _T.text("ency.inst_key", name=_ki)
             lines.append(_line)
             # 主题（desc 前 40 字，剥掉括号里的主线章标注）
             _theme = (inst.get("desc") or "").split("（主线")[0].split("(")[0].strip()
-            lines.append(f"　📖 {_theme[:40]}")
+            lines.append(_T.text("ency.inst_theme", theme=_theme[:40]))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 想了解某副本详情？『百科 <副本名>』（如『百科 旧王陵』）")
+        lines.append(_T.static("ency.inst_tip"))
         return "\n".join(lines)
 
     def _ency_browse_equips(self, raw: str = "", qq_id: str = "") -> str:
@@ -5051,16 +5052,16 @@ class EconomyImpl(CommandBase):
         每组：等级范围 + 城镇列表 + 代表野外/副本。数据读 MAPS，无硬编码。"""
         _by_reg = {}
         for _m in _cspace.MAPS:
-            _reg = _m.get("region") or "未划分区域"
+            _reg = _m.get("region") or _T.static("ency.world_region_unknown")
             _by_reg.setdefault(_reg, []).append(_m)
         _total = len(_cspace.MAPS)
-        lines = [f"🗺️ 【奥兰迪亚大陆】{len(_by_reg)} 大区域 · {_total} 地点",
+        lines = [_T.text("ency.world_title", regions=len(_by_reg), places=_total),
                  "━━━━━━━━━━━━"]
         # 大区排序：按区内最低等级（新手区在前，符合探索顺序）
         _regs = sorted(_by_reg.items(), key=lambda kv: min((m.get("lv") or 0) for m in kv[1]))
         for _reg, _ms in _regs:
             _lvs = [m.get("lv") for m in _ms if m.get("lv")]
-            _lv_s = f"Lv.{min(_lvs)}-{max(_lvs)}" if _lvs else ""
+            _lv_s = _T.text("ency.world_lv_range", lo=min(_lvs), hi=max(_lvs)) if _lvs else ""
             # 城镇 = type 城镇区域 的 area_name（去重保序）
             _towns = []
             for _m in _ms:
@@ -5072,18 +5073,18 @@ class EconomyImpl(CommandBase):
                       if _m.get("type") not in ("城镇区域", "副本") and _m.get("name")]
             _duns = [_m.get("name") for _m in _ms if _m.get("type") == "副本" and _m.get("name")]
             lines.append("")
-            lines.append(f"◈ {_reg}（{_lv_s}）")
+            lines.append(_T.text("ency.world_region", region=_reg, lv=_lv_s))
             if _towns:
-                lines.append("　🏘 " + "、".join(_towns))
+                lines.append(_T.text("ency.world_towns", towns="、".join(_towns)))
             if _wilds:
                 # 野外多 → 只列前 4 个 + 省略号
-                _w_s = "、".join(_wilds[:4]) + (" 等" if len(_wilds) > 4 else "")
-                lines.append(f"　○ {_w_s}")
+                _w_s = "、".join(_wilds[:4]) + (_T.static("ency.world_etc") if len(_wilds) > 4 else "")
+                lines.append(_T.text("ency.world_wilds", items=_w_s))
             if _duns:
-                _d_s = "、".join(_duns[:3]) + (" 等" if len(_duns) > 3 else "")
-                lines.append(f"　⛩ {_d_s}")
+                _d_s = "、".join(_duns[:3]) + (_T.static("ency.world_etc") if len(_duns) > 3 else "")
+                lines.append(_T.text("ency.world_dungeons", items=_d_s))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 『区域』看当前可前往｜『寻路 <地名>』算最短路径｜『百科 <地名>』看单区详情")
+        lines.append(_T.static("ency.world_tip"))
         return "\n".join(lines)
 
     # ================= v172 百科分类浏览：词条 / 宝石 / 符文 =================

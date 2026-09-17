@@ -829,6 +829,143 @@
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
   },
+  "ency.inst_chapter": {
+    "value": " · 主线第{ch}章",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "ch"
+    ]
+  },
+  "ency.inst_key": {
+    "value": " · 🔑需『{name}』",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档） · 槽位名 key→name（避 render(key, **slots) 形参撞名）",
+    "params": [
+      "name"
+    ]
+  },
+  "ency.inst_ppl_range": {
+    "value": "{mn}-{mx}人",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "mn",
+      "mx"
+    ]
+  },
+  "ency.inst_ppl_same": {
+    "value": "{n}人",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "ency.inst_row": {
+    "value": "{i}. {icon} {name}（Lv.{lv}+ · {ppl}）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "i",
+      "icon",
+      "name",
+      "lv",
+      "ppl"
+    ]
+  },
+  "ency.inst_solo": {
+    "value": "单人",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）"
+  },
+  "ency.inst_theme": {
+    "value": "　📖 {theme}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "theme"
+    ]
+  },
+  "ency.inst_tip": {
+    "value": "💡 想了解某副本详情？『百科 <副本名>』（如『百科 旧王陵』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）"
+  },
+  "ency.inst_title": {
+    "value": "🏰 【副本百科】共 {n} 个副本",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "ency.world_dungeons": {
+    "value": "　⛩ {items}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "items"
+    ]
+  },
+  "ency.world_etc": {
+    "value": " 等",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）"
+  },
+  "ency.world_lv_range": {
+    "value": "Lv.{lo}-{hi}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "lo",
+      "hi"
+    ]
+  },
+  "ency.world_region": {
+    "value": "◈ {region}（{lv}）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "region",
+      "lv"
+    ]
+  },
+  "ency.world_region_unknown": {
+    "value": "未划分区域",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）"
+  },
+  "ency.world_tip": {
+    "value": "💡 『区域』看当前可前往｜『寻路 <地名>』算最短路径｜『百科 <地名>』看单区详情",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）"
+  },
+  "ency.world_title": {
+    "value": "🗺️ 【奥兰迪亚大陆】{regions} 大区域 · {places} 地点",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "regions",
+      "places"
+    ]
+  },
+  "ency.world_towns": {
+    "value": "　🏘 {towns}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "towns"
+    ]
+  },
+  "ency.world_wilds": {
+    "value": "　○ {items}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
+    "params": [
+      "items"
+    ]
+  },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
     "category": "战斗日志",
