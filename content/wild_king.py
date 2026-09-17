@@ -430,7 +430,7 @@ def _touch_pity(qq_id: str) -> dict:
     return meta
 
 
-def _chest_access(king: dict, qq_id: str, meta: dict) -> tuple:
+def _chest_access(group_id: str, king: dict, qq_id: str, meta: dict) -> tuple:
     """开箱资格判定：返回 (ok, reason)。
 
     - 战利箱：击杀者（含队伍）15 分钟内可摸，每人每时段 1 次
@@ -456,9 +456,9 @@ def _chest_access(king: dict, qq_id: str, meta: dict) -> tuple:
         killers = chest.get("killers") or []
         if str(qq_id) in killers:
             return True, "loot"
-        # 击杀者队伍成员同样可摸
+        # 击杀者队伍成员同样可摸（★ H2 修复（2026-09-18）：传真实 group_id——空串查不到任何队伍）
         try:
-            members = _party_members_of(qq_id)
+            members = _party_members_of(group_id, qq_id)
             if members and any(str(m) in killers for m in members):
                 return True, "loot"
         except Exception:
@@ -470,13 +470,12 @@ def _chest_access(king: dict, qq_id: str, meta: dict) -> tuple:
     return False, "🔒 宝箱暂时无法打开……"
 
 
-def _party_members_of(qq_id: str) -> list:
-    """玩家所在队伍成员（含自己）。"""
+def _party_members_of(group_id: str, qq_id: str) -> list:
+    """玩家所在队伍成员（含自己）。group_id = 真实群号（party 表按 (group_id, member) 存行）。"""
     try:
-        for gid in ("", ):
-            members = db.party_members(gid, qq_id)
-            if members:
-                return members
+        members = db.party_members(group_id, qq_id)
+        if members:
+            return members
     except Exception:
         pass
     return [qq_id]
@@ -496,7 +495,7 @@ def open_chest(group_id: str, qq_id: str, map_id: str) -> tuple:
         return (f"{king.get('icon', '👑')}【{king.get('name')}】还活着，宝箱锁得死死的！\n"
                 f"⚔️ 击败它才能解锁宝箱（打不过就等 15 分钟公共化——不过那要先有人击败它）", False)
     meta = _personal_meta(qq_id)
-    ok, kind = _chest_access(king, qq_id, meta)
+    ok, kind = _chest_access(group_id, king, qq_id, meta)
     if not ok:
         return kind, False
     # 原子认领：先标记已开（防并发双开）
@@ -525,12 +524,16 @@ def open_chest(group_id: str, qq_id: str, map_id: str) -> tuple:
                                      WILD_KING_CHEST_TIERS["low"])
     is_loot = kind == "loot"
     lines, need_bc = _roll_chest_rewards(group_id, qq_id, king, tier, is_loot)
-    # 记录开箱者
-    chest = king["chest"]
-    chest.setdefault("opened", {})[str(qq_id)] = int(datetime.datetime.now().timestamp())
-    chest["public"] = True  # 有人开箱后即公共化（击杀者已摸完 → 转公共）
-    king["chest"] = chest
-    _save_global(wild_king_tick())
+    # 记录开箱者（★ H1 修复（2026-09-18）：改哪个对象就存哪个——重新加载最新全局、在同一份
+    # state 上完成修改与写回。旧写法改的是早前加载的 king、却保存 wild_king_tick() 内部重新
+    # 加载的另一份 state ⇒ opened/public 被整份覆盖、静默丢弃）
+    st = _load_global()
+    king_now = st.get("kings", {}).get(map_id) or {}
+    chest = king_now.get("chest")
+    if king_now.get("killed") and isinstance(chest, dict):
+        chest.setdefault("opened", {})[str(qq_id)] = int(datetime.datetime.now().timestamp())
+        chest["public"] = True  # 有人开箱后即公共化（击杀者已摸完 → 转公共）
+        _save_global(st)
     header = "🎁 你打开了【野王战利箱】！" if is_loot else "🎁 你打开了【野王宝箱】！"
     return header + "\n" + "\n".join(lines), need_bc
 

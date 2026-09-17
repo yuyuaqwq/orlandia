@@ -270,13 +270,59 @@ def class_element_switch(battle, caster, target, params, logs):
     logs.append(f"🌀 元素流转：主系切换为【{nxt}】，下次挂印随主系")
 
 
+# 撤销基线哨兵：记录时该键**原本不存在**（撤销 = 删键，而非写回 None）
+_UNDO_MISS = object()
+
+
+def _elem_conv_arm(actor: dict, entry: dict) -> None:
+    """记录「本击改写」的撤销基线（H1 修复配套，见下方 `elem_conv_apply`）。
+
+    改写落在本 actor 技能索引里的**私有副本**上（`content/skills.py::skill_info` 已按调用
+    发副本，全局表零写）；为了让改写只活「一击」，下一击 act_cast 由 `_elem_conv_restore`
+    按本记录还原。撤销记录挂在 `_skill_index` 容器内 —— 它随索引生灭（序列化丢弃索引 ⇒
+    恢复必重建新副本），与「只活本战斗实例」的范围天然一致，也不进战斗存档。
+    """
+    idx = actor.get("_skill_index")
+    if not isinstance(idx, dict):
+        idx = actor["_skill_index"] = {}
+    idx["_elem_conv_undo"] = {
+        "entry": entry,
+        "orig": {k: entry.get(k, _UNDO_MISS) for k in ("element", "mech")},
+    }
+
+
+def _elem_conv_restore(actor: dict) -> None:
+    """撤销上一击的一次性改写（元素流转「只影响一次」；无记录 = 零行为）。"""
+    idx = actor.get("_skill_index")
+    if not isinstance(idx, dict):
+        return
+    rec = idx.pop("_elem_conv_undo", None)
+    if not isinstance(rec, dict):
+        return
+    entry = rec.get("entry")
+    orig = rec.get("orig")
+    if not isinstance(entry, dict) or not isinstance(orig, dict):
+        return
+    for k, v in orig.items():
+        if v is _UNDO_MISS:
+            entry.pop(k, None)       # 基线不存在 → 删掉改写新增的键
+        else:
+            entry[k] = v
+
+
 @register_action("elem_conv_apply")
 def elem_conv_apply(battle, caster, target, params, logs):
     """`act_cast`：若存在一次性转换标记 → 把本次技能的 `element` 与挂印 `mech`
-    改写为主系，然后清标记。无标记 = 零行为。"""
+    改写为主系，然后清标记。无标记 = 零行为。
+
+    ★ H1 修复（2026-09-18）：改写对象 = 本 actor 技能索引里的**私有副本**（`content/skills.py::
+    skill_info` 已按调用发副本 ⇒ 全局表零写）；「只影响一次」由 `_elem_conv_restore` 在下一击
+    act_cast 先做撤销保证（改写不会永久改变该 actor 的该技能）。
+    """
     actor = (getattr(battle, "_fire_ctx", None) or {}).get("actor") or caster
     if not isinstance(actor, dict):
         return
+    _elem_conv_restore(actor)        # 先撤销上一击的改写（只影响一次）
     conv = actor.pop("_elem_conv", None)
     if not conv:
         return
@@ -287,6 +333,7 @@ def elem_conv_apply(battle, caster, target, params, logs):
     mark = ELEMENT_MARKS.get(str(conv))
     if not mark:
         return
+    _elem_conv_arm(actor, info)
     info["element"] = str(conv)
     # 挂印类技能（mech 是元素印）→ 换成主系的印
     if str(info.get("mech") or "") in ELEMENT_MARKS.values():

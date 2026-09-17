@@ -908,7 +908,13 @@ def _b2_has_purifiable(st) -> bool:
             continue
         for _k in ef:
             cfg = rules.get(_k) or {}
-            if cfg.get("period") or cfg.get("on") == "target" or cfg.get("cleanse"):
+            # ★ 2026-09-18 同步引擎侧同款判据（`saintess_engine/battle/effects.py::act_cleanse`）：
+            #   period 按**方向**过滤 —— `dir="gain"`（资源自然回/衰减，如 energy）不是减益，
+            #   净化不得计入；否则本函数判「有可净化负面」→ 卷轴被消耗，而引擎侧清不掉
+            #   ⇒ 白消耗（引擎侧已按同口径排除 gain，两处必须一致）。
+            _per = cfg.get("period")
+            _gain = isinstance(_per, dict) and str(_per.get("dir", "damage") or "damage") == "gain"
+            if (_per and not _gain) or cfg.get("on") == "target" or cfg.get("cleanse"):
                 return True
     return False
 

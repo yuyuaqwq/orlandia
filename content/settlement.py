@@ -951,8 +951,10 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
         )
         # v97.5 行为彩蛋规则：战败（用于清零连胜等计数，不产出彩蛋）
         # 签名照抄 base._rule_fire：fire(group_id, qq_id, player, cur_map, trigger, evt, hooks)
-        _rule_fire("battle_win", group_id, qq_id, player,
+        # ★ 修：trigger 归位第 5 参（此前 "battle_win" 占 group_id 位 ⇒ 与规则 trigger 永不相等 ⇒ 计数空转）
+        _rule_fire(group_id, qq_id, player,
                    _sp.MAP_BY_ID.get(player.get("cur_map"), {}),
+                   "battle_win",
                    {"event": "lose"},
                    hooks={"title_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
         return {"lines": lines, "revive_state": {"lost": lost, "extra": extra,
@@ -969,8 +971,10 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
     )
     # v97.5 行为彩蛋规则：战败（用于清零连胜等计数，不产出彩蛋）
     # 签名照抄 base._rule_fire：fire(group_id, qq_id, player, cur_map, trigger, evt, hooks)
-    _rule_fire("battle_win", group_id, qq_id, player,
+    # ★ 修：trigger 归位第 5 参（此前 "battle_win" 占 group_id 位 ⇒ 与规则 trigger 永不相等 ⇒ 计数空转）
+    _rule_fire(group_id, qq_id, player,
                _sp.MAP_BY_ID.get(player.get("cur_map"), {}),
+               "battle_win",
                {"event": "lose"},
                hooks={"title_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
     return {"lines": lines, "revive_state": None, "player": player}

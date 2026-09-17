@@ -501,11 +501,19 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         # v135 铁匠铺货架（全服共享）：先到先得，原子扣减库存
         rid = str(key)[2:]
         town_lv = _ss.town_level(cur)
+        # 审计修复 #2（2026-09-18）：先验钞再动货架——此前先 buy_stock_item 扣货、后验
+        # 金币：钱不够时全服共享货架孤品已被扣走（无人获得、只能等补货/换货）。改为按
+        # 货架同源定价（smith_stock_price）预校验，fail-closed：库存/定价信息拿不到一律
+        # 按售罄处理，绝不先扣货。
+        _sit = next((it for it in (smith_items or []) if it.get("rid") == rid), None)
+        if _sit is None or (_sit.get("qty") or 0) <= 0:
+            return None, "😢 这件作品已被别的冒险者买走了，售罄等补货吧～"
+        _price_chk = int(_ss.smith_stock_price(rid, _sit["price_mult"]))
+        if _gold < _price_chk:
+            return None, f"金币不足！需要 {_price_chk} 金币。"
         ok, item_data, price = _ss.buy_stock_item(cur, town_lv, rid)
         if not ok:
             return None, "😢 这件作品已被别的冒险者买走了，售罄等补货吧～"
-        if _gold < price:
-            return None, f"金币不足！需要 {price} 金币。"
         _upd_player(group_id, qq_id, gold=_gold - price)
         # v21 防刷钱：货架装备卖出价 = 买入价一半（含浮动）
         item_data["price"] = int(price * _ec["equip_resale_rate"])

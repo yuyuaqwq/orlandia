@@ -1993,7 +1993,7 @@
     ]
   },
   "ency.key_detail_inst": {
-    "value": "副本：{name}（Lv.{lv}+ · {desc}",
+    "value": "副本：{name}（Lv.{lv}+）· {desc}",
     "params": [
       "name",
       "lv",
@@ -2118,7 +2118,7 @@
     ]
   },
   "ency.mat_tip": {
-    "value": "💡 输入『百科 <材料名>』看掉落来源；『图鉴』看收藏品",
+    "value": "💡 输入『百科 <材料名>』看掉落来源；『图鉴 收藏』看收藏品",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
   },
@@ -2890,7 +2890,7 @@
     "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
   },
   "help_panel.CMD_HELP": {
-    "value": "⚔️《奥兰迪亚：余烬纪年》指令大全\n📌 【常用指令】\n━━━━━━━━━━━━\n『探索』 去附近转转（遇怪/偶遇） ｜ 『打怪』 战斗入口\n『地图』 看周围 ｜ 『位置』 精简导航\n『状态』 看属性 ｜ 『背包』 看物品\n『物品详情 <名称>』 看详情 ｜ 『技能列表』 看技能\n『采集』 『挖掘』 『垂钓』 收集材料 ｜ 『商店』 买东西\n『锻造』 做装备 ｜ 『副本』 组队闯关 ｜ 『帮助 <分类>』 分类指令大全\n━━━━━━━━━━━━\n以下是全部指令：\n📚『帮助 <分类>』看该分类全部指令\n👥角色系统  🤝 冒险系统\n⚔️战斗系统  ✨技能系统\n🔨副业系统  🎒物品系统\n👫社交系统  🗺️世界系统\n❓其他",
+    "value": "⚔️《奥兰迪亚：余烬纪年》指令大全\n📌 【常用指令】\n━━━━━━━━━━━━\n『探索』 去附近转转（遇怪/偶遇） ｜ 『攻击』 战斗入口\n『地图』 看周围 ｜ 『位置』 精简导航\n『属性』 看属性 ｜ 『背包』 看物品\n『物品详情 <名称>』 看详情 ｜ 『技能列表』 看技能\n『采集』 『挖掘』 『垂钓』 收集材料 ｜ 『商店』 买东西\n『锻造』 做装备 ｜ 『副本』 组队闯关 ｜ 『帮助 <分类>』 分类指令大全\n━━━━━━━━━━━━\n以下是全部指令：\n📚『帮助 <分类>』看该分类全部指令\n👥角色系统  🤝 冒险系统\n⚔️战斗系统  ✨技能系统\n🔨副业系统  🎒物品系统\n👫社交系统  🗺️世界系统\n❓其他",
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP（B 批 B-1 B 档）"
   },
@@ -2900,7 +2900,7 @@
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_ADV（B 批 B-1 B 档）"
   },
   "help_panel.CMD_HELP_BATTLE": {
-    "value": "⚔️ 【战斗】指令\n━━━━━━━━━━━━\n『探索』 在野外寻找敌人（城镇安全区无怪）\n『攻击』 攻击当前敌人；野外『攻击 @玩家』可发起 PK\n『技能 <名称/槽位>』 战斗中使用技能\n『技能 <槽位> <编号>』 指定目标：a1/a2敌方、b1/b2友方（『技能1 a2』打2号）\n『防御』 本刻减伤 50%\n『逃跑』 脱离战斗（Boss/副本锁定无法逃跑）\n『使用 <药水>』 战斗中用恢复药水算一刻\n『讨伐』 挑战世界 Boss（需到达指定地点）\n\n【PVP】野外可袭击其他玩家；等级差 >10 不能打；击杀变红名 30 分钟（红名不能进安全区），击杀红名者得荣誉；PVP 可『逃跑』脱离，5 分钟无行动自动解除，脱离/击杀后 2 分钟袭击 CD\n【副本战斗】2-3 人轮流出手，Boss 有仇恨机制（伤害/治疗拉仇恨，『防御』嘲讽）；超时 2 分钟自动防御",
+    "value": "⚔️ 【战斗】指令\n━━━━━━━━━━━━\n『探索』 在野外寻找敌人（城镇安全区无怪）\n『攻击』 攻击当前敌人；野外『攻击 @玩家』可发起 PK\n『技能 <名称/槽位>』 战斗中使用技能\n『技能 <槽位> <编号>』 指定目标：a1/a2敌方、b1/b2友方（『技能1 a2』打2号）\n『防御』 本刻减伤 50%\n『逃跑』 脱离战斗（Boss/副本锁定无法逃跑）\n『使用 <药水>』 战斗中用恢复药水算一刻\n『讨伐』 挑战世界 Boss（需到达指定地点）\n\n【PVP】野外可袭击其他玩家；等级差 >10 不能打；击杀变红名 30 分钟（红名不能进安全区），击杀红名者得荣誉；PVP 可『逃跑』脱离，5 分钟无行动自动解除，脱离/击杀后 2 分钟袭击 CD\n【副本战斗】2-4 人轮流出手，Boss 有仇恨机制（伤害/治疗拉仇恨，『防御』嘲讽）；超时 60 秒自动防御",
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_BATTLE（B 批 B-1 B 档）"
   },
@@ -6400,7 +6400,7 @@
     "desc": "武器特效『endless_radiance』战斗日志（域 weapon_effects → 条目 endless_radiance 的 log 字段）"
   },
   "we.eternal_codex.log": {
-    "value": "📖 永恒契约！({n}/{_cap8} 层，每层技能伤害 +{float(wd.get('dmg_pct_per', 0.015)) * 100:.1f}%)",
+    "value": "📖 永恒契约！({n}/{cap} 层，每层技能伤害 +{pct}%)",
     "category": "武器特效",
     "desc": "武器特效『eternal_codex』战斗日志（域 weapon_effects → 条目 eternal_codex 的 log 字段）"
   },
@@ -6459,7 +6459,7 @@
     "desc": "武器特效『holy_word_bind』来源标签（域 weapon_effects → 条目 holy_word_bind 的 source 字段）"
   },
   "we.ice_vein.log": {
-    "value": "❄️ 冰脉寒流：敌人速度 -{int(_sp * 100 * n)}%（{n}/{_ms} 层）！",
+    "value": "❄️ 冰脉寒流：敌人速度 -{pct}%（{n}/{ms} 层）！",
     "category": "武器特效",
     "desc": "武器特效『ice_vein』战斗日志（域 weapon_effects → 条目 ice_vein 的 log 字段）"
   },
@@ -6479,7 +6479,7 @@
     "desc": "武器特效『novice_first_turn_guard』战斗日志（域 weapon_effects → 条目 novice_first_turn_guard 的 log 字段）"
   },
   "we.novice_hunt_combo.log": {
-    "value": "🎯 猎影：暴击叠层！（{n}/5 层，每层连击率 +{int(float(wd.get('per_stack', 0.08)) * 100)}%）",
+    "value": "🎯 猎影：暴击叠层！（{n}/{cap} 层，每层连击率 +{pct}%）",
     "category": "武器特效",
     "desc": "武器特效『novice_hunt_combo』战斗日志（域 weapon_effects → 条目 novice_hunt_combo 的 log 字段）"
   },
@@ -6502,7 +6502,7 @@
     ]
   },
   "we.randuin_weary.log": {
-    "value": "🛡️ 兰顿倦意：敌人速度 -{int(_sp * 100 * n)}%（{n}/{_ms} 层）！",
+    "value": "🛡️ 兰顿倦意：敌人速度 -{pct}%（{n}/{ms} 层）！",
     "category": "武器特效",
     "desc": "武器特效『randuin_weary』战斗日志（域 weapon_effects → 条目 randuin_weary 的 log 字段）"
   },
@@ -6515,7 +6515,7 @@
     ]
   },
   "we.rune_amp.log": {
-    "value": "📜 铭文增幅！({n}/5 层，下一技能 +{int(n * float(wd.get('dmg_pct_per', 0.02)) * 100)}%)",
+    "value": "📜 铭文增幅！({n}/{cap} 层，下一技能 +{pct}%)",
     "category": "武器特效",
     "desc": "武器特效『rune_amp』战斗日志（域 weapon_effects → 条目 rune_amp 的 log 字段）"
   },
@@ -6583,7 +6583,7 @@
     "desc": "武器特效『time_freeze』来源标签（域 weapon_effects → 条目 time_freeze 的 source 字段）"
   },
   "we.time_staff.log": {
-    "value": "⏳ 岁月流转叠层！({n}/10 层，攻击 +{int(n * float(wd.get('per_pct', 0.015)) * 100)}%)",
+    "value": "⏳ 岁月流转叠层！({n}/{cap} 层，攻击 +{pct}%)",
     "category": "武器特效",
     "desc": "武器特效『time_staff』战斗日志（域 weapon_effects → 条目 time_staff 的 log 字段）"
   },

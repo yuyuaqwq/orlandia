@@ -20,7 +20,7 @@ from __future__ import annotations
 from . import collection as _LIB
 from .commands import register
 from .index import display as _display
-from .persistence import add_item, get_bestiary, get_inventory
+from .persistence import add_item, get_bestiary, get_event_state, get_inventory, set_event_state
 
 _SEP = "━━━━━━━━━━━━"
 
@@ -121,7 +121,13 @@ def _detail(group_id, qq_id, book) -> list:
 
 
 def _claim(group_id, qq_id, raw_arg, books) -> list:
-    """满套领取面板 —— 真源 `CollectionCmds._claim_book_reward` 逐行（含宝箱入包副作用）。"""
+    """满套领取面板 —— 真源 `CollectionCmds._claim_book_reward` 逐行（含宝箱入包副作用）。
+
+    审计修复 #3（2026-09-18）：加「已领取」幂等记账（event_state 键
+    `collection_claimed_{book_id}_{qq_id}`，无 schema 变更）——此前领取路径无任何
+    领取记录，集齐后每次『收藏册 领取』都再发一个宝箱（无限刷金币/图纸）。
+    记账只在宝箱入包成功后落，发放失败可重试、不吞奖励。
+    """
     name = raw_arg.replace("领取", "", 1).strip()
     if name:
         books = [b for b in books if b["name"] in name or name in b["name"]]
@@ -136,11 +142,16 @@ def _claim(group_id, qq_id, raw_arg, books) -> list:
         rw = b.get("reward") or {}
         chest = rw.get("chest")
         if chest:
+            _claimed_key = f"collection_claimed_{b.get('id') or b.get('name')}_{qq_id}"
+            if get_event_state(_claimed_key):
+                lines.append(f"📖 {b['name']} 集齐奖励已经领取过啦，不能重复领取～")
+                continue
             try:
                 idata = _LIB.item_info(chest)     # 包内 items 域（真源 C.ITEMS/C.MATERIALS）
                 if idata is None:
                     idata = {"name": chest, "type": "消耗品", "stackable": True, "price": 0}
                 add_item(group_id, qq_id, chest, idata, count=1)
+                set_event_state(_claimed_key, "1")
                 lines.append(f"🎁 {b['name']} 集齐奖励：{idata.get('name', chest)}×1 已入包！")
             except Exception:                            # noqa: BLE001
                 lines.append(f"⚠️ {b['name']} 宝箱发放失败，请联系管理")

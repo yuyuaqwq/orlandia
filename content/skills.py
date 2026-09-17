@@ -169,12 +169,16 @@ def _build_skill_key_index() -> dict:
 
 
 def skill_by_key(key: str) -> dict | None:
-    """v177 按技能 key 全局查玩家技能（怪物引用玩家技能用）。查不到返回 None。"""
+    """v177 按技能 key 全局查玩家技能（怪物引用玩家技能用）。查不到返回 None。
+    ★ H1 修复（2026-09-18）：同 `skill_info` 发浅副本（引擎技能索引也走本函数）。"""
     global _SKILL_KEY_INDEX
     if _SKILL_KEY_INDEX is None:
         _SKILL_KEY_INDEX = _build_skill_key_index()
     hit = _SKILL_KEY_INDEX.get(key)
-    return hit[1] if hit else None
+    if not hit:
+        return None
+    _info = hit[1]
+    return dict(_info) if isinstance(_info, dict) else _info
 
 
 def skill_owner_cls(key: str) -> str | None:
@@ -204,19 +208,27 @@ def is_skill_learned(class_name: str, level: int, skill_name: str, learned_skill
 
 def skill_info(class_name: str, skill_name: str):
     """技能详情：先查基础职业技能表，再查分支专属技能表（v26），最后查导师进阶技能（v95.23）
-    v48：skill_name 接受中文名或 ID，统一 resolve 为 ID 再查（表 key 已是 sk_xxx）"""
+    v48：skill_name 接受中文名或 ID，统一 resolve 为 ID 再查（表 key 已是 sk_xxx）
+
+    ★ H1 修复（2026-09-18）：返回**浅副本**（1 层 dict）——引擎 `battle._index_one_actor` 把本
+    函数返回值原样存进 `actor["_skill_index"]`，而战斗内机制（元素流转 `elem_conv_apply`）要改写
+    "本击技能 dict"；原样返回模块级表条目 = 索引项与全局表**同体** → 一次施放永久改写全进程
+    技能表（跨玩家/跨战斗漂移）。副本后：改写只落在该 actor 的运行时索引项上，全局表零写；
+    表内嵌套容器（exprs 等）仍共享（机制只改 element/mech 顶层键，不触嵌套）。
+    """
     skill_name = C.resolve("skills", skill_name)
     info = _sk_table(class_name).get(skill_name)
     if info:
-        return info
+        return dict(info) if isinstance(info, dict) else info
     for tier, branches in _br_table(class_name).items():
         for bname, skills in branches.items():
             if skill_name in skills:
-                return skills[skill_name]
+                _hit = skills[skill_name]
+                return dict(_hit) if isinstance(_hit, dict) else _hit
     # v95.23 职业导师进阶技能（TUTOR_SKILLS 并入查询链，battle/面板共用）
     t_info = (TUTOR_SKILLS or {}).get(class_name, {}).get(skill_name)
     if t_info:
-        return t_info
+        return dict(t_info) if isinstance(t_info, dict) else t_info
     return None
 
 

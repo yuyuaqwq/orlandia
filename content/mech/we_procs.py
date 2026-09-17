@@ -984,7 +984,7 @@ def we_amp_consume(battle, caster, target, params, logs):
     """叠层消费乘区（dmg_calc）：按 key 语义乘进 _fire_ctx.mult：
     - rune_amp：×(1+per×层) 后清层（"下一技能"消耗）
     - eternal_codex/time_staff：×(1+per×层) 不清层（常驻放大器）
-    - sage_amp/thunder_weave：charge 就绪 → ×charge_pct 一次并清
+    - sage_amp/thunder_weave：charge 就绪 → ×（1+charge_pct）一次并清
     """
     ctx = getattr(battle, "_fire_ctx", None)
     if ctx is None:
@@ -1011,7 +1011,11 @@ def we_amp_consume(battle, caster, target, params, logs):
         ck = params.get("charge_key") or ("we_sage_charge" if key == "sage_amp" else "we_thunder_charge")
         cp = st.pop(ck, None)
         if cp:
-            mult = float(cp)
+            # H2 修复（2026-09-18）：生产端存的是**加成百分数**（charge_pct：sage_amp=0.25 /
+            # thunder_weave=0.2；文案「下一技能伤害 +25% / 下一次攻击 +20%」），此前 `mult =
+            # float(cp)` 当总倍率直接乘 → 下一击 ×0.25（砍到 1/4，方向与文案相反）；同族
+            # rune_amp/eternal_codex 分支都写作 `1.0 + per×n`——这里漏了 `1.0 +`。
+            mult = 1.0 + float(cp)
     if mult != 1.0:
         ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
         ctx["tags"] = list(ctx.get("tags") or []) + [f"📈x{mult:.2f}"]

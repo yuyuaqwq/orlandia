@@ -352,7 +352,11 @@ def spend_stamina(group_id, qq_id, cost: int, player: dict, action: str = "行�
     if cur < cost:
         from .flow import instance_gate
         return False, instance_gate.stamina_short_msg(cost, cur, action)
-    update_player(group_id, qq_id, stamina=cur - cost)
+    # 审计修复 #1（2026-09-18）：扣体力同款落 stamina_ts（对照 add_stamina 写法）——
+    # 此前只写 stamina 不落 ts：满体力放置期间读档恢复分支不执行、ts 长期陈旧，此后
+    # 任何一次消耗都会在下一次读档时按 (now - stamina_ts) 把放置期间的恢复量追溯补满
+    # （放置 ≥ 消耗量×60 秒即全额退还），体力控速整体失守。
+    update_player(group_id, qq_id, stamina=cur - cost, stamina_ts=int(time.time()))
     return True, cur - cost
 
 

@@ -1191,12 +1191,18 @@ def _hurry_section(self, player: dict, cur_map: dict, cur_sa: str,
         if not mons and not elite and not boss:
             lines.append("🐾 这里没什么怪物，比较安全～")
     elif ftype == "scene":
-        scene = self._map_scene(cur_map, player, cur_sa)
-        if scene:
-            lines.append("✨ 场景：")
-            for l in scene:
+        # v132 场景两区：🔎 可探索触发（POI）+ ✨ 可交互场景（PROPS），与 _map_blocks 同口径
+        # ★ 修：_map_scene 返回 (poi_lines, prop_lines) 二元组——此前当平铺列表用 ⇒ 打印 list repr
+        poi_lines, prop_lines = self._map_scene(cur_map, player, cur_sa)
+        if poi_lines:
+            lines.append("🔎 可探索触发：")
+            for l in poi_lines:
                 lines.append(f"  {l}")
-        else:
+        if prop_lines:
+            lines.append("✨ 可交互场景：")
+            for l in prop_lines:
+                lines.append(f"  {l}")
+        if not poi_lines and not prop_lines:
             lines.append("✨ 这里没什么特别的场景～")
     elif ftype == "facility":
         fac = self._map_facilities(cur_map, player, cur_sa)
@@ -1561,8 +1567,11 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
     # 但只在本图连通表内移动（no_exit 无出口，不连野外）。
     # 注意：_instance_move_route 已在 move 顶部先行路由（副本地图模式持有战斗锁，
     # _in_battle 全局拦截在前）；此处副本分支保留以兼容直接调用/后续路径。
+    # ★ 修：st.inst_id 是 INSTANCES key（inst_xxx），与地图 id 比较须走 v137 统一口径
+    # `_inst_map_id`（此前直比恒 False ⇒ 该兼容分支实为死分支）
+    from .instance_cmds import _inst_map_id
     inst_row = self._instance_battle_for(group_id, qq_id)
-    if inst_row and inst_row["state"].get("inst_id") == target["id"] \
+    if inst_row and _inst_map_id(inst_row["state"].get("inst_id") or "") == target["id"] \
             and (inst_row["state"].get("mode") == "map" or inst_row["state"].get("rooms")):
         # v141 审计 #8：_instance_dungeon_move 去掉 target 死参数——地图目标
         # 在函数内按 inst_id 解析（大陆实例优先），此处只透传玩家原始 dest
@@ -2757,7 +2766,8 @@ async def npc_quick_dialog(self, event: AstrMessageEvent, group_id, qq_id):
     st = self._talk_active(group_id, qq_id)
     if st:
         # 对话树选项选择（复用 talk_choice 有状态分支：『对话 1』同款）
-        async for r in self.talk_choice(event):
+        # ★ 修：talk_choice 需 group_id/qq_id/player（此前漏传 ⇒ 生产壳 TypeError ⇒ 裸数字整条挂掉）
+        async for r in self.talk_choice(event, group_id, qq_id, self._player(group_id, qq_id)):
             yield r
         self._stop_event_safe(event)
         return

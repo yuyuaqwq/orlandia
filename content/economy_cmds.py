@@ -895,6 +895,14 @@ class EconomyImpl(CommandBase):
             # v126.4 拍板项 4：体力不足也要带上旧轮结算播报
             yield event.plain_result((text + "\n" + _st) if text else _st)
             return
+        # 审计修复 #4（2026-09-18 接线）：v105 疲劳值（19 章 §2.2）调用点随 aa3b04a
+        #（v126.4b 体力不足回复改造）连删后一直悬空（全仓无调用 → 疲劳计数/稀有矿脉
+        # 概率减半/吃料理解疲劳全部空转）。按 ef95d7f 原语义接回：确认开启新轮（等待中
+        # 重复指令不误计、体力不足回滚轮次不计数）才 tick，连续 5 次进入疲劳。
+        _fc, _ff = self._mining_fatigue_tick(group_id, qq_id)
+        if _ff:
+            text += ("\n💤 连续挖掘让你手臂发酸……疲劳时稀有矿脉更难挖到了，"
+                     "休息 10 分钟（不挖掘）或吃点食物恢复吧！")
         yield event.plain_result(act_msg + text)
 
     @declared("alchemy")
@@ -7065,15 +7073,23 @@ class EconomyImpl(CommandBase):
             for _sit in smith_items:
                 _r = _cit.EQUIP_ROSTER[_sit["rid"]]
                 if _want_stock and (item_name in _r["name"] or _r["name"] in item_name):
-                    ok, item_data, price = _ss.buy_stock_item(cur, _ss.town_level(cur), _sit["rid"])
-                    if not ok:
+                    # 审计修复 #2（2026-09-18）：先验库存/数量/金币，再动全服共享货架——
+                    # 此前先 buy_stock_item 扣货、后验钞：钱不够（或『购买 XX 2』）时孤品已
+                    # 被扣走、全服蒸发（只能等 6h 补货/次日换货）。价格预校验 = 货架同源定价
+                    # smith_stock_price（与面板/结算同一公式），失败一律在扣货前拦截。
+                    if (_sit.get("qty") or 0) <= 0:
                         yield event.plain_result("😢 这件作品已被别的冒险者买走了，售罄等补货吧～")
                         return
                     if qty > 1:
                         yield event.plain_result("铁匠的作品是孤品，只能单件购买！")
                         return
-                    if player["gold"] < price:
-                        yield event.plain_result(f"金币不足！需要 {price} 金币。")
+                    _price_chk = int(_ss.smith_stock_price(_sit["rid"], _sit["price_mult"]))
+                    if player["gold"] < _price_chk:
+                        yield event.plain_result(f"金币不足！需要 {_price_chk} 金币。")
+                        return
+                    ok, item_data, price = _ss.buy_stock_item(cur, _ss.town_level(cur), _sit["rid"])
+                    if not ok:
+                        yield event.plain_result("😢 这件作品已被别的冒险者买走了，售罄等补货吧～")
                         return
                     db.update_player(group_id, qq_id, gold=player["gold"] - price)
                     item_data["price"] = int(price * _ec["equip_resale_rate"])

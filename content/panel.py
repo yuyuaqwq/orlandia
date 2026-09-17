@@ -416,6 +416,8 @@ def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int 
     # 5. 套装 4 件属性型特效（常驻属性；数值读 sets.py bonus_4.stats，v126 数值下沉）
     # 按已激活(>=4 件)套装逐套应用各自 bonus_4.stats（同 eff 多套叠加语义与旧代码一致；
     # 无 stats 字段的特效型由战斗侧消费）
+    # 分派口径：百分比属性（PCT_STATS，如 precise）加法并入、cap 权威=PCT_CAPS；
+    # 线性属性（spd 等，套装 desc 为 +X%）乘算 —— 与段 4 的 bonus_2/bonus_4_stats 同口径。
     eff_src = {}
     for sname, cnt in active_sets(equipment).items():
         if cnt < 4:
@@ -431,9 +433,19 @@ def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int 
             elif k == "dodge":
                 eff_src["dodge"] = eff_src.get("dodge", 0) + v
                 st["dodge"] = min(st["dodge"] + v, 0.4)
-            else:
+            elif k in tables.PCT_STATS:
+                # 百分比属性（PCT_STATS 其余键，如「暗夜」precise +5%）：加法并入，
+                # cap 走 PCT_CAPS（原 else 对本组键的行为逐字保留）
                 eff_src[k] = eff_src.get(k, 0) + v
                 st[k] = min(st.get(k, 0) + v, tables.PCT_CAPS.get(k, 0.6))
+            else:
+                # 补审 H1 修复：线性属性（spd 等，套装 desc 为百分比）改为乘算。
+                # 原代码把 v 按「百分比」直接加进线性值，并以 PCT_CAPS.get(k, 0.6)
+                # 的默认 0.6 当 cap → 风行套 4 件「速度 +6%」静默失效且反被钳死
+                # （实测 spd 115→0.6）；乘算后与 desc「速度 +6%」及段 4 口径一致。
+                eff_src[k] = eff_src.get(k, 0) + v
+                if k in st:
+                    st[k] = int(st[k] * (1 + v))
     if eff_src:
         names4 = [s for s, c in active_sets(equipment).items() if c >= 4]
         sources.append({"name": f"套装4件({'/'.join(names4)})", "stats": eff_src, "pct": True})
