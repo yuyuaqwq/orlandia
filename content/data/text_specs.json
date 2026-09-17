@@ -13,13 +13,51 @@
     "增益名": "玩家增益名（战斗状态行）（B 批 B-1，搬自 combat_cmds.py:_P_BUFF_NAMES）",
     "减益名": "敌方减益名（战斗状态行）（B 批 B-1，搬自 combat_cmds.py:_E_BUFF_NAMES）",
     "叠层名": "机制叠层名（战斗状态行）（B 批 B-1，搬自 combat_cmds.py:_STACK_NAMES）",
-    "资源名": "职业资源名（资源行）（B 批 B-1，搬自 combat_cmds.py:RESOURCE_STACK_CN）"
+    "资源名": "职业资源名（资源行）（B 批 B-1，搬自 combat_cmds.py:RESOURCE_STACK_CN）",
+    "战斗日志": "护盾/条件类战斗日志（B 批 B-1，搬自 we_procs.py）",
+    "天气名": "天气中文名（B 批 B-1，搬自 time_weather.py）",
+    "季节名": "季节中文名（B 批 B-1，搬自 time_weather.py）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
     "howto": "改文案只动本文件；改逻辑才动代码。{slot} 由调用方渲染；未知槽原样保留（不静默丢字）。",
     "guards": "tests/test_texts_table.py：key 集合对账（AST 扫调用点 ↔ 本表，双向）+ 每条 params 与调用实参对账 + validate() 干净 + 缺 key 不静默；渲染逐字一致由 tests/test_v185_instance_admission.py（副本 805 格）与 周常行为快照（本表 weekly.*）钉住；副本日志域（instance.日志_*）另由本表的 INSTANCE_LOG_FROZEN（迁移前 26 分支真跑输出）与 INSTANCE_LOG_TEMPLATES（70 条模板骨架）逐字钉住。",
     "boundary": "排版结构（如分隔线 ━━━、缩进层级）与内容数据（任务名/怪名/任务 desc）不进表 —— 表只管“句壳”。"
+  },
+  "control_log.everfrost_domain": {
+    "value": "🧊 永冻领域：目标被冻结 {turns} 刻！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "control_log.everfrost_scepter": {
+    "value": "🧊 永霜禁锢：目标被冻结 {turns} 刻！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "control_log.frost_crown": {
+    "value": "🧊 寒霜凝视：目标被冻结 {turns} 刻！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "control_log.frost_ring": {
+    "value": "🧊 霜环：目标被冻结 {turns} 刻！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "control_log.holy_judgment_field": {
+    "value": "⚖️ 圣裁领域：目标受治疗 -30%（2 刻）！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "control_log.holy_word_bind": {
+    "value": "✨ 圣言禁锢：目标被冻结 {turns} 刻！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "control_log.time_freeze": {
+    "value": "⏳ 时光凝滞！敌人被定身，跳过一次行动！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
   },
   "daily.done_full": {
     "value": "【每日】今日已完成 {done}/{limit} 个每日任务，明天再来！",
@@ -415,6 +453,46 @@
     "value": "死亡标记",
     "category": "效果名",
     "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "extra_log.afterglow_splash": {
+    "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.annihilation_echo": {
+    "value": "💥 湮灭回响 溅射 {dmg} 点奥术伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.endless_blade": {
+    "value": "⚔️ 无尽锋芒 追加 {dmg} 点伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.hunter_open": {
+    "value": "🗡️ 破绽 造成 {dmg} 点真实伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.siren_fang": {
+    "value": "🧜 海妖猎杀 造成 {dmg} 点真实伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.spellblade_echo": {
+    "value": "🔮 咒刃 溅射 {dmg} 点奥术伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.star_pierce": {
+    "value": "☄️ 穿星 造成 {dmg} 点真实伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "extra_log.wind_split": {
+    "value": "🌪️ 裂风矢 追加 {dmg} 点伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
   },
   "instance.already_in": {
     "value": "你已在战斗中！『攻击』『技能 <名称>』『防御』行动～",
@@ -2290,6 +2368,56 @@
     "category": "资源名",
     "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
   },
+  "season_name.autumn": {
+    "value": "🍂 秋",
+    "category": "季节名",
+    "desc": "搬自 time_weather.py:SEASON_CN（B 批 B-1）"
+  },
+  "season_name.spring": {
+    "value": "🌸 春",
+    "category": "季节名",
+    "desc": "搬自 time_weather.py:SEASON_CN（B 批 B-1）"
+  },
+  "season_name.summer": {
+    "value": "☀️ 夏",
+    "category": "季节名",
+    "desc": "搬自 time_weather.py:SEASON_CN（B 批 B-1）"
+  },
+  "season_name.winter": {
+    "value": "❄️ 冬",
+    "category": "季节名",
+    "desc": "搬自 time_weather.py:SEASON_CN（B 批 B-1）"
+  },
+  "shield_log.atonement_shield": {
+    "value": "⚖️ 赎罪之盾：治疗溢出转化为 {shield} 点护盾！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
+  },
+  "shield_log.bedrock_crown": {
+    "value": "🪨 磐石守护：生命垂危，获得 {shield} 点护盾！（4 刻）",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
+  },
+  "shield_log.echo_bless": {
+    "value": "🌿 回响祝福：治疗溢出转化为 {shield} 点护盾！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
+  },
+  "shield_log.endless_radiance": {
+    "value": "🌟 无尽辉光：暴击获得 {shield} 点护盾！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
+  },
+  "shield_log.firmament_crown": {
+    "value": "🌌 苍穹庇护：获得 {shield} 点护盾！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
+  },
+  "shield_log.gargoyle_heart": {
+    "value": "💎 石像鬼之心：获得 {shield} 点护盾并回复 {heal} 点生命！",
+    "category": "战斗日志",
+    "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
+  },
   "signin.already": {
     "value": "今天已经签过到啦！明天再来～",
     "category": "签到",
@@ -2751,6 +2879,36 @@
     "params": [
       "n"
     ]
+  },
+  "weather_name.cloudy": {
+    "value": "🌤️ 多云",
+    "category": "天气名",
+    "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
+  },
+  "weather_name.fog": {
+    "value": "🌫️ 雾",
+    "category": "天气名",
+    "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
+  },
+  "weather_name.rain": {
+    "value": "🌧️ 雨",
+    "category": "天气名",
+    "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
+  },
+  "weather_name.snow": {
+    "value": "❄️ 雪",
+    "category": "天气名",
+    "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
+  },
+  "weather_name.storm": {
+    "value": "⛈️ 暴雨",
+    "category": "天气名",
+    "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
+  },
+  "weather_name.sunny": {
+    "value": "☀️ 晴",
+    "category": "天气名",
+    "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
   },
   "weekly.item_done": {
     "value": "{i}. 『{tname}』 ✅ 已完成",

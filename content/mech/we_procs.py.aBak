@@ -334,15 +334,14 @@ def we_guardian_will(battle, caster, target, params, logs):
 # proc_shield 条件盾（threshold 低保 3 + heal 溢出 2 + crit 1）
 # ============================================================
 
-_SHIELD_LOG_KEYS = {   # ★ B-1：id → 文案键（真源 = text_specs.json 的 shield_log.*）
-    "atonement_shield": "shield_log.atonement_shield",
-    "bedrock_crown": "shield_log.bedrock_crown",
-    "echo_bless": "shield_log.echo_bless",
-    "endless_radiance": "shield_log.endless_radiance",
-    "firmament_crown": "shield_log.firmament_crown",
-    "gargoyle_heart": "shield_log.gargoyle_heart",
+_SHIELD_COND_LOG = {
+    "bedrock_crown": "🪨 磐石守护：生命垂危，获得 {shield} 点护盾！（4 刻）",
+    "firmament_crown": "🌌 苍穹庇护：获得 {shield} 点护盾！",
+    "gargoyle_heart": "💎 石像鬼之心：获得 {shield} 点护盾并回复 {heal} 点生命！",
+    "echo_bless": "🌿 回响祝福：治疗溢出转化为 {shield} 点护盾！",
+    "atonement_shield": "⚖️ 赎罪之盾：治疗溢出转化为 {shield} 点护盾！",
+    "endless_radiance": "🌟 无尽辉光：暴击获得 {shield} 点护盾！",
 }
-_SHIELD_COND_LOG = _T.names(_SHIELD_LOG_KEYS, prefix="shield_log")
 
 
 def _add_owner_shield(battle, owner, params, value, logs):

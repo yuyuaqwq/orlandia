@@ -811,8 +811,10 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 战斗名词类 5 项）",
-          set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务", "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名"}, cats)
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名）",
+          set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
+                        "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
+                        "战斗日志", "天气名"}, cats)
 
 
 def t2_key_and_params_accounting():

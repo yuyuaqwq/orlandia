@@ -29,13 +29,9 @@ PERIODS = [
 PERIOD_CN = {
     "morning": "🌅 清晨", "day": "☀️ 白天", "evening": "🌇 黄昏", "night": "🌙 夜晚",
 }
-_SEASON_KEYS = {   # ★ B-1：id → 文案键（真源 = text_specs.json 的 season_name.*）
-    "autumn": "season_name.autumn",
-    "spring": "season_name.spring",
-    "summer": "season_name.summer",
-    "winter": "season_name.winter",
+SEASON_CN = {
+    "spring": "🌸 春", "summer": "☀️ 夏", "autumn": "🍂 秋", "winter": "❄️ 冬",
 }
-SEASON_CN = _T.names(_SEASON_KEYS, prefix="season_name")
 _WEATHER_KEYS = {   # ★ B-1：id → 文案键（真源 = text_specs.json 的 weather_name.*）
     "cloudy": "weather_name.cloudy",
     "fog": "weather_name.fog",
