@@ -204,7 +204,7 @@ async def shortcut(self, event: AstrMessageEvent, group_id, qq_id, player):
     if sub == "绑定":
         parts = rest.split(maxsplit=1)
         if len(parts) < 2:
-            yield event.plain_result("📎 用法：『快捷绑定 <数字/字母/符号> <指令>』，如『快捷绑定 1 探索』『快捷绑定 n 前往』『快捷绑定 . 攻击』\n数字 0-99 全量触发；字母/符号可带参数（绑『n 前往』发『n3』=前往 3）")
+            yield event.plain_result(_T.static("shortcut.usage_bind"))
             return
         # v123b：数字 key 限 1-2 位（0-99 全量匹配）；字母 key 1-8 位（字母开头可带数字，
         # 前缀匹配+后缀透传）；单字符符号 key（v123c，排除翻页/At 冲突符号）。全角数字归一，字母统一小写。
@@ -212,7 +212,7 @@ async def shortcut(self, event: AstrMessageEvent, group_id, qq_id, player):
         if key.isdigit() or (key and all(ch in "０-９" for ch in key)):
             key = str(int(key))
             if len(key) > 2:
-                yield event.plain_result("❌ 快捷数字限 1-2 位（0-99）～（3 位以上数字只能全量匹配，发『13』不会拆成『1』+『3』）")
+                yield event.plain_result(_T.static("shortcut.err_number_len"))
                 return
         elif re.fullmatch(r"[a-zA-Z][a-zA-Z0-9]{0,7}", key):
             key = key.lower()
@@ -222,52 +222,48 @@ async def shortcut(self, event: AstrMessageEvent, group_id, qq_id, player):
             # At/引用前缀（@[）、斜杠（潜在消息解析冲突）、中文汉字（正则层不支持，防死绑定）
             pass
         else:
-            yield event.plain_result("📎 快捷键限：数字 0-99（全量触发）、1-8 位字母开头键、或单字符符号（如 . ! # *）～（+ - = 是翻页快捷键，@ [ / 不可用）")
+            yield event.plain_result(_T.static("shortcut.err_key_form"))
             return
         cmd_text = parts[1].strip()
         if len(cmd_text) > 30:
-            yield event.plain_result("❌ 指令太长啦(≤30 字)～")
+            yield event.plain_result(_T.static("shortcut.err_too_long"))
             return
         if cmd_text.isdigit():
-            yield event.plain_result("❌ 不能绑定纯数字指令，防止连环跳转～")
+            yield event.plain_result(_T.static("shortcut.err_digit_cmd"))
             return
         if self._find_handler(cmd_text) is None:
-            yield event.plain_result(f"❌ 『{cmd_text}』不是有效指令，先看看『帮助』确认指令名～")
+            yield event.plain_result(_T.text("shortcut.err_bad_cmd", cmd=cmd_text))
             return
         shortcuts[key] = cmd_text
         db.update_player(group_id, qq_id, shortcuts=shortcuts)
-        yield event.plain_result(f"✅ 快捷 {key} → 『{cmd_text}』 绑定成功！以后直接发『{key}』就行✂️")
+        yield event.plain_result(_T.text("shortcut.ok_bind", num=key, cmd=cmd_text, num2=key))
         return
     if sub == "删除":
         num = rest.split()[0] if rest else ""
         if num and num in shortcuts:
             del shortcuts[num]
             db.update_player(group_id, qq_id, shortcuts=shortcuts)
-            yield event.plain_result(f"🗑️ 快捷 {num} 已删除～")
+            yield event.plain_result(_T.text("shortcut.ok_del", num=num))
         else:
-            yield event.plain_result("❌ 没有这个快捷绑定。『快捷列表』看看～")
+            yield event.plain_result(_T.static("shortcut.err_no_bind"))
         return
     if sub == "清除":
         if not shortcuts:
-            yield event.plain_result("还没有任何快捷绑定～")
+            yield event.plain_result(_T.static("shortcut.none"))
             return
         db.update_player(group_id, qq_id, shortcuts={})
-        yield event.plain_result("🧹 全部快捷已清除～")
+        yield event.plain_result(_T.static("shortcut.ok_clear"))
         return
     # 默认：列表
     if not shortcuts:
         yield event.plain_result(
-            "⚡ 快捷指令：把常用指令绑到数字/字母，一键执行！\n"
-            "用法：『快捷绑定 1 探索』→ 之后发『1』就是探索（数字全量匹配，绑『13』发『13』才触发）\n"
-            "『快捷绑定 n 前往』→ 发『n』=前往，发『n3』=前往 3（字母支持后缀参数）\n"
-            "『快捷绑定 2 技能1』→ 发『2』= 技能栏第 1 格\n"
-            "支持：快捷列表 / 快捷删除 <键> / 快捷清除"
+            _T.static("shortcut.usage_empty")
         )
         return
-    lines = [f"⚡ {qq_id} 的快捷({len(shortcuts)} 个)："]
+    lines = [_T.text("shortcut.list_head", qq=qq_id, n=len(shortcuts))]
     for num in sorted(shortcuts.keys(), key=lambda x: (0, int(x)) if x.isdigit() else (1, x)):
         lines.append(f"  {num} → {shortcuts[num]}")
-    lines.append("『快捷绑定 <数字/字母> <指令>』新增，『快捷删除 <键>』删除")
+    lines.append(_T.static("shortcut.list_tip"))
     yield event.plain_result("\n".join(lines))
 
 async def shortcut_trigger(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -338,7 +334,7 @@ async def page_flip(self, event: AstrMessageEvent, group_id, qq_id):
     # v123：+/- 无数字 → ±1 页；= 无数字 → 提示用法
     n = int(digits) if digits else (1 if op in "+＋-－" else None)
     if op in "=＝" and n is None:
-        yield event.plain_result("📄 跳页用法：『=页数』，如『=3』跳第 3 页～")
+        yield event.plain_result(_T.static("pageflip.usage"))
         self._stop_event_safe(event)
         return
     saved = {}
@@ -350,7 +346,7 @@ async def page_flip(self, event: AstrMessageEvent, group_id, qq_id):
         saved = {}
     cmd = saved.get("cmd")
     if not cmd:
-        yield event.plain_result("📄 先打开一个列表（『背包』『技能列表』『任务』等）再发翻页快捷键～")
+        yield event.plain_result(_T.static("pageflip.no_list"))
         self._stop_event_safe(event)
         return
     page = int(saved.get("page") or 1)
@@ -374,7 +370,7 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
     race_arg = _args[2] if len(_args) > 2 else ""
     gender_arg = _args[3] if len(_args) > 3 else ""
     if self._player(group_id, qq_id):
-        yield event.plain_result("你已经注册过角色啦！输入『角色』查看～")
+        yield event.plain_result(_T.static("register.already"))
         return
     first = first.strip()
     # v95.23 双格式注册：
@@ -429,14 +425,13 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
             name = first
     if cls_id not in _cat_core.CLASSES:
         avail = "、".join(cinfo.get("name", cid) for cid, cinfo in _cat_core.CLASSES.items())
-        yield event.plain_result(f"未知职业『{class_name}』！可选职业：{avail}")
+        yield event.plain_result(_T.text("register.unknown_class", cls=class_name, avail=avail))
         return
     # v83 22 章：隐藏职业不可直接注册（需传承解锁）
     if _cat_core.CLASSES.get(cls_id, {}).get("hidden"):
         avail = "、".join(cinfo.get("name", cid) for cid, cinfo in _cat_core.CLASSES.items())
         yield event.plain_result(
-            f"『{class_name}』是传说中才会出现的隐藏职业，普通人无法选择……\n"
-            f"💡 世界深处藏着它的线索(隐藏成就/隐藏区域)。可选职业：{avail}"
+            _T.text("register.hidden_class", cls=class_name, avail=avail)
         )
         return
     # v95.24 性别系统：注册必选性别（男/女），种族从剩余参数中解析。
@@ -471,8 +466,7 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
             continue
         races_avail = "、".join(ri.get("name", rid) for rid, ri in _cat_core.RACES.items())
         yield event.plain_result(
-            f"未知种族或性别『{tok}』！可选种族：{races_avail}，性别：男/女\n"
-            f"格式：注册 <名字> <性别> [种族]，如『注册 格温 女 精灵』"
+            _T.text("register.unknown_race_gender", tok=tok, avail=races_avail)
         )
         return
     # v105 P2(M01)：名字超 12 字静默截断 → 显式提示（原实现截断无任何提示）
@@ -480,24 +474,24 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
     trunc_hint = ""
     if len(_name_raw) > 12:
         name = _name_raw[:12]
-        trunc_hint = f"⚠️ 名字超过 12 字，已截断为『{name}』\n\n"
+        trunc_hint = _T.text("register.name_trunc", name=name)
     else:
         name = _name_raw
     # v104 P3：名字槽位是纯性别关键词（如『注册 男』『注册   女 精灵』）→ 视为没起名，
     # 优先报"名字不能为空"而不是"请选择性别"（文案错位）。
     # 注意：性别词永不可能成为合法名字槽（性别强制必选），故可安全拦截。
     if not name or name.lower() in GENDER_MAP:
-        yield event.plain_result("名字不能为空！格式：注册 <名字> <性别> [种族]，如『注册 格温 女 精灵』")
+        yield event.plain_result(_T.static("register.name_empty"))
         return
     # v95.26 性别强制：注册必须选性别（男/女），无性别直接拒
     if not gender_id:
         yield event.plain_result(
-            "请选择性别！格式：注册 <名字> <性别> [种族]，如『注册 格温 女 精灵』（男/女）"
+            _T.static("register.need_gender")
         )
         return
     # v130.7 意见#29：注册重名检查——精确重名即拒（同音/相似名不拦），不落库
     if db.find_player_by_name(name):
-        yield event.plain_result("这个名字已经有人用啦，换一个吧～")
+        yield event.plain_result(_T.static("register.name_taken"))
         return
     cls = _cat_core.CLASSES[cls_id]
     cls_display = cls.get("name", cls_id)
@@ -537,9 +531,9 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
             if _txt:
                 _tl.append(_txt)
         _talent_s = "；".join(_tl) if _tl else _rd.get("desc", "")
-        race_line = (f"种族：{_rd['icon']} {_rd['name']}（{_rd.get('desc','')}）\n"
-                     f"   · 天赋：{_talent_s}\n")
-    gender_line = f"性别：{'♂ 男' if gender_id == 'male' else '♀ 女'}\n" if gender_id else ""
+        race_line = (_T.text("register.race_line", icon=_rd['icon'], name=_rd['name'], desc=_rd.get('desc',''),
+                         talent=_talent_s))
+    gender_line = _T.text("register.gender_line", g='♂ 男' if gender_id == 'male' else '♀ 女') if gender_id else ""
     if cls_id == CLASS_NOVICE:
         # v95.23 见习冒险者：无职业技能，引导去行会/导师就职
         yield event.plain_result(
@@ -597,50 +591,43 @@ async def bind_identity(self, event: AstrMessageEvent):
     if not _identity.is_openid(raw_sender):
         group_id, qq_id = self._uid(event)
         yield event.plain_result(
-            f"✅ 你当前的平台身份 {raw_sender} 已是 QQ 号，无需绑定～"
+            _T.text("bind.already_qq", qq=raw_sender)
             if _identity.is_qq_id(raw_sender)
-            else "⚠️ 当前消息没有识别到 openid，请确认是在新的官方 bot 上发送。"
+            else _T.static("bind.no_openid")
         )
         return
     args = self._strip_cmd(event, "绑定身份").split(maxsplit=2)
     if len(args) < 2:
         yield event.plain_result(
-            "📎 老玩家身份认领：『绑定身份 <QQ号> <角色名>』\n"
-            "例：『绑定身份 1454832774 鱼冻不冻阿』\n"
-            "绑定后你的等级/装备/金币会以老角色继续～\n"
-            "（需 QQ号+角色名 匹配验证，防冒领；不确定角色名可先问 GM）"
+            _T.static("bind.usage")
         )
         return
     qq_target, name_target = args[0].strip(), args[1].strip()
     if not _identity.is_qq_id(qq_target):
-        yield event.plain_result(f"❌ {qq_target} 不是合法 QQ 号～")
+        yield event.plain_result(_T.text("bind.bad_qq", qq=qq_target))
         return
     # 校验：该 QQ 号下的角色名是否匹配
     hit = db.find_player_by_name(name_target)
     if not hit:
         yield event.plain_result(
-            f"❌ 没找到叫『{name_target}』的冒险者。\n"
-            f"检查角色名是否一致（含符号/空格）；若确实没有老角色，直接『注册』开新号即可。"
+            _T.text("bind.name_missing", name=name_target)
         )
         return
     if str(hit.get("qq_id")) != qq_target:
         yield event.plain_result(
-            f"❌ 『{name_target}』不是 QQ {qq_target} 的角色，绑定失败（防冒领）。\n"
-            f"确认你的老 QQ 号和角色名是否记错；仍无法绑定可找 GM 用 gm_绑身份 处理。"
+            _T.text("bind.mismatch", name=name_target, qq=qq_target)
         )
         return
     # 双重校验：若目标 QQ 已有其他 openid 绑定，提示先解绑（避免一人多号混淆）
     old_oid = _identity.qq_to_openid(qq_target)
     if old_oid and old_oid != raw_sender:
         yield event.plain_result(
-            f"⚠️ QQ {qq_target} 已被另一个 openid（{old_oid[:8]}…）绑定。\n"
-            f"如果你就是本人（换设备/重复绑定），找 GM 确认后处理，防止误绑。"
+            _T.text("bind.occupied", qq=qq_target, oid=old_oid[:8])
         )
         return
     _identity.bind(raw_sender, qq_target)
     yield event.plain_result(
-        f"✅ 绑定成功！你将以 QQ {qq_target} 的身份继续冒险～\n"
-        f"角色『{hit.get('name')}』的数据（等级/装备/金币/任务）已续接，输入『角色』查看！"
+        _T.text("bind.ok", qq=qq_target, name=hit.get('name'))
     )
 
 async def profile(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -838,7 +825,7 @@ async def evolve(self, event: AstrMessageEvent, group_id, qq_id, player):
     # v109.2 P2-6：隐藏职业玩家『转职 <未识别名>』拦截——防落基础路径错门槛/导师断链
     if _raw0 and _cat_core.CLASSES.get(player["class_name"], {}).get("hidden"):
         yield event.plain_result(
-            f"⚠️ 未识别『{_raw0}』！你已踏上传承之路，『转职』可查看下一阶传承。")
+            _T.text("evolve.unrecognized", raw=_raw0))
         return
     # 隐藏职业玩家『转职』(无参数)：显示传承之路（下一阶/已满）
     if not _raw0 and _cat_core.CLASSES.get(player["class_name"], {}).get("hidden"):
@@ -854,8 +841,11 @@ async def evolve(self, event: AstrMessageEvent, group_id, qq_id, player):
     # 已满级转职
     if not need_lv:
         yield event.plain_result(
-            f"👑 你已完成全部转职！{self._tier_title(player['class_name'], tier, player.get('evolve_path', 0))}\n"
-            f"当前职业：{cls['icon']} {self._branch_title(player['class_name'], tier, player.get('evolve_path', 0))}(Lv.{player['level']})"
+            _T.text("evolve.done_all",
+                title=self._tier_title(player['class_name'], tier, player.get('evolve_path', 0)),
+                icon=cls['icon'],
+                cls=self._branch_title(player['class_name'], tier, player.get('evolve_path', 0)),
+                lv=player['level'])
         )
         return
     # 等级不足
@@ -972,8 +962,8 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
     icon = cls.get("icon", "✨")
     unlocks = player.get("hidden_class_unlock", [])
     if cls_id not in unlocks:
-        hint = cls.get("hint") or f"💡 {cls.get('desc', '').split('。')[0]}。\n🔍 前往对应导师处完成试炼即可解锁传承。"
-        yield event.plain_result(f"{icon} {cname}的传承还未向你敞开……\n{hint}")
+        hint = cls.get("hint") or _T.text("evolve.gen_locked_hint", desc=cls.get('desc', '').split('。')[0])
+        yield event.plain_result(_T.text("evolve.gen_locked", icon=icon, cls=cname, hint=hint))
         return
     # v108.2 血缘限制：只有渊源根基职业（含其分支线）可传承，杜绝"全系奇遇"
     # v112.1：src_base 为空的"中立线"跳过血缘检查（当前无中立线，预留通用性）
@@ -984,12 +974,10 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
         if _cat_core.CLASSES.get(player["class_name"], {}).get("hidden"):
             cur_name = _cat_core.CLASSES.get(player["class_name"], {}).get("name", "当前职业")
             yield event.plain_result(
-                f"{icon} {cname}的传承与你的血脉有所共鸣，但一脉相承不可兼得……\n"
-                f"💡 你已踏上【{cur_name}】之路，若想改换门庭可『转职重置』回到{src_name}一脉再传承。")
+                _T.text("evolve.gen_conflict", icon=icon, cls=cname, cur=cur_name, src=src_name))
         else:
             yield event.plain_result(
-                f"{icon} {cname}的传承只向{src_name}一脉的传人敞开……\n"
-                f"💡 先以{src_name}的身份历练，再寻访这份传承。")
+                _T.text("evolve.gen_need_blood", icon=icon, cls=cname, src=src_name, src2=src_name))
         return
     # v113 种族限制：src_race 指定了血脉种族（如龙裔誓约 = 龙裔）——非该种族拒绝传承
     src_race = cls.get("src_race", "")
@@ -999,17 +987,16 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
             need_cn = (_cat_core.RACES.get(src_race) or {}).get("name", "对应种族")
             cur_cn = (_cat_core.RACES.get(cur_race) or {}).get("name", "未知种族")
             yield event.plain_result(
-                f"{icon} {cname}的传承需要{need_cn}的血脉才能唤醒……\n"
-                f"💡 你身为{cur_cn}，与这份力量格格不入。")
+                _T.text("evolve.gen_need_race", icon=icon, cls=cname, need=need_cn, cur=cur_cn))
             return
     tlv = self._hidden_tier_levels(cls_id)
     need_lv = tlv.get(tgt_tier)
     if not need_lv:
-        yield event.plain_result(f"{icon} {cname}的传承之路已到尽头。")
+        yield event.plain_result(_T.text("evolve.gen_end", icon=icon, cls=cname))
         return
     if player["level"] < need_lv:
         yield event.plain_result(
-            f"{icon} 这一阶传承需要 Lv.{need_lv} 历练，当前 Lv.{player['level']}，先游历四方吧。")
+            _T.text("evolve.gen_need_lv", icon=icon, lv=need_lv, cur=player['level']))
         return
     cur_tier = player.get("class_tier", 0)
     _same_class = (player.get("class_name") == cls_id)
@@ -1018,10 +1005,11 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
         path = max(1, int(player.get("evolve_path", 1) or 1))
         if cur_tier >= tgt_tier:
             yield event.plain_result(
-                f"{icon} 你已是{cname}（{self._branch_title(cls_id, cur_tier, path)}）。")
+                _T.text("evolve.gen_already", icon=icon, cls=cname,
+                    title=self._branch_title(cls_id, cur_tier, path)))
             return
         if cur_tier != tgt_tier - 1:
-            yield event.plain_result("时机未到，先巩固当前境界吧。")
+            yield event.plain_result(_T.static("evolve.gen_not_yet"))
             return
     else:
         path = max(1, int(req_path or 1))  # 跨职业进入：按所选档位名定流派
@@ -1031,8 +1019,7 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
         # 路由（按等级继承档位）会拒绝——全名/别名行为不一致，高阶位阶进度可意外回退
         if cur_tier > tgt_tier:
             yield event.plain_result(
-                f"{icon} {cname}的传承位阶（{tgt_tier} 阶）低于你当前的境界（{cur_tier} 阶）——"
-                f"传承无法倒退，请以与之相称的位阶再续传承。")
+                _T.text("evolve.gen_downgrade", icon=icon, cls=cname, tgt=tgt_tier, cur=cur_tier))
             return
     # 技能继承：线级基础 + 本流派分支（v112）中 lv <= 当前等级的全部。
     # v109：同职业升档保留已学+只补未学——已付费技能不因升档重复发放
@@ -1069,16 +1056,16 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
     learned = [display('skills', sk) for sk in new_grant]
     title = self._branch_title(cls_id, tgt_tier, path)
     lore = cls.get("lore", "")
-    lines = [f"{icon} 传承完成！你成为了【{icon}{title}】！", "━━━━━━━━━━━━"]
+    lines = [_T.text("evolve.gen_done", icon=icon, icon2=icon, title=title), "━━━━━━━━━━━━"]
     if lore:
         lines.append(lore)
-    lines.append(f"🌟 领悟：{'、'.join(learned) if learned else '（本次无新技能）'}")
+    lines.append(_T.text("evolve.gen_gains", names='、'.join(learned) if learned else '（本次无新技能）'))
     if not _same_class and player.get("learned_skills"):
-        lines.append("♻️ 旧职业技能已随传承清空，可『技能洗点』返还技能点")
+        lines.append(_T.static("evolve.gen_cleared"))
     if _same_class and kept:
-        lines.append(f"🔒 已学技能保留 {len(kept)} 个（含此前『技能学习』习得，不重复发放）")
+        lines.append(_T.text("evolve.gen_kept", n=len(kept)))
     if _same_class:
-        lines.append(f"💡 流派【{self._branch_title(cls_id, 1, path)}】已定，改选流派可『转职重置』回根基职业后重新传承")
+        lines.append(_T.text("evolve.gen_path_set", title=self._branch_title(cls_id, 1, path)))
     yield event.plain_result("\n".join(lines))
 
 def _evolve_auto_skills(self, player: dict, next_tier: int) -> list:
@@ -1222,36 +1209,36 @@ async def attributes(self, event: AstrMessageEvent, group_id, qq_id, player):
 async def add_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     args = self._strip_cmd(event, "加点").split()
     if len(args) < 2 or not args[1].isdigit():
-        yield event.plain_result("格式：加点 <力量/敏捷/智力/耐力> <点数>，如『加点 力量 5』")
+        yield event.plain_result(_T.static("points.usage_add"))
         return
     key_map = {"力量": "str", "敏捷": "agi", "智力": "int", "耐力": "vit"}
     key = key_map.get(args[0])
     if not key:
-        yield event.plain_result("可选：力量 / 敏捷 / 智力 / 耐力")
+        yield event.plain_result(_T.static("points.usage_choose"))
         return
     n = int(args[1])
     if n <= 0:
-        yield event.plain_result("点数必须是正整数！")
+        yield event.plain_result(_T.static("points.err_positive"))
         return
     pts = player.get("attr_pts", 0)
     if n > pts:
-        yield event.plain_result(f"属性点不足！你只有 {pts} 点，需要 {n} 点。")
+        yield event.plain_result(_T.text("points.err_not_enough", pts=pts, n=n))
         return
     attr = dict(player.get("attributes") or {})  # v105 P1(M01#9)：attributes=None 脏档兜底
     attr[key] = attr.get(key, 0) + n
     import json
     db.update_player(group_id, qq_id, attr_pts=pts - n, attributes=json.dumps(attr, ensure_ascii=False))
     names = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
-    yield event.plain_result(f"✅ 加点成功！{names[key]} +{n}，剩余属性点 {pts - n}\n『属性』查看效果～")
+    yield event.plain_result(_T.text("points.ok_add", name=names[key], n=n, left=pts - n))
 
 async def reset_skill(self, event: AstrMessageEvent, group_id, qq_id, player):
     """技能洗点(v27 独立指令)：花 500 金币返还全部已花费技能点(学习+升级)，清空已学技能与等级"""
     if not player.get("learned_skills"):
-        yield event.plain_result("你还没有学习过任何技能，无需洗点～")
+        yield event.plain_result(_T.static("points.skill_none"))
         return
     cost = _cat_core.RESET_SKILL_COST
     if player["gold"] < cost:
-        yield event.plain_result(f"技能洗点需要 {cost} 金币，你只有 {player['gold']} 金币。")
+        yield event.plain_result(_T.text("points.skill_err_gold", cost=cost, gold=player['gold']))
         return
     spent = player.get("skill_spent", 0)
     cls = player["class_name"]
@@ -1267,19 +1254,18 @@ async def reset_skill(self, event: AstrMessageEvent, group_id, qq_id, player):
         bar.append(None)
     db.set_skill_bar(qq_id, bar)
     yield event.plain_result(
-        f"🔄 技能洗点成功！返还 {spent} 技能点(花费 {cost} 金币)\n"
-        f"已学技能清空(保留初始技能：{'、'.join(init_skills) or '无'})，技能等级已重置，『技能学习』重新规划 build 吧～"
+        _T.text("points.skill_ok", spent=spent, cost=cost, init='、'.join(init_skills) or '无')
     )
 
 async def evolve_reset(self, event: AstrMessageEvent, group_id, qq_id, player):
     """转职重置(21 章 §8)：付费清空转职分支，保留等级，可重新选择分支"""
     tier = player.get("class_tier", 0)
     if tier <= 0:
-        yield event.plain_result("你还没有转职过，无需重置～『转职』查看路线。")
+        yield event.plain_result(_T.static("evolve.reset_none"))
         return
     cost = _cat_core.EVOLVE_FEES.get(tier, 500)
     if player["gold"] < cost:
-        yield event.plain_result(f"转职重置需要 {cost} 金币(当前 {tier} 转)，你只有 {player['gold']} 金币。")
+        yield event.plain_result(_T.text("evolve.reset_err_gold", cost=cost, tier=tier, gold=player['gold']))
         return
     # 清除分支技能（learned_skills 中属于分支的）+ 分支技能等级
     cls = player["class_name"]
@@ -1366,16 +1352,16 @@ async def reset_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     raw = self._strip_cmd(event, "洗点").strip()
     # v27：技能洗点已拆分为独立指令『技能洗点』，避免与属性洗点混淆
     if "技能" in raw:
-        yield event.plain_result("技能洗点是独立指令：『技能洗点』(500金币返还技能点)～『洗点』只重置属性点。")
+        yield event.plain_result(_T.static("points.attr_hint_skill"))
         return
     attr = player.get("attributes") or {}  # v105 P1(M01#9)：attributes=None 脏档兜底
     used = sum(attr.values())
     if used == 0:
-        yield event.plain_result("你还没有分配过属性点，无需洗点～")
+        yield event.plain_result(_T.static("points.attr_none"))
         return
     cost = _cat_core.RESET_SKILL_COST
     if player["gold"] < cost:
-        yield event.plain_result(f"洗点需要 {cost} 金币，你只有 {player['gold']} 金币。")
+        yield event.plain_result(_T.text("points.attr_err_gold", cost=cost, gold=player['gold']))
         return
     import json
     attrs0 = {"str": 0, "agi": 0, "int": 0, "vit": 0}
@@ -1423,8 +1409,8 @@ async def reset_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     _drop_txt = ""
     if dropped:
         _dnames = "、".join(f"{_it.get('name', _sl)}" for _sl, _it in dropped)
-        _drop_txt = f"\n⚔️ 属性不足，以下装备自动卸下回背包：{_dnames}\n（『加点』后可用『装备 <名称>』重新穿上）"
-    yield event.plain_result(f"🔄 洗点成功！返还 {used} 点属性点(花费 {cost} 金币){_drop_txt}\n『加点』重新分配～")
+        _drop_txt = _T.text("points.attr_drop", names=_dnames)
+    yield event.plain_result(_T.text("points.attr_ok", used=used, cost=cost, drop=_drop_txt))
 
 async def power(self, event: AstrMessageEvent, group_id, qq_id, player):
     st = player_final_stats(player["class_name"], player["level"], player["equipment"], player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
@@ -1606,30 +1592,31 @@ def _skill_learn_msg(self, group_id, player: dict, skill_name: str) -> str:
     skill_name = (skill_name or "").strip()
     # v95.23 见习冒险者：无职业技能，先就职
     if player.get("class_name") == CLASS_NOVICE:
-        return "🧭 见习冒险者还没有职业技能！去广场找『行会接待员·小艾』就职后就能学习技能了～"
+        return _T.static("skill.learn_no_class")
     if not skill_name:
-        return "格式：技能学习 <技能名/序号>，如『技能学习 裂空斩』或『技能学习 3』"
+        return _T.static("skill.learn_usage")
     # 序号学习：『技能学习 3』→ 技能列表第 3 个技能（与『技能详情』一致）
     if skill_name.isdigit():
         skills = self._player_skill_table(player)
         skill_items = list(skills.keys())
         idx = int(skill_name)
         if idx < 1 or idx > len(skill_items):
-            return f"你的职业只有 {len(skill_items)} 个技能！『技能列表』查看全部～"
+            return _T.text("skill.only_n", n=len(skill_items))
         skill_name = skill_items[idx - 1]
     info = skill_info(player["class_name"], skill_name)
     if not info:
-        return f"你的职业没有『{skill_name}』技能！『技能列表』查看全部～"
+        return _T.text("skill.no_skill", name=skill_name)
     # v56.1：显示一律用中文名（序号学习进来的是 sk_xxx ID）
     display_name = info.get("name", skill_name)
     learned = player.get("learned_skills", [])
     if is_skill_learned(player["class_name"], player["level"], skill_name, learned):
-        return f"『{display_name}』你已学会了，去战斗里试试吧～"
+        return _T.text("skill.learn_already", name=display_name)
     # v101.20 职业导师专属技能拦截：TUTOR_SKILLS 只能找导师学，技能点学不到
     _sid = resolve("skills", skill_name)
     if _sid in ((_cat_core.TUTOR_SKILLS or {}).get(player["class_name"], {}) or {}):
         _mname, _mcity = _tutor_mentor(player["class_name"])
-        return f"『{display_name}』是 {_mname}({_mcity}) 的看家本领，普通学习学不到——去{_mcity}找{_mname}请教吧～"
+        return _T.text("skill.learn_tutor_only", name=display_name, mentor=_mname, city=_mcity, city2=_mcity,
+                   mentor2=_mname)
     # v26 分支专属技能门槛：必须先转职到对应分支
     owner = branch_skill_owner(player["class_name"], skill_name)
     if owner:
@@ -1639,22 +1626,22 @@ def _skill_learn_msg(self, group_id, player: dict, skill_name: str) -> str:
         my_tier = player.get("class_tier", 0)
         my_path = player.get("evolve_path", 0)
         if my_tier < need_tier or not my_path:
-            return f"『{display_name}』是 {bname} 的专属技能，需要先转职为 {bname} 才能学习！(Lv.30/60/90 可转职)"
+            return _T.text("skill.learn_branch_locked", name=display_name, branch=bname, branch2=bname)
         branches = _cat_core.CLASSES[player["class_name"]].get("evolve_branches", {}).get(need_tier, [])
         # v112：多分支索引通用化（攻/守 path=1/2；隐藏流派 path=1/2/3）
         idx = max(0, int(my_path or 0) - 1)
         # v130.2f.2 苦修改名收尾：当前流派分支 key → 展示名（与 bname 同口径比较）
         my_branch = _BRANCH_KEY_DISPLAY.get(branches[idx], branches[idx]) if idx < len(branches) else ""
         if my_branch != bname:
-            return f"『{display_name}』是 {bname} 的专属技能，你走的是 {my_branch} 路线，学不了～"
+            return _T.text("skill.learn_branch_mismatch", name=display_name, branch=bname, mine=my_branch)
     need_lv = info["lv"]
     if player["level"] < need_lv:
-        return f"『{display_name}』需要 Lv.{need_lv} 才能学习，你才 Lv.{player['level']}——升级吧！(每级＋1 技能点)"
+        return _T.text("skill.learn_need_lv", name=display_name, need=need_lv, cur=player['level'])
     cost = skill_learn_cost_for(player, need_lv)
     pts = player.get("skill_points", 0)
     if pts < cost:
         return (
-            f"学习『{display_name}』需要 {cost} 技能点(技能 Lv.{need_lv})，你只有 {pts} 点——升级可获得技能点(每级＋1)～"
+            _T.text("skill.learn_no_pts", name=display_name, cost=cost, lv=need_lv, pts=pts)
         )
     learned = list(learned) + [skill_name]
     spent = player.get("skill_spent", 0) + cost
@@ -1663,14 +1650,12 @@ def _skill_learn_msg(self, group_id, player: dict, skill_name: str) -> str:
     _ach.check_achievements(group_id, player["qq_id"], player)
     if info.get("kind") == "被动":
         return (
-            f"✨ 消耗 {cost} 技能点，学会了被动技能『{display_name}』！\n"
-            f"⚙️ 被动技能无需施放，战斗自动生效！剩余技能点 {pts - cost}\n"
-            f"「{info['desc']}」"
+            _T.text("skill.learn_ok_passive", cost=cost, name=display_name, left=pts - cost,
+                desc=info['desc'])
         )
     return (
-        f"✨ 消耗 {cost} 技能点，学会了『{display_name}』！\n"
-        f"现在 Lv.{player['level']} 就能使用它了，剩余技能点 {pts - cost}\n"
-        f"💡 记得『设置技能 <槽位> {display_name}』放入技能栏，战斗中『技能 <槽位>』即可施放～"
+        _T.text("skill.learn_ok", cost=cost, name=display_name, lv=player['level'], left=pts - cost,
+            name2=display_name)
     )
 
 def _skill_cast_text(self, info: dict) -> str:
@@ -1772,7 +1757,7 @@ async def skill_upgrade(self, event: AstrMessageEvent, group_id, qq_id, player):
     """技能升级(v27)：已学技能花技能点升级，攻击/治疗 power 提升、增益刻延长"""
     skill_name = self._strip_cmd(event, "技能升级").strip()
     if not skill_name:
-        yield event.plain_result("格式：技能升级 <技能名/序号>，如『技能升级 火球术』或『技能升级 3』")
+        yield event.plain_result(_T.static("skill.upgrade_usage"))
         return
     # 序号升级：『技能升级 3』→ 技能列表第 3 个技能（与『技能详情/学习』一致）
     if skill_name.isdigit():
@@ -1780,34 +1765,34 @@ async def skill_upgrade(self, event: AstrMessageEvent, group_id, qq_id, player):
         skill_items = list(skills.keys())
         idx = int(skill_name)
         if idx < 1 or idx > len(skill_items):
-            yield event.plain_result(f"你的职业只有 {len(skill_items)} 个技能！『技能列表』查看全部～")
+            yield event.plain_result(_T.text("skill.only_n", n=len(skill_items)))
             return
         skill_name = skill_items[idx - 1]
     info = skill_info(player["class_name"], skill_name)
     if not info:
-        yield event.plain_result(f"你的职业没有『{skill_name}』技能！『技能列表』查看全部～")
+        yield event.plain_result(_T.text("skill.no_skill", name=skill_name))
         return
     learned = player.get("learned_skills", [])
     if not is_skill_learned(player["class_name"], player["level"], skill_name, learned):
-        yield event.plain_result(f"『{skill_name}』还没学会！先『技能学习 {skill_name}』学会后才能升级～")
+        yield event.plain_result(_T.text("skill.upgrade_not_learned", name=skill_name, name2=skill_name))
         return
     # v64 被动技能：不可升级（learned 后即满效果）
     if info.get("kind") == "被动":
         yield event.plain_result(
-            f"⚙️ 『{info.get('name', skill_name)}』是被动技能，无需升级——学会后战斗自动生效！"
+            _T.text("skill.upgrade_passive", name=info.get('name', skill_name))
         )
         return
     levels = dict(player.get("skill_levels") or {})
     cur_lv = skill_level_of(player, skill_name)  # #259：兼容 key 为中文名，升级判定/写入统一
     mx = skill_max_level(info)
     if cur_lv >= mx:
-        yield event.plain_result(f"『{skill_name}』已经是满级 Lv.{mx} 啦，不能再升了～")
+        yield event.plain_result(_T.text("skill.upgrade_maxed", name=skill_name, mx=mx))
         return
     cost = skill_upgrade_cost(cur_lv, info)
     pts = player.get("skill_points", 0)
     if pts < cost:
         yield event.plain_result(
-            f"升级『{skill_name}』到 Lv.{cur_lv + 1} 需要 {cost} 技能点，你只有 {pts} 点——升级可获得技能点(每级＋1)～"
+            _T.text("skill.upgrade_no_pts", name=skill_name, lv=cur_lv + 1, cost=cost, pts=pts)
         )
         return
     levels[resolve("skills", skill_name)] = cur_lv + 1  # #259：key 统一 ID（写库 resolve 幂等，防中文/ID 双 key）
@@ -1825,10 +1810,11 @@ async def skill_upgrade(self, event: AstrMessageEvent, group_id, qq_id, player):
     gains = self._skill_upgrade_gains(info, cur_lv + 1)
     desc = " · ".join(gains)
     next_cost = skill_upgrade_cost(cur_lv + 1, info)
-    tail = f"｜ 升到 Lv.{cur_lv + 2} 需 {next_cost} 点" if next_cost else "｜ 已满级！"
-    refund_txt = f"（人类博学者：首次升级返还 1 点）" if refund else ""
+    tail = _T.text("skill.upgrade_tail_next", lv=cur_lv + 2, cost=next_cost) if next_cost else _T.static("skill.upgrade_tail_maxed")
+    refund_txt = _T.text("skill.upgrade_refund_note", ) if refund else ""
     yield event.plain_result(
-        f"⬆️ 『{display_name}』升级到 Lv.{cur_lv + 1}({desc})！消耗 {cost} 技能点，剩余 {pts - cost + refund} 点{refund_txt}{tail}"
+        _T.text("skill.upgrade_ok", name=display_name, lv=cur_lv + 1, gains=desc, cost=cost,
+            left=pts - cost + refund, refund=refund_txt, tail=tail)
     )
 
 async def skill_bar_view(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1850,26 +1836,26 @@ async def skill_bar_set(self, event: AstrMessageEvent, group_id, qq_id, player):
     raw = self._strip_cmd(event, "设置技能").strip()
     parts = raw.split(maxsplit=1)
     if len(parts) < 2 or not parts[0].isdigit():
-        yield event.plain_result("格式：设置技能 <槽位1－6> <技能名>，如『设置技能 1 火球术』")
+        yield event.plain_result(_T.static("skill_bar.set_usage"))
         return
     slot = int(parts[0])
     if slot < 1 or slot > 6:
-        yield event.plain_result("技能栏只有 6 个槽位(1~6)！")
+        yield event.plain_result(_T.static("skill_bar.set_slot_range"))
         return
     sname = parts[1].strip()
     info = skill_info(player["class_name"], sname)
     if not info:
-        yield event.plain_result(f"你的职业没有『{sname}』技能！『技能列表』查看～")
+        yield event.plain_result(_T.text("skill_bar.set_no_skill", name=sname))
         return
     if not is_skill_learned(player["class_name"], player["level"], sname, player.get("learned_skills", [])):
-        yield event.plain_result(f"『{sname}』还没学会！『技能学习 {sname}』消耗技能点学会后再设置～")
+        yield event.plain_result(_T.text("skill_bar.set_not_learned", name=sname, name2=sname))
         return
     bar = db.get_skill_bar(qq_id)
     while len(bar) < 6:
         bar.append(None)
     bar[slot - 1] = sname
     db.set_skill_bar(qq_id, bar)
-    yield event.plain_result(f"✅ 技能栏 {slot} 号位 → 『{sname}』！战斗中『技能 {slot}』即可施放～")
+    yield event.plain_result(_T.text("skill_bar.set_ok", slot=slot, name=sname, slot2=slot))
 
 async def build_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     """流派(v52 Build 系统)：查看本职业流派 / 一键配置技能栏"""
@@ -1932,20 +1918,19 @@ async def delete_account(self, event: AstrMessageEvent, group_id, qq_id, player)
         key = f"del_confirm_{qq_id}"
         state = db.get_event_state(key)
         if not state:
-            yield event.plain_result("没有待确认的注销请求。输入『注销』发起注销～")
+            yield event.plain_result(_T.static("account.no_request"))
             return
         try:
             if int(time.time()) - int(state) > 600:
                 db.delete_event_state(key)
-                yield event.plain_result("注销确认已过期，请重新输入『注销』发起～")
+                yield event.plain_result(_T.static("account.expired"))
                 return
         except (TypeError, ValueError):
             pass
         db.delete_player(qq_id)
         db.delete_event_state(key)
         yield event.plain_result(
-            f"🗡️ 冒险者 {player['name']} 的故事就此落幕……\n"
-            f"所有角色数据已删除，可以重新『注册 <名字> <性别>』开始新旅程！"
+            _T.text("account.done", name=player['name'])
         )
         return
     # 发起注销：写确认状态（10 分钟有效）

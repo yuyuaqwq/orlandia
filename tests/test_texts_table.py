@@ -193,6 +193,7 @@ SOCIAL_SRC = PKG_SOCIAL_SRC
 #   判定与强度逐条不变（仍是「扫包内真源 + 45 条一个不少」）。
 ECONOMY_SRC = os.path.join(_PD, "game", "commands", "economy.py")
 PKG_ECONOMY_SRC = os.path.join(PKG_CONTENT, "economy_cmds.py")
+PKG_PLAYER_SRC = os.path.join(PKG_CONTENT, "player_cmds.py")   # C 档 14（B-2 第 2 片）：player 散落/尾巴
 # ★ P5E-DELETE（2026-09-15，删壳批）：同 SOCIAL_SRC 的处置 —— [13] 段（经济域逐字冻结）
 #   原扫宿主 `game/commands/economy.py`（随壳删除），改指包内真源 `content/cmds_economy.py`。
 ECONOMY_SRC = PKG_ECONOMY_SRC
@@ -278,7 +279,19 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "流派": os.path.join(PKG_CONTENT, "player_cmds.py"),
          "技能详情": os.path.join(PKG_CONTENT, "player_cmds.py"),
          # C 档 11：经济面板（附魔/套装/重铸）
-         "经济面板": PKG_ECONOMY_SRC}
+         "经济面板": PKG_ECONOMY_SRC,
+         # ★ C 档 14（B-2 第 2 片）：player_cmds 散落/尾巴 —— 六个新分类同源一个文件
+         #   （快捷指令 = shortcut + page_flip；注册 / 身份绑定 = bind_identity；加点洗点 =
+         #   add_attr + reset_skill + reset_attr + evolve_reset；技能学习 = _skill_learn_msg +
+         #   skill_upgrade；注销 = delete_account。转职 / 技能栏 为该文件既有分类，沿用 PKG_PLAYER_SRC）
+         "快捷指令": PKG_PLAYER_SRC,
+         "注册": PKG_PLAYER_SRC,
+         "身份绑定": PKG_PLAYER_SRC,
+         "加点洗点": PKG_PLAYER_SRC,
+         "技能学习": PKG_PLAYER_SRC,
+         "注销": PKG_PLAYER_SRC,
+         "转职": PKG_PLAYER_SRC,
+         "技能栏": PKG_PLAYER_SRC}
 
 
 def _wired_paths(path):
@@ -866,6 +879,7 @@ def t1_table_selfcheck():
                         "副业图标", "技能面板", "GM面板", "公会面板", "修炼塔",
                         "角色面板", "属性面板", "排行榜", "种族面板", "转职", "技能栏", "流派", "技能详情",
                         "经济面板",
+                        "快捷指令", "注册", "身份绑定", "加点洗点", "技能学习", "注销",
                         "冒险手册", "足迹", "世界百科", "来源图标", "触发名"}, cats)
 
 

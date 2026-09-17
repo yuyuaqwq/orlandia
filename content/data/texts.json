@@ -1,4 +1,22 @@
 {
+  "account.done": {
+    "value": "🗡️ 冒险者 {name} 的故事就此落幕……\n所有角色数据已删除，可以重新『注册 <名字> <性别>』开始新旅程！",
+    "params": [
+      "name"
+    ],
+    "category": "注销",
+    "desc": "搬自 content/player_cmds.py:delete_account（B 批 C 档）"
+  },
+  "account.expired": {
+    "value": "注销确认已过期，请重新输入『注销』发起～",
+    "category": "注销",
+    "desc": "搬自 content/player_cmds.py:delete_account（B 批 C 档）"
+  },
+  "account.no_request": {
+    "value": "没有待确认的注销请求。输入『注销』发起注销～",
+    "category": "注销",
+    "desc": "搬自 content/player_cmds.py:delete_account（B 批 C 档）"
+  },
   "adv.col_cnt": {
     "value": " ×{n}",
     "params": [
@@ -464,6 +482,67 @@
     "value": "耐力",
     "category": "属性名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "bind.already_qq": {
+    "value": "✅ 你当前的平台身份 {qq} 已是 QQ 号，无需绑定～",
+    "params": [
+      "qq"
+    ],
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.bad_qq": {
+    "value": "❌ {qq} 不是合法 QQ 号～",
+    "params": [
+      "qq"
+    ],
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.mismatch": {
+    "value": "❌ 『{name}』不是 QQ {qq} 的角色，绑定失败（防冒领）。\n确认你的老 QQ 号和角色名是否记错；仍无法绑定可找 GM 用 gm_绑身份 处理。",
+    "params": [
+      "name",
+      "qq"
+    ],
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.name_missing": {
+    "value": "❌ 没找到叫『{name}』的冒险者。\n检查角色名是否一致（含符号/空格）；若确实没有老角色，直接『注册』开新号即可。",
+    "params": [
+      "name"
+    ],
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.no_openid": {
+    "value": "⚠️ 当前消息没有识别到 openid，请确认是在新的官方 bot 上发送。",
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.occupied": {
+    "value": "⚠️ QQ {qq} 已被另一个 openid（{oid}…）绑定。\n如果你就是本人（换设备/重复绑定），找 GM 确认后处理，防止误绑。",
+    "params": [
+      "qq",
+      "oid"
+    ],
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.ok": {
+    "value": "✅ 绑定成功！你将以 QQ {qq} 的身份继续冒险～\n角色『{name}』的数据（等级/装备/金币/任务）已续接，输入『角色』查看！",
+    "params": [
+      "qq",
+      "name"
+    ],
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
+  },
+  "bind.usage": {
+    "value": "📎 老玩家身份认领：『绑定身份 <QQ号> <角色名>』\n例：『绑定身份 1454832774 鱼冻不冻阿』\n绑定后你的等级/装备/金币会以老角色继续～\n（需 QQ号+角色名 匹配验证，防冒领；不确定角色名可先问 GM）",
+    "category": "身份绑定",
+    "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
   },
   "build.missing_item": {
     "value": "『{name}』(Lv.{lv})",
@@ -2518,6 +2597,152 @@
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
   },
+  "evolve.done_all": {
+    "value": "👑 你已完成全部转职！{title}\n当前职业：{icon} {cls}(Lv.{lv})",
+    "params": [
+      "title",
+      "icon",
+      "cls",
+      "lv"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve（B 批 C 档）"
+  },
+  "evolve.gen_already": {
+    "value": "{icon} 你已是{cls}（{title}）。",
+    "params": [
+      "icon",
+      "cls",
+      "title"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_cleared": {
+    "value": "♻️ 旧职业技能已随传承清空，可『技能洗点』返还技能点",
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_conflict": {
+    "value": "{icon} {cls}的传承与你的血脉有所共鸣，但一脉相承不可兼得……\n💡 你已踏上【{cur}】之路，若想改换门庭可『转职重置』回到{src}一脉再传承。",
+    "params": [
+      "icon",
+      "cls",
+      "cur",
+      "src"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_done": {
+    "value": "{icon} 传承完成！你成为了【{icon2}{title}】！",
+    "params": [
+      "icon",
+      "icon2",
+      "title"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_downgrade": {
+    "value": "{icon} {cls}的传承位阶（{tgt} 阶）低于你当前的境界（{cur} 阶）——传承无法倒退，请以与之相称的位阶再续传承。",
+    "params": [
+      "icon",
+      "cls",
+      "tgt",
+      "cur"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_end": {
+    "value": "{icon} {cls}的传承之路已到尽头。",
+    "params": [
+      "icon",
+      "cls"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_gains": {
+    "value": "🌟 领悟：{names}",
+    "params": [
+      "names"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_kept": {
+    "value": "🔒 已学技能保留 {n} 个（含此前『技能学习』习得，不重复发放）",
+    "params": [
+      "n"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_locked": {
+    "value": "{icon} {cls}的传承还未向你敞开……\n{hint}",
+    "params": [
+      "icon",
+      "cls",
+      "hint"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_locked_hint": {
+    "value": "💡 {desc}。\n🔍 前往对应导师处完成试炼即可解锁传承。",
+    "params": [
+      "desc"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_need_blood": {
+    "value": "{icon} {cls}的传承只向{src}一脉的传人敞开……\n💡 先以{src2}的身份历练，再寻访这份传承。",
+    "params": [
+      "icon",
+      "cls",
+      "src",
+      "src2"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_need_lv": {
+    "value": "{icon} 这一阶传承需要 Lv.{lv} 历练，当前 Lv.{cur}，先游历四方吧。",
+    "params": [
+      "icon",
+      "lv",
+      "cur"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_need_race": {
+    "value": "{icon} {cls}的传承需要{need}的血脉才能唤醒……\n💡 你身为{cur}，与这份力量格格不入。",
+    "params": [
+      "icon",
+      "cls",
+      "need",
+      "cur"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_not_yet": {
+    "value": "时机未到，先巩固当前境界吧。",
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
+  "evolve.gen_path_set": {
+    "value": "💡 流派【{title}】已定，改选流派可『转职重置』回根基职业后重新传承",
+    "params": [
+      "title"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:_evolve_hidden_generic（B 批 C 档）"
+  },
   "evolve.hidden_done": {
     "value": "👑 你已完成全部传承！{title}",
     "params": [
@@ -2552,6 +2777,29 @@
     "value": "下一阶",
     "category": "转职",
     "desc": "搬自 content/player_cmds.py:_evolve_hidden_status（B 批 C 档）"
+  },
+  "evolve.reset_err_gold": {
+    "value": "转职重置需要 {cost} 金币(当前 {tier} 转)，你只有 {gold} 金币。",
+    "params": [
+      "cost",
+      "tier",
+      "gold"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve_reset（B 批 C 档）"
+  },
+  "evolve.reset_none": {
+    "value": "你还没有转职过，无需重置～『转职』查看路线。",
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve_reset（B 批 C 档）"
+  },
+  "evolve.unrecognized": {
+    "value": "⚠️ 未识别『{raw}』！你已踏上传承之路，『转职』可查看下一阶传承。",
+    "params": [
+      "raw"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve（B 批 C 档）"
   },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
@@ -5025,6 +5273,16 @@
     "category": "机制名",
     "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
   },
+  "pageflip.no_list": {
+    "value": "📄 先打开一个列表（『背包』『技能列表』『任务』等）再发翻页快捷键～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:page_flip（B 批 C 档）"
+  },
+  "pageflip.usage": {
+    "value": "📄 跳页用法：『=页数』，如『=3』跳第 3 页～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:page_flip（B 批 C 档）"
+  },
   "pbuff_name.atk_down": {
     "value": "😵攻↓",
     "category": "增益名",
@@ -5316,6 +5574,101 @@
     ],
     "category": "宠物技能描述",
     "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "points.attr_drop": {
+    "value": "\n⚔️ 属性不足，以下装备自动卸下回背包：{names}\n（『加点』后可用『装备 <名称>』重新穿上）",
+    "params": [
+      "names"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_attr（B 批 C 档）"
+  },
+  "points.attr_err_gold": {
+    "value": "洗点需要 {cost} 金币，你只有 {gold} 金币。",
+    "params": [
+      "cost",
+      "gold"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_attr（B 批 C 档）"
+  },
+  "points.attr_hint_skill": {
+    "value": "技能洗点是独立指令：『技能洗点』(500金币返还技能点)～『洗点』只重置属性点。",
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_attr（B 批 C 档）"
+  },
+  "points.attr_none": {
+    "value": "你还没有分配过属性点，无需洗点～",
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_attr（B 批 C 档）"
+  },
+  "points.attr_ok": {
+    "value": "🔄 洗点成功！返还 {used} 点属性点(花费 {cost} 金币){drop}\n『加点』重新分配～",
+    "params": [
+      "used",
+      "cost",
+      "drop"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_attr（B 批 C 档）"
+  },
+  "points.err_not_enough": {
+    "value": "属性点不足！你只有 {pts} 点，需要 {n} 点。",
+    "params": [
+      "pts",
+      "n"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
+  },
+  "points.err_positive": {
+    "value": "点数必须是正整数！",
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
+  },
+  "points.ok_add": {
+    "value": "✅ 加点成功！{name} +{n}，剩余属性点 {left}\n『属性』查看效果～",
+    "params": [
+      "name",
+      "n",
+      "left"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
+  },
+  "points.skill_err_gold": {
+    "value": "技能洗点需要 {cost} 金币，你只有 {gold} 金币。",
+    "params": [
+      "cost",
+      "gold"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_skill（B 批 C 档）"
+  },
+  "points.skill_none": {
+    "value": "你还没有学习过任何技能，无需洗点～",
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_skill（B 批 C 档）"
+  },
+  "points.skill_ok": {
+    "value": "🔄 技能洗点成功！返还 {spent} 技能点(花费 {cost} 金币)\n已学技能清空(保留初始技能：{init})，技能等级已重置，『技能学习』重新规划 build 吧～",
+    "params": [
+      "spent",
+      "cost",
+      "init"
+    ],
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:reset_skill（B 批 C 档）"
+  },
+  "points.usage_add": {
+    "value": "格式：加点 <力量/敏捷/智力/耐力> <点数>，如『加点 力量 5』",
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
+  },
+  "points.usage_choose": {
+    "value": "可选：力量 / 敏捷 / 智力 / 耐力",
+    "category": "加点洗点",
+    "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
   },
   "prof_icon.alchemy": {
     "value": "🧪",
@@ -5717,6 +6070,80 @@
     "category": "排行榜",
     "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
   },
+  "register.already": {
+    "value": "你已经注册过角色啦！输入『角色』查看～",
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.gender_line": {
+    "value": "性别：{g}\n",
+    "params": [
+      "g"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.hidden_class": {
+    "value": "『{cls}』是传说中才会出现的隐藏职业，普通人无法选择……\n💡 世界深处藏着它的线索(隐藏成就/隐藏区域)。可选职业：{avail}",
+    "params": [
+      "cls",
+      "avail"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.name_empty": {
+    "value": "名字不能为空！格式：注册 <名字> <性别> [种族]，如『注册 格温 女 精灵』",
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.name_taken": {
+    "value": "这个名字已经有人用啦，换一个吧～",
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.name_trunc": {
+    "value": "⚠️ 名字超过 12 字，已截断为『{name}』\n\n",
+    "params": [
+      "name"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.need_gender": {
+    "value": "请选择性别！格式：注册 <名字> <性别> [种族]，如『注册 格温 女 精灵』（男/女）",
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.race_line": {
+    "value": "种族：{icon} {name}（{desc}）\n   · 天赋：{talent}\n",
+    "params": [
+      "icon",
+      "name",
+      "desc",
+      "talent"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.unknown_class": {
+    "value": "未知职业『{cls}』！可选职业：{avail}",
+    "params": [
+      "cls",
+      "avail"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.unknown_race_gender": {
+    "value": "未知种族或性别『{tok}』！可选种族：{avail}，性别：男/女\n格式：注册 <名字> <性别> [种族]，如『注册 格温 女 精灵』",
+    "params": [
+      "tok",
+      "avail"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
   "reroll.full": {
     "value": "【{name}】的词条槽已满({have}/{cap})，无法重铸！先换一件装备吧～",
     "params": [
@@ -5971,6 +6398,91 @@
     "category": "战斗日志",
     "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
   },
+  "shortcut.err_bad_cmd": {
+    "value": "❌ 『{cmd}』不是有效指令，先看看『帮助』确认指令名～",
+    "params": [
+      "cmd"
+    ],
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.err_digit_cmd": {
+    "value": "❌ 不能绑定纯数字指令，防止连环跳转～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.err_key_form": {
+    "value": "📎 快捷键限：数字 0-99（全量触发）、1-8 位字母开头键、或单字符符号（如 . ! # *）～（+ - = 是翻页快捷键，@ [ / 不可用）",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.err_no_bind": {
+    "value": "❌ 没有这个快捷绑定。『快捷列表』看看～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.err_number_len": {
+    "value": "❌ 快捷数字限 1-2 位（0-99）～（3 位以上数字只能全量匹配，发『13』不会拆成『1』+『3』）",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.err_too_long": {
+    "value": "❌ 指令太长啦(≤30 字)～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.list_head": {
+    "value": "⚡ {qq} 的快捷({n} 个)：",
+    "params": [
+      "qq",
+      "n"
+    ],
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.list_tip": {
+    "value": "『快捷绑定 <数字/字母> <指令>』新增，『快捷删除 <键>』删除",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.none": {
+    "value": "还没有任何快捷绑定～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.ok_bind": {
+    "value": "✅ 快捷 {num} → 『{cmd}』 绑定成功！以后直接发『{num2}』就行✂️",
+    "params": [
+      "num",
+      "cmd",
+      "num2"
+    ],
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.ok_clear": {
+    "value": "🧹 全部快捷已清除～",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.ok_del": {
+    "value": "🗑️ 快捷 {num} 已删除～",
+    "params": [
+      "num"
+    ],
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.usage_bind": {
+    "value": "📎 用法：『快捷绑定 <数字/字母/符号> <指令>』，如『快捷绑定 1 探索』『快捷绑定 n 前往』『快捷绑定 . 攻击』\n数字 0-99 全量触发；字母/符号可带参数（绑『n 前往』发『n3』=前往 3）",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
+  "shortcut.usage_empty": {
+    "value": "⚡ 快捷指令：把常用指令绑到数字/字母，一键执行！\n用法：『快捷绑定 1 探索』→ 之后发『1』就是探索（数字全量匹配，绑『13』发『13』才触发）\n『快捷绑定 n 前往』→ 发『n』=前往，发『n3』=前往 3（字母支持后缀参数）\n『快捷绑定 2 技能1』→ 发『2』= 技能栏第 1 格\n支持：快捷列表 / 快捷删除 <键> / 快捷清除",
+    "category": "快捷指令",
+    "desc": "搬自 content/player_cmds.py:shortcut（B 批 C 档）"
+  },
   "signin.already": {
     "value": "今天已经签过到啦！明天再来～",
     "category": "签到",
@@ -6033,6 +6545,100 @@
     "category": "签到",
     "desc": "每 7 天额外装备奖励（color/name 由装备实例给）"
   },
+  "skill.learn_already": {
+    "value": "『{name}』你已学会了，去战斗里试试吧～",
+    "params": [
+      "name"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_branch_locked": {
+    "value": "『{name}』是 {branch} 的专属技能，需要先转职为 {branch2} 才能学习！(Lv.30/60/90 可转职)",
+    "params": [
+      "name",
+      "branch",
+      "branch2"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_branch_mismatch": {
+    "value": "『{name}』是 {branch} 的专属技能，你走的是 {mine} 路线，学不了～",
+    "params": [
+      "name",
+      "branch",
+      "mine"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_need_lv": {
+    "value": "『{name}』需要 Lv.{need} 才能学习，你才 Lv.{cur}——升级吧！(每级＋1 技能点)",
+    "params": [
+      "name",
+      "need",
+      "cur"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_no_class": {
+    "value": "🧭 见习冒险者还没有职业技能！去广场找『行会接待员·小艾』就职后就能学习技能了～",
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_no_pts": {
+    "value": "学习『{name}』需要 {cost} 技能点(技能 Lv.{lv})，你只有 {pts} 点——升级可获得技能点(每级＋1)～",
+    "params": [
+      "name",
+      "cost",
+      "lv",
+      "pts"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_ok": {
+    "value": "✨ 消耗 {cost} 技能点，学会了『{name}』！\n现在 Lv.{lv} 就能使用它了，剩余技能点 {left}\n💡 记得『设置技能 <槽位> {name2}』放入技能栏，战斗中『技能 <槽位>』即可施放～",
+    "params": [
+      "cost",
+      "name",
+      "lv",
+      "left",
+      "name2"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_ok_passive": {
+    "value": "✨ 消耗 {cost} 技能点，学会了被动技能『{name}』！\n⚙️ 被动技能无需施放，战斗自动生效！剩余技能点 {left}\n「{desc}」",
+    "params": [
+      "cost",
+      "name",
+      "left",
+      "desc"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_tutor_only": {
+    "value": "『{name}』是 {mentor}({city}) 的看家本领，普通学习学不到——去{city2}找{mentor2}请教吧～",
+    "params": [
+      "name",
+      "mentor",
+      "city",
+      "city2",
+      "mentor2"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
+  "skill.learn_usage": {
+    "value": "格式：技能学习 <技能名/序号>，如『技能学习 裂空斩』或『技能学习 3』",
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:_skill_learn_msg（B 批 C 档）"
+  },
   "skill.no_skill": {
     "value": "你的职业没有『{name}』技能！『技能列表』查看全部～",
     "params": [
@@ -6048,6 +6654,81 @@
     ],
     "category": "技能详情",
     "desc": "搬自 content/player_cmds.py:skill_detail（B 批 C 档）"
+  },
+  "skill.upgrade_maxed": {
+    "value": "『{name}』已经是满级 Lv.{mx} 啦，不能再升了～",
+    "params": [
+      "name",
+      "mx"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_no_pts": {
+    "value": "升级『{name}』到 Lv.{lv} 需要 {cost} 技能点，你只有 {pts} 点——升级可获得技能点(每级＋1)～",
+    "params": [
+      "name",
+      "lv",
+      "cost",
+      "pts"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_not_learned": {
+    "value": "『{name}』还没学会！先『技能学习 {name2}』学会后才能升级～",
+    "params": [
+      "name",
+      "name2"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_ok": {
+    "value": "⬆️ 『{name}』升级到 Lv.{lv}({gains})！消耗 {cost} 技能点，剩余 {left} 点{refund}{tail}",
+    "params": [
+      "name",
+      "lv",
+      "gains",
+      "cost",
+      "left",
+      "refund",
+      "tail"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_passive": {
+    "value": "⚙️ 『{name}』是被动技能，无需升级——学会后战斗自动生效！",
+    "params": [
+      "name"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_refund_note": {
+    "value": "（人类博学者：首次升级返还 1 点）",
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_tail_maxed": {
+    "value": "｜ 已满级！",
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_tail_next": {
+    "value": "｜ 升到 Lv.{lv} 需 {cost} 点",
+    "params": [
+      "lv",
+      "cost"
+    ],
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
+  },
+  "skill.upgrade_usage": {
+    "value": "格式：技能升级 <技能名/序号>，如『技能升级 火球术』或『技能升级 3』",
+    "category": "技能学习",
+    "desc": "搬自 content/player_cmds.py:skill_upgrade（B 批 C 档）"
   },
   "skill_bar.empty_slot": {
     "value": " {n}. (空)",
@@ -6066,6 +6747,43 @@
     ],
     "category": "技能栏",
     "desc": "搬自 content/player_cmds.py:skill_bar_view（B 批 C 档）"
+  },
+  "skill_bar.set_no_skill": {
+    "value": "你的职业没有『{name}』技能！『技能列表』查看～",
+    "params": [
+      "name"
+    ],
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_set（B 批 C 档）"
+  },
+  "skill_bar.set_not_learned": {
+    "value": "『{name}』还没学会！『技能学习 {name2}』消耗技能点学会后再设置～",
+    "params": [
+      "name",
+      "name2"
+    ],
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_set（B 批 C 档）"
+  },
+  "skill_bar.set_ok": {
+    "value": "✅ 技能栏 {slot} 号位 → 『{name}』！战斗中『技能 {slot2}』即可施放～",
+    "params": [
+      "slot",
+      "name",
+      "slot2"
+    ],
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_set（B 批 C 档）"
+  },
+  "skill_bar.set_slot_range": {
+    "value": "技能栏只有 6 个槽位(1~6)！",
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_set（B 批 C 档）"
+  },
+  "skill_bar.set_usage": {
+    "value": "格式：设置技能 <槽位1－6> <技能名>，如『设置技能 1 火球术』",
+    "category": "技能栏",
+    "desc": "搬自 content/player_cmds.py:skill_bar_set（B 批 C 档）"
   },
   "skill_bar.title": {
     "value": "🎛️ 【技能栏】(战斗中『技能 <槽位>』快捷施放)",
