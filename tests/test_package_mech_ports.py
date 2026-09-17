@@ -387,7 +387,12 @@ FROZEN_TABLE = {
     },
     "WEAPON_EFFECT_DATA": {
         "n": 82,
-        "sha": "aa9b344acd202ece8a548d3b6d9846750ad05030fd18143234bf9cf36392a7ef",
+        # 2026-09-18 重采：we.* 六条「接线即炸」文案修复 + A3/A4/A5/A7 硬伤落到 `text_specs.json`，
+        #   而本表按 JSON_BACKED 口径**从文案表回填 `<字段>_key`** ⇒ 值面随之变（键数仍 82、
+        #   锚点三项不变）。逐行 diff 核对：差异**只**含那 7 处文案模板，无键序/数值变化。
+        #   旧值 aa9b344a…（⚠ 本表不能用 `_ports_freeze_gen.py --write` 重采：生成器对该表
+        #   没走 JSON_BACKED 的文案回填口径，算出的 sha 与门禁实测口径不一致）。
+        "sha": "3d3d4e7b0c8040bf209ba3b8056b228430619646d3f03b89bf7f39ea51de8e8d",
         "anchors": [
             (("'starlight_bulwark'", "'family'"), 'proc_shield'),
             (("'starlight_bulwark'", "'shield_hp_pct'"), 0.1),

@@ -479,7 +479,6 @@
       "lore",
       "dialogue"
     ],
-    "quest": "s_astrologer_trial",
     "lore": "星语湖的湖面映着同一片天。老观星人说，湖里的星星比天上的多——多出来的那些，是溺水者的命运，还没找到主人。",
     "dialogue": "湖面脏了，星星就照不进来。你愿意替我把湖面擦干净吗？",
     "source": "town"
@@ -808,7 +807,6 @@
       "lore",
       "dialogue"
     ],
-    "quest": "s_chronomancer_trial",
     "lore": "晨曦大圣堂地窖深处那座古老日晷，从不在正午指向太阳——它每走一步，都在纠正某段被篡改的时间。三百年来它只错了一次，而那一次，错得刚刚好。",
     "dialogue": "你听见了吗？日晷的低语……不是每个人都有资格让时间慢下来的。",
     "source": "town"
@@ -1396,7 +1394,6 @@
       "lore",
       "dialogue"
     ],
-    "quest": "s_dragon_warrior_trial",
     "lore": "暮岭古道曾是屠龙者的凯旋路。龙血渗进石板缝里，三百年不干——老辈人说，那不是血，是龙的余怒。",
     "dialogue": "龙血不是谁都能受的。小子，想试试自己的斤两？",
     "source": "town"
@@ -2181,7 +2178,6 @@
       "lore",
       "dialogue"
     ],
-    "quest": "s_necromancer_trial",
     "lore": "枯骨在边境堡外的乱葬岗守了四十年墓。他说战场上的骨头自己会动，是因为有人忘了怎么送别——亡者放不下，才会爬起来。",
     "dialogue": "你能听见亡者的低语吗？听不见也没关系——打完这场，你就听得见了。",
     "source": "town"
@@ -2204,7 +2200,7 @@
       "lore"
     ],
     "dialogue": "墓园里的花，我只种白的。白花在夜里看得见——亡魂认得回家的路。",
-    "quest": "h6",
+    "quest": "hq6_1",
     "source": "hidden"
   },
   "npc_guild_clerks": {
@@ -3955,7 +3951,6 @@
       "lore",
       "dialogue"
     ],
-    "quest": "s_shadow_blade_trial",
     "lore": "翡翠港的影豹从不出现在有月光的空地。它们只在自己选中的影子里现身——就像真正的刺客，只出现在你转身之后。",
     "dialogue": "想学影子里的功夫？先追上影豹再说。追不上，就趁早回头。",
     "source": "town"
@@ -4963,7 +4958,6 @@
       "lore",
       "dialogue"
     ],
-    "quest": "s_wu_sheng_trial",
     "lore": "铁山的拳谱只有三页：一页写拳，一页写步，一页写心。他说后两页是同一页——步子乱了，心就乱了。",
     "dialogue": "拳不是打给别人看的。想学真拳？先去外面打三只兽人试试手。",
     "source": "town"
@@ -5287,7 +5281,7 @@
       "trade"
     ],
     "dialogue": "雨夜的路，从来不是给人走的。可你来了第二次——看来你也是走夜路的人。",
-    "quest": "h5",
+    "quest": "hq5_1",
     "source": "hidden"
   },
   "w_north_hunter": {

@@ -1280,7 +1280,7 @@
   "rec_he_er_jia_de_ji_qi": {
     "slot": "necklace",
     "quality": "orange",
-    "lv": 72,
+    "lv": 88,
     "mats": {
       "mat_shuang_ju_mo_xue": 4,
       "mat_ying_guang_fen": 25
@@ -1294,7 +1294,7 @@
   "rec_he_er_jia_jing_zhu": {
     "slot": "necklace",
     "quality": "orange",
-    "lv": 72,
+    "lv": 88,
     "mats": {
       "mat_ying_guang_fen": 15,
       "mat_shen_hai_shui_jing": 3,
@@ -2638,7 +2638,7 @@
   "rec_mo_luo_zhi_guan": {
     "slot": "helm",
     "quality": "orange",
-    "lv": 85,
+    "lv": 98,
     "mats": {
       "mat_jing_jin_ding": 20,
       "mat_gu_chong_ke": 2
