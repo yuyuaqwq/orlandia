@@ -1,0 +1,14 @@
+{
+  "ids": {
+    "keys": [
+      "npc_herb_master",
+      "npc_mine_master",
+      "npc_fish_master",
+      "npc_cook_master",
+      "npc_alchemy_master",
+      "npc_craft_master",
+      "npc_enhance_master",
+      "npc_rune_master"
+    ]
+  }
+}

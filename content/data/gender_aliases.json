@@ -1,0 +1,12 @@
+{
+  "gender_aliases": {
+    "男": "male",
+    "male": "male",
+    "♂": "male",
+    "m": "male",
+    "女": "female",
+    "female": "female",
+    "♀": "female",
+    "f": "female"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "purify_neg_keys": {
+    "keys": [
+      "stun",
+      "freeze",
+      "silence",
+      "spd_down",
+      "atk_down",
+      "def_down",
+      "matk_down",
+      "mdef_down",
+      "reduce_all"
+    ]
+  }
+}

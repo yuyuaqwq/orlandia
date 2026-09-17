@@ -48,14 +48,38 @@
 """
 from __future__ import annotations
 
+import json
+import os
+
 from saintess_engine.battle.effects import register_action
 from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.conditions import Conditions        # ★ U1-I5：条件注册表 = 引擎 conditions.Conditions
 
+_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
+_DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")    # <pkg>/content/data
+
+
+def _read_json(name: str, default):
+    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
+    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
+    try:
+        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                        # noqa: BLE001
+        return default
+
+
 # 敌方减益键（控制/属性降）；DOT/印记类走 effects 层数判定
-_DEBUFF_KEYS = ("def_down", "spd_down", "mon_atk_down", "atk_down",
-                "stun", "freeze", "silence")
+# ★ D9：键清单进包内域 `content/data/enemy_debuff_keys.json`（原模块级字面量元组，序 = 表内序）
+_DEBUFF_TBL = _read_json("enemy_debuff_keys.json", {})
+_DEBUFF_ENT = _DEBUFF_TBL.get("enemy_debuff_keys") if isinstance(_DEBUFF_TBL, dict) else None
+if not isinstance(_DEBUFF_ENT, dict) or not isinstance(_DEBUFF_ENT.get("keys"), list) \
+        or not _DEBUFF_ENT["keys"]:
+    raise RuntimeError(
+        "enemy_debuff_keys 域缺 / 空 / 键型不符（content/data/enemy_debuff_keys.json"
+        " 应为 {\"enemy_debuff_keys\": {\"keys\": [...]}}）—— 拒绝静默空表")
+_DEBUFF_KEYS: tuple = tuple(_DEBUFF_ENT["keys"])
 _DOT_KEYS = ("poison", "burn", "bleed", "mark")
 # 旋律增益系（咏叹调 desc「当前旋律为增益系时 ×1.3」）
 _MELODY_BUFF_KINDS = ("atk", "def", "spd", "atk_matk", "all")

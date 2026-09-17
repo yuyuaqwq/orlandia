@@ -1,0 +1,38 @@
+{
+  "1": {
+    "season": "winter"
+  },
+  "10": {
+    "season": "autumn"
+  },
+  "11": {
+    "season": "autumn"
+  },
+  "12": {
+    "season": "winter"
+  },
+  "2": {
+    "season": "winter"
+  },
+  "3": {
+    "season": "spring"
+  },
+  "4": {
+    "season": "spring"
+  },
+  "5": {
+    "season": "spring"
+  },
+  "6": {
+    "season": "summer"
+  },
+  "7": {
+    "season": "summer"
+  },
+  "8": {
+    "season": "summer"
+  },
+  "9": {
+    "season": "autumn"
+  }
+}

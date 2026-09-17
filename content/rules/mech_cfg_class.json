@@ -1,0 +1,48 @@
+{
+  "assassin_combo": {
+    "cap": 10,
+    "finish_min": 3,
+    "per_layer": 0.05,
+    "max_bonus": 0.4,
+    "class_id": "cls_ci_ke",
+    "path": 1,
+    "on_crit_gain": 1,
+    "on_take_hit_penalty": -1
+  },
+  "blood_debt_gain": {
+    "base": 1,
+    "coef": 4.0,
+    "cap": 5
+  },
+  "branch_resources": {
+    "cls_fa_shi|0": [],
+    "cls_fa_shi|1": [
+      "element"
+    ],
+    "cls_fa_shi|2": [
+      "element"
+    ],
+    "cls_mu_shi|1": [
+      "resonance",
+      "echo"
+    ]
+  },
+  "chi_hold_dmg": {
+    "per_chi": 0.03,
+    "cap_chi": 10
+  },
+  "echo": {
+    "max_layers": 3,
+    "heal_per_layer": 6,
+    "buff_extend_per_layer": 1
+  },
+  "full_tension": {
+    "threshold": 80,
+    "crit_bonus": 0.1,
+    "max_cost": 25
+  },
+  "shadow_step": {
+    "stealth_extra": 1,
+    "stealth_proc": "stealth"
+  }
+}

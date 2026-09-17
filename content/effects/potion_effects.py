@@ -50,6 +50,8 @@ import os
 _HERE = os.path.dirname(os.path.abspath(__file__))                       # <pkg>/content/effects
 _ITEMS_JSON = os.path.normpath(os.path.join(_HERE, "..", "data", "items.json"))
 _RULES_JSON = os.path.normpath(os.path.join(_HERE, "..", "rules", "effect_rules.json"))
+# ★ D9：净化负面键清单域（原 `eff_purify_immune` 函数内字面量）
+_NEG_JSON = os.path.normpath(os.path.join(_HERE, "..", "data", "purify_neg_keys.json"))
 _ITEMS_CACHE = None
 _RULES_CACHE = None
 
@@ -78,6 +80,18 @@ def _effect_rules() -> dict:
     if _RULES_CACHE is None:
         _RULES_CACHE = _load(_RULES_JSON)
     return _RULES_CACHE
+
+
+# ★ D9：净化负面键清单（= U5 `effects/potion_effects.py:657 neg`）→ 包内域
+#   `content/data/purify_neg_keys.json`（序 = 表内序：净化回显按此序 join）
+_NEG_TBL = _load(_NEG_JSON)
+_NEG_ENT = _NEG_TBL.get("purify_neg_keys") if isinstance(_NEG_TBL, dict) else None
+if not isinstance(_NEG_ENT, dict) or not isinstance(_NEG_ENT.get("keys"), list) \
+        or not _NEG_ENT["keys"]:
+    raise RuntimeError(
+        "purify_neg_keys 域缺 / 空 / 键型不符（content/data/purify_neg_keys.json"
+        " 应为 {\"purify_neg_keys\": {\"keys\": [...]}}）—— 拒绝静默空表")
+_PURIFY_NEG_KEYS: tuple = tuple(_NEG_ENT["keys"])
 
 
 POTION_EFFECTS = {}
@@ -654,8 +668,7 @@ def eff_purify_immune(battle, player, value):
     + turns 刻免疫 silence/stun（cc_immune 免疫槽，供引擎控制结算消费）。"""
     v = _resolve(value, "purify_immune")
     turns = max(1, int(v.get("turns", 3) or 3))
-    neg = ("stun", "freeze", "silence", "spd_down", "atk_down", "def_down",
-           "matk_down", "mdef_down", "reduce_all")
+    neg = _PURIFY_NEG_KEYS   # ★ D9：键清单 = 包内域 content/data/purify_neg_keys.json
     cleared = [k for k in neg if k in player.setdefault('buffs', {})]
     for k in cleared:
         player.setdefault('buffs', {}).pop(k, None)

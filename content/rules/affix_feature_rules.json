@@ -1,0 +1,170 @@
+{
+  "00_吸血": {
+    "name": "吸血",
+    "value": [
+      "lifesteal",
+      "lifesteal_phys",
+      "lifesteal_magi",
+      "thirst_phys",
+      "thirst_magi",
+      "血"
+    ]
+  },
+  "01_破甲": {
+    "name": "破甲",
+    "value": [
+      "armor_break",
+      "pierce",
+      "pene_",
+      "破"
+    ]
+  },
+  "02_连击": {
+    "name": "连击",
+    "value": [
+      "combo",
+      "charge",
+      "连"
+    ]
+  },
+  "03_元素": {
+    "name": "元素",
+    "value": [
+      "element_",
+      "元素",
+      "冰",
+      "雷",
+      "火"
+    ]
+  },
+  "04_护盾": {
+    "name": "护盾",
+    "value": [
+      "shield",
+      "护盾",
+      "坚盾"
+    ]
+  },
+  "05_减速": {
+    "name": "减速",
+    "value": [
+      "slow",
+      "减速",
+      "冰"
+    ]
+  },
+  "06_暴击": {
+    "name": "暴击",
+    "value": [
+      "crit",
+      "暴击"
+    ]
+  },
+  "07_闪避": {
+    "name": "闪避",
+    "value": [
+      "dodge",
+      "闪避"
+    ]
+  },
+  "08_格挡": {
+    "name": "格挡",
+    "value": [
+      "block",
+      "格挡"
+    ]
+  },
+  "09_反伤": {
+    "name": "反伤",
+    "value": [
+      "thorns",
+      "反伤"
+    ]
+  },
+  "10_吸血": {
+    "name": "吸血",
+    "value": [
+      "lifesteal",
+      "血"
+    ]
+  },
+  "11_回春": {
+    "name": "回春",
+    "value": [
+      "regen",
+      "回春"
+    ]
+  },
+  "12_冥想": {
+    "name": "冥想",
+    "value": [
+      "meditate",
+      "冥想"
+    ]
+  },
+  "13_韧性": {
+    "name": "韧性",
+    "value": [
+      "tenacity",
+      "韧性"
+    ]
+  },
+  "14_迅捷": {
+    "name": "迅捷",
+    "value": [
+      "swift",
+      "迅捷",
+      "速度"
+    ]
+  },
+  "15_减伤": {
+    "name": "减伤",
+    "value": [
+      "dmg_reduce",
+      "phys_reduce",
+      "magic_reduce",
+      "减伤",
+      "免伤"
+    ]
+  },
+  "16_处决": {
+    "name": "处决",
+    "value": [
+      "execute",
+      "处决"
+    ]
+  },
+  "17_追猎": {
+    "name": "追猎",
+    "value": [
+      "hunt",
+      "追猎",
+      "标记"
+    ]
+  },
+  "18_破魔": {
+    "name": "破魔",
+    "value": [
+      "break_magic",
+      "破魔"
+    ]
+  },
+  "19_龙威": {
+    "name": "龙威",
+    "value": [
+      "dragon_aw",
+      "龙威"
+    ]
+  },
+  "20_成长": {
+    "name": "成长",
+    "value": [
+      "exp_bonus",
+      "gold_bonus",
+      "luck",
+      "求知",
+      "聚宝",
+      "幸运"
+    ]
+  }
+}

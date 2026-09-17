@@ -1376,6 +1376,13 @@ def sec6_names_and_source():
         "weights = list(_quality_weights_inline(prof_lv, FISH_QUALITY_WEIGHTS))",
         "quality = random.choices(FISH_QUALITY_ORDER, weights=weights, k=1)[0]",
         "pick = random.choices(pool_by_q, weights=pool_w, k=1)[0]",
+        # ★ D8（2026-09-17）「数据进表」：月份→季节字面量搬进包内域 `content/data/season_map.json`
+        #   （读口 `loot._SEASON_BY_MONTH`，引擎 records fail-closed）。旧 4 行字面量进白名单；
+        #   行为不变由 D8 的 out/raw/00_before.json↔01_after.json 逐名对拍 + 04_live_probe.txt 钉住。
+        'season = {3: "spring", 4: "spring", 5: "spring",',
+        '6: "summer", 7: "summer", 8: "summer",',
+        '9: "autumn", 10: "autumn", 11: "autumn",',
+        '12: "winter", 1: "winter", 2: "winter"}.get(_m, "spring")',
     }
     _fish_changed_new = {
         "def _roll_fish(pool: dict, ctx: Any, table) -> list[dict]:",
@@ -1387,6 +1394,8 @@ def sec6_names_and_source():
         "weights = list(FISH_TIERS.weights_at(prof_lv))",
         "quality = rng.choices(FISH_QUALITY_ORDER, weights=weights, k=1)[0]",
         "pick = rng.choices(pool_by_q, weights=pool_w, k=1)[0]",
+        # ★ D8：同一张月份→季节表改从包内域读（值逐名相同，见上）
+        'season = _SEASON_BY_MONTH.get(_m, "spring")',
     }
     fish_old = [l for l in _fn_code_lines(_FROZEN_SRC, "_roll_fish")
                 if l.strip() not in _fish_changed_old]

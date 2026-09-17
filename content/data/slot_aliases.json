@@ -1,0 +1,70 @@
+{
+  "头": {
+    "name": "头",
+    "value": "helm"
+  },
+  "头盔": {
+    "name": "头盔",
+    "value": "helm"
+  },
+  "帽子": {
+    "name": "帽子",
+    "value": "helm"
+  },
+  "戒": {
+    "name": "戒",
+    "value": "ring"
+  },
+  "戒指": {
+    "name": "戒指",
+    "value": "ring"
+  },
+  "护甲": {
+    "name": "护甲",
+    "value": "armor"
+  },
+  "护腿": {
+    "name": "护腿",
+    "value": "legs"
+  },
+  "武器": {
+    "name": "武器",
+    "value": "weapon"
+  },
+  "胸甲": {
+    "name": "胸甲",
+    "value": "armor"
+  },
+  "腿": {
+    "name": "腿",
+    "value": "legs"
+  },
+  "衣": {
+    "name": "衣",
+    "value": "armor"
+  },
+  "衣服": {
+    "name": "衣服",
+    "value": "armor"
+  },
+  "链": {
+    "name": "链",
+    "value": "necklace"
+  },
+  "靴": {
+    "name": "靴",
+    "value": "boots"
+  },
+  "靴子": {
+    "name": "靴子",
+    "value": "boots"
+  },
+  "鞋": {
+    "name": "鞋",
+    "value": "boots"
+  },
+  "项链": {
+    "name": "项链",
+    "value": "necklace"
+  }
+}

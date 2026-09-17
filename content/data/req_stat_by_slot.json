@@ -1,0 +1,39 @@
+{
+  "armor": {
+    "pool": "vit",
+    "seq": 3
+  },
+  "boots": {
+    "pool": "agi",
+    "seq": 5
+  },
+  "helm": {
+    "pool": "vit",
+    "seq": 2
+  },
+  "legs": {
+    "pool": "vit",
+    "seq": 4
+  },
+  "necklace": {
+    "pool": "int",
+    "seq": 7
+  },
+  "ring": {
+    "pool": "agi",
+    "seq": 6
+  },
+  "weapon": {
+    "pool": {
+      "sword": "str",
+      "mace": "str",
+      "fist": "str",
+      "spear": "str",
+      "shield": "str",
+      "bow": "agi",
+      "dagger": "agi",
+      "staff": "int"
+    },
+    "seq": 1
+  }
+}

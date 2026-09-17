@@ -60,6 +60,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from saintess_engine.loot import LootTable, SimpleCtx, TierTable
+from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 # B14-2（L7 线）：包内默认内容 API 的**数据来源**切到包内门面（原就地读 content/data/*.json）
 from .catalog_items import EQUIP_ROSTER, ITEMS, RUNES   # 真源 `game.content`:ITEMS / :EQUIP_ROSTER；B15b 补 RUNES
@@ -70,6 +71,16 @@ from .catalog_items import EQUIP_ROSTER, ITEMS, RUNES   # 真源 `game.content`:
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _DATA_DIR = os.path.join(_HERE, "data")
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>（域声明派生口用）
+
+# ---- 包内域读口（D8）：月份 → 季节 ----
+# 原 `_roll_fish` 内联字面量（12 键 / 4 行；键 = int 月份 3..12,1,2）。落点 / kind / 文件名
+# 的唯一源 = `editor/domains.json`（引擎 `records`：域未声明 / 文件缺 / 键型或键集不符
+# → 装载期点名报错，不静默给空表）。`order=` 还原真源插入序（JSON 落盘是外层键升序）。
+_SEASON_BY_MONTH = records_from_domain(
+    _PKG_ROOT, "season_map", key_type=int,
+    order=(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2),
+).into(lambda _e: _e.get("season"))
 
 # 调用方挂载口（None = 未挂 → 走包内默认）
 _POOLS_OVERRIDE = None
@@ -482,14 +493,12 @@ def _roll_fish(pool: dict, ctx: Any, table) -> list[dict]:
     spot_id = getattr(ctx, "map_id", None)
     season = getattr(ctx, "season", None)
     if not season:
-        # 内联季节计算（等价 core.time_weather.current_season，纯 datetime 防循环 import）
+        # 季节计算（等价 core.time_weather.current_season，纯 datetime 防循环 import）：
+        # 月份 → 季节表 = 包内域 `content/data/season_map.json`（D8 搬入；读口见模块头 `_SEASON_BY_MONTH`）。
         try:
             import datetime
             _m = datetime.datetime.now().month
-            season = {3: "spring", 4: "spring", 5: "spring",
-                      6: "summer", 7: "summer", 8: "summer",
-                      9: "autumn", 10: "autumn", 11: "autumn",
-                      12: "winter", 1: "winter", 2: "winter"}.get(_m, "spring")
+            season = _SEASON_BY_MONTH.get(_m, "spring")
         except Exception:
             season = None
 

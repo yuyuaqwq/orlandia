@@ -1,0 +1,156 @@
+{
+  "abyss_resist": {
+    "stat": "abyss_res",
+    "pct": null,
+    "flat": 0.1,
+    "seq": 16
+  },
+  "block": {
+    "stat": "block",
+    "pct": null,
+    "flat": 0.15,
+    "seq": 21
+  },
+  "cdr": {
+    "stat": "cdr",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 12
+  },
+  "crit_dmg": {
+    "stat": "crit_dmg",
+    "pct": null,
+    "flat": 0.2,
+    "seq": 20
+  },
+  "crit_up": {
+    "stat": "crit",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 1
+  },
+  "dodge": {
+    "stat": "dodge",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 2
+  },
+  "elem_resist": {
+    "stat": "elem_res",
+    "pct": null,
+    "flat": 0.08,
+    "seq": 15
+  },
+  "exp_bonus": {
+    "stat": "exp_bonus",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 13
+  },
+  "gold_bonus": {
+    "stat": "gold_bonus",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 14
+  },
+  "heal_power": {
+    "stat": "heal_power",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 17
+  },
+  "hp_up": {
+    "stat": "hp",
+    "pct": 0.05,
+    "seq": 3
+  },
+  "lifesteal": {
+    "stat": "lifesteal",
+    "pct": null,
+    "flat": 0.08,
+    "seq": 19
+  },
+  "luck": {
+    "stat": "luck",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 9
+  },
+  "magic_ward": {
+    "stat": "magic_reduce",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 24
+  },
+  "pene_flat": {
+    "stat": "pene_flat",
+    "lv_flat": 0.5,
+    "min_flat": 2,
+    "seq": 10
+  },
+  "pene_magi": {
+    "stat": "pene_magi",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 7
+  },
+  "pene_mflat": {
+    "stat": "pene_mflat",
+    "lv_flat": 0.5,
+    "min_flat": 2,
+    "seq": 11
+  },
+  "pene_phys": {
+    "stat": "pene_phys",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 6
+  },
+  "phys_ward": {
+    "stat": "phys_reduce",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 23
+  },
+  "precise": {
+    "stat": "precise",
+    "pct": null,
+    "flat": 0.1,
+    "seq": 5
+  },
+  "shield_power": {
+    "stat": "shield_power",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 18
+  },
+  "swift": {
+    "stat": "spd",
+    "pct": 0.05,
+    "seq": 4
+  },
+  "tenacity": {
+    "stat": "tenacity",
+    "pct": null,
+    "flat": 0.05,
+    "seq": 8
+  },
+  "thirst_magi": {
+    "stat": "lifesteal_magi",
+    "pct": null,
+    "flat": 0.08,
+    "seq": 26
+  },
+  "thirst_phys": {
+    "stat": "lifesteal_phys",
+    "pct": null,
+    "flat": 0.08,
+    "seq": 25
+  },
+  "thorns": {
+    "stat": "thorns",
+    "pct": null,
+    "flat": 0.1,
+    "seq": 22
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "facility": {
+    "target": "facility"
+  },
+  "monster": {
+    "target": "monster"
+  },
+  "npc": {
+    "target": "npc"
+  },
+  "scene": {
+    "target": "scene"
+  },
+  "商店": {
+    "target": "facility"
+  },
+  "场景": {
+    "target": "scene"
+  },
+  "怪物": {
+    "target": "monster"
+  },
+  "景物": {
+    "target": "scene"
+  },
+  "设施": {
+    "target": "facility"
+  }
+}

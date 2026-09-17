@@ -1,293 +1,143 @@
 # -*- coding: utf-8 -*-
-"""《奥兰迪亚》职业机制兑现族（class_mech）所需参数表 —— 逐字抄自游戏仓真源。
+"""《奥兰迪亚》职业机制兑现族（class_mech）所需参数表 —— **数据已进表，本文件只留读口**。
 
-本文件是 `class_mech.py`（39 个战斗内动作）的**数据侧**：数值/键名/嵌套形状与游戏仓
-真源逐字一致，零自编、零归一。加载方式 = `python -c` import 游戏仓模块后 pprint dump
-（非手抄），故可用「包内表 == 游戏仓表」逐字复核。
+★ D3（D 批「数据进表」，2026-09-17）：本文件原先内联的 `MECH_CFG`（15 组 / 179 行）与
+`MECH_CASH`（9 条 / 67 行）字面量**已原样搬进包内域 JSON**，本文件不再自带任何字面量，
+只做「读口 + 类型/序还原 + fail-closed」：
 
-真源对照表（游戏仓 `C:/Users/yuyu/qqbot/data/plugins/dragonfall`）
-----------------------------------------------------------------
-| 本文件 | 真源 | 条数（本次 dump 实测） |
+| 表 | 包内域（kind=rules） | 条数 | 读口 |
+|---|---|---|---|
+| `MECH_CFG` | `content/rules/mech_cfg_core.json`（8 个**通用机制**组）+ `content/rules/mech_cfg_class.json`（7 个**职业族机制**组） | 15 组 | `_mech_cfg()`（两域按 core→class 拼接） |
+| `MECH_CASH` | `content/rules/mech_cash.json` | 9 条 | `_domain("mech_cash", …)` |
+
+域登记（域元数据唯一源）= `editor/domains.json`（D3 新增 `mech_cfg_core` / `mech_cfg_class` /
+`mech_cash` 三域，声明原文另落 `out/domain_decl.json`，按 D-BATCH §3 交主线合并）；
+`game.json` 的 `domains` 清单同步（门禁 `test_export_package_sync.py` 要求清单 == 包声明域）。
+
+三处「JSON 往返不可逆」的还原（不做 = 静默错值；清单由 `out/raw/00_before.json` 的 tuple 清单钉住）：
+① **元组键**：`element.reactions` / `element.reaction_table`（`("ice","fire_mark")` → `"ice|fire_mark"`）
+   与 `branch_resources`（`("cls_fa_shi", 0)` → `"cls_fa_shi|0"`，第 2 段按 **int** 还原）；
+② **元组值**：`mech_stack.whitelist` · `buff.mult[*]` · `crit.full_hp_mechs` · `crit.combo_mechs` ·
+   `ctrl.mechs` · `ctrl.skill_cc_whitelist` · `ctrl.proc_groups[*]` · `branch_resources[*]`
+   （改前实测 = 45 处（core）+ 4 处（class）= 49 处，见 `out/raw/gen_domains.py` 的 tuple 清单）；
+③ **外层键序**：域文件外层键**升序**（落盘规范，`test_export_package_sync.py`【6】）→ 真源插入序
+   另立 `content/data/key_order.json` 的 `key_order` 域声明（`mech_cfg_core` / `mech_cfg_class` /
+   `mech_cash` 三条），读口按名取回源插入序。**这是包内既有惯例**（`catalog_items.py` /
+   `catalog_rules.py` / `catalog_quests.py` 同款：`orders_of(pkg, 名, domain="key_order")`）。
+
+fail-closed（D-BATCH §2.4：域文件缺 / 声明与磁盘不符 / 键型不符 → 报错点名，不许静默空表）：
+· 域未声明 / 落点与声明不符 / 文件缺 → 引擎 `records_from_domain` 装载期抛
+  `RecordsDeclarationError`（点名域 + 声明路径 + 实际路径）；
+· 域键集与序声明不一致（多一条/少一条）→ `RecordsOrderMismatch`（拒绝静默改序/漏项）；
+· 序声明缺条目 / 形状不是 `{keys: [...]}` → `orders_of` 点名抛；
+· 域读成空表 → 本文件 `_domain()` 再抛一次。
+**四道都不静默给空表。**
+
+真源对照（游戏仓 `C:/Users/yuyu/qqbot/data/plugins/dragonfall`；搬迁逐字 dump，值/类型/序未改一字节）
+------------------------------------------------------------------------------------------------
+| 本文件 | 真源 | 条数（dump 实测） |
 |---|---|---|
-| `MECH_CASH`         | `game/data/battle_rules.py:624`  | 9 个兑现条目（顶层键）；嵌套子键合计 65（含 label/unit/icon 等文案键） |
-| `MECH_CFG`          | `game/data/battle_config.py:455` | 15 个子表（dot/mech_stack/buff/element/crit/ctrl/boss/enemy_bar/assassin_combo/shadow_step/echo/full_tension/blood_debt_gain/branch_resources/chi_hold_dmg） |
-| `BAR_INJECT_FIELDS` | `game/data/battle_rules.py:742`  | 1 条（shaken_gain → shaken, per_hit） |
-| `BAR_STATE_PREFIX`  | `game/data/battle_rules.py:749`  | 标量 `"bar:"` |
+| `MECH_CASH` | `game/data/battle_rules.py:624` | 9 个兑现条目（顶层键）；嵌套子键合计 65 |
+| `MECH_CFG` | `game/data/battle_config.py:455` | 15 个子表（dot/mech_stack/buff/element/crit/ctrl/boss/enemy_bar/assassin_combo/shadow_step/echo/full_tension/blood_debt_gain/branch_resources/chi_hold_dmg） |
+| `BAR_INJECT_FIELDS` | `game/data/battle_rules.py:742` | 1 条（shaken_gain → shaken, per_hit）—— **单源在 params.py**，本文件只再导出 |
+| `BAR_STATE_PREFIX` | `game/data/battle_rules.py:749` | 标量 `"bar:"` —— **单源在 params.py**，本文件只再导出 |
 
-注：任务书写「`MECH_CASH`(163 键)」——本次从真源 dump 实测为 **9 个顶层兑现条目 /
-65 个嵌套子键**，163 与真源不符（诚实记录，未按 163 编造任何内容）。
+注：任务书写「`MECH_CASH`(163 键)」——从真源 dump 实测为 **9 个顶层兑现条目 / 65 个嵌套子键**，
+163 与真源不符（诚实记录，未按 163 编造任何内容；本次搬迁亦未补任何键）。
 
 本族 39 个动作**没有**任何一个直接 import 这三张表：动作的参数由装配层（`apply.py` 的
-mech_cash 段）从 `MECH_CASH` 读出后填进效果 dict/动作 params。故本文件是「表 → 装配层 →
+mech_cash 段）从 `MECH_CASH` 读出后填进效果 dict/动作 params。故本文件是「域表 → 装配层 →
 动作」的数据源，`class_mech.py` 顶部 import 它作为包内单源（见该文件头注 struct-rewrite #3）。
 """
 from __future__ import annotations
 
-# ============================================================
-# MECH_CASH —— 兑现声明表（逐字 dump 自 game/data/battle_rules.py:624）
-# ============================================================
-MECH_CASH = {'finisher': {'name': '终结技',
-              'mode': 'dmg_mult_clear',
-              'key': 'lian_duan',
-              'per_layer': 0.1,
-              'upgrade': {'proc': 'finisher_up', 'per_layer_add': 0.06},
-              'clear': True,
-              'crit_at': 4,
-              'layer_label': '连段',
-              'unit': '段',
-              'icon': '🔪'},
- 'zhan_yi_fury': {'name': '狂暴',
-                  'mode': 'fury_enter',
-                  'res': 'zhan_yi',
-                  'label': '血祭',
-                  'icon': '🔥'},
- 'arcane_burst': {'name': '燃尽',
-                  'mode': 'dmg_mult_clear',
-                  'key': 'arcane',
-                  'per_layer': 0.15,
-                  'clear': True,
-                  'layer_label': '奥术充能',
-                  'unit': '层',
-                  'icon': '🔮'},
- 'guard_core_burst': {'name': '磐核',
-                      'mode': 'dmg_mult_clear',
-                      'key': 'guard_core',
-                      'per_layer': 0.7,
-                      'clear': True,
-                      'layer_label': '磐核',
-                      'unit': '枚',
-                      'icon': '🪨'},
- 'element_burst_all': {'name': '元素迸发',
-                       'mode': 'dmg_mult_clear_target',
-                       'key': ['fire_mark', 'ice_mark', 'thunder_mark'],
-                       'per_layer': 0.12,
-                       'clear': True,
-                       'layer_label': '元素印记',
-                       'icon': '💥'},
- 'element_burst_3': {'name': '元素裁决',
-                     'mode': 'per_system_clear_target',
-                     'key': ['fire_mark', 'ice_mark', 'thunder_mark'],
-                     'per_system': 0.2,
-                     'clear': True,
-                     'layer_label': '元素印记',
-                     'icon': '⚖️'},
- 'poison_burst': {'name': '荆棘爆',
-                  'mode': 'dmg_mult_clear_target',
-                  'key': 'poison',
-                  'per_layer': 0.15,
-                  'clear': True,
-                  'layer_label': '毒',
-                  'icon': '☠️'},
- 'poison_burst_finisher': {'name': '毒爆',
-                           'mode': 'dmg_mult_clear_target',
-                           'key': 'poison',
-                           'per_layer': 0.14,
-                           'clear': True,
-                           'clear_extra': [{'owner': 'caster',
-                                            'key': 'lian_duan'}],
-                           'layer_label': '毒',
-                           'icon': '☠️'},
- 'faith_unload': {'name': '卸负',
-                  'mode': 'heal_clear',
-                  'key': 'faith',
-                  'amount': 3,
-                  'note': '兑现走 skills.py sk_xie_fu res_cost={faith:3} + '
-                          'kind=治疗 heal_formula'}}
+import copy
+import os
+
+from saintess_engine.records import orders_of, records_from_domain
+
+_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
+_PKG_ROOT = os.path.dirname(os.path.dirname(_HERE))         # <pkg>
 
 # ============================================================
-# MECH_CFG —— 机制配置表（逐字 dump 自 game/data/battle_config.py:455）
+# 序声明 —— 唯一源 = `content/data/key_order.json` 的 `key_order` 域
+# （域文件外层键升序 = 落盘规范；真源插入序在这里声明；缺条目/形状不对 → 点名抛）
 # ============================================================
-MECH_CFG = {'dot': {'poison': {'atk': 0.8, 'matk': 0.0, 'hp': 0.0, 'type': 'flat'},
-         'burn': {'atk': 0.0, 'matk': 0.6, 'hp': 0.005, 'type': 'hybrid'},
-         'bleed': {'atk': 0.05, 'matk': 0.0, 'hp': 0.015, 'type': 'pct'},
-         'corros': {'atk': 0.3,
-                    'matk': 0.2,
-                    'hp': 0.01,
-                    'type': 'pct',
-                    'true_dmg': True},
-         'boss_pct_mult': 0.5,
-         'pct_cap': 0.01,
-         'bleed_double_hp_pct': 0.3,
-         'adapt_decay_step': 0.04,
-         'resist_cap': 0.95},
- 'mech_stack': {'bonus': {'rage': 0.12,
-                          'shadow': 0.12,
-                          'chi': 0.12,
-                          'spellblade': 0.08,
-                          'dragon_might': 0.1,
-                          'zen': 0.12},
-                'whitelist': ('rage',
-                              'shield',
-                              'wind',
-                              'shadow',
-                              'chi',
-                              'bless',
-                              'judge',
-                              'iron',
-                              'mark',
-                              'burn',
-                              'poison',
-                              'freeze',
-                              'arcane',
-                              'spellblade',
-                              'zhan_yi',
-                              'lian_duan'),
-                'max': {'burn': 5,
-                        'poison': 5,
-                        'rage': 5,
-                        'shadow': 5,
-                        'chi': 5,
-                        'judge': 5,
-                        'mark': 5,
-                        'wind': 3,
-                        'iron': 5,
-                        'shield': 5,
-                        'bless': 10,
-                        'arcane': 5,
-                        'spellblade': 5,
-                        'zhan_yi': 10,
-                        'lian_duan': 10}},
- 'buff': {'mult': {'atk_up': ('atk', 1.3),
-                   'atk_up_strong': ('atk', 1.75),
-                   'echo_bless': ('atk', 1.05),
-                   'matk_up': ('matk', 1.5),
-                   'matk_up_strong': ('matk', 1.8),
-                   'matk_up_pot': ('matk', 1.3),
-                   'def_up': ('def', 1.45),
-                   'spd_up': ('spd', 1.4),
-                   'crit_up': ('crit', 0.2),
-                   'hit_up': ('precise', 0.15),
-                   'atk_up_big': ('atk', 1.4),
-                   'atk_up_small': ('atk', 1.2),
-                   'spd_up_small': ('spd', 1.2),
-                   'crit_up_small': ('crit', 0.15),
-                   'crit_up_big': ('crit', 0.3),
-                   'food_atk_up': ('atk', 1.1),
-                   'food_def_up': ('def', 1.15),
-                   'food_spd_up': ('spd', 1.12),
-                   'food_crit_up': ('crit', 0.08),
-                   'food_matk_up': ('matk', 1.1),
-                   'food_spd_up_small': ('spd', 1.1),
-                   'mon_atk_up': ('atk', 1.3),
-                   'mon_atk_up_strong': ('atk', 1.7),
-                   'mon_def_up': ('def', 1.4),
-                   'mon_atk_down': ('atk', 0.7),
-                   'magic_resist': ('magic_reduce', 0.15)},
-          'team_keys': {'def_all': 'def_up',
-                        'atk_all': 'atk_up',
-                        'matk_all': 'matk_up_strong',
-                        'crit_all': 'crit_up',
-                        'spd_all': 'spd_up'}},
- 'element': {'reactions': {('ice', 'fire_mark'): {'name': '蒸发',
-                                                  'mult': 1.3,
-                                                  'clear': True,
-                                                  'extra': ''},
-                           ('fire', 'thunder_mark'): {'name': '超载',
-                                                      'mult': 1.0,
-                                                      'clear': True,
-                                                      'extra': 'aoe'},
-                           ('thunder', 'ice_mark'): {'name': '冻结',
-                                                     'mult': 1.0,
-                                                     'clear': True,
-                                                     'extra': 'freeze'},
-                           ('thunder', 'thunder_mark'): {'name': '感电',
-                                                         'mult': 1.0,
-                                                         'clear': False,
-                                                         'extra': 'chain',
-                                                         'min_layers': 3}},
-             'reaction_table': {('fire', 'ice'): {'kind': 'vaporize',
-                                                  'name': '蒸发',
-                                                  'mult': 1.3,
-                                                  'clear': 'ice',
-                                                  'extra': ''},
-                                ('fire', 'thunder'): {'kind': 'overload',
-                                                      'name': '超载',
-                                                      'mult': 1.0,
-                                                      'clear': 'thunder',
-                                                      'extra': 'aoe'},
-                                ('ice', 'thunder'): {'kind': 'frozen',
-                                                     'name': '冻结',
-                                                     'mult': 1.0,
-                                                     'clear': 'thunder',
-                                                     'extra': 'freeze'},
-                                ('thunder', 'ice'): {'kind': 'electro_chain',
-                                                     'name': '感电',
-                                                     'mult': 1.0,
-                                                     'clear': '',
-                                                     'extra': 'chain'}},
-             'marks_max': 3,
-             'same_cast_extra_charge': 1},
- 'crit': {'lucky_chance': 0.3,
-          'lucky_mult': 1.3,
-          'luck_conv': {'per_luck': 0.3, 'cap': 0.12},
-          'multi_hit_first_only': True,
-          'full_hp_mechs': ('shadow',),
-          'frozen_mult': {'freeze': 1.5},
-          'combo_mechs': ('wind',)},
- 'ctrl': {'mechs': ('stun', 'freeze', 'silence'),
-          'skill_cc_whitelist': ('stun', 'silence', 'cleanse'),
-          'proc_groups': {'poison_dmg': ('poison', 'poison_burst'),
-                          'arcane_dmg': ('arcane',)},
-          'stat_passives': {'judge': 'judge', 'shadow': 'shadow'}},
- 'boss': {'attack_mults': {'enraged': 1.35,
-                           'phase_step': 0.2,
-                           'low_hp': 1.25,
-                           'pv_broken': 1.3,
-                           'stack_step': 0.08,
-                           'cap': 3.0}},
- 'enemy_bar': {'shaken': {'name': '破绽',
-                          'max': 125,
-                          'decay_per_turn': 1.7,
-                          'threshold_base': 50,
-                          'threshold_inc': 1.35,
-                          'threshold_cap': 2.5,
-                          'auto_trigger': True,
-                          'immune_secs': 2.0,
-                          'phase_preserve_pct': 0.5,
-                          'trigger_effect': 'skip_turn',
-                          'no_inject_on_trigger': True},
-               'curse': {'name': '骨噬诅咒',
-                         'max': 1,
-                         'decay_per_turn': 0,
-                         'threshold_base': 1,
-                         'threshold_inc': 1.0,
-                         'threshold_cap': 1.0,
-                         'auto_trigger': True,
-                         'immune_secs': 0.0,
-                         'phase_preserve_pct': 1.0,
-                         'trigger_effect': 'debuff',
-                         'vuln': 0.2,
-                         'acc': 0.1,
-                         'turns': 3}},
- 'assassin_combo': {'cap': 10,
-                    'finish_min': 3,
-                    'per_layer': 0.05,
-                    'max_bonus': 0.4,
-                    'class_id': 'cls_ci_ke',
-                    'path': 1,
-                    'on_crit_gain': 1,
-                    'on_take_hit_penalty': -1},
- 'shadow_step': {'stealth_extra': 1, 'stealth_proc': 'stealth'},
- 'echo': {'max_layers': 3, 'heal_per_layer': 6, 'buff_extend_per_layer': 1},
- 'full_tension': {'threshold': 80, 'crit_bonus': 0.1, 'max_cost': 25},
- 'blood_debt_gain': {'base': 1, 'coef': 4.0, 'cap': 5},
- 'branch_resources': {('cls_fa_shi', 0): (),
-                      ('cls_fa_shi', 1): ('element',),
-                      ('cls_fa_shi', 2): ('element',),
-                      ('cls_mu_shi', 1): ('resonance', 'echo')},
- 'chi_hold_dmg': {'per_chi': 0.03, 'cap_chi': 10}}
+_ORDER_CORE = orders_of(_PKG_ROOT, "mech_cfg_core", domain="key_order")
+_ORDER_CLASS = orders_of(_PKG_ROOT, "mech_cfg_class", domain="key_order")
+_ORDER_MECH_CFG = _ORDER_CORE + _ORDER_CLASS
+_ORDER_MECH_CASH = orders_of(_PKG_ROOT, "mech_cash", domain="key_order")
+
+
+def _domain(domain: str, order) -> dict:
+    """读一个域 → **保序 + 独立副本** 的表；任一不符即抛（**绝不静默空表**）。
+
+    `records_from_domain` 已在装载期挡住「域未声明 / 落点与声明不符 / 文件缺」；
+    `order=` 再把「域键集 == 序声明」守一遍（`RecordsOrderMismatch`）。
+    返回的是 `copy.deepcopy` 出来的副本 —— 下面的类型还原不得就地改引擎域表。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain, order=list(order))
+    tbl = rec.all()
+    if rec.missing or not tbl:
+        raise RuntimeError("域 %r 读成空表（%s）—— 空表 = 静默失效，拒绝继续"
+                           % (domain, rec.problems[:3]))
+    return {k: copy.deepcopy(tbl[k]) for k in order}
+
+
+def _tuple_keys(raw: dict, int_positions=()) -> dict:
+    """元组键还原：`"a|b"` → `("a", "b")`；`int_positions` 指定的段还原成 **int**。"""
+    out = {}
+    for k, v in raw.items():
+        parts = str(k).split("|")
+        out[tuple(int(p) if i in int_positions else p for i, p in enumerate(parts))] = v
+    return out
+
+
+def _mech_cfg_core() -> dict:
+    """`MECH_CFG` 前 8 组（通用战斗机制）← 域 `mech_cfg_core`；元组逐路径还原。"""
+    out = _domain("mech_cfg_core", _ORDER_CORE)
+    out["mech_stack"]["whitelist"] = tuple(out["mech_stack"]["whitelist"])
+    out["buff"]["mult"] = {k: tuple(v) for k, v in out["buff"]["mult"].items()}
+    out["element"]["reactions"] = _tuple_keys(out["element"]["reactions"])
+    out["element"]["reaction_table"] = _tuple_keys(out["element"]["reaction_table"])
+    out["crit"]["full_hp_mechs"] = tuple(out["crit"]["full_hp_mechs"])
+    out["crit"]["combo_mechs"] = tuple(out["crit"]["combo_mechs"])
+    out["ctrl"]["mechs"] = tuple(out["ctrl"]["mechs"])
+    out["ctrl"]["skill_cc_whitelist"] = tuple(out["ctrl"]["skill_cc_whitelist"])
+    out["ctrl"]["proc_groups"] = {k: tuple(v) for k, v in out["ctrl"]["proc_groups"].items()}
+    return out
+
+
+def _mech_cfg_class() -> dict:
+    """`MECH_CFG` 后 7 组（职业族机制）← 域 `mech_cfg_class`；元组键（含 int 段）+ 元组值还原。"""
+    out = _domain("mech_cfg_class", _ORDER_CLASS)
+    out["branch_resources"] = {k: tuple(v) for k, v in
+                               _tuple_keys(out["branch_resources"], int_positions=(1,)).items()}
+    return out
+
+
+def _mech_cfg() -> dict:
+    """两域拼成全量 15 组；拼接后再守一遍键序（不静默改序）。"""
+    out = {**_mech_cfg_core(), **_mech_cfg_class()}
+    if tuple(out) != tuple(_ORDER_MECH_CFG):
+        raise RuntimeError("MECH_CFG 拼接后的键序与 key_order 声明不符：%s ≠ %s"
+                           % (list(out), list(_ORDER_MECH_CFG)))
+    return out
+
 
 # ============================================================
-# 本文件是两张**机制表**的唯一真源（2026-09-13 收敛）：`MECH_CFG`（15 组，逐键等于
-# `battle_config.py:455`）与 `MECH_CASH`（9 条，逐条等于 `battle_rules.py:624`）。
-# 别处（params/element_data）不再自带副本：params 的 hook 供体改为函数内延迟导入本文件
-# （避开环形 import）；element_data 的分片已删。
-# 下方 BAR_* 相反 —— **单源在 params.py**，本文件只做再导出（消费者 import 路径不变）。
+# MECH_CFG —— 机制配置表（全量 15 组，逐键等于真源 `battle_config.py:455`）
 # ============================================================
-# 原先本文件自带一份 BAR_INJECT_FIELDS / BAR_STATE_PREFIX，而 element_data.py:92 与
-# params.py:126 也各有一份 → 三处定义、两个消费者（class_mech 读本文件、bar_procs 读
-# element_data）。值当时一致，但那是「碰巧」：改一处就漂，且没有任何门禁能发现。
-# 现统一从 params 取名再导出，**本文件的 import 路径保持不变**（消费者零改动）。
+MECH_CFG: dict = _mech_cfg()
+
+# ============================================================
+# MECH_CASH —— 兑现声明表（9 条，逐条等于真源 `battle_rules.py:624`；全 JSON 原生类型）
+# ============================================================
+MECH_CASH: dict = _domain("mech_cash", _ORDER_MECH_CASH)
+
+# ============================================================
+# BAR_* —— **单源在 params.py**，本文件只做再导出（消费者 import 路径不变）
+# ============================================================
 from .params import BAR_INJECT_FIELDS, BAR_STATE_PREFIX   # noqa: F401  再导出（单源）
 
 __all__ = ["MECH_CASH", "MECH_CFG", "BAR_INJECT_FIELDS", "BAR_STATE_PREFIX"]

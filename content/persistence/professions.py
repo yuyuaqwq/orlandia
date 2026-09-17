@@ -26,17 +26,30 @@ from .handles import _connect, _lock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
 import json  # v67 activated 列 JSON 序列化
+import os
 
-PROF_FIELDS = {
-    "gather": "采集",
-    "mining": "挖掘",
-    "fishing": "垂钓",
-    "alchemy": "炼金",
-    "craft": "锻造",
-    "cooking": "烹饪",
-    "enhance": "强化",
-    "enchant": "附魔",
-}
+_HERE = os.path.dirname(os.path.abspath(__file__))              # <pkg>/content/persistence
+_DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")        # <pkg>/content/data
+
+
+def _read_json(name: str, default):
+    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
+    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
+    try:
+        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                        # noqa: BLE001
+        return default
+
+
+# 副业字段表（key → 中文名）—— ★ D9：进包内域 `content/data/prof_fields.json`
+# （原模块级字面量 dict；键序 = 表内序 = get_professions 输出序）
+_PROF_TBL = _read_json("prof_fields.json", {})
+PROF_FIELDS = _PROF_TBL.get("prof_fields") if isinstance(_PROF_TBL, dict) else None
+if not isinstance(PROF_FIELDS, dict) or not PROF_FIELDS:
+    raise RuntimeError(
+        "prof_fields 域缺 / 空 / 键型不符（content/data/prof_fields.json"
+        " 应为 {\"prof_fields\": {...}}）—— 拒绝静默空表")
 
 
 def _ensure_prof_row(conn, qq_id):

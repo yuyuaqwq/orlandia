@@ -1,0 +1,338 @@
+{
+  "boss": {
+    "attack_mults": {
+      "enraged": 1.35,
+      "phase_step": 0.2,
+      "low_hp": 1.25,
+      "pv_broken": 1.3,
+      "stack_step": 0.08,
+      "cap": 3.0
+    }
+  },
+  "buff": {
+    "mult": {
+      "atk_up": [
+        "atk",
+        1.3
+      ],
+      "atk_up_strong": [
+        "atk",
+        1.75
+      ],
+      "echo_bless": [
+        "atk",
+        1.05
+      ],
+      "matk_up": [
+        "matk",
+        1.5
+      ],
+      "matk_up_strong": [
+        "matk",
+        1.8
+      ],
+      "matk_up_pot": [
+        "matk",
+        1.3
+      ],
+      "def_up": [
+        "def",
+        1.45
+      ],
+      "spd_up": [
+        "spd",
+        1.4
+      ],
+      "crit_up": [
+        "crit",
+        0.2
+      ],
+      "hit_up": [
+        "precise",
+        0.15
+      ],
+      "atk_up_big": [
+        "atk",
+        1.4
+      ],
+      "atk_up_small": [
+        "atk",
+        1.2
+      ],
+      "spd_up_small": [
+        "spd",
+        1.2
+      ],
+      "crit_up_small": [
+        "crit",
+        0.15
+      ],
+      "crit_up_big": [
+        "crit",
+        0.3
+      ],
+      "food_atk_up": [
+        "atk",
+        1.1
+      ],
+      "food_def_up": [
+        "def",
+        1.15
+      ],
+      "food_spd_up": [
+        "spd",
+        1.12
+      ],
+      "food_crit_up": [
+        "crit",
+        0.08
+      ],
+      "food_matk_up": [
+        "matk",
+        1.1
+      ],
+      "food_spd_up_small": [
+        "spd",
+        1.1
+      ],
+      "mon_atk_up": [
+        "atk",
+        1.3
+      ],
+      "mon_atk_up_strong": [
+        "atk",
+        1.7
+      ],
+      "mon_def_up": [
+        "def",
+        1.4
+      ],
+      "mon_atk_down": [
+        "atk",
+        0.7
+      ],
+      "magic_resist": [
+        "magic_reduce",
+        0.15
+      ]
+    },
+    "team_keys": {
+      "def_all": "def_up",
+      "atk_all": "atk_up",
+      "matk_all": "matk_up_strong",
+      "crit_all": "crit_up",
+      "spd_all": "spd_up"
+    }
+  },
+  "crit": {
+    "lucky_chance": 0.3,
+    "lucky_mult": 1.3,
+    "luck_conv": {
+      "per_luck": 0.3,
+      "cap": 0.12
+    },
+    "multi_hit_first_only": true,
+    "full_hp_mechs": [
+      "shadow"
+    ],
+    "frozen_mult": {
+      "freeze": 1.5
+    },
+    "combo_mechs": [
+      "wind"
+    ]
+  },
+  "ctrl": {
+    "mechs": [
+      "stun",
+      "freeze",
+      "silence"
+    ],
+    "skill_cc_whitelist": [
+      "stun",
+      "silence",
+      "cleanse"
+    ],
+    "proc_groups": {
+      "poison_dmg": [
+        "poison",
+        "poison_burst"
+      ],
+      "arcane_dmg": [
+        "arcane"
+      ]
+    },
+    "stat_passives": {
+      "judge": "judge",
+      "shadow": "shadow"
+    }
+  },
+  "dot": {
+    "poison": {
+      "atk": 0.8,
+      "matk": 0.0,
+      "hp": 0.0,
+      "type": "flat"
+    },
+    "burn": {
+      "atk": 0.0,
+      "matk": 0.6,
+      "hp": 0.005,
+      "type": "hybrid"
+    },
+    "bleed": {
+      "atk": 0.05,
+      "matk": 0.0,
+      "hp": 0.015,
+      "type": "pct"
+    },
+    "corros": {
+      "atk": 0.3,
+      "matk": 0.2,
+      "hp": 0.01,
+      "type": "pct",
+      "true_dmg": true
+    },
+    "boss_pct_mult": 0.5,
+    "pct_cap": 0.01,
+    "bleed_double_hp_pct": 0.3,
+    "adapt_decay_step": 0.04,
+    "resist_cap": 0.95
+  },
+  "element": {
+    "reactions": {
+      "ice|fire_mark": {
+        "name": "蒸发",
+        "mult": 1.3,
+        "clear": true,
+        "extra": ""
+      },
+      "fire|thunder_mark": {
+        "name": "超载",
+        "mult": 1.0,
+        "clear": true,
+        "extra": "aoe"
+      },
+      "thunder|ice_mark": {
+        "name": "冻结",
+        "mult": 1.0,
+        "clear": true,
+        "extra": "freeze"
+      },
+      "thunder|thunder_mark": {
+        "name": "感电",
+        "mult": 1.0,
+        "clear": false,
+        "extra": "chain",
+        "min_layers": 3
+      }
+    },
+    "reaction_table": {
+      "fire|ice": {
+        "kind": "vaporize",
+        "name": "蒸发",
+        "mult": 1.3,
+        "clear": "ice",
+        "extra": ""
+      },
+      "fire|thunder": {
+        "kind": "overload",
+        "name": "超载",
+        "mult": 1.0,
+        "clear": "thunder",
+        "extra": "aoe"
+      },
+      "ice|thunder": {
+        "kind": "frozen",
+        "name": "冻结",
+        "mult": 1.0,
+        "clear": "thunder",
+        "extra": "freeze"
+      },
+      "thunder|ice": {
+        "kind": "electro_chain",
+        "name": "感电",
+        "mult": 1.0,
+        "clear": "",
+        "extra": "chain"
+      }
+    },
+    "marks_max": 3,
+    "same_cast_extra_charge": 1
+  },
+  "enemy_bar": {
+    "shaken": {
+      "name": "破绽",
+      "max": 125,
+      "decay_per_turn": 1.7,
+      "threshold_base": 50,
+      "threshold_inc": 1.35,
+      "threshold_cap": 2.5,
+      "auto_trigger": true,
+      "immune_secs": 2.0,
+      "phase_preserve_pct": 0.5,
+      "trigger_effect": "skip_turn",
+      "no_inject_on_trigger": true
+    },
+    "curse": {
+      "name": "骨噬诅咒",
+      "max": 1,
+      "decay_per_turn": 0,
+      "threshold_base": 1,
+      "threshold_inc": 1.0,
+      "threshold_cap": 1.0,
+      "auto_trigger": true,
+      "immune_secs": 0.0,
+      "phase_preserve_pct": 1.0,
+      "trigger_effect": "debuff",
+      "vuln": 0.2,
+      "acc": 0.1,
+      "turns": 3
+    }
+  },
+  "mech_stack": {
+    "bonus": {
+      "rage": 0.12,
+      "shadow": 0.12,
+      "chi": 0.12,
+      "spellblade": 0.08,
+      "dragon_might": 0.1,
+      "zen": 0.12
+    },
+    "whitelist": [
+      "rage",
+      "shield",
+      "wind",
+      "shadow",
+      "chi",
+      "bless",
+      "judge",
+      "iron",
+      "mark",
+      "burn",
+      "poison",
+      "freeze",
+      "arcane",
+      "spellblade",
+      "zhan_yi",
+      "lian_duan"
+    ],
+    "max": {
+      "burn": 5,
+      "poison": 5,
+      "rage": 5,
+      "shadow": 5,
+      "chi": 5,
+      "judge": 5,
+      "mark": 5,
+      "wind": 3,
+      "iron": 5,
+      "shield": 5,
+      "bless": 10,
+      "arcane": 5,
+      "spellblade": 5,
+      "zhan_yi": 10,
+      "lian_duan": 10
+    }
+  }
+}

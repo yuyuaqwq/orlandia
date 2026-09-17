@@ -1,0 +1,44 @@
+{
+  "KIND_META": {
+    "物理": {
+      "seg": "phys",
+      "damage": true,
+      "lifesteal": "phys"
+    },
+    "魔法": {
+      "seg": "magi",
+      "damage": true,
+      "lifesteal": "magi"
+    },
+    "治疗": {
+      "seg": "magi",
+      "damage": false,
+      "lifesteal": ""
+    },
+    "增益": {
+      "seg": "magi",
+      "damage": false,
+      "lifesteal": ""
+    },
+    "被动": {
+      "seg": "magi",
+      "damage": false,
+      "lifesteal": ""
+    },
+    "召唤": {
+      "seg": "magi",
+      "damage": false,
+      "lifesteal": ""
+    },
+    "真伤": {
+      "seg": "true",
+      "damage": true,
+      "lifesteal": "true"
+    },
+    "嘲讽": {
+      "seg": "magi",
+      "damage": false,
+      "lifesteal": ""
+    }
+  }
+}

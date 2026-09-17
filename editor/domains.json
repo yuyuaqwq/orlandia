@@ -673,5 +673,275 @@
     "icon": "🔢",
     "owner": "package",
     "tier": "fixed"
+  },
+  "exp_table": {
+    "label": "升级经验表",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "📈",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "optional_stats": {
+    "label": "可选属性词表",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "🎛️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "dot_max_trigger": {
+    "label": "DOT 触发上限档位表",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "☠️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "weapon_effects": {
+    "label": "武器特效",
+    "kind": "data",
+    "schema": null,
+    "primary": "weapon_effect",
+    "icon": "⚔️",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "mech_cfg_core": {
+    "label": "机制配置·通用",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "⚙️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "mech_cfg_class": {
+    "label": "机制配置·职业族",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "🧬",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "mech_cash": {
+    "label": "机制兑现声明",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "💰",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "buff_keys": {
+    "label": "buff 键映射",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🔑",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "slot_aliases": {
+    "label": "部位别名",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🧰",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "stat_names": {
+    "label": "属性名",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "💬",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "affix_feature_rules": {
+    "label": "词缀特性规则",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "💠",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "passive_stat_apply": {
+    "label": "被动属性施加",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "🌀",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "stat_affix_fx": {
+    "label": "词缀·属性折算",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🎴",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "req_stat_by_slot": {
+    "label": "装备·属性需求",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🎯",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "mat_facility": {
+    "label": "材料·回收设施",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🏪",
+    "owner": "package",
+    "tier": "fixed"
+  },
+  "equip_event_map": {
+    "label": "装备事件映射",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🎯",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "affix_res_gain_on": {
+    "label": "词条资源回复时机",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "⏱️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "affix_res_gain_ids": {
+    "label": "词条资源回复清单",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🧾",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "formula_skeleton": {
+    "label": "公式骨架（引擎挂载面）",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "🧮",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "linear_stats": {
+    "label": "线性成长属性",
+    "kind": "rules",
+    "schema": null,
+    "primary": null,
+    "icon": "📈",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "kind_meta": {
+    "label": "种类元信息",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🏷️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "season_map": {
+    "label": "月份季节",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🍂",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "weapon_names": {
+    "label": "武器类型名",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "⚔️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "hurry_alias": {
+    "label": "赶路别名",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🏃",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "master_ids": {
+    "label": "生活导师",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🧑🏫",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "purify_neg_keys": {
+    "label": "净化负面键清单",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🧼",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "enemy_debuff_keys": {
+    "label": "敌方减益键清单",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "💀",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "mount_effect_keys": {
+    "label": "坐骑特效字段",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🐎",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "prof_fields": {
+    "label": "副业字段表",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🛠️",
+    "owner": "package",
+    "tier": "portable"
+  },
+  "gender_aliases": {
+    "label": "性别输入别名",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "🚻",
+    "owner": "package",
+    "tier": "portable"
   }
 }

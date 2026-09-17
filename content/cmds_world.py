@@ -31,6 +31,8 @@ async generator（`yield event.plain_result(...)`），由引擎按 `bind.call` 
 """
 from __future__ import annotations
 
+import os
+
 from . import texts as T
 from . import world_cmds as _WC
 from .catalog_quests import MAIN_QUESTS, NPCS, SIDE_QUESTS
@@ -44,9 +46,21 @@ from .world_cmds import db, _DAILY_META_KEYS   # B2-W2：清死 import（C/_host
 from . import quests_flow as _qf
 # ★ U1-I4 L6：导师行取用 → 引擎多表首命中形状（单表**真值**链）
 from saintess_engine.presence import Lookup
+from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 #: 导师行查表口（`NPCS.get(id) or {}` 的引擎形状；真值链口径逐字同义）
 _NPCS_LOOKUP = Lookup(NPCS)
+
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # <pkg>
+
+# ---- 包内域读口（D8）：生活导师 NPC id 清单 ----
+# 原 `quest_view` 内联字面量（8 项 tuple）。落点 / kind / 文件名唯一源 = `editor/domains.json`
+# （引擎 `records` fail-closed：域未声明 / 文件缺 / 键集不符 → 装载期点名报错）。条目缺 → 点名报错，
+# 不许静默空表（空了 = 面板「师门考验」行整块消失）。
+_MASTER_IDS = tuple(
+    (records_from_domain(_PKG_ROOT, "master_ids").get("ids") or {}).get("keys") or ())
+if not _MASTER_IDS or not all(isinstance(_i, str) and _i for _i in _MASTER_IDS):
+    raise ValueError("master_ids 域缺 ids.keys 列表（实得 %r）—— 拒绝静默空表" % (_MASTER_IDS,))
 
 
 # ============================================================
@@ -278,8 +292,7 @@ def quest_view(env) -> list:
             else:
                 lines.append(T.text("daily.done_part", done=_done))
     # v101.30d #O1：师门考验追踪——对话树进行中时面板显示（playtest 小红：考验无面板条目）
-    _MASTER_IDS = ("npc_herb_master", "npc_mine_master", "npc_fish_master", "npc_cook_master",
-                   "npc_alchemy_master", "npc_craft_master", "npc_enhance_master", "npc_rune_master")
+    # D8：`_MASTER_IDS` 表体搬进包内域 `content/data/master_ids.json`（读口见模块级 `_MASTER_IDS`）。
     ts = db.get_talk_state(group_id, qq_id)
     # ★ U1-I4 L6：`ts and ts.get("npc")` → `(ts or {}).get("npc")`（同值；空会话/无会话都落 None），
     #   导师行取用换引擎 `Lookup(NPCS).first(...)`（真值链，与原 `.get(id) or {}` 同口径）。

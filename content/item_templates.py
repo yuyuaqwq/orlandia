@@ -97,6 +97,7 @@ class _HostMod:
 - 加新玩法：register 一个新模板函数（~15 行），之后全数据化
 """
 import json
+import os
 import random
 import time
 
@@ -456,61 +457,56 @@ def _food_out_battle(ctx):
 
 
 # ---- 战斗药水（6 种 effect → p_buffs key）----
-_BUFF_KEYS = {"buff_atk": "atk_up", "buff_def": "def_up", "buff_spd": "spd_up",
-              "buff_crit": "crit_up", "buff_matk": "matk_up_pot",
-              "buff_atk_def": "atk_up,def_up",
-              # v101.28b 食物增益（弱化版 BUFF_MULT food_* 键，战斗中 3 刻）
-              "buff_atk_food": "food_atk_up", "buff_def_food": "food_def_up",
-              "buff_spd_food": "food_spd_up", "buff_crit_food": "food_crit_up",
-              "buff_matk_food": "food_matk_up",
-              # v104 M08 P2-12：精灵果酱 food_spd_up_small（v105 M16 已在 battle.py BUFF_MULT
-              # 实现 spd+10% 本场，键不在本映射表易误导维护——补进注释对齐）
-              "food_spd_up_small": "food_spd_up_small",
-              # v101.28f 药水强度分档（战吼/龙力/蛮力/风灵/致命/锐目/秘法/星辉/虚空/战圣）
-              "buff_atk_big": "atk_up_big", "buff_atk_small": "atk_up_small",
-              "buff_spd_small": "spd_up_small", "buff_crit_small": "crit_up_small",
-              "buff_crit_big": "crit_up_big",
-              "buff_matk_strong": "matk_up_strong", "buff_matk_crit": "matk_up_strong,crit_up_small",
-              "buff_atk_big_def": "atk_up_big,def_up",
-              # v101.28f 药水特殊效果（→ special: payload，_do_use_item 分发）
-              "next_atk_up": "special:next_atk_up", "heal_up": "special:heal_up",
-              "magic_resist": "special:magic_resist", "thorns_pot": "special:thorns_pot",
-              "dodge_pot": "special:dodge_pot", "cc_immune": "special:cc_immune",
-              "execute_pot": "special:execute_pot", "armor_break_pot": "special:def_down",
-              "lifesteal_pot": "special:lifesteal_pot",  # v106.3 嗜血药剂
-              "crit_dmg_pot": "special:crit_dmg_pot",    # v106.3 狂暴药剂
-              "block_pot": "special:block_pot",          # v106.3 岩壁药剂
-              # v125.3 收口审计 P1 修复：穿甲/破法药剂缺映射 → 战斗中使用走 none 被拒（有 handler 有数据无通路）
-              "pene_pot": "special:pene_pot", "pene_magi_pot": "special:pene_magi_pot",
-              "rock_shield": "special:shield_small", "holy_shield": "special:shield_big",
-              # v180F 清2a：铁壁药膏 effect=shield_big 此前无 _BUFF_KEYS 映射 → infer_template
-              # 返回 "none" → 战斗中使用无效（废药）。补映射 + 数值随 payload 传（见
-              # _V130_ITEM_EFFECTS）——铁壁 pct=0.30 不再被 DEFAULTS(圣盾 0.15) 吞
-              "shield_big": "special:shield_big",
-              # v130.2 资源联动消耗品（战斗内特殊分发；effect_data 数值随 payload 传递，见 _make_buff_tpl）
-              "restore_resource": "special:restore_resource",
-              "restore_resource_full": "special:restore_resource_full",
-              "resource_amp": "special:resource_amp",
-              "mana_cost_down": "special:mana_cost_down",
-              "buff_phys_next": "special:buff_phys_next",
-              "full_tension": "special:full_tension",
-              # v140 战斗机制道具（20 件，方案 3.6）：special 分发 + effect_data 随 payload 传递
-              # （summon/trap/mana_restore/resource_charge/steal_buff/buff_extend/phoenix/
-              #  purify_immune/morph/invuln/apply_mark/dot_amp/reaction/vuln 共 14 键）
-              "summon": "special:summon",
-              "trap": "special:trap",
-              "mana_restore": "special:mana_restore",
-              "resource_charge": "special:resource_charge",
-              "steal_buff": "special:steal_buff",
-              "buff_extend": "special:buff_extend",
-              "phoenix": "special:phoenix",
-              "purify_immune": "special:purify_immune",
-              "morph": "special:morph",
-              "invuln": "special:invuln",
-              "apply_mark": "special:apply_mark",
-              "dot_amp": "special:dot_amp",
-              "reaction": "special:reaction",
-              "vuln": "special:vuln"}
+# D4「数据进表」：本表（56 键）已迁包内域 → `content/data/buff_keys.json` 条目 `buff_keys`
+# （键序 / 值 / 类型原样；外层键升序是落盘规范，故整张映射放在条目**值**里保序）。
+# 域元数据唯一源 = `editor/domains.json`（kind=data ⇒ content/data/buff_keys.json）。
+_BUFF_DOMAIN = "buff_keys"
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _buff_domain_entry(entry: str) -> dict:
+    """取 `buff_keys` 域的一个条目（非空 dict）—— **fail-closed**，不静默空表。
+
+    域读口 = 引擎 `records`（既有读口）：域不在 `editor/domains.json` 声明里 / 声明 kind
+    与磁盘落点不符 / 域文件不在盘上 → `RecordsDeclarationError`，点名域与实际路径。
+    """
+    from saintess_engine.records import records_from_domain
+    tbl = records_from_domain(_PKG_ROOT, _BUFF_DOMAIN).all()
+    ent = tbl.get(entry) if isinstance(tbl, dict) else None
+    if not isinstance(ent, dict) or not ent:
+        raise RuntimeError(
+            "域 %r 缺条目 %r / 条目不是非空 dict（域文件 %s）—— 拒绝静默空表"
+            % (_BUFF_DOMAIN, entry,
+               os.path.join(_PKG_ROOT, "content", "data", _BUFF_DOMAIN + ".json")))
+    return ent
+
+
+def _buff_keys_from_domain() -> dict:
+    """域条目 `buff_keys` → 原内联 `_BUFF_KEYS`（键序 / 值 / 类型一字不改；键值都须是 str）。"""
+    ent = _buff_domain_entry("buff_keys")
+    for k, v in ent.items():
+        if not isinstance(k, str) or not isinstance(v, str):
+            raise RuntimeError("域 %r 条目 buff_keys 的键/值必须是 str（%r → %r）—— 类型不对拒绝继续"
+                               % (_BUFF_DOMAIN, k, v))
+    return dict(ent)
+
+
+_BUFF_KEYS: dict = _buff_keys_from_domain()
+# ↑ 原表内联注释（键分组 / 版本出处）逐字保留在此，值一律以域文件为准：
+#   v101.28b 食物增益（弱化版 BUFF_MULT food_* 键，战斗中 3 刻）
+#   v104 M08 P2-12：精灵果酱 food_spd_up_small（v105 M16 已在 battle.py BUFF_MULT
+#   实现 spd+10% 本场，键不在本映射表易误导维护——补进注释对齐）
+#   v101.28f 药水强度分档（战吼/龙力/蛮力/风灵/致命/锐目/秘法/星辉/虚空/战圣）
+#   v101.28f 药水特殊效果（→ special: payload，_do_use_item 分发）
+#   v106.3：嗜血药剂 / 狂暴药剂 / 岩壁药剂（lifesteal_pot / crit_dmg_pot / block_pot）
+#   v125.3 收口审计 P1 修复：穿甲/破法药剂缺映射 → 战斗中使用走 none 被拒（有 handler 有数据无通路）
+#   v180F 清2a：铁壁药膏 effect=shield_big 此前无 _BUFF_KEYS 映射 → infer_template
+#   返回 "none" → 战斗中使用无效（废药）。补映射 + 数值随 payload 传（见
+#   _V130_ITEM_EFFECTS）——铁壁 pct=0.30 不再被 DEFAULTS(圣盾 0.15) 吞
+#   v130.2 资源联动消耗品（战斗内特殊分发；effect_data 数值随 payload 传递，见 _make_buff_tpl）
+#   v140 战斗机制道具（20 件，方案 3.6）：special 分发 + effect_data 随 payload 传递
+#   （summon/trap/mana_restore/resource_charge/steal_buff/buff_extend/phoenix/
+#    purify_immune/morph/invuln/apply_mark/dot_amp/reaction/vuln 共 14 键）
 # v130.2 资源联动消耗品 effect 名集合：effect_data 每件数值不同，须随 special payload 传递
 #（旧特殊药水如 next_atk_up 共用一套 DEFAULTS，保持 special:<kind> 裸 payload 兼容旧测试/行为）
 _V130_ITEM_EFFECTS = {"restore_resource", "restore_resource_full", "resource_amp",
@@ -848,8 +844,22 @@ def tpl_mount(ctx):
 # I5（saintess_engine）：负面权威 = actor.effects（V 系列单容器 + EFFECT_RULES 声明）。
 # 本模板只做「净化对象存在」判定（读视图/state actors），清除统一由翻译器
 # battle_item_use 执行（act_cleanse 查表：period/on=target/cleanse=True；sleep 不可净化）。
-_PURIFY_DEBUFF_KEYS = ("stun", "freeze", "silence", "spd_down",
-                       "atk_down", "def_down", "matk_down", "mdef_down")
+# D4「数据进表」：清单已迁包内域 → `content/data/buff_keys.json` 条目 `purify_debuff_keys`
+# （`{"keys": [...]}`，源序原样；与 `_BUFF_KEYS` 同一域文件 = 同一张「道具键词汇表」真源）。
+def _purify_debuff_keys_from_domain() -> tuple:
+    """域条目 `purify_debuff_keys` 的 `keys` → 原内联 tuple（源序原样）。"""
+    keys = _buff_domain_entry("purify_debuff_keys").get("keys")
+    if not isinstance(keys, list) or not keys:
+        raise RuntimeError("域 %r 条目 purify_debuff_keys 缺非空 keys list —— 拒绝静默空表"
+                           % (_BUFF_DOMAIN,))
+    for k in keys:
+        if not isinstance(k, str):
+            raise RuntimeError("域 %r 条目 purify_debuff_keys 的键必须是 str（%r）—— 类型不对拒绝继续"
+                               % (_BUFF_DOMAIN, k))
+    return tuple(keys)
+
+
+_PURIFY_DEBUFF_KEYS: tuple = _purify_debuff_keys_from_domain()
 
 
 def _b2_player_effects_candidates(st) -> list:

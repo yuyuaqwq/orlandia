@@ -37,9 +37,11 @@ B2-C2 把这一份整体搬进包内（落点 = `overnight/B2_W0_INTERFACE.md` �
 方向：内容 → 引擎（本文件只 `import saintess_engine`；**不 import 宿主任何模块**）。
 """
 import importlib
+import os
 import random
 
 from saintess_engine.loot import count_for, draw_slots
+from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 from .affix import fixed_affixes, random_req, roll_affixes, stat_affix_stats
 from .stats import (ARMOR_FAMILY_ALIAS, equip_stats, equip_value, monster_exp,
@@ -52,6 +54,16 @@ from .catalog_life import CRAFT_RECIPES
 from .catalog_rules import (EQUIP_NAME_PREFIX, EQUIP_NAME_SUFFIX, EQUIP_PREFIX_FLAVOR,
                             FIELD_TIER_MULT, SERIES_SETS, SET_CHANCE, SET_THEMES,
                             WEAPON_NAME_SUFFIX, WEAPON_TYPES)
+
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # <pkg>（域声明派生口用）
+
+# ---- 包内域读口（D8）：武器类型 → 中文名 ----
+# 原 `_eq_random_desc` 内联字面量（9 键 / 4 行）。落点 / kind / 文件名唯一源 = `editor/domains.json`
+# （引擎 `records` fail-closed：域未声明 / 文件缺 / 键集不符 → 装载期点名报错，不静默给空表）。
+_WT_MAP = records_from_domain(
+    _PKG_ROOT, "weapon_names",
+    order=("sword", "dagger", "staff", "bow", "mace", "fist", "shield", "spear", "axe"),
+).into(lambda _e: _e.get("name"))
 
 
 # ============================================================
@@ -116,11 +128,7 @@ def _eq_random_desc(name: str, slot: str, weapon_type: str | None = None) -> str
     """随机装备描述（v101.25g）：按部位/武器类型模板生成，避免与名册描述撞车"""
     if slot == "weapon":
         wt = weapon_type or "sword"
-        wt_map = {
-            "sword": "长剑", "dagger": "短刃", "staff": "法杖", "bow": "长弓",
-            "mace": "战锤", "fist": "拳套", "shield": "盾牌", "spear": "长枪", "axe": "战斧",
-        }
-        base = f"这是一件{wt_map.get(wt, '武器')}，刃口打磨精细，握感趁手"
+        base = f"这是一件{_WT_MAP.get(wt, '武器')}，刃口打磨精细，握感趁手"
     elif slot == "helm":
         base = "这是一顶头盔，护住要害，透气不闷"
     elif slot == "armor":

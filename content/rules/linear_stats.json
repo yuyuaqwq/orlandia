@@ -1,0 +1,13 @@
+{
+  "LINEAR_STATS": {
+    "keys": [
+      "hp",
+      "mp",
+      "atk",
+      "def",
+      "matk",
+      "mdef",
+      "spd"
+    ]
+  }
+}

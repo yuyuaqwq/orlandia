@@ -1,0 +1,37 @@
+{
+  "FORMULA_SKELETON": {
+    "skill_growth": {
+      "power_per_lv_divisor": 100,
+      "cond_default": 0.05,
+      "mech_default_div": 2,
+      "buff_turns_base": 3,
+      "buff_turns_per_lv": 1,
+      "lifesteal_default": 0.2,
+      "lifesteal_per_lv_divisor": 100
+    },
+    "skill_learn_cost": {
+      "divisor": 6,
+      "base": 2
+    },
+    "shield_default_pct": 0.2,
+    "block": {
+      "cap": 0.4,
+      "reduce": 0.5
+    },
+    "heal_down": {
+      "per_stack": 0.1,
+      "cap": 0.5
+    },
+    "anti_heal": {
+      "cap": 0.8
+    },
+    "reduce": {
+      "default_pct": 0.2,
+      "cap": 0.9
+    },
+    "gauge": {
+      "default_max": 100
+    },
+    "skill_max_level": 5
+  }
+}

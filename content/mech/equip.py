@@ -75,6 +75,13 @@ proc_buff 起手 6），验证「读表 → 事件映射 → triggers 装配 →
   · `content/data/legendary_effects.json` LEGENDARY_EFFECTS（93，D3 传说装配批接入）
   · `content/mech/we_procs.py` 27 个 we_* 族扩展动作（本层翻译出的 `type="we_*"` 由它执行）
 
+★ D7（2026-09-17）「数据进表」：本文件 3 张内联字面量表已搬进包内 json 域，代码只留读口
+  （唯一真源 = 域文件；读口 = `_domain_section()`，引擎 records fail-closed）：
+  · `_EVENT_MAP`          → `content/data/equip_event_map.json`（域 `equip_event_map`；tuple 还原）
+  · `_AFFIX_RES_GAIN_ON`  → `content/data/affix_res_gain_on.json`（域 `affix_res_gain_on`；值 = 二元 tuple 还原）
+  · `_AFFIX_RES_GAIN_IDS` → `content/data/affix_res_gain_ids.json`（域 `affix_res_gain_ids`；tuple 还原）
+  值/类型/序与搬前逐名对拍相等（`out/raw/00_before.json` ↔ `out/raw/01_after.json`，diff 空）。
+
 D3 增量（2026-09-13，与真源同一 hunk 逐字镜像；对拍见 `overnight/d3_gap_fix_verify.py`）
   · 武器翻译器 +2：`_translate_legend_mult`（3 个「放错表」键 = 只在 LEGENDARY_EFFECTS
     却被 roster 当 weapon_effect 引用）、`_translate_first_turn_dodge`（首刻闪避）
@@ -90,37 +97,64 @@ D3 增量（2026-09-13，与真源同一 hunk 逐字镜像；对拍见 `overnigh
 from __future__ import annotations
 
 import logging
+import os
 
 from typing import Optional
 
 from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from saintess_engine.records import RecordsDeclarationError, records_from_domain
+
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def _domain_section(domain: str, key: str) -> dict:
+    """读包内域 `<domain>` 的 `<key>` 段（落点由 `editor/domains.json` 的 kind 派生）。
+
+    ★ D7（2026-09-17）「数据进表」读口 —— 引擎 records（fail-closed）：
+      域未声明 / kind 无落点 / 文件不在盘上 / 落点与声明不符 → `RecordsDeclarationError`；
+      读不了 / 坏 JSON / 顶层不是映射 / 段缺 / 段不是非空映射 → 同样点名抛（**不静默给空表**）。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain)
+    section = rec.all().get(key)
+    if not isinstance(section, dict) or not section:
+        raise RecordsDeclarationError(
+            "域 %r 读不到 %r 段（%s）：域文件缺 / 坏 JSON / 形状不符 → problems=%r"
+            % (domain, key, rec.path, rec.problems))
+    return section
+
 
 # ============================================================
 # 旧事件集 → saintess_engine 19 事件映射
 # ============================================================
 
 # 旧 weapon proc 事件集（weapon_effects._WE_KEY_EVENTS 的 key）
-_EVENT_MAP = {
-    "battle_start": ("battle_start",),
-    "hit": ("attack_hit", "skill_hit"),   # 普攻+技能通用命中
-    "skill_hit": ("skill_hit",),
-    "skill_cast": ("act_cast",),
-    "taken": ("on_taken",),
-    "heal": ("on_heal",),
-    "turn_start": ("turn_start",),
-    "threshold": ("threshold",),
-    "crit": ("crit",),
-    "kill": ("on_kill",),
-    # N9A-2：旧 enemy_act（敌方行动后）→ 通用 act_done 广播（全员触发，效果侧
-    # 自己 if 敌我判断——randuin/ice_vein 敌对判断在 we_act_done_slow 扩展动作内）
-    "enemy_act": ("act_done",),
-    # 以下旧时机 saintess_engine 无 1:1 点位，第一批不迁（后续批次/上层处理）：
-    # taken_after / turn_end / passive（这三个名字**全仓无消费者**，属死名）；
-    # dot_taken 于 2026-09-13 补映射 → "dot_tick"（对齐 docs/archive/REFACTOR_v181P4_N9_migration.md:61 的
-    # N9 迁移表；当前无数据使用，零行为影响，防将来补数据时又变成"装了不生效"）。
-    "dot_taken": ("dot_tick",),
-}
+# ★ D7（2026-09-17）「数据进表」：本表已搬出代码 → 包内域 `content/data/equip_event_map.json`
+#   （域 id = `equip_event_map`，kind=data，已登记）为**唯一真源**；代码只留读口。
+#   **tuple 还原**：JSON 只有 array；不还原 = 值型漂成 list（对拍判据 1 红，且
+#   `tests/test_u1d2_triggers_frozen.py` 直取断言值必须是 tuple）。
+#   搬前逐键语义（随表一起留档，勿丢）：
+#     hit         → attack_hit + skill_hit（普攻+技能通用命中）
+#     skill_cast  → act_cast
+#     kill        → on_kill
+#     enemy_act   → act_done（N9A-2：旧 enemy_act 敌方行动后 → 通用 act_done 广播，
+#                   全员触发，效果侧自己 if 敌我判断——randuin/ice_vein 敌对判断在
+#                   we_act_done_slow 扩展动作内）
+#     taken_after / turn_end / passive 三个旧时机**全仓无消费者**（属死名），不迁；
+#     dot_taken   → dot_tick（2026-09-13 补映射，对齐
+#                   docs/archive/REFACTOR_v181P4_N9_migration.md:61 的 N9 迁移表；
+#                   当前无数据使用，零行为影响，防将来补数据时又变成「装了不生效」）。
+def _event_map() -> dict:
+    out: dict = {}
+    for old, tgt in _domain_section("equip_event_map", "EVENT_MAP").items():
+        if not isinstance(tgt, list) or not tgt or not all(isinstance(t, str) for t in tgt):
+            raise RecordsDeclarationError(
+                "equip_event_map 域 %r 的展开目标不是非空字符串数组：%r" % (old, tgt))
+        out[old] = tuple(tgt)
+    return out
+
+
+_EVENT_MAP = _event_map()
 
 # 引擎事件全集（权威 = `saintess_engine/battle/effect_triggers.py` 的 EVENTS 常量）
 # ★ 2026-09-13 反静默失效：`fire()` 对**不在 EVENTS 全集**的事件名**静默 return**，
@@ -642,34 +676,47 @@ def _af_dragon_aw(aid, actor, eff):
 #   skill_hit——数据无「连招技」kind/mech/名标记，取语义最近且 subject=自己 的技能命中点，
 #   实装面宽于 desc 承诺、不产生假承诺；ember_brand 走 _af_ember_brand（cond_hp_lt 门槛））。
 
-_AFFIX_RES_GAIN_ON = {
-    # on 时机 → (saintess_engine 事件, 动作附加参数)
-    "on_attack": ("attack_hit", {}),
-    "on_skill": ("skill_hit", {}),
-    "on_cast": ("act_cast", {"not_basic": True}),
-    "on_crit": ("crit", {}),
-    "on_taken": ("on_taken", {}),
-    "on_heal": ("act_cast", {"kind": "治疗"}),
-    "battle_start": ("battle_start", {}),
-    "buff_skill": ("act_cast", {"kind": "增益"}),
-    # combo_skill 连招技（拳师连段，combo_recover）→ skill_hit：见上方 D3 注释
-    "combo_skill": ("skill_hit", {}),
-}
+# ★ D7（2026-09-17）「数据进表」：本表已搬出代码 → 包内域
+#   `content/data/affix_res_gain_on.json`（域 id = `affix_res_gain_on`，kind=data，已登记）
+#   为**唯一真源**；代码只留读口。**内层 tuple 还原**：JSON 只有 array，值必须是
+#   `(事件名, 附加参数 dict)` 二元 tuple（下游 `ev, extra = ...get(t, (None, None))` 解包）。
+def _affix_res_gain_on() -> dict:
+    out: dict = {}
+    for on, row in _domain_section("affix_res_gain_on", "AFFIX_RES_GAIN_ON").items():
+        if (not isinstance(row, list) or len(row) != 2
+                or not isinstance(row[0], str) or not isinstance(row[1], dict)):
+            raise RecordsDeclarationError(
+                "affix_res_gain_on 域 %r 的值不是 [事件名, 附加参数 dict]：%r" % (on, row))
+        out[on] = (row[0], row[1])
+    return out
+
+
+_AFFIX_RES_GAIN_ON = _affix_res_gain_on()
 
 # R4 已装配的 res+gain+on 词条（AFFIXES 表 effect 结构核对一致；其余资源型见缺口注释）
-_AFFIX_RES_GAIN_IDS = (
-    "war_spirit",      # 战意：普攻/技能命中怒+1（on=[on_attack,on_skill]）
-    "warcry_echo",     # 战吼回响：增益技能怒+1
-    "blood_bath",      # 浴血：受击怒+1
-    "arcana_flux",     # 充能汲引：技能施放 element+1
-    "crit_charge",     # 暴击蓄能：暴击 energy+3
-    "holy_echo",       # 圣辉回响：治疗施放 faith+1（tiers 档位取 gain）
-    "crit_return",     # 暴击回点：暴击 chance 概率 cp+1（tiers 档位取 chance）
-    "pious_charm",     # 虔诚护符：受击 faith+1
-    "rock_rest",       # 磐息：受击 chi+1
-    "opening_stance",  # 起手之势：开战 chi+1
-    "combo_recover",   # 连段回收：连招技命中 chi+1（D3：combo_skill → skill_hit）
-)
+# ★ D7（2026-09-17）「数据进表」：清单已搬出代码 → 包内域
+#   `content/data/affix_res_gain_ids.json`（域 id = `affix_res_gain_ids`，kind=data，已登记）
+#   为唯一真源；本处只留读口。**tuple 还原**：JSON 只有 array，不还原 = 类型漂成 list。
+#   搬前逐条语义（随表一起留档，勿丢）：
+#     war_spirit     战意：普攻/技能命中怒+1（on=[on_attack,on_skill]）
+#     warcry_echo    战吼回响：增益技能怒+1
+#     blood_bath     浴血：受击怒+1
+#     arcana_flux    充能汲引：技能施放 element+1
+#     crit_charge    暴击蓄能：暴击 energy+3
+#     holy_echo      圣辉回响：治疗施放 faith+1（tiers 档位取 gain）
+#     crit_return    暴击回点：暴击 chance 概率 cp+1（tiers 档位取 chance）
+#     pious_charm    虔诚护符：受击 faith+1
+#     rock_rest      磐息：受击 chi+1
+#     opening_stance 起手之势：开战 chi+1
+#     combo_recover  连段回收：连招技命中 chi+1（D3：combo_skill → skill_hit）
+_AFFIX_RES_GAIN_ID_LIST = _domain_section(
+    "affix_res_gain_ids", "AFFIX_RES_GAIN_IDS").get("ids")
+if (not isinstance(_AFFIX_RES_GAIN_ID_LIST, list) or not _AFFIX_RES_GAIN_ID_LIST
+        or not all(isinstance(x, str) for x in _AFFIX_RES_GAIN_ID_LIST)):
+    raise RecordsDeclarationError(
+        "affix_res_gain_ids 域的 AFFIX_RES_GAIN_IDS.ids 缺失 / 不是非空字符串数组：%r"
+        % (_AFFIX_RES_GAIN_ID_LIST,))
+_AFFIX_RES_GAIN_IDS = tuple(_AFFIX_RES_GAIN_ID_LIST)
 
 
 def _translate_affix_res_gain(aid: str, actor: dict, eff: dict) -> dict:

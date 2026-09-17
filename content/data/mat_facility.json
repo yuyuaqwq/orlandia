@@ -1,0 +1,50 @@
+{
+  "任务道具": {
+    "facility": "shop",
+    "seq": 12
+  },
+  "传说": {
+    "facility": "shop",
+    "seq": 11
+  },
+  "兽材": {
+    "facility": "smith",
+    "seq": 3
+  },
+  "宝石": {
+    "facility": "smith",
+    "seq": 4
+  },
+  "收藏": {
+    "facility": "shop",
+    "seq": 10
+  },
+  "木材": {
+    "facility": "smith",
+    "seq": 2
+  },
+  "杂物": {
+    "facility": "shop",
+    "seq": 9
+  },
+  "矿石": {
+    "facility": "smith",
+    "seq": 1
+  },
+  "精华": {
+    "facility": "alchemy",
+    "seq": 6
+  },
+  "织物": {
+    "facility": "shop",
+    "seq": 8
+  },
+  "草药": {
+    "facility": "alchemy",
+    "seq": 5
+  },
+  "食材": {
+    "facility": "shop",
+    "seq": 7
+  }
+}

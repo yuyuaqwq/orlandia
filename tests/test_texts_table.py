@@ -218,7 +218,12 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "签到": PKG_MISC_SRC, "补给箱": PKG_EVENT_SRC,
          "每日任务": PKG_WORLD_SRC, "每日命令": PKG_QUESTS_SRC,
          "社交": PKG_SOCIAL_SRC,
-         "经济": PKG_ECONOMY_SRC}
+         "经济": PKG_ECONOMY_SRC,
+         # ★ D2（数据进表）：武器特效域的文案 key 由**读口** `content/mech/we_data.py`
+         #   引用（域 `weapon_effects` 的条目字段存 `<字段>_key`，装载期回填模板串）
+         #   —— 本域是「数据在域、文案在文案表、代码传 key」的第一个纯数据域，
+         #   引用面 = 读口里的 `_TEXT_KEYS` 字面量（`_scan_calls` ②「字面量也算引用」）。
+         "武器特效": os.path.join(PKG_CONTENT, "mech", "we_data.py")}
 
 
 def _wired_paths(path):
@@ -790,7 +795,7 @@ def t1_table_selfcheck():
           and os.path.abspath(SPEC) == os.path.abspath(_pkg.canonical_path()),
           "%s | pkg=%s" % (SPEC, _pkg.canonical_path()))
     check("装载无错（load_error 为空）", T.load_error() == "", T.load_error())
-    check("表非空（161 条：副本准入 26 + 副本结算 14 + 副本日志 70 + 签到 10 + 周常 18 + 补给箱 7 + 每日任务 7 + 每日命令 9）", len(tb) >= 40, len(tb))
+    check("表非空（副本准入 26 + 副本结算 14 + 副本日志 70 + 签到 10 + 周常 18 + 补给箱 7 + 每日任务 7 + 每日命令 9 + 武器特效 51）", len(tb) >= 40, len(tb))
     check("★ validate() 干净（无空值/语法错/params 与模板不一致）",
           tb.audit()["problems"] == [], tb.audit()["problems"][:5])
     check("元信息键（_ 开头）不入表", not [k for k in tb.keys() if k.startswith("_")], tb.keys()[:3])
@@ -798,8 +803,9 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务）",
-          set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务"}, cats)
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效）",
+          set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
+                        "武器特效"}, cats)
 
 
 def t2_key_and_params_accounting():
@@ -861,7 +867,7 @@ def t3_no_silent_fallback():
         T.SPEC_PATH = real
         T.reload()
     os.remove(bad)
-    check("恢复正常声明后表重建（161 条）", len(T.table()) >= 40, len(T.table()))
+    check("恢复正常声明后表重建（真源非 _ 条目数 = 本表键数）", len(T.table()) >= 40, len(T.table()))
 
 
 def t4_weekly_frozen():

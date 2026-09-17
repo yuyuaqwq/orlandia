@@ -291,8 +291,11 @@ def t3_package_self_sufficient():
           fields.get("spec_path"))
     check("★ 自足装载无错（load_error 为空）", fields.get("load_error") == "''",
           fields.get("load_error"))
-    check("★ 自足装载键数 = 真源非 _ 条目数（233）",
-          fields.get("keys") == "233", fields.get("keys"))
+    # ★ D2：条数不再硬编（真源条目会随「数据进表」的域迁移增长）—— 期望值 = 真源非 _ 条目数，
+    #   判据形状不变（子进程自足装载的键数必须等于真源条目数），只是期望值从真源现算。
+    _n_expect = len(_entries(_load(PKG_SPEC)))
+    check("★ 自足装载键数 = 真源非 _ 条目数（%d）" % _n_expect,
+          fields.get("keys") == str(_n_expect), fields.get("keys"))
     check("★ 自足装载逐条 value = 真源逐条 value",
           fields.get("values_match_source") == "True", fields.get("values_match_source"))
     if fields.get("sha256") is None:

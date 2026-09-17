@@ -1,0 +1,672 @@
+{
+  "abyss_barrier": {
+    "family": "proc_buff",
+    "max_hp_pct": 0.08,
+    "stat_key": "max_hp",
+    "log_key": "we.abyss_barrier.log"
+  },
+  "afterglow_splash": {
+    "family": "proc_extra_dmg",
+    "mode": "splash_magi",
+    "chance": 0.3,
+    "atk_pct": 0.15
+  },
+  "annihilation_echo": {
+    "family": "proc_extra_dmg",
+    "mode": "splash_magi",
+    "chance": 0.35,
+    "atk_pct": 0.3
+  },
+  "arcane_firmament": {
+    "family": "proc_passive_mult",
+    "event": [
+      "battle_start",
+      "passive"
+    ],
+    "matk_pct": 0.15,
+    "skill_dmg_pct": 0.1,
+    "mark_key": "we_arcane_firmament",
+    "log_key": "we.arcane_firmament.log"
+  },
+  "atonement_shield": {
+    "family": "proc_shield",
+    "cap_hp_pct": 0.15,
+    "turns": 3,
+    "shield_key": "we_atonement",
+    "active_key": "we_atonement_active",
+    "log_key": "we.atonement_shield.log"
+  },
+  "bedrock_crown": {
+    "family": "proc_shield",
+    "threshold": 0.25,
+    "shield_hp_pct": 0.2,
+    "turns": 4,
+    "shield_key": "we_bedrock",
+    "used_key": "we_bedrock_used",
+    "log_key": "we.bedrock_crown.log"
+  },
+  "blood_trace": {
+    "family": "proc_dot",
+    "chance": 0.25,
+    "pct": 0.02,
+    "pct_boss": 0.015,
+    "turns": 4,
+    "dot_key": "blood_trace",
+    "log_key": "we.blood_trace.log"
+  },
+  "combo_end": {
+    "family": "proc_passive_mult",
+    "event": [
+      "hit",
+      "passive"
+    ],
+    "combo_need": 3,
+    "crit_dmg": 0.4,
+    "mark_key": "we_combo_end"
+  },
+  "dawn_regen": {
+    "family": "proc_heal",
+    "pct": 0.02
+  },
+  "deadman_stride": {
+    "family": "proc_buff",
+    "stacks": 2,
+    "spd_pct": 0.15,
+    "turns": 4,
+    "buff_key": "gale_step",
+    "buff_pct_key": "gale_step_pct",
+    "log_key": "we.deadman_stride.log"
+  },
+  "death_dance": {
+    "family": "proc_special",
+    "event": [
+      "battle_start",
+      "turn_start"
+    ],
+    "pool_pct": 0.35,
+    "pay_pct": 0.1,
+    "max_turns": 10,
+    "pool_key": "we_death_pool",
+    "log": "💀 死亡之舞：缓伤池结算，损失 {pay} 点生命！（剩余 {player.setdefault('eff', {})['we_death_pool']:.0f}）"
+  },
+  "death_dance_armor": {
+    "family": "proc_dr_revive",
+    "taken_reduce_pct": 0.08,
+    "revive_hp_pct": 0.12
+  },
+  "deeprock_aegis": {
+    "family": "proc_shield",
+    "chance": 0.1,
+    "shield_pct": 0.08,
+    "turns": 3,
+    "cd": 2,
+    "shield_key": "we_deeprock",
+    "cd_key": "we_deeprock_cd",
+    "log_key": "we.deeprock_aegis.log"
+  },
+  "divine_execution": {
+    "family": "proc_passive_mult",
+    "event": [
+      "passive"
+    ],
+    "dmg_mult": 1.6,
+    "execute_threshold": 0.3,
+    "tag_key": "we.divine_execution.tag"
+  },
+  "dragon_annihilation": {
+    "family": "proc_passive_mult",
+    "event": [
+      "passive"
+    ],
+    "dmg_mult": 1.25,
+    "enemy_contains": [
+      "龙"
+    ],
+    "tag_key": "we.dragon_annihilation.tag"
+  },
+  "dragon_spine_mail": {
+    "family": "proc_reflect",
+    "chance": 0.15,
+    "reflect_pct": 0.25,
+    "heal_down": 2,
+    "log_key": "we.dragon_spine_mail.log"
+  },
+  "dusk_blade": {
+    "family": "proc_next_atk_mark",
+    "event": [
+      "kill",
+      "passive"
+    ],
+    "next_atk_pct": 0.3,
+    "atk_pct": 0.3,
+    "mark_key": "we_dusk_dmg",
+    "buff_key": "stealth",
+    "used_key": "we_dusk_used",
+    "log_key": "we.dusk_blade.log"
+  },
+  "echo_band": {
+    "family": "proc_heal",
+    "heal_pct": 0.25
+  },
+  "echo_bless": {
+    "family": "proc_shield",
+    "overflow_pct": 0.3,
+    "cap_hp_pct": 0.1,
+    "turns": 3,
+    "shield_key": "we_echo_bless",
+    "log_key": "we.echo_bless.log"
+  },
+  "eclipse_crown": {
+    "family": "proc_shield",
+    "shield_hp_pct": 0.15,
+    "spd_pct": 0.1,
+    "next_atk_pct": 0.15,
+    "turns": 99,
+    "shield_key": "we_eclipse",
+    "active_key": "we_eclipse_active",
+    "log_key": "we.eclipse_crown.log"
+  },
+  "ember_bulwark": {
+    "family": "proc_reflect",
+    "max_hp_pct": 0.05,
+    "burn_stack": 1,
+    "burn_cap": 5,
+    "dot_key": "burn",
+    "log_key": "we.ember_bulwark.log"
+  },
+  "ember_burn": {
+    "family": "proc_dot",
+    "chance": 0.3,
+    "dot_pct": 0.015,
+    "dot_pct_boss": 0.01,
+    "turns": 3,
+    "dot_key": "ember"
+  },
+  "endless_blade": {
+    "family": "proc_extra_dmg",
+    "mode": "extra_phys_oncrit",
+    "atk_pct": 0.2,
+    "used_key": "we_blade_used"
+  },
+  "endless_radiance": {
+    "family": "proc_shield",
+    "crit_dmg_pct": 0.25,
+    "shield_hp_pct": 0.05,
+    "shield_turns": 2,
+    "cd": 3,
+    "shield_key": "we_radiance",
+    "cd_key": "we_radiance_cd",
+    "log_key": "we.endless_radiance.log"
+  },
+  "eternal_codex": {
+    "family": "proc_stack",
+    "event": [
+      "skill_cast",
+      "passive"
+    ],
+    "max_stack": 8,
+    "dmg_pct_per": 0.015,
+    "per_pct": 0.015,
+    "stack_key": "eternal_codex",
+    "log_key": "we.eternal_codex.log"
+  },
+  "everfrost_domain": {
+    "family": "proc_control",
+    "mode": "freeze_cd",
+    "chance": 0.3,
+    "freeze_turns": 1,
+    "boss_slow": 2,
+    "cd": 3,
+    "cd_key": "we_everfrost_cd",
+    "source_key": "we.everfrost_domain.source"
+  },
+  "everfrost_scepter": {
+    "family": "proc_control",
+    "mode": "freeze",
+    "chance": 0.2,
+    "freeze_turns": 1,
+    "boss_slow": 2,
+    "source_key": "we.everfrost_scepter.source"
+  },
+  "firmament_crown": {
+    "family": "proc_shield",
+    "threshold": 0.3,
+    "shield_hp_pct": 0.12,
+    "turns": 3,
+    "per_battle": 2,
+    "shield_key": "we_firmament",
+    "used_key": "we_firmament_cnt",
+    "log": "🌌 苍穹庇护：获得 {shield} 点护盾！（{player.setdefault('eff', {})['we_firmament_cnt']}/2 次）"
+  },
+  "frost_crown": {
+    "family": "proc_control",
+    "mode": "freeze_taken_limited",
+    "chance": 0.1,
+    "max_per_battle": 2,
+    "freeze_turns": 1,
+    "boss_slow": 2,
+    "used_key": "we_frost_crown_cnt",
+    "source_key": "we.frost_crown.source"
+  },
+  "frost_ring": {
+    "family": "proc_control",
+    "mode": "slow_or_freeze",
+    "chance": 0.25,
+    "slow_turns": 2,
+    "slow_pct": 0.4,
+    "freeze_turns": 1,
+    "boss_slow": 2,
+    "source_key": "we.frost_ring.source"
+  },
+  "gale_step": {
+    "family": "proc_buff",
+    "stacks": 1,
+    "spd_pct": 0.15,
+    "turns": 3,
+    "buff_key": "gale_step",
+    "buff_pct_key": "gale_step_pct",
+    "log_key": "we.gale_step.log"
+  },
+  "gargoyle_heart": {
+    "family": "proc_shield",
+    "threshold": 0.3,
+    "shield_hp_pct": 0.25,
+    "turns": 4,
+    "heal_pct": 0.1,
+    "shield_key": "we_gargoyle",
+    "used_key": "we_gargoyle_used",
+    "log_key": "we.gargoyle_heart.log"
+  },
+  "gargoyle_retort": {
+    "family": "proc_retort_mark",
+    "event": [
+      "taken",
+      "passive"
+    ],
+    "next_atk_pct": 0.3,
+    "fallback_pct": 0.2,
+    "mark_key": "we_retort"
+  },
+  "guard_regen": {
+    "family": "proc_heal",
+    "pct": 0.02
+  },
+  "guardian_will": {
+    "family": "proc_retort_mark",
+    "chance": 0.08,
+    "weaken": 0.25,
+    "debuff_key": "mon_atk_down",
+    "log_key": "we.guardian_will.log"
+  },
+  "holy_judgment_field": {
+    "family": "proc_control",
+    "mode": "slow_heal_down",
+    "chance": 0.3,
+    "slow_turns": 2,
+    "slow_pct": 0.3,
+    "heal_down": 2,
+    "source_key": "we.holy_judgment_field.source",
+    "log_key": "we.holy_judgment_field.log"
+  },
+  "holy_radiance_mail": {
+    "family": "proc_heal",
+    "heal_pct": 0.2
+  },
+  "holy_word_bind": {
+    "family": "proc_control",
+    "mode": "freeze_heal",
+    "chance": 0.2,
+    "freeze_turns": 1,
+    "boss_slow": 2,
+    "source_key": "we.holy_word_bind.source"
+  },
+  "hunter_open": {
+    "family": "proc_extra_dmg",
+    "mode": "true_dmg_nth",
+    "count": 3,
+    "atk_pct": 0.12,
+    "stack_key": "hunter_cnt"
+  },
+  "ice_vein": {
+    "family": "proc_control",
+    "mode": "spd_down_stack",
+    "max_stack": 3,
+    "spd_down_pct": 0.08,
+    "stack_key": "_ice_vein_stack",
+    "log_key": "we.ice_vein.log"
+  },
+  "iron_echo": {
+    "family": "proc_reflect",
+    "chance": 0.2,
+    "reflect_pct": 0.4,
+    "heal_pct": 0.02
+  },
+  "mountain_break": {
+    "family": "proc_next_atk_mark",
+    "event": [
+      "skill_hit",
+      "passive"
+    ],
+    "atk_pct": 0.25,
+    "mark_key": "we_mountain"
+  },
+  "novice_dawn_mana": {
+    "family": "proc_heal",
+    "mp": 10,
+    "used_key": "novice_mana_used",
+    "log_key": "we.novice_dawn_mana.log"
+  },
+  "novice_first_turn_dodge": {
+    "family": "proc_special",
+    "dodge_pct": 0.05,
+    "mark_key": "novice_dodge_active",
+    "log_key": "we.novice_first_turn_dodge.log"
+  },
+  "novice_first_turn_guard": {
+    "family": "proc_special",
+    "reduce_pct": 0.1,
+    "mark_key": "novice_guard_active",
+    "log_key": "we.novice_first_turn_guard.log"
+  },
+  "novice_hunt_combo": {
+    "family": "proc_stack",
+    "per_stack": 0.08,
+    "max_stack": 5,
+    "stack_key": "novice_combo",
+    "log_key": "we.novice_hunt_combo.log"
+  },
+  "novice_lifesteal": {
+    "family": "proc_extra_dmg",
+    "mode": "lifesteal",
+    "heal_pct": 0.05
+  },
+  "novice_regen_heal": {
+    "family": "proc_heal",
+    "heal_pct": 0.1
+  },
+  "novice_spark_followup": {
+    "family": "proc_next_atk_mark",
+    "atk_pct": 0.1,
+    "stack_key": "novice_spark",
+    "log_key": "we.novice_spark_followup.log"
+  },
+  "novice_wind_spd": {
+    "family": "proc_buff",
+    "spd_pct": 0.05,
+    "turns": 2,
+    "buff_key": "novice_wind_spd",
+    "log_key": "we.novice_wind_spd.log"
+  },
+  "oath_blade": {
+    "family": "proc_next_atk_mark",
+    "event": [
+      "skill_hit",
+      "passive"
+    ],
+    "atk_pct": 0.25,
+    "mark_key": "we_oath"
+  },
+  "phantom_barrage": {
+    "family": "proc_extra_dmg",
+    "mode": "extra_phys_pene",
+    "chance": 0.2,
+    "atk_pct": 0.3,
+    "pene_pct": 0.5,
+    "guarantee": 5,
+    "stack_key": "phantom_cnt",
+    "log_key": "we.phantom_barrage.log"
+  },
+  "randuin_weary": {
+    "family": "proc_control",
+    "mode": "spd_down_stack",
+    "max_stack": 3,
+    "spd_down_pct": 0.06,
+    "stack_key": "_randuin_stack",
+    "log_key": "we.randuin_weary.log"
+  },
+  "ranger_retort": {
+    "family": "proc_retort_mark",
+    "event": [
+      "taken",
+      "passive"
+    ],
+    "next_atk_pct": 0.2,
+    "fallback_pct": 0.2,
+    "mark_key": "we_retort"
+  },
+  "retribution_ring": {
+    "family": "proc_reflect",
+    "chance": 0.2,
+    "reflect_pct": 0.3,
+    "log_key": "we.retribution_ring.log"
+  },
+  "rong_lu_yu_wen": {
+    "family": "proc_dot",
+    "chance": 0.2,
+    "dot_pct": 0.03,
+    "dot_pct_boss": 0.015,
+    "turns": 2,
+    "dot_key": "burn"
+  },
+  "rune_amp": {
+    "family": "proc_stack",
+    "event": [
+      "skill_cast",
+      "passive"
+    ],
+    "max_stack": 5,
+    "dmg_pct_per": 0.02,
+    "per_pct": 0.02,
+    "stack_key": "rune_amp",
+    "log_key": "we.rune_amp.log"
+  },
+  "sage_amp": {
+    "family": "proc_stack",
+    "event": [
+      "skill_cast",
+      "passive"
+    ],
+    "need": 2,
+    "charge_pct": 0.25,
+    "stack_key": "sage_amp",
+    "charge_key": "we_sage_charge"
+  },
+  "sentinel_aegis": {
+    "family": "proc_shield",
+    "chance": 0.15,
+    "base": 6,
+    "per_lv": 0.5,
+    "turns": 3,
+    "cd": 1,
+    "shield_key": "we_sentinel",
+    "cd_key": "we_sentinel_cd",
+    "log_key": "we.sentinel_aegis.log"
+  },
+  "siren_fang": {
+    "family": "proc_extra_dmg",
+    "mode": "true_dmg_nth",
+    "count": 3,
+    "atk_pct": 0.4,
+    "stack_key": "siren_cnt"
+  },
+  "smith_blaze_wound": {
+    "family": "proc_dot",
+    "chance": 0.2,
+    "dot_pct": 0.015,
+    "dot_pct_boss": 0.01,
+    "turns": 3,
+    "dot_key": "blaze"
+  },
+  "soul_eater": {
+    "family": "proc_extra_dmg",
+    "mode": "curhp_dmg_heal",
+    "cur_hp_pct": 0.02,
+    "log_key": "we.soul_eater.log"
+  },
+  "spellblade_echo": {
+    "family": "proc_extra_dmg",
+    "mode": "splash_magi",
+    "atk_pct": 0.25
+  },
+  "star_destruction": {
+    "family": "proc_passive_mult",
+    "event": [
+      "passive"
+    ],
+    "dmg_mult": 1.3,
+    "enemy_contains": [
+      "深渊"
+    ],
+    "tag_key": "we.star_destruction.tag"
+  },
+  "star_pierce": {
+    "family": "proc_extra_dmg",
+    "mode": "true_dmg_nth",
+    "count": 4,
+    "atk_pct": 0.2,
+    "lost_hp_pct": 0.03,
+    "cap_pct": 0.05,
+    "stack_key": "star_cnt"
+  },
+  "star_slayer_edge": {
+    "family": "proc_passive_mult",
+    "threshold": 0.7,
+    "dmg_mult": 1.15,
+    "crit_dmg": 0.3
+  },
+  "starlight_bulwark": {
+    "family": "proc_shield",
+    "shield_hp_pct": 0.1,
+    "turns": 3,
+    "refresh_turns": 5,
+    "shield_key": "we_starlight",
+    "next_key": "we_starlight_next",
+    "log_key": "we.starlight_bulwark.log"
+  },
+  "swift_boots": {
+    "family": "proc_buff",
+    "stacks": 1,
+    "spd_pct": 0.2,
+    "turns": 3,
+    "buff_key": "gale_step",
+    "buff_pct_key": "gale_step_pct",
+    "log_key": "we.swift_boots.log"
+  },
+  "temple_stride": {
+    "family": "proc_buff",
+    "stacks": 2,
+    "spd_pct": 0.2,
+    "turns": 4,
+    "buff_key": "gale_step",
+    "buff_pct_key": "gale_step_pct",
+    "log_key": "we.temple_stride.log"
+  },
+  "thorn_armor": {
+    "family": "proc_reflect",
+    "reflect_pct": 0.15,
+    "log_key": "we.thorn_armor.log"
+  },
+  "thunder_weave": {
+    "family": "proc_stack",
+    "event": [
+      "hit",
+      "passive"
+    ],
+    "max_stack": 5,
+    "spd_pct_per": 0.02,
+    "atk_pct_per": 0.01,
+    "charge_pct": 0.2,
+    "stack_key": "thunder_weave",
+    "charge_key": "we_thunder_charge",
+    "log_key": "we.thunder_weave.log"
+  },
+  "time_freeze": {
+    "family": "proc_control",
+    "mode": "threshold_stun",
+    "threshold": 0.3,
+    "per_battle": 1,
+    "used_key": "we_time_freeze_used",
+    "source_key": "we.time_freeze.source",
+    "log_key": "we.time_freeze.log"
+  },
+  "time_staff": {
+    "family": "proc_stack",
+    "event": [
+      "turn_start",
+      "passive"
+    ],
+    "per_pct": 0.015,
+    "max_stack": 10,
+    "stack_key": "time_staff",
+    "log_key": "we.time_staff.log"
+  },
+  "titan_retort": {
+    "family": "proc_retort_mark",
+    "event": [
+      "taken",
+      "passive"
+    ],
+    "next_atk_pct": 0.4,
+    "fallback_pct": 0.2,
+    "mark_key": "we_retort"
+  },
+  "trinity_rhythm": {
+    "family": "proc_next_atk_mark",
+    "event": [
+      "skill_hit",
+      "passive"
+    ],
+    "atk_pct": 0.3,
+    "thunder_pct": 0.15,
+    "mark_key": "we_trinity",
+    "extra_key": "we_trinity_thunder"
+  },
+  "twilight_execute": {
+    "family": "proc_passive_mult",
+    "threshold": 0.4,
+    "dmg_mult": 1.25
+  },
+  "undying_band": {
+    "family": "proc_heal",
+    "pct": 0.015
+  },
+  "undying_will": {
+    "family": "proc_dr_revive",
+    "event": [
+      "battle_start",
+      "threshold"
+    ],
+    "hp_pct": 0.1,
+    "threshold": 0.2,
+    "heal_pct": 0.1,
+    "used_key": "we_undying_used",
+    "immune_key": "we_undying_immune",
+    "log_key": "we.undying_will.log"
+  },
+  "vital_band": {
+    "family": "proc_heal",
+    "heal_pct": 0.15
+  },
+  "void_stride": {
+    "family": "proc_buff",
+    "stacks": 2,
+    "spd_pct": 0.25,
+    "turns": 4,
+    "buff_key": "gale_step",
+    "buff_pct_key": "gale_step_pct",
+    "log_key": "we.void_stride.log"
+  },
+  "wind_mark": {
+    "family": "proc_stack",
+    "max_stack": 4,
+    "spd_pct_per": 0.02,
+    "stack_key": "wind_mark",
+    "log_key": "we.wind_mark.log"
+  },
+  "wind_split": {
+    "family": "proc_extra_dmg",
+    "mode": "extra_phys",
+    "chance": 0.25,
+    "atk_pct": 0.5
+  }
+}

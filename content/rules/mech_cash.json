@@ -1,0 +1,101 @@
+{
+  "arcane_burst": {
+    "name": "燃尽",
+    "mode": "dmg_mult_clear",
+    "key": "arcane",
+    "per_layer": 0.15,
+    "clear": true,
+    "layer_label": "奥术充能",
+    "unit": "层",
+    "icon": "🔮"
+  },
+  "element_burst_3": {
+    "name": "元素裁决",
+    "mode": "per_system_clear_target",
+    "key": [
+      "fire_mark",
+      "ice_mark",
+      "thunder_mark"
+    ],
+    "per_system": 0.2,
+    "clear": true,
+    "layer_label": "元素印记",
+    "icon": "⚖️"
+  },
+  "element_burst_all": {
+    "name": "元素迸发",
+    "mode": "dmg_mult_clear_target",
+    "key": [
+      "fire_mark",
+      "ice_mark",
+      "thunder_mark"
+    ],
+    "per_layer": 0.12,
+    "clear": true,
+    "layer_label": "元素印记",
+    "icon": "💥"
+  },
+  "faith_unload": {
+    "name": "卸负",
+    "mode": "heal_clear",
+    "key": "faith",
+    "amount": 3,
+    "note": "兑现走 skills.py sk_xie_fu res_cost={faith:3} + kind=治疗 heal_formula"
+  },
+  "finisher": {
+    "name": "终结技",
+    "mode": "dmg_mult_clear",
+    "key": "lian_duan",
+    "per_layer": 0.1,
+    "upgrade": {
+      "proc": "finisher_up",
+      "per_layer_add": 0.06
+    },
+    "clear": true,
+    "crit_at": 4,
+    "layer_label": "连段",
+    "unit": "段",
+    "icon": "🔪"
+  },
+  "guard_core_burst": {
+    "name": "磐核",
+    "mode": "dmg_mult_clear",
+    "key": "guard_core",
+    "per_layer": 0.7,
+    "clear": true,
+    "layer_label": "磐核",
+    "unit": "枚",
+    "icon": "🪨"
+  },
+  "poison_burst": {
+    "name": "荆棘爆",
+    "mode": "dmg_mult_clear_target",
+    "key": "poison",
+    "per_layer": 0.15,
+    "clear": true,
+    "layer_label": "毒",
+    "icon": "☠️"
+  },
+  "poison_burst_finisher": {
+    "name": "毒爆",
+    "mode": "dmg_mult_clear_target",
+    "key": "poison",
+    "per_layer": 0.14,
+    "clear": true,
+    "clear_extra": [
+      {
+        "owner": "caster",
+        "key": "lian_duan"
+      }
+    ],
+    "layer_label": "毒",
+    "icon": "☠️"
+  },
+  "zhan_yi_fury": {
+    "name": "狂暴",
+    "mode": "fury_enter",
+    "res": "zhan_yi",
+    "label": "血祭",
+    "icon": "🔥"
+  }
+}

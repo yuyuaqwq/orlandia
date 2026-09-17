@@ -1,0 +1,17 @@
+{
+  "AFFIX_RES_GAIN_IDS": {
+    "ids": [
+      "war_spirit",
+      "warcry_echo",
+      "blood_bath",
+      "arcana_flux",
+      "crit_charge",
+      "holy_echo",
+      "crit_return",
+      "pious_charm",
+      "rock_rest",
+      "opening_stance",
+      "combo_recover"
+    ]
+  }
+}

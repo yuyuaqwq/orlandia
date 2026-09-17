@@ -26,12 +26,12 @@
 |---|---|---|
 | `KIND_NAMES`          | `game/bootstrap.py:117 _kinds()`（值 = `saintess_engine.kinds.K_*`） | 全量（5 值，引擎词表就 5 个） |
 | `BASIC_FALLBACK`      | `game/bootstrap.py:123 _basic_fallback()` | 全量 |
-| `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON` + **V4 下沉段** | **子集 + 新增**：引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）来自游戏仓真源；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬。**V4（2026-09-16）新增 7 组战斗落地常量**（原文写死在引擎字面量，谱系 = 引擎原值、非游戏仓 data）：`shield_default_pct` / `block` / `heal_down` / `anti_heal` / `reduce` / `gauge` / `skill_max_level` —— 内容真源 = 包内 `content/rules/game_config.json` 同组（逐值相等由 `tests/test_v4_formula_skeleton.py` 钉住） |
-| `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON` | **子集**：只留引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬 |
+| `FORMULA_SKELETON`    | **包内 `content/rules/formula_skeleton.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联字面量，谱系见右） | **子集 + 新增**：引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）来自游戏仓 `game/data/formula_skeleton.py:FORMULA_SKELETON`；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬。**V4（2026-09-16）新增 7 组战斗落地常量**（原文写死在引擎字面量，谱系 = 引擎原值、非游戏仓 data）：`shield_default_pct` / `block` / `heal_down` / `anti_heal` / `reduce` / `gauge` / `skill_max_level` —— 与包内 `content/rules/game_config.json` 同组**两份独立来源**（逐值相等由 `tests/test_v4_formula_skeleton.py` 钉住） |
+| `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON`（搬前谱系） | **子集**：只留引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬 |
 | `time_model`（供体函数） | `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（**包内真源**；V3 下沉，无宿主对应物） | 全量（`shape` / `spd_ref` / `cast` / `spd_cap` 四键，读口 `catalog_rules.time_model()`） |
 | `SKILL_FLAT`          | `game/data/skill_up.py:SKILL_FLAT_BASE/_PER_PLAYER_LV/_PER_SKILL_LV` | 全量（3 常量） |
 | `TIER_GROWTH`         | `game/data/battle_config.py:379` | 全量（4 个档位；切片面板公式用） |
-| `LINEAR_STATS`        | `game/data/base_growth.py:PLAYER_BASE_GROWTH["linear_stats"]` | 全量（7 键） |
+| `LINEAR_STATS`        | **包内 `content/rules/linear_stats.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联 tuple，谱系 `game/data/base_growth.py:PLAYER_BASE_GROWTH["linear_stats"]`） | 全量（7 键；类型还原成 tuple） |
 | `MECH_CFG`            | `game/data/battle_config.py:455 MECH_CFG` | **子集**：只留 `enemy_bar`（`saintess_engine/gauge` 的条机制读它；切片 3 个动作用到的 `target_bar_*` judge 依赖 `enemy_bar.shaken`）。`enemy_bar` 内只留 `shaken`（`curse` 属 D2 敌身条族，随 `bar_procs.py` 一起搬） |
 | `MECH_CASH`           | `game/data/battle_rules.py:624 MECH_CASH` | **空**：切片 3 个动作都不读它（读它的是 `mech_cash_*` 兑现执行器族，属 D2）。留空 = 明确"本切片不采用"，不是忘了搬 |
 | `BAR_STATE_PREFIX`    | `game/data/battle_rules.py:749` | 全量 |
@@ -45,9 +45,11 @@ import os
 
 from ..gameplay import EFFECT_ACTIONS                      # 名词→动词表单源（content/gameplay.py）
 from .kinds import K_BUFF, K_HEAL, K_MAGI, K_PHYS, K_TRUE   # kind 词表单源（下沉自引擎，见 kinds.py）
+from saintess_engine.records import RecordsDeclarationError, records_from_domain
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
 _CONTENT = os.path.dirname(_HERE)                           # <pkg>/content
+_PKG_ROOT = os.path.dirname(_CONTENT)                       # <pkg>
 _RULES_DIR = os.path.join(_CONTENT, "rules")
 
 
@@ -59,6 +61,22 @@ def _read_json(name: str, default):
             return json.load(f)
     except Exception:                                        # noqa: BLE001
         return default
+
+
+def _domain_section(domain: str, key: str) -> dict:
+    """读包内域 `<domain>` 的 `<key>` 段（落点由 `editor/domains.json` 的 kind 派生）。
+
+    ★ D7（2026-09-17）「数据进表」读口 —— 引擎 records（fail-closed）：
+      域未声明 / kind 无落点 / 文件不在盘上 / 落点与声明不符 → `RecordsDeclarationError`；
+      读不了 / 坏 JSON / 顶层不是映射 / 段缺 / 段不是非空映射 → 同样点名抛（**不静默给空表**）。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain)
+    section = rec.all().get(key)
+    if not isinstance(section, dict) or not section:
+        raise RecordsDeclarationError(
+            "域 %r 读不到 %r 段（%s）：域文件缺 / 坏 JSON / 形状不符 → problems=%r"
+            % (domain, key, rec.path, rec.problems))
+    return section
 
 
 # ============================================================
@@ -95,27 +113,16 @@ BASIC_FALLBACK = {"name": "攻击", "kind": KIND_NAMES["phys"], "exprs": ["atk*1
 #      **同值两端**（JSON 是内容真源 / 本表是引擎挂载面）。`pkg/tests/test_v4_formula_skeleton.py`
 #      钉住逐值相等（改一处忘另一处 → 门禁红）。
 #    ⚠️ 引擎「未装配」路径不读本表，走 formulas.py `_NEUTRAL_SKELETON` 的中性值。
+#
+#    ★ D7（2026-09-17）「数据进表」：本表已搬出代码 → 包内域
+#      `content/rules/formula_skeleton.json`（域 id = `formula_skeleton`，kind=rules，
+#      已在 `editor/domains.json` 登记）为**唯一真源**；本处只留读口
+#      `_domain_section()`（引擎 records，fail-closed）。段外壳 = `FORMULA_SKELETON`。
+#      值/类型/序与搬前逐名对拍相等（`out/raw/00_before.json` ↔ `out/raw/01_after.json`，diff 空）。
+#      与 `game_config.json` 那份是**两份独立来源**（该测的两处同值关系不因此退化），
+#      故 `pkg/tests/test_v4_formula_skeleton.py` 的两处同值判据仍有牙。
 # ============================================================
-FORMULA_SKELETON = {
-    "skill_growth": {
-        "power_per_lv_divisor": 100,      # F7 skill_power_mult: 1 + (p/divisor)*(lv-1)
-        "cond_default": 0.05,             # F9 skill_cond_mult 未配 c 默认每级 +0.05
-        "mech_default_div": 2,            # F9 skill_mech_val 未配 m 默认每 2 级 +1 层
-        "buff_turns_base": 3,             # F9 skill_buff_turns 默认 base 3 刻
-        "buff_turns_per_lv": 1,           # F9 skill_buff_turns 每级 +1 刻
-        "lifesteal_default": 0.20,        # F9 skill_lifesteal_pct 未配 lifesteal 默认 20%
-        "lifesteal_per_lv_divisor": 100,  # F9 l 配值单位 %：l/100 每级
-    },
-    "skill_learn_cost": {"divisor": 6, "base": 2},   # F15 技能点定价 cost = need_lv//divisor + base
-    # ---- V4：战斗落地常量（引擎原字面量下沉；值 = 原状）----
-    "shield_default_pct": 0.20,                       # 护盾兜底（V4）
-    "block": {"cap": 0.40, "reduce": 0.5},            # 格挡上限 / 命中减免（V4）
-    "heal_down": {"per_stack": 0.10, "cap": 0.50},    # 禁疗每层 / 上限（V4）
-    "anti_heal": {"cap": 0.80},                       # 重伤上限（V4）
-    "reduce": {"default_pct": 0.20, "cap": 0.9},      # 减伤兜底 / clamp 上限（V4）
-    "gauge": {"default_max": 100},                    # 敌身条 max 缺省（V4）
-    "skill_max_level": 5,                             # 技能满级默认（V4）
-}
+FORMULA_SKELETON = _domain_section("formula_skeleton", "FORMULA_SKELETON")
 
 # ④ 技能基础值常量 ← game/data/skill_up.py（v156 保底伤害模型）
 SKILL_FLAT = {
@@ -128,7 +135,14 @@ SKILL_FLAT = {
 TIER_GROWTH = {0: 1.0, 1: 1.15, 2: 1.30, 3: 1.50}
 
 # ⑥ 线性成长键集（吃 tier_mult 的 7 个属性）← game/data/base_growth.py
-LINEAR_STATS = ("hp", "mp", "atk", "def", "matk", "mdef", "spd")
+#   ★ D7（2026-09-17）「数据进表」：清单已搬出代码 → 包内域
+#   `content/rules/linear_stats.json`（域 id = `linear_stats`，kind=rules；已登记）为唯一真源；
+#   本处只留读口。**tuple 还原**：JSON 只有 array，不还原 = 类型漂成 list（对拍判据 1 会红）。
+_LINEAR_STATS_KEYS = _domain_section("linear_stats", "LINEAR_STATS").get("keys")
+if not isinstance(_LINEAR_STATS_KEYS, list) or not _LINEAR_STATS_KEYS:
+    raise RecordsDeclarationError(
+        "linear_stats 域的 LINEAR_STATS.keys 缺失 / 不是非空数组：%r" % (_LINEAR_STATS_KEYS,))
+LINEAR_STATS = tuple(_LINEAR_STATS_KEYS)
 
 # ============================================================
 # ⑦ 机制配置表 MECH_CFG / ⑧ 兑现声明表 MECH_CASH —— **单源在 `class_data.py`**

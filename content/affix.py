@@ -49,11 +49,16 @@ def bind_host(**objs):
 - 触发型词条（on_hit/on_taken/turn_start/battle_start/passive）由 battle.py 消费
 """
 
+import os
 import random
 
 from saintess_engine.loot import count_for, draw_slots
+from saintess_engine.records import records_from_domain
 
 from .apply import _read_json
+
+_HERE = os.path.dirname(os.path.abspath(__file__))     # <pkg>/content
+_PKG_ROOT = os.path.dirname(_HERE)                     # <pkg>（域声明 = <pkg>/editor/domains.json）
 
 # ---- 包内域读口（B10-L1 已证逐条 deep-equal；本线复核见报告 §3）----
 AFFIXES: dict = _read_json("affixes.json", {})
@@ -77,52 +82,69 @@ def _affix_base_value(slot: str, lv: int, stat: str) -> int:
     fb = AFFIX_FALLBACK.get(stat, (2, 1.0))
     return int(fb[0] + fb[1] * lv)
 
+# ---- D6（数据进表）：两张映射表的包内域读口 ----
+# 表已搬进 `content/data/stat_affix_fx.json` / `content/data/req_stat_by_slot.json`；
+# 域 = `{键: 源条目 + "seq"（1 基源插入序）}`：落盘规范要求外层键升序 ⇒ 源插入序只能靠条目内
+# `seq` 带出（与 `fishing_pool` / `titles` / `weekly_quests` / `gather_pools` 域**同形**）。
+# 标量表（`_REQ_STAT_BY_SLOT`）的条目必须是 dict —— 域条目形状约定（旧 75 域无一例外：
+# 顶层值非 dict 的条目 `list_entries` 不计入 count，会踩「条数 > 0」门禁）⇒ 值收在 `pool` 字段里。
+def _read_seq_domain(name: str, field: str | None = None) -> dict:
+    """读包内「带 seq 的映射域」→ `{键: 条目}`，按 `seq` 还原源插入序（给了 field 就取单字段）。
+
+    表体走引擎 records 读数口 `records_from_domain`（D-BATCH §5 许可的既有口）：
+    域**声明缺项 / kind 无落点 / 文件不在盘上 / 声明与磁盘不符** → `RecordsDeclarationError`
+    点名（**不静默空表**）；再叠本线自己的 fail-closed（D6 判据 4）：条目不是 dict / 缺 seq /
+    seq 重复 / seq 不是 1..N 连续 / 取字段时条目没这个字段 → `raise` 点名。
+    """
+    rec = records_from_domain(_PKG_ROOT, name)
+    tbl = rec.all()
+    if rec.missing or not tbl:
+        raise RuntimeError("content/affix.py：域 %r 读不到（%s）—— 拒绝静默空表"
+                           % (name, "；".join(rec.problems[:2]) or "空表"))
+    rows: dict = {}
+    for key, ent in tbl.items():
+        if not isinstance(ent, dict):
+            raise RuntimeError("content/affix.py：域 %s 条目 %r 不是 dict（是 %s）"
+                               % (name, key, type(ent).__name__))
+        seq = ent.get("seq")
+        if isinstance(seq, bool) or not isinstance(seq, int):
+            raise RuntimeError("content/affix.py：域 %s 条目 %r 缺 seq（= 源插入序）"
+                               "—— 拒绝静默按字典序改序" % (name, key))
+        if seq in rows:
+            raise RuntimeError("content/affix.py：域 %s 的 seq=%r 重复 —— 拒绝静默取首个"
+                               % (name, seq))
+        rows[seq] = (key, ent)
+    if sorted(rows) != list(range(1, len(rows) + 1)):
+        raise RuntimeError("content/affix.py：域 %s 的 seq 不是 1..%d 连续整数 —— 拒绝按错序消费"
+                           % (name, len(rows)))
+    out: dict = {}
+    for seq in sorted(rows):
+        key, ent = rows[seq]
+        if field is None:
+            out[key] = {fk: fv for fk, fv in ent.items() if fk != "seq"}
+        elif field in ent:
+            out[key] = ent[field]
+        else:
+            raise RuntimeError("content/affix.py：域 %s 条目 %r 缺字段 %r —— 拒绝静默取空"
+                               % (name, key, field))
+    return out
+
+
 # 随机装备属性需求估算：按部位/武器类型 → 主属性
-_REQ_STAT_BY_SLOT = {
-    "weapon": {"sword": "str", "mace": "str", "fist": "str", "spear": "str", "shield": "str",
-               "bow": "agi", "dagger": "agi", "staff": "int"},
-    "helm": "vit", "armor": "vit", "legs": "vit",
-    "boots": "agi", "ring": "agi", "necklace": "int",
-}
+_REQ_STAT_BY_SLOT: dict = _read_seq_domain("req_stat_by_slot", field="pool")
 
 # 常驻属性词条 → 折算方式（生成时并入装备 stats）
 # crit/dodge/precise/pene_phys/pene_magi/tenacity/luck 为小数概率直接加；hp/spd 按装备基础值百分比折算
 # v106：pene_flat/pene_mflat 固定穿透按装备等级线性折算（lv_flat 系数 + min_flat 保底）
-_STAT_AFFIX_FX = {
-    "crit_up": {"stat": "crit", "pct": None, "flat": 0.05},
-    "dodge": {"stat": "dodge", "pct": None, "flat": 0.05},
-    "hp_up": {"stat": "hp", "pct": 0.05},
-    "swift": {"stat": "spd", "pct": 0.05},
-    # v130.2c 半活修复：精准词条补折算行（此前只接了 dmg_mult 1.10，命中率 0.10 从未并入
-    # 装备 stats → _target_dodge_check 读 _player_stats['precise']（cap 0.60）恒为 0，命中加成失效）
-    "precise": {"stat": "precise", "pct": None, "flat": 0.10},
-    # v106 穿透/韧性/幸运词条折算
-    "pene_phys": {"stat": "pene_phys", "pct": None, "flat": 0.05},
-    "pene_magi": {"stat": "pene_magi", "pct": None, "flat": 0.05},
-    "tenacity": {"stat": "tenacity", "pct": None, "flat": 0.05},
-    "luck": {"stat": "luck", "pct": None, "flat": 0.05},
-    "pene_flat": {"stat": "pene_flat", "lv_flat": 0.5, "min_flat": 2},
-    "pene_mflat": {"stat": "pene_mflat", "lv_flat": 0.5, "min_flat": 2},
-    # v106.1：冷却缩减/成长属性词条 + 元素抗性面板化（旧词条 ID 保留，折算成属性）
-    "cdr": {"stat": "cdr", "pct": None, "flat": 0.05},
-    "exp_bonus": {"stat": "exp_bonus", "pct": None, "flat": 0.05},
-    "gold_bonus": {"stat": "gold_bonus", "pct": None, "flat": 0.05},
-    "elem_resist": {"stat": "elem_res", "pct": None, "flat": 0.08},
-    "abyss_resist": {"stat": "abyss_res", "pct": None, "flat": 0.10},
-    # v106.2：治疗强度/护盾强度词条
-    "heal_power": {"stat": "heal_power", "pct": None, "flat": 0.05},
-    "shield_power": {"stat": "shield_power", "pct": None, "flat": 0.05},
-    # v106.3：吸血/暴击伤害/格挡词条折算（lifesteal/block 由触发特效改属性，crit_dmg 补折算）
-    "lifesteal": {"stat": "lifesteal", "pct": None, "flat": 0.08},
-    "crit_dmg": {"stat": "crit_dmg", "pct": None, "flat": 0.20},
-    "block": {"stat": "block", "pct": None, "flat": 0.15},
-    # v106.4：反伤/物魔免/物法吸词条折算（thorns 由触发特效改属性）
-    "thorns": {"stat": "thorns", "pct": None, "flat": 0.10},
-    "phys_ward": {"stat": "phys_reduce", "pct": None, "flat": 0.05},
-    "magic_ward": {"stat": "magic_reduce", "pct": None, "flat": 0.05},
-    "thirst_phys": {"stat": "lifesteal_phys", "pct": None, "flat": 0.08},
-    "thirst_magi": {"stat": "lifesteal_magi", "pct": None, "flat": 0.08},
-}
+# （以下逐条历史沿革注释原样留在原处；表本体已搬 `content/data/stat_affix_fx.json`）
+#   v130.2c 半活修复：精准词条补折算行（此前只接了 dmg_mult 1.10，命中率 0.10 从未并入
+#   装备 stats → _target_dodge_check 读 _player_stats['precise']（cap 0.60）恒为 0，命中加成失效）
+#   v106 穿透/韧性/幸运词条折算
+#   v106.1：冷却缩减/成长属性词条 + 元素抗性面板化（旧词条 ID 保留，折算成属性）
+#   v106.2：治疗强度/护盾强度词条
+#   v106.3：吸血/暴击伤害/格挡词条折算（lifesteal/block 由触发特效改属性，crit_dmg 补折算）
+#   v106.4：反伤/物魔免/物法吸词条折算（thorns 由触发特效改属性）
+_STAT_AFFIX_FX: dict = _read_seq_domain("stat_affix_fx")
 
 
 def roll_affixes(slot: str, lv: int, quality: str) -> list:

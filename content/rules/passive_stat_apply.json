@@ -1,0 +1,162 @@
+{
+  "block": {
+    "name": "block",
+    "value": [
+      "block_add",
+      "add",
+      false
+    ]
+  },
+  "cdr": {
+    "name": "cdr",
+    "value": [
+      "cdr_add",
+      "add",
+      false
+    ]
+  },
+  "crit": {
+    "name": "crit",
+    "value": [
+      "crit_add",
+      "add",
+      false
+    ]
+  },
+  "crit_dmg": {
+    "name": "crit_dmg",
+    "value": [
+      "crit_dmg_add",
+      "add",
+      false
+    ]
+  },
+  "dodge": {
+    "name": "dodge",
+    "value": [
+      "dodge_add",
+      "add",
+      false
+    ]
+  },
+  "elem_res": {
+    "name": "elem_res",
+    "value": [
+      "elem_res_add",
+      "add",
+      false
+    ]
+  },
+  "heal_power": {
+    "name": "heal_power",
+    "value": [
+      "heal_power_add",
+      "add",
+      false
+    ]
+  },
+  "lifesteal": {
+    "name": "lifesteal",
+    "value": [
+      "lifesteal_add",
+      "add",
+      false
+    ]
+  },
+  "lifesteal_magi": {
+    "name": "lifesteal_magi",
+    "value": [
+      "lifesteal_magi_add",
+      "add",
+      false
+    ]
+  },
+  "lifesteal_phys": {
+    "name": "lifesteal_phys",
+    "value": [
+      "lifesteal_phys_add",
+      "add",
+      false
+    ]
+  },
+  "luck": {
+    "name": "luck",
+    "value": [
+      "luck_add",
+      "add",
+      false
+    ]
+  },
+  "magic_reduce": {
+    "name": "magic_reduce",
+    "value": [
+      "magic_reduce_add",
+      "add",
+      false
+    ]
+  },
+  "mp": {
+    "name": "mp",
+    "value": [
+      "mp_mult",
+      "mul",
+      true
+    ]
+  },
+  "pene_magi": {
+    "name": "pene_magi",
+    "value": [
+      "pene_magi_add",
+      "add",
+      false
+    ]
+  },
+  "pene_phys": {
+    "name": "pene_phys",
+    "value": [
+      "pene_phys_add",
+      "add",
+      false
+    ]
+  },
+  "phys_reduce": {
+    "name": "phys_reduce",
+    "value": [
+      "phys_reduce_add",
+      "add",
+      false
+    ]
+  },
+  "spd": {
+    "name": "spd",
+    "value": [
+      "spd_mult",
+      "mul",
+      false
+    ]
+  },
+  "spd_crit": {
+    "name": "spd_crit",
+    "value": [
+      "spd_crit_add",
+      "add",
+      false
+    ]
+  },
+  "summon_power": {
+    "name": "summon_power",
+    "value": [
+      "summon_power_add",
+      "add",
+      false
+    ]
+  },
+  "thorns": {
+    "name": "thorns",
+    "value": [
+      "thorns_add",
+      "add",
+      false
+    ]
+  }
+}

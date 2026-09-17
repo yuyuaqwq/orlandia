@@ -65,6 +65,7 @@ import time
 from saintess_engine.dialogue import Cursor
 from saintess_engine.formation import alive_units, formation_view
 from saintess_engine.presence import Lookup, Presence, minutes_left
+from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 from . import catalog_core as _cat_core
 from . import catalog_items as _cat_items
@@ -223,6 +224,7 @@ _TALK_NODE_KEY = "node"
 # 下节缺口那 9 名常量表 + `C.` 上的函数。
 # ============================================================
 _HERE = os.path.dirname(os.path.abspath(__file__))
+_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>（D8 域声明派生口用）
 
 
 def _read_domain(name: str) -> dict:
@@ -1117,11 +1119,12 @@ async def location_view(self, event: AstrMessageEvent, group_id, qq_id, player):
 
 #: 赶路别名表（原宿主 `game/commands/world.py` 类属性 `_HURRY_ALIAS`；P5E「壳去逻辑」批搬回包内）。
 #: 玩家输入词（中文/英文）→ 赶路类型域（`npc` / `monster` / `scene` / `facility`）。
-_HURRY_ALIAS = {
-    "npc": "npc", "怪物": "monster", "monster": "monster",
-    "场景": "scene", "scene": "scene", "景物": "scene",
-    "设施": "facility", "facility": "facility", "商店": "facility",
-}
+#: D8：表体搬进包内域 `content/data/hurry_alias.json`（读口即本行；落点 / kind / 文件名唯一源 =
+#: `editor/domains.json`，引擎 `records` fail-closed：域未声明 / 文件缺 / 键集不符 → 装载期点名报错）。
+_HURRY_ALIAS = records_from_domain(
+    _PKG_ROOT, "hurry_alias",
+    order=("npc", "怪物", "monster", "场景", "scene", "景物", "设施", "facility", "商店"),
+).into(lambda _e: _e.get("target"))
 
 
 def _hurry_type(self, raw: str):

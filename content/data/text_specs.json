@@ -6,7 +6,8 @@
     "签到": "每日签到『签到』的领取与状态提示（v183 起采用文案表）",
     "补给箱": "限时补给箱『补给』的开启与奖励提示（v183 起采用文案表）",
     "每日任务": "『每日』任务面板与领取提示（v183 起采用文案表）",
-    "副本面板": "副本面板（instance.py/instance_battle.py/instance_router.py 的面板/列表/地图/状态/引导/错误提示句壳）"
+    "副本面板": "副本面板（instance.py/instance_battle.py/instance_router.py 的面板/列表/地图/状态/引导/错误提示句壳）",
+    "武器特效": "武器/装备特效的玩家可见战斗日志文案（随 weapon_effects 域注册；条目字段存 <字段>_key，模板串只在本表）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
@@ -1560,6 +1561,305 @@
     ],
     "category": "补给箱",
     "desc": "周限箱已达上限（/2 的 2 与限额口径同源数据）"
+  },
+  "we.abyss_barrier.log": {
+    "value": "🌑 深渊屏障：最大生命 +{bonus}！（持续整场）",
+    "category": "武器特效",
+    "desc": "武器特效『abyss_barrier』战斗日志（域 weapon_effects → 条目 abyss_barrier 的 log 字段）",
+    "params": [
+      "bonus"
+    ]
+  },
+  "we.arcane_firmament.log": {
+    "value": "✨ 奥术苍穹：魔攻 +15%，技能伤害 +10%！",
+    "category": "武器特效",
+    "desc": "武器特效『arcane_firmament』战斗日志（域 weapon_effects → 条目 arcane_firmament 的 log 字段）"
+  },
+  "we.atonement_shield.log": {
+    "value": "⚖️ 赎罪之盾：治疗溢出转化为 {shield} 点护盾！",
+    "category": "武器特效",
+    "desc": "武器特效『atonement_shield』战斗日志（域 weapon_effects → 条目 atonement_shield 的 log 字段）",
+    "params": [
+      "shield"
+    ]
+  },
+  "we.bedrock_crown.log": {
+    "value": "🪨 磐石守护：生命垂危，获得 {shield} 点护盾！（4 刻）",
+    "category": "武器特效",
+    "desc": "武器特效『bedrock_crown』战斗日志（域 weapon_effects → 条目 bedrock_crown 的 log 字段）",
+    "params": [
+      "shield"
+    ]
+  },
+  "we.blood_trace.log": {
+    "value": "🩸 败血：目标 4 刻内每刻损失当前生命！（对败血目标 +10% 伤害）",
+    "category": "武器特效",
+    "desc": "武器特效『blood_trace』战斗日志（域 weapon_effects → 条目 blood_trace 的 log 字段）"
+  },
+  "we.deadman_stride.log": {
+    "value": "🌪️ 亡者疾行：速度 +15%（4 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『deadman_stride』战斗日志（域 weapon_effects → 条目 deadman_stride 的 log 字段）"
+  },
+  "we.deeprock_aegis.log": {
+    "value": "🪨 深岩壁垒：获得护盾！（吸收 8% 最大生命）",
+    "category": "武器特效",
+    "desc": "武器特效『deeprock_aegis』战斗日志（域 weapon_effects → 条目 deeprock_aegis 的 log 字段）"
+  },
+  "we.divine_execution.tag": {
+    "value": "⚡神罚处决",
+    "category": "武器特效",
+    "desc": "武器特效『divine_execution』乘区标记（域 weapon_effects → 条目 divine_execution 的 tag 字段）"
+  },
+  "we.dragon_annihilation.tag": {
+    "value": "🐉灭龙",
+    "category": "武器特效",
+    "desc": "武器特效『dragon_annihilation』乘区标记（域 weapon_effects → 条目 dragon_annihilation 的 tag 字段）"
+  },
+  "we.dragon_spine_mail.log": {
+    "value": "🐉 龙脊反噬：反弹 {rd} 点伤害，并施加重伤！",
+    "category": "武器特效",
+    "desc": "武器特效『dragon_spine_mail』战斗日志（域 weapon_effects → 条目 dragon_spine_mail 的 log 字段）",
+    "params": [
+      "rd"
+    ]
+  },
+  "we.dusk_blade.log": {
+    "value": "🌒 暮裂潜行：击杀后遁入暗影，下一次攻击 +30% 且无视闪避！",
+    "category": "武器特效",
+    "desc": "武器特效『dusk_blade』战斗日志（域 weapon_effects → 条目 dusk_blade 的 log 字段）"
+  },
+  "we.echo_bless.log": {
+    "value": "🌿 回响祝福：治疗溢出转化为 {shield} 点护盾！",
+    "category": "武器特效",
+    "desc": "武器特效『echo_bless』战斗日志（域 weapon_effects → 条目 echo_bless 的 log 字段）",
+    "params": [
+      "shield"
+    ]
+  },
+  "we.eclipse_crown.log": {
+    "value": "🌒 蚀月之蚀：获得 15% 最大生命护盾！",
+    "category": "武器特效",
+    "desc": "武器特效『eclipse_crown』战斗日志（域 weapon_effects → 条目 eclipse_crown 的 log 字段）"
+  },
+  "we.ember_bulwark.log": {
+    "value": "🔥 烬火燎原：反伤 {dmg} 点并叠加灼烧！",
+    "category": "武器特效",
+    "desc": "武器特效『ember_bulwark』战斗日志（域 weapon_effects → 条目 ember_bulwark 的 log 字段）",
+    "params": [
+      "dmg"
+    ]
+  },
+  "we.endless_radiance.log": {
+    "value": "🌟 无尽辉光：暴击获得 5% 最大生命护盾！",
+    "category": "武器特效",
+    "desc": "武器特效『endless_radiance』战斗日志（域 weapon_effects → 条目 endless_radiance 的 log 字段）"
+  },
+  "we.eternal_codex.log": {
+    "value": "📖 永恒契约！({n}/{_cap8} 层，每层技能伤害 +{float(wd.get('dmg_pct_per', 0.015)) * 100:.1f}%)",
+    "category": "武器特效",
+    "desc": "武器特效『eternal_codex』战斗日志（域 weapon_effects → 条目 eternal_codex 的 log 字段）"
+  },
+  "we.everfrost_domain.source": {
+    "value": "🧊 永冻领域",
+    "category": "武器特效",
+    "desc": "武器特效『everfrost_domain』来源标签（域 weapon_effects → 条目 everfrost_domain 的 source 字段）"
+  },
+  "we.everfrost_scepter.source": {
+    "value": "🧊 永霜禁锢",
+    "category": "武器特效",
+    "desc": "武器特效『everfrost_scepter』来源标签（域 weapon_effects → 条目 everfrost_scepter 的 source 字段）"
+  },
+  "we.frost_crown.source": {
+    "value": "🧊 寒霜凝视",
+    "category": "武器特效",
+    "desc": "武器特效『frost_crown』来源标签（域 weapon_effects → 条目 frost_crown 的 source 字段）"
+  },
+  "we.frost_ring.source": {
+    "value": "🧊 霜环",
+    "category": "武器特效",
+    "desc": "武器特效『frost_ring』来源标签（域 weapon_effects → 条目 frost_ring 的 source 字段）"
+  },
+  "we.gale_step.log": {
+    "value": "🌪️ 疾风步：速度 +15%（3 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『gale_step』战斗日志（域 weapon_effects → 条目 gale_step 的 log 字段）"
+  },
+  "we.gargoyle_heart.log": {
+    "value": "💎 石像鬼之心：获得 {shield} 点护盾并回复 {heal} 点生命！",
+    "category": "武器特效",
+    "desc": "武器特效『gargoyle_heart』战斗日志（域 weapon_effects → 条目 gargoyle_heart 的 log 字段）",
+    "params": [
+      "shield",
+      "heal"
+    ]
+  },
+  "we.guardian_will.log": {
+    "value": "🛡️ 卫士信念：敌人下一次攻击伤害 -25%！",
+    "category": "武器特效",
+    "desc": "武器特效『guardian_will』战斗日志（域 weapon_effects → 条目 guardian_will 的 log 字段）"
+  },
+  "we.holy_judgment_field.log": {
+    "value": "⚖️ 圣裁领域：目标受治疗 -30%（2 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『holy_judgment_field』战斗日志（域 weapon_effects → 条目 holy_judgment_field 的 log 字段）"
+  },
+  "we.holy_judgment_field.source": {
+    "value": "⚖️ 圣裁领域",
+    "category": "武器特效",
+    "desc": "武器特效『holy_judgment_field』来源标签（域 weapon_effects → 条目 holy_judgment_field 的 source 字段）"
+  },
+  "we.holy_word_bind.source": {
+    "value": "✨ 圣言禁锢",
+    "category": "武器特效",
+    "desc": "武器特效『holy_word_bind』来源标签（域 weapon_effects → 条目 holy_word_bind 的 source 字段）"
+  },
+  "we.ice_vein.log": {
+    "value": "❄️ 冰脉寒流：敌人速度 -{int(_sp * 100 * n)}%（{n}/{_ms} 层）！",
+    "category": "武器特效",
+    "desc": "武器特效『ice_vein』战斗日志（域 weapon_effects → 条目 ice_vein 的 log 字段）"
+  },
+  "we.novice_dawn_mana.log": {
+    "value": "🌅 晨星：回复 10 点魔力！",
+    "category": "武器特效",
+    "desc": "武器特效『novice_dawn_mana』战斗日志（域 weapon_effects → 条目 novice_dawn_mana 的 log 字段）"
+  },
+  "we.novice_first_turn_dodge.log": {
+    "value": "💨 远行：首刻闪避率 +5%！",
+    "category": "武器特效",
+    "desc": "武器特效『novice_first_turn_dodge』战斗日志（域 weapon_effects → 条目 novice_first_turn_dodge 的 log 字段）"
+  },
+  "we.novice_first_turn_guard.log": {
+    "value": "🛡️ 守御：首刻受击伤害 -10%！",
+    "category": "武器特效",
+    "desc": "武器特效『novice_first_turn_guard』战斗日志（域 weapon_effects → 条目 novice_first_turn_guard 的 log 字段）"
+  },
+  "we.novice_hunt_combo.log": {
+    "value": "🎯 猎影：暴击叠层！（{n}/5 层，每层连击率 +{int(float(wd.get('per_stack', 0.08)) * 100)}%）",
+    "category": "武器特效",
+    "desc": "武器特效『novice_hunt_combo』战斗日志（域 weapon_effects → 条目 novice_hunt_combo 的 log 字段）"
+  },
+  "we.novice_spark_followup.log": {
+    "value": "✨ 星火：下次普攻伤害 +10%！",
+    "category": "武器特效",
+    "desc": "武器特效『novice_spark_followup』战斗日志（域 weapon_effects → 条目 novice_spark_followup 的 log 字段）"
+  },
+  "we.novice_wind_spd.log": {
+    "value": "🌪️ 翠风：自身速度 +5%（2 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『novice_wind_spd』战斗日志（域 weapon_effects → 条目 novice_wind_spd 的 log 字段）"
+  },
+  "we.phantom_barrage.log": {
+    "value": "🌪️ 幻影连射！无视 50% 防御造成 {dmg} 点伤害！",
+    "category": "武器特效",
+    "desc": "武器特效『phantom_barrage』战斗日志（域 weapon_effects → 条目 phantom_barrage 的 log 字段）",
+    "params": [
+      "dmg"
+    ]
+  },
+  "we.randuin_weary.log": {
+    "value": "🛡️ 兰顿倦意：敌人速度 -{int(_sp * 100 * n)}%（{n}/{_ms} 层）！",
+    "category": "武器特效",
+    "desc": "武器特效『randuin_weary』战斗日志（域 weapon_effects → 条目 randuin_weary 的 log 字段）"
+  },
+  "we.retribution_ring.log": {
+    "value": "⚔️ 复仇之环：反弹 {rd} 点伤害！",
+    "category": "武器特效",
+    "desc": "武器特效『retribution_ring』战斗日志（域 weapon_effects → 条目 retribution_ring 的 log 字段）",
+    "params": [
+      "rd"
+    ]
+  },
+  "we.rune_amp.log": {
+    "value": "📜 铭文增幅！({n}/5 层，下一技能 +{int(n * float(wd.get('dmg_pct_per', 0.02)) * 100)}%)",
+    "category": "武器特效",
+    "desc": "武器特效『rune_amp』战斗日志（域 weapon_effects → 条目 rune_amp 的 log 字段）"
+  },
+  "we.sentinel_aegis.log": {
+    "value": "🛡️ 哨兵壁垒：获得 {shield} 点护盾！（3 刻）",
+    "category": "武器特效",
+    "desc": "武器特效『sentinel_aegis』战斗日志（域 weapon_effects → 条目 sentinel_aegis 的 log 字段）",
+    "params": [
+      "shield"
+    ]
+  },
+  "we.soul_eater.log": {
+    "value": "💜 破败之吻：额外 {bonus} 点伤害，回复 {healed} 点生命！",
+    "category": "武器特效",
+    "desc": "武器特效『soul_eater』战斗日志（域 weapon_effects → 条目 soul_eater 的 log 字段）",
+    "params": [
+      "bonus",
+      "healed"
+    ]
+  },
+  "we.star_destruction.tag": {
+    "value": "☄️星陨湮灭",
+    "category": "武器特效",
+    "desc": "武器特效『star_destruction』乘区标记（域 weapon_effects → 条目 star_destruction 的 tag 字段）"
+  },
+  "we.starlight_bulwark.log": {
+    "value": "✨ 星辉壁垒：战斗开始获得 10% 最大生命护盾！",
+    "category": "武器特效",
+    "desc": "武器特效『starlight_bulwark』战斗日志（域 weapon_effects → 条目 starlight_bulwark 的 log 字段）"
+  },
+  "we.swift_boots.log": {
+    "value": "🌪️ 迅捷如风：速度 +20%（3 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『swift_boots』战斗日志（域 weapon_effects → 条目 swift_boots 的 log 字段）"
+  },
+  "we.temple_stride.log": {
+    "value": "🌪️ 圣殿疾行：速度 +20%（4 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『temple_stride』战斗日志（域 weapon_effects → 条目 temple_stride 的 log 字段）"
+  },
+  "we.thorn_armor.log": {
+    "value": "🌵 荆棘缠绕：反弹 {rd} 点伤害！",
+    "category": "武器特效",
+    "desc": "武器特效『thorn_armor』战斗日志（域 weapon_effects → 条目 thorn_armor 的 log 字段）",
+    "params": [
+      "rd"
+    ]
+  },
+  "we.thunder_weave.log": {
+    "value": "⚡ 雷纹连打！({n}/5 层，每层速度+2% 攻击+1%)",
+    "category": "武器特效",
+    "desc": "武器特效『thunder_weave』战斗日志（域 weapon_effects → 条目 thunder_weave 的 log 字段）",
+    "params": [
+      "n"
+    ]
+  },
+  "we.time_freeze.log": {
+    "value": "⏳ 时光凝滞！敌人被定身，跳过一次行动！",
+    "category": "武器特效",
+    "desc": "武器特效『time_freeze』战斗日志（域 weapon_effects → 条目 time_freeze 的 log 字段）"
+  },
+  "we.time_freeze.source": {
+    "value": "⏳ 时光凝滞",
+    "category": "武器特效",
+    "desc": "武器特效『time_freeze』来源标签（域 weapon_effects → 条目 time_freeze 的 source 字段）"
+  },
+  "we.time_staff.log": {
+    "value": "⏳ 岁月流转叠层！({n}/10 层，攻击 +{int(n * float(wd.get('per_pct', 0.015)) * 100)}%)",
+    "category": "武器特效",
+    "desc": "武器特效『time_staff』战斗日志（域 weapon_effects → 条目 time_staff 的 log 字段）"
+  },
+  "we.undying_will.log": {
+    "value": "✨ 不灭意志：免疫致死伤害！",
+    "category": "武器特效",
+    "desc": "武器特效『undying_will』战斗日志（域 weapon_effects → 条目 undying_will 的 log 字段）"
+  },
+  "we.void_stride.log": {
+    "value": "🌪️ 虚空疾行：速度 +25%（4 刻）！",
+    "category": "武器特效",
+    "desc": "武器特效『void_stride』战斗日志（域 weapon_effects → 条目 void_stride 的 log 字段）"
+  },
+  "we.wind_mark.log": {
+    "value": "🌬️ 风痕叠加！({n}/4 层，每层速度 +2%)",
+    "category": "武器特效",
+    "desc": "武器特效『wind_mark』战斗日志（域 weapon_effects → 条目 wind_mark 的 log 字段）",
+    "params": [
+      "n"
+    ]
   },
   "weekly.item_done": {
     "value": "{i}. 『{tname}』 ✅ 已完成",

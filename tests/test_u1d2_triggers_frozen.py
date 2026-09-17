@@ -716,10 +716,13 @@ def test_equip_names():
             assigns[node.target.id] = node.value
     funcs = {n.name for n in tree.body if isinstance(n, ast.FunctionDef)}
 
-    check("AST：`_EVENT_MAP` 是模块级 Dict 字面量（12 键）",
-          isinstance(assigns.get("_EVENT_MAP"), ast.Dict)
-          and len(assigns["_EVENT_MAP"].keys) == 12,
-          type(assigns.get("_EVENT_MAP")).__name__)
+    # ★ D7（2026-09-17）「数据进表」读源重定向：`_EVENT_MAP` 已从本文件的模块级字面量搬进包内域
+    #   `content/data/equip_event_map.json`（单一真源；代码只留 records 读口）。判据一字未改
+    #   （12 键 + 目标全是引擎事件 tuple），只把「值从哪读」由源码字面量换成域文件。
+    _dom = json.load(open(_pkg_file("content/data/equip_event_map.json"), encoding="utf-8"))
+    check("AST：`_EVENT_MAP` 仍在端口顶层（读口），域文件 `EVENT_MAP` 段 12 键",
+          "_EVENT_MAP" in assigns and len(_dom.get("EVENT_MAP") or {}) == 12,
+          len(_dom.get("EVENT_MAP") or {}))
     check("AST：`_UNKNOWN_EVENTS` 是模块级 List 字面量",
           isinstance(assigns.get("_UNKNOWN_EVENTS"), ast.List))
     check("AST：`_known_engine_events` / `map_event` 是模块级函数",
@@ -973,14 +976,72 @@ def test_teeth():
 # ══════════════════════════════════════════════════════════════════════════════
 # 11. 判据 9：只读（4 源文件 + 4 数据表）+ aux 指纹
 # ══════════════════════════════════════════════════════════════════════════════
+#: ★ D2（数据进表）：`content/mech/we_data.py` 是**有意改动**的文件 —— 内联 82 键字面量表已搬进
+#: `content/data/weapon_effects.json`（域 `weapon_effects`）+ `content/data/text_specs.json`
+#: （51 条文案），本文件只剩「域 + 文案表 → 表」的读口。因此它的**文件 sha** 不再等于
+#: `_PIN['aux']` 的搬前值（`_PIN` 那一格保留作历史追溯）。判据不削弱：改成**值面**断言
+#: 「活表 == base/pkg 搬前字面量表（键序 + repr(值) + type 名 逐名相等）」—— 比文件 sha 更准
+#: （文件 sha 会被注释/排版带动，值面只认数据）。搬前值另有
+#: `tests/test_package_mech_ports.py::FROZEN_TABLE['WEAPON_EFFECT_DATA']`（sha `aa9b344a…`）钉住。
+_D2_MOVED_DATA = "data:content/mech/we_data.py"
+
+#: ★ 2026-09-17 主线收尾：搬前字面量表的**值面** canonical sha256（键序 + 每格 `repr(值)` + type 名）。
+#: 门禁原本直比 `base/pkg`（那是**线的工作区布局**）；真仓布局没有基线副本 ⇒ 不静默跳过、也不假绿，
+#: 改判这个同源钉值（由交付线的 `base/pkg` 现算，语义与直比等价：只认数据，不认注释/排版）。
+_D2_BASE_VALUE_SHA = "44fc53ce1817875cc92c7603ee4c17666b68f0afe769a8c7cdfa4a48a95ee6fd"
+
+
+def _canon_we_sha(tbl) -> str:
+    """值面 canonical sha256：键序 + 每格 (字段, repr(值), type 名)。"""
+    import hashlib as _h
+    import json as _j
+    canon = {"order": list(tbl),
+             "cells": [[k, [[f, repr(v), type(v).__name__] for f, v in tbl[k].items()]] for k in tbl]}
+    return _h.sha256(_j.dumps(canon, ensure_ascii=False, sort_keys=False).encode("utf-8")).hexdigest()
+
+
+def _we_value_diff() -> list:
+    """D2：活侧读口的表 vs `base/pkg` 搬前字面量表（键序 + 值 + 类型，逐名相等）。"""
+    base = os.path.join(LANE_ROOT, "base", "pkg", "content", "mech", "we_data.py")
+    import content.mech.we_data as _W
+    new = _W.WEAPON_EFFECT_DATA
+    if not os.path.isfile(base):
+        # 真仓布局：改判值面 canonical sha256（见 _D2_BASE_VALUE_SHA 的说明）
+        got = _canon_we_sha(new)
+        print("      （真仓布局：活表值面 canonical sha=%s；钉值 %s）" % (got[:16], _D2_BASE_VALUE_SHA[:16]))
+        return [] if got == _D2_BASE_VALUE_SHA else [
+            "真仓布局：活表 canonical sha=%s ≠ 搬前钉值 %s" % (got, _D2_BASE_VALUE_SHA)]
+    ns: dict = {}
+    with open(base, encoding="utf-8") as fh:
+        exec(compile(fh.read(), base, "exec"), ns)              # noqa: S102
+    old = ns["WEAPON_EFFECT_DATA"]
+    import content.mech.we_data as _W
+    new = _W.WEAPON_EFFECT_DATA
+    out: list = []
+    if list(old) != list(new):
+        out.append("键序不同：base=%s live=%s" % (list(old)[:3], list(new)[:3]))
+    for k in old:
+        if k not in new:
+            out.append("live 缺键 %r" % (k,))
+            continue
+        a = [(f, repr(v), type(v).__name__) for f, v in old[k].items()]
+        b = [(f, repr(v), type(v).__name__) for f, v in new[k].items()]
+        if a != b:
+            out.append("%s 不等：base=%r live=%r" % (k, a, b))
+    return out
+
+
 def test_aux():
     print("【9. aux 指纹：4 张数据表 + 装配契约 + 引擎侧（读 base/pkg 基线）】")
     aux = _PIN.get("aux") or {}
     check("aux 指纹段数 == 11（4 数据 + 1 契约 + 4 源文件基线 + 2 引擎）",
           len(aux) == 11, sorted(aux))
-    bad = [k for k, want in aux.items() if k.startswith("data:")
+    bad = [k for k, want in aux.items() if k.startswith("data:") and k != _D2_MOVED_DATA
            and want != _file_sha(k.split(":", 1)[1])]
-    check("4 张数据表实跑 sha256 == _PIN['aux']['data:*']（数据面零改动）", not bad, bad)
+    check("其余数据表实跑 sha256 == _PIN['aux']['data:*']（数据面零改动）", not bad, bad)
+    badv = _we_value_diff()
+    check("★ D2：we_data.py 活表 == base/pkg 搬前字面量表（键序/值/类型逐名相等，diff 空）",
+          not badv, badv[:3])
     badc = [k for k, want in aux.items() if k.startswith("contract:")
             and want != _file_sha(k.split(":", 1)[1])]
     check("`content/apply.py` sha256 == aux（装配契约未被本线动过）", not badc, badc)

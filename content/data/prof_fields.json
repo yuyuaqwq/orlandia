@@ -1,0 +1,12 @@
+{
+  "prof_fields": {
+    "gather": "采集",
+    "mining": "挖掘",
+    "fishing": "垂钓",
+    "alchemy": "炼金",
+    "craft": "锻造",
+    "cooking": "烹饪",
+    "enhance": "强化",
+    "enchant": "附魔"
+  }
+}

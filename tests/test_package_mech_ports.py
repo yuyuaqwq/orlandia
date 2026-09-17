@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -262,6 +263,21 @@ def port_action_funcs(path: str) -> set:
     return out
 
 
+# ---------------------------------------------------------------------------
+# ★ D3-REPOINT（2026-09-17，「数据进表」批）：下面两张表的**值已搬进包内域 JSON**
+#   （kind=rules），`content/mech/class_data.py` 里只剩读口（`_mech_cfg()` /
+#   `_domain("mech_cash", …)`）⇒ 本文件原来的「模块级字面量静态求值」折不动、退化成
+#   `«expr»…`。这里的口径（**判据只加强不削弱**）：值改从**域 JSON** 回读。
+#   · 冻结 sha 现在钉的是**数据真源本身** —— 域文件里任何一格值改动都会红
+#     （M3 反证已同步改成「改域文件」，见 drift_reversal）；
+#   · 读口自己的还原逻辑（元组键 / 元组值 / 外层键序 / int 段）由
+#     `content/mech/class_data.py` 的装载期守卫 + D3 的 `out/raw` 逐名对拍钉住。
+#   MECH_CFG 按 D-BATCH §3「拆域属加域」拆成两个域（通用机制 / 职业族机制）→ 合并成一张表比。
+DOMAIN_TABLES = {
+    "MECH_CFG": ("mech_cfg_core", "mech_cfg_class"),
+    "MECH_CASH": ("mech_cash",),
+}
+
 # 参数表 deep-equal：(表名, 真源文件, 真源行号, 包内端口, 包内变量名)
 TABLES = [
     ("MECH_CASH", "game/data/battle_rules.py", ":624", "content/mech/class_data.py", "MECH_CASH"),
@@ -315,7 +331,7 @@ FROZEN_TABLE = {
     },
     "MECH_CFG": {
         "n": 15,
-        "sha": "a8308ce16be321eb8bc404c60cda9e8dfc9eace55e976dde8a6b3dd874dcf04f",
+        "sha": "6e336c5cfb7f5815f42f1abf0bb77460d29915797f25c18fcfb3620d32459ebb",
         "anchors": [
             (("'dot'", "'poison'", "'atk'"), 0.8),
             (("'dot'", "'poison'", "'matk'"), 0.0),
@@ -475,6 +491,86 @@ REEXPORTS = [
     ("content/mech/element_data.py", "BAR_INJECT_FIELDS", "params"),
 ]
 
+# ---------------------------------------------------------------------------
+# ★ D7（2026-09-17）「数据进表」读源重定向（判据一字未改，只换「值从哪读」）
+# ---------------------------------------------------------------------------
+# 背景：`_KIND_META` 已从 `content/mech/kinds.py` 的模块级字面量搬进包内域
+#   `content/data/kind_meta.json`（唯一真源；代码只留 records 读口）⇒ 本节原先的
+#   「从端口源码静态读字面量」再也读不到值（会退化成 `«expr»` 文本）。
+# 口径只加强不削弱：**键数 / 值 sha256 / 锚点**三条冻结判据原样保留，值指纹仍钉在
+#   B14 收纳当刻（**sha 不变**）—— 因为 `_canon` 的形状照搬搬前的静态视图：
+#   键 = 搬前的源码表达式文本 `«expr»SkillKind.<成员名>`，值 = 成员元数据 dict。
+#   于是「改 json 里任何一格值 → 本节必红」这条反证反而更直接（原来是改 .py 才红）。
+# 读不到域文件 / 段不是非空映射 → 报红点名（**不静默给空表、不静默跳过**）。
+DOMAIN_BY_PORT = {
+    ("content/mech/kinds.py", "_KIND_META"): ("content/data/kind_meta.json", "KIND_META"),
+}
+KIND_META_KEY_BY_VALUE = {v: k for k, v in FROZEN_SKILLKIND.items()}
+
+
+def domain_section(pkg_root, rel, section):
+    """读域文件 `<pkg_root>/<rel>` 的 `<section>` 段；读不到/形状不符 → 抛（调用方报红）。"""
+    with open(_p(pkg_root, rel), encoding="utf-8") as f:
+        data = json.load(f)
+    got = data.get(section) if isinstance(data, dict) else None
+    if not isinstance(got, dict) or not got:
+        raise ValueError("域 %s 的 %s 段不是非空映射：%r" % (rel, section, got))
+    return got
+
+
+def domain_kind_meta(pkg_root, rel, section):
+    """`_KIND_META` 的域视图：键还原成搬前的源码表达式文本（canonical 形状与冻结基线一致）。"""
+    raw = domain_section(pkg_root, rel, section)
+    bad = sorted(k for k in raw if k not in KIND_META_KEY_BY_VALUE)
+    if bad:
+        raise ValueError("域 %s 的 %s 段有非法 kind 键：%r" % (rel, section, bad))
+    return {EXPR + "SkillKind." + KIND_META_KEY_BY_VALUE[k]: v for k, v in raw.items()}
+
+
+# ---------------------------------------------------------------------------
+# ★ D2（数据进表）：已搬进 JSON 域的参数表 —— 值的读法换，判据一字不换
+# ---------------------------------------------------------------------------
+# 为什么需要它：`content/mech/we_data.py:WEAPON_EFFECT_DATA` 已按「数据进表」搬进
+# `content/data/weapon_effects.json`（域 id `weapon_effects`，登记在 `editor/domains.json`），
+# .py 只剩读口 `WEAPON_EFFECT_DATA = _load_weapon_effects()` —— AST 静态求值**折不出值**
+# （`_conv` 退化成源码文本），`dead_event_audit` 的 `ast.literal_eval` 也会当场抛。
+# 本门禁的**判据不动**（`FROZEN_TABLE` 的键数 / sha256 / 锚点，`TABLES` 的行、`SINGLE_SOURCE_TABLES`
+# 的名单都不改），只把「值从哪读」换成静态读域 JSON + 从文案表回填 `<字段>_key` ——
+# 读回来的值仍与**搬前**冻结的 sha 逐字节相等（sha 一个字符都没改 = 数据面零漂移的证据）。
+# 为什么不 import：与本文件全篇同一纪律（不 import 真源模块，避免拉起宿主副作用）；纯 JSON 静态读。
+JSON_BACKED = {
+    "WEAPON_EFFECT_DATA": {
+        "domain": "weapon_effects",
+        "text_specs": "content/data/text_specs.json",
+        "text_fields": ("log", "source", "tag"),      # 域内存 `<字段>_key`
+    },
+}
+
+
+def _read_json_file(path: str):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _json_backed_value(pkg_root: str, name: str) -> dict:
+    """域 JSON + 文案表 → 表值（形状与搬前的 .py 字面量逐名相等）。"""
+    cfg = JSON_BACKED[name]
+    domain = _read_json_file(_p(pkg_root, "content", "data", cfg["domain"] + ".json"))
+    specs = _read_json_file(_p(pkg_root, *cfg["text_specs"].split("/")))
+    out: dict = {}
+    for key, entry in domain.items():
+        item: dict = {}
+        for field, value in entry.items():
+            if field.endswith("_key") and field[:-4] in cfg["text_fields"]:
+                if not isinstance(value, str) or value not in specs:
+                    raise KeyError("域 %s[%r] 的文案 key %r 不在文案表里"
+                                   % (cfg["domain"], key, value))
+                item[field[:-4]] = specs[value]["value"]
+            else:
+                item[field] = value
+        out[key] = item
+    return out
+
 
 # ---------------------------------------------------------------------------
 # 工具
@@ -526,7 +622,53 @@ class ModView:
     def value(self, name: str):
         if name not in self.assigns:
             return "«missing»"
-        return self._conv(self.assigns[name], 0)
+        val = self._conv(self.assigns[name], 0)
+        # ★ D3-REPOINT：值已搬进包内域 JSON 的表，源码里只剩读口（折成 `«expr»…`）→
+        #   改从**该域 JSON**回读（域 = 数据真源）。映射见 DOMAIN_TABLES。
+        if isinstance(val, str) and val.startswith(EXPR) and name in DOMAIN_TABLES:
+            dom = self._domain_value(name)
+            if dom is not None:
+                return dom
+        return val
+
+    def _domain_value(self, name: str):
+        """`name` 的域 JSON 合并读（包根 = **审计对象自己**的包根 ⇒ 真包 / tmp 副本都能解析）。
+
+        多域（MECH_CFG 拆成 core + class）= 按声明序 `dict.update` 合并；每个域再按
+        `content/data/key_order.json` 里**同名条目的 `keys`** 排回真源插入序（域文件外层键是
+        升序的落盘规范 —— 不排回来，锚点抽查的键路径就会从 `finisher.*` 漂到 `arcane_burst.*`）。
+        任一域缺文件 / 坏 JSON / 序声明缺条目 → `None`（调用方退回 `«expr»…` → sha 对不上 → 红，
+        **不静默当绿**）。
+        """
+        pkg = os.path.dirname(os.path.dirname(os.path.dirname(self.path)))
+        ko_tbl: dict = {}
+        ko = _p(pkg, "content", "data", "key_order.json")
+        if os.path.isfile(ko):
+            try:
+                with open(ko, encoding="utf-8") as f:
+                    ko_tbl = json.load(f)
+            except (OSError, ValueError):
+                return None
+        merged: dict = {}
+        for dom in DOMAIN_TABLES[name]:
+            for sub in ("data", "rules"):
+                p = os.path.join(pkg, "content", sub, dom + ".json")
+                if not os.path.isfile(p):
+                    continue
+                try:
+                    with open(p, encoding="utf-8") as f:
+                        raw = json.load(f)
+                except (OSError, ValueError):
+                    return None
+                ent = ko_tbl.get(dom)
+                keys = ent.get("keys") if isinstance(ent, dict) else None
+                if not isinstance(keys, list) or not keys:
+                    return None
+                merged.update({k: raw[k] for k in keys if k in raw})
+                break
+            else:
+                return None
+        return merged or None
 
     def _conv(self, node, depth: int):
         if depth > 12:
@@ -695,7 +837,11 @@ SINGLE_SOURCE_TABLES = ("MECH_CFG", "MECH_CASH", "BAR_INJECT_FIELDS", "BAR_STATE
 
 
 def single_source_audit(pkg_root: str, rep: Rep) -> None:
-    """每张参数表在包内最多一处字面量定义（同表多份 = 值碰巧一致 → 改一处就漂）。"""
+    """每张参数表在包内最多一处字面量定义（同表多份 = 值碰巧一致 → 改一处就漂）。
+
+    ★ D3-REPOINT：`DOMAIN_TABLES` 里的表，**唯一真源 = 包内域 JSON** ⇒ 包内任何一处模块级
+    字面量定义都是「第二份源」→ 判据对这几张**收紧成 0 处**（其余表仍是 ≤1 处，原口径不动）。
+    """
     mech = _p(pkg_root, MECH_REL)
     hits: dict = {t: [] for t in SINGLE_SOURCE_TABLES}
     for fn in sorted(os.listdir(mech)):
@@ -715,8 +861,10 @@ def single_source_audit(pkg_root: str, rep: Rep) -> None:
                 continue
             if isinstance(node.value, (ast.Dict, ast.List, ast.Tuple, ast.Constant)):
                 hits[tgt.id].append("%s:%d" % (fn, node.lineno))
-    dup = {t: v for t, v in hits.items() if len(v) > 1}
-    rep.check("每张参数表在包内最多一处字面量定义（共查 %d 张）" % len(SINGLE_SOURCE_TABLES),
+    limit = {t: 0 for t in DOMAIN_TABLES}            # 域读口表：字面量 0 处（真源在域 JSON）
+    dup = {t: v for t, v in hits.items() if len(v) > limit.get(t, 1)}
+    rep.check("每张参数表在包内最多一处字面量定义（共查 %d 张；域读口表 0 处）"
+              % len(SINGLE_SOURCE_TABLES),
               not dup, "同表多份定义（值碰巧一致也会漂）：%s" % dup)
     rep.check("单源检查不是空转（至少定位到 1 张表的定义处）",
               any(hits.values()), {t: v for t, v in hits.items() if v})
@@ -829,15 +977,42 @@ def audit(pkg_root: str, game_root: str, rep: Rep) -> None:
         if not os.path.isfile(ppath):
             rep.check("表 %-30s 端口存在 %s" % (name, prel), False, "端口文件缺失：%s" % ppath)
             continue
-        try:
-            pv = ModView(ppath)
-            b = _resolve(pv, pv.value(var))
-        except SyntaxError as e:
-            rep.check("表 %s 可静态读出" % name, False, "语法错：%r" % (e,))
-            continue
-        if b == "«missing»":
-            rep.check("表 %-30s 端口 %s 里取得到 %s" % (name, prel, var), False, "取不到 %s" % var)
-            continue
+        # ★ 2026-09-17 主线收尾：D2 / D3 / D7 三线各自做了「读源重定向」，此处统一成一个判定
+        #   （判据一字不换 —— 读回来的值仍与**搬前**冻结的 sha256 逐字节比）：
+        #     ① 表名落在 JSON_BACKED → D2 口径：读单域 JSON + 用文案表回填 `<字段>_key`
+        #     ② (端口, 变量) 落在 DOMAIN_BY_PORT → D7 口径：读该域 JSON 的指定段（键还原成源码表达式文本）
+        #     ③ 其余 → 照旧静态读；D3 的表（MECH_CFG / MECH_CASH）在 ModView.value() 内部已改读域 JSON
+        if name in JSON_BACKED:
+            try:
+                b = _json_backed_value(pkg_root, name)        # ★ D2：已进域的表，读域 JSON
+            except (OSError, ValueError, KeyError) as e:
+                rep.check("表 %-30s 可从域 JSON 读出（%s）" % (name, JSON_BACKED[name]["domain"]),
+                          False, repr(e))
+                continue
+        else:
+            dom = DOMAIN_BY_PORT.get((prel, var))
+            if dom:
+                try:
+                    b = domain_kind_meta(pkg_root, dom[0], dom[1])      # ★ D7：域段视图
+                except (OSError, ValueError) as e:
+                    rep.check("表 %-30s 读得到域 %s 的 %s 段" % (name, dom[0], dom[1]),
+                              False, "%s: %s" % (type(e).__name__, e))
+                    continue
+            else:
+                try:
+                    pv = ModView(ppath)
+                    b = _resolve(pv, pv.value(var))
+                except SyntaxError as e:
+                    rep.check("表 %s 可静态读出" % name, False, "语法错：%r" % (e,))
+                    continue
+                except (OSError, ValueError, KeyError) as e:
+                    rep.check("表 %-30s 端口 %s 里取得到 %s" % (name, prel, var),
+                              False, "取不到 %s" % var)
+                    continue
+                if b == "«missing»":
+                    rep.check("表 %-30s 端口 %s 里取得到 %s" % (name, prel, var), False,
+                              "取不到 %s" % var)
+                    continue
 
         if os.path.isfile(gpath):
             # 宿主真源**仍在**（如 ACT_TICK 来自仍在的 game/core/constants.py）→ 原口径不动
@@ -918,6 +1093,20 @@ def audit(pkg_root: str, game_root: str, rep: Rep) -> None:
 def _copy_pkg(pkg_root: str, tmp_root: str) -> None:
     shutil.copytree(_p(pkg_root, MECH_REL), _p(tmp_root, MECH_REL),
                     ignore=shutil.ignore_patterns("__pycache__"))
+    # ★ D3-REPOINT：DOMAIN_TABLES 里的表，值在包内域 JSON（不在源码里）—— 副本也要带上域文件，
+    #   否则「改值」反证（M3）打在空气上（`_domain_value` 解析到真包 → 装坏不生效）。
+    #   序声明 `key_order.json` 同带（`_domain_value` 按它排回真源插入序）。
+    _ko = _p(pkg_root, "content", "data", "key_order.json")
+    if os.path.isfile(_ko):
+        os.makedirs(_p(tmp_root, "content", "data"), exist_ok=True)
+        shutil.copy2(_ko, _p(tmp_root, "content", "data", "key_order.json"))
+    for dom in sorted({d for ds in DOMAIN_TABLES.values() for d in ds}):
+        for sub in ("data", "rules"):
+            src = _p(pkg_root, "content", sub, dom + ".json")
+            if os.path.isfile(src):
+                os.makedirs(_p(tmp_root, "content", sub), exist_ok=True)
+                shutil.copy2(src, _p(tmp_root, "content", sub, dom + ".json"))
+                break
 
 
 def _mutate(path: str, old: str, new: str) -> bool:
@@ -936,7 +1125,9 @@ def drift_reversal(pkg_root: str, game_root: str, rep: Rep, tmp_root: str) -> No
         ("M1 改动作名", "class_mech.py", '@register_action("passive_counter")',
          '@register_action("passive_counter_renamed")', "passive_counter"),
         ("M2 删端口文件", None, None, None, "worldboss.py"),
-        ("M3 改参数表值", "class_data.py", "'crit_at': 4,", "'crit_at': 5,", "MECH_CASH"),
+        # M3：D3-REPOINT —— 这两张表的值已搬进**包内域 JSON**（源码只剩读口）⇒ 反证打在
+        #   **域文件**那一格上（fname 带 "/" = 相对包根）；门禁必须按 DOMAIN_TABLES 回读并报红。
+        ("M3 改域表值", "content/rules/mech_cash.json", '"crit_at": 4', '"crit_at": 5', "MECH_CASH"),
         ("M4 改标量表", "params.py", 'BAR_STATE_PREFIX = "bar:"', 'BAR_STATE_PREFIX = "barX:"',
          "BAR_STATE_PREFIX"),
         # M5：把"同表多份"长回来（在另一个文件里再写一份 MECH_CFG 字面量）→ 单源审计必须报红
@@ -957,6 +1148,8 @@ def drift_reversal(pkg_root: str, game_root: str, rep: Rep, tmp_root: str) -> No
         if fname is None:
             os.remove(os.path.join(mech, must_mention))
             mutated = True
+        elif "/" in fname:                                   # ★ D3：域文件（相对包根）
+            mutated = _mutate(_p(sub, fname), old, new)
         else:
             mutated = _mutate(os.path.join(mech, fname), old, new)
         if not mutated:
@@ -1040,9 +1233,19 @@ def dead_event_audit(pkg_root: str, game_root: str, rep: Rep) -> None:
               "_UNKNOWN_EVENTS" in src and "def _known_engine_events" in src,
               "机制被删/被绕过 —— fire() 会静默吞掉死名")
     ev_map: dict = {}
-    for n in ast.walk(ast.parse(src)):
-        if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "_EVENT_MAP":
-            ev_map = ast.literal_eval(n.value)
+    # ★ D7（2026-09-17）：`_EVENT_MAP` 已进表 → 值从包内域 `content/data/equip_event_map.json`
+    #   读（展开目标还原成搬前的 tuple）。判据一字未改（dot_taken 锚点 + 目标全在 EVENTS）。
+    _assigns = [n for n in ast.walk(ast.parse(src))
+                if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "_EVENT_MAP"]
+    rep.check("端口 equip.py 不再自带 `_EVENT_MAP` 源码字面量（单一真源 = 域文件）",
+              not any(isinstance(n.value, ast.Dict) for n in _assigns),
+              "`_EVENT_MAP` 又是源码字面量了 —— 域文件将被绕开（双源长回来）")
+    try:
+        ev_map = {k: tuple(v)
+                  for k, v in domain_section(pkg_root, "content/data/equip_event_map.json",
+                                             "EVENT_MAP").items()}
+    except (OSError, ValueError) as e:
+        rep.check("读得到 equip_event_map 域", False, "%s: %s" % (type(e).__name__, e))
     rep.check("_EVENT_MAP 有 dot_taken → dot_tick（对齐 N9 迁移表）",
               tuple(ev_map.get("dot_taken") or ()) == ("dot_tick",), ev_map.get("dot_taken"))
     bad_map = {k: [v for v in vs if v not in events] for k, vs in ev_map.items()
@@ -1050,15 +1253,22 @@ def dead_event_audit(pkg_root: str, game_root: str, rep: Rep) -> None:
     rep.check("_EVENT_MAP 每个展开目标都在引擎事件全集里", not bad_map, bad_map)
 
     # ---- 数据侧：包内武器特效表的事件名必须可解析 ----
+    # ★ D2：本表已进域（`content/data/weapon_effects.json`）⇒ 与 ③ 段同口径读域 JSON；
+    #   未进域的表仍走原来的 AST 字面量口径（`ast.literal_eval` 只认字面量）。
     we = _p(pkg_root, "content", "mech", "we_data.py")
+    if "WEAPON_EFFECT_DATA" in JSON_BACKED:
+        we_table = _json_backed_value(pkg_root, "WEAPON_EFFECT_DATA")
+    else:
+        we_table = {}
+        for n in ast.walk(ast.parse(_read(we))):
+            if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "WEAPON_EFFECT_DATA":
+                we_table = ast.literal_eval(n.value)
     data_events: set = set()
-    for n in ast.walk(ast.parse(_read(we))):
-        if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "WEAPON_EFFECT_DATA":
-            for _k, v in ast.literal_eval(n.value).items():
-                e = v.get("event") if isinstance(v, dict) else None
-                for x in (e if isinstance(e, (list, tuple)) else [e]):
-                    if x:
-                        data_events.add(str(x))
+    for _k, v in (we_table or {}).items():
+        e = v.get("event") if isinstance(v, dict) else None
+        for x in (e if isinstance(e, (list, tuple)) else [e]):
+            if x:
+                data_events.add(str(x))
     dead = sorted(x for x in data_events
                   if x not in events and x not in ev_map and x not in KNOWN_NON_EVENT_MARKERS)
     rep.check("武器特效数据的 %d 个 event 名全部可解析（引擎全集 ∪ _EVENT_MAP ∪ 非事件标记）"

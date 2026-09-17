@@ -1,0 +1,29 @@
+{
+  "axe": {
+    "name": "战斧"
+  },
+  "bow": {
+    "name": "长弓"
+  },
+  "dagger": {
+    "name": "短刃"
+  },
+  "fist": {
+    "name": "拳套"
+  },
+  "mace": {
+    "name": "战锤"
+  },
+  "shield": {
+    "name": "盾牌"
+  },
+  "spear": {
+    "name": "长枪"
+  },
+  "staff": {
+    "name": "法杖"
+  },
+  "sword": {
+    "name": "长剑"
+  }
+}

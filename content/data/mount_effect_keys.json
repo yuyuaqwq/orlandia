@@ -1,0 +1,13 @@
+{
+  "mount_effect_keys": {
+    "keys": [
+      "discount",
+      "elite_bonus",
+      "stamina_reduce",
+      "sell_bonus",
+      "collect_bonus",
+      "fish_bonus",
+      "exp_mult"
+    ]
+  }
+}

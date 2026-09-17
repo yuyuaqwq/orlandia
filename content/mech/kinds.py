@@ -20,10 +20,27 @@
   if SKIND.is_kind(kind, SKIND.MAGI):        # 魔法 或 魔法·火 都 True
   if kind == SKIND.PHYS:                     # 精确物理
   meta = SKIND.meta(kind)                     # {"seg": "phys", "dmg": True, ...}
+
+★ D7（2026-09-17）「数据进表」：`_KIND_META` 已搬出代码 → 包内域 `content/data/kind_meta.json`
+（域 id = `kind_meta`，kind=data，已登记）为**唯一真源**；本文件只留读口 `_read_kind_meta()`。
+值/类型/序与搬前逐名对拍相等（`out/raw/00_before.json` ↔ `out/raw/01_after.json`，diff 空）。
 """
 from __future__ import annotations
 
+import json
+import os
+
 from enum import Enum
+
+# ★ 本模块**必须能按文件路径独立加载**（`tests/test_numeric_skill_kinds.py` 用
+#   `spec_from_file_location` 直接 exec 本文件，进程里没有引擎/包上下文）⇒ 读口只用
+#   stdlib（json/os），**不 import `saintess_engine.records`**；口径照
+#   `records.resolve_domain` 的三道校验（声明在 → kind 有落点 → 文件在盘）自持实现，
+#   见下方 `_read_kind_meta()`。
+
+_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
+_CONTENT = os.path.dirname(_HERE)                           # <pkg>/content
+_PKG_ROOT = os.path.dirname(_CONTENT)                       # <pkg>
 
 
 class SkillKind(str, Enum):
@@ -63,16 +80,70 @@ K_TRUE = SkillKind.TRUE.value
 K_TAUNT = SkillKind.TAUNT.value
 
 # 类型元数据（集中定义类型行为，杜绝各函数散落 if）
-_KIND_META = {
-    SkillKind.PHYS:    {"seg": "phys", "damage": True,  "lifesteal": "phys"},
-    SkillKind.MAGI:    {"seg": "magi", "damage": True,  "lifesteal": "magi"},
-    SkillKind.HEAL:    {"seg": "magi", "damage": False, "lifesteal": ""},
-    SkillKind.BUFF:    {"seg": "magi", "damage": False, "lifesteal": ""},
-    SkillKind.PASSIVE: {"seg": "magi", "damage": False, "lifesteal": ""},
-    SkillKind.SUMMON:  {"seg": "magi", "damage": False, "lifesteal": ""},
-    SkillKind.TRUE:    {"seg": "true", "damage": True,  "lifesteal": "true"},
-    SkillKind.TAUNT:   {"seg": "magi", "damage": False, "lifesteal": ""},
-}
+#   ★ D7（2026-09-17）「数据进表」：本表已搬出代码 → 包内域 `content/data/kind_meta.json`
+#   为**唯一真源**（`editor/domains.json` 登记 kind=data）；本处只留读口。
+#   类型还原（不还原 = 静默错值）：
+#     · JSON 只有 str 键 ⇒ 键还原成 `SkillKind` 成员。`SkillKind` 是 `str, Enum`，
+#       成员 == 其值但 **hash 不同**（`Enum.__hash__ = hash(self._name_)`）⇒
+#       str 键的表用 `[SkillKind.PHYS]` 查恒 KeyError，必须还原。
+#     · `damage` 的 bool 由 json 的 true/false 原样还原（不是 0/1）。
+# ============================================================
+class KindMetaDomainError(RuntimeError):
+    """`kind_meta` 域装载失败（fail-closed：声明缺 / 落点不符 / 文件缺 / 形状错 → 点名抛）。"""
+
+
+def _read_kind_meta() -> dict:
+    """读 `content/data/kind_meta.json` 的 `KIND_META` 段 → `{SkillKind: {...}}`（fail-closed）。
+
+    ★ D7 读口。**本模块不能 import 引擎**（见文件上方说明）⇒ 这里用 stdlib 实现与
+    `saintess_engine.records.resolve_domain` 同口径的三道校验 + 值形状校验；任一不满足即
+    `KindMetaDomainError` **点名抛**（域文件缺 / 声明缺 / 落点不符 / 键型不符 → 绝不静默给空表）。
+    """
+    decl_path = os.path.join(_PKG_ROOT, "editor", "domains.json")
+    try:
+        with open(decl_path, encoding="utf-8") as f:
+            decl = json.load(f)
+    except FileNotFoundError:
+        raise KindMetaDomainError("包内域声明文件不存在：%s（拒绝装载，不静默给空表）"
+                                  % (decl_path,))
+    except Exception as exc:                                  # noqa: BLE001
+        raise KindMetaDomainError("包内域声明读不了 / 坏 JSON：%s（%s: %s）"
+                                  % (decl_path, type(exc).__name__, exc))
+    entry = decl.get("kind_meta") if isinstance(decl, dict) else None
+    if not isinstance(entry, dict):
+        raise KindMetaDomainError("域 kind_meta 不在包内域声明里（%s）—— 声明缺项，拒绝装载"
+                                  % (decl_path,))
+    kind_dir = entry.get("kind")
+    if kind_dir not in ("data", "rules"):
+        raise KindMetaDomainError("域 kind_meta 的 kind=%r 没有对应落点（已知 data/rules）"
+                                  % (kind_dir,))
+    path = os.path.join(_PKG_ROOT, "content", kind_dir, "kind_meta.json")
+    if not os.path.isfile(path):
+        raise KindMetaDomainError("域 kind_meta 声明的文件不在盘上：%s —— 缺表即报错，"
+                                  "不许静默给空表" % (path,))
+    try:
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+    except Exception as exc:                                  # noqa: BLE001
+        raise KindMetaDomainError("域文件读不了 / 坏 JSON：%s（%s: %s）"
+                                  % (path, type(exc).__name__, exc))
+    raw = doc.get("KIND_META") if isinstance(doc, dict) else None
+    if not isinstance(raw, dict) or not raw:
+        raise KindMetaDomainError("域文件 %s 的 KIND_META 段不是非空映射：%r"
+                                  % (path, raw))
+    out: dict = {}
+    for name, meta in raw.items():
+        try:
+            member = SkillKind(name)
+        except ValueError as exc:
+            raise KindMetaDomainError(
+                "kind_meta 域的键 %r 不是合法 SkillKind（合法值=%r）"
+                % (name, [m.value for m in SkillKind])) from exc
+        out[member] = meta
+    return out
+
+
+_KIND_META = _read_kind_meta()
 
 # 伤害型 kind（物理/魔法/魔法·X/真伤）
 _DMG_KINDS = {SkillKind.PHYS, SkillKind.MAGI, SkillKind.TRUE}

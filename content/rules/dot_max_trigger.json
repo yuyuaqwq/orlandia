@@ -1,0 +1,23 @@
+{
+  "bleed": {
+    "max": 5
+  },
+  "burn": {
+    "max": 5
+  },
+  "corros": {
+    "max": 5
+  },
+  "freeze": {
+    "max": 2
+  },
+  "poison": {
+    "max": 5
+  },
+  "sleep": {
+    "max": 2
+  },
+  "stun": {
+    "max": 2
+  }
+}

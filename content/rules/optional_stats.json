@@ -1,0 +1,29 @@
+{
+  "OPTIONAL_STATS": {
+    "keys": [
+      "lifesteal",
+      "crit_dmg",
+      "block",
+      "thorns",
+      "phys_reduce",
+      "magic_reduce",
+      "lifesteal_phys",
+      "lifesteal_magi",
+      "summon_power",
+      "pene_flat",
+      "pene_mflat",
+      "pene_phys",
+      "pene_magi",
+      "tenacity",
+      "luck",
+      "cdr",
+      "elem_res",
+      "abyss_res",
+      "exp_bonus",
+      "gold_bonus",
+      "heal_power",
+      "shield_power",
+      "precise"
+    ]
+  }
+}

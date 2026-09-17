@@ -65,6 +65,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 
@@ -114,6 +115,30 @@ EFFECT_RULES = _cat_rules.EFFECT_RULES
 # ★ L7（2026-09-15）：技能详情「特效」汉化表的真源 = 包内 `content/combat_cmds.py` 的
 #   **模块级** `_EFFECT_CN`（原为宿主 `CombatCmds` 类属性，绑壳读不到 ⇒ 线上 AttributeError）。
 from . import combat_cmds as _combat_cmds_mod   # noqa: E402
+
+
+# ★ D9：注册性别输入别名映射（原 `register` 函数内字面量）→ 包内域
+#   `content/data/gender_aliases.json`（键序 = 表内序）
+_HERE = os.path.dirname(os.path.abspath(__file__))              # <pkg>/content
+_DATA_DIR = os.path.join(_HERE, "data")                         # <pkg>/content/data
+
+
+def _read_json(name: str, default):
+    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
+    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
+    try:
+        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                        # noqa: BLE001
+        return default
+
+
+_GENDER_TBL = _read_json("gender_aliases.json", {})
+_GENDER_ALIASES = _GENDER_TBL.get("gender_aliases") if isinstance(_GENDER_TBL, dict) else None
+if not isinstance(_GENDER_ALIASES, dict) or not _GENDER_ALIASES:
+    raise RuntimeError(
+        "gender_aliases 域缺 / 空 / 键型不符（content/data/gender_aliases.json"
+        " 应为 {\"gender_aliases\": {...}}）—— 拒绝静默空表")
 
 
 # ============================================================
@@ -344,8 +369,7 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
     #   旧格式 注册 <职业> <名字> [种族] <性别>；新格式 注册 <名字> <性别> [种族]。
     #   种族与性别可任意顺序，种族可省略（默认人类），性别必选（v95.26 强制），
     #   如『注册 格温 女 精灵』『注册 格温 女』『注册 战士 勇者 男』。
-    GENDER_MAP = {"男": "male", "male": "male", "♂": "male", "m": "male",
-                  "女": "female", "female": "female", "♀": "female", "f": "female"}
+    GENDER_MAP = _GENDER_ALIASES   # ★ D9：别名表 = 包内域 content/data/gender_aliases.json
     cls_id = resolve("classes", first)
     class_name = first
     name = rest

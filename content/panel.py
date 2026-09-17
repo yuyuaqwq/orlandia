@@ -26,7 +26,13 @@ saintess_engine/stats.py 的 `_player_base_stats` 消费；纯怪路径不经过
 # 这是引擎 `config.panel_fn` 的**完整版**；包内 `content/apply.py:install_engine()` 挂的就是它
 # （D1 期的线性段切片版 `class_panel` 已删：两份同义实现并存 = 双源）。
 
+import os
+
 from saintess_engine.battle.formulas import skill_learn_cost
+# ★ D5（数据进表 · 去重复拷贝）：本文件两张内联表进包内域（唯一真源 = `editor/domains.json`；
+#   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
+#   读口 = 引擎既有 `records_from_domain`（本包 `catalog_items.py:341` 同款），不新增机制。
+from saintess_engine.records import RecordsDeclarationError, records_from_domain
 
 # ---- 包内来源（原文 6 行 import → 包内等价；本段 + 上面那段说明是**唯一**改动面）----
 from . import tables               # 原文 `from .. import content as C`（游戏仓聚合层 → 包内门面）
@@ -34,6 +40,32 @@ from . import tables               # 原文 `from .. import content as C`（游�
 from .mech.kinds import K_PASSIVE  # 原文 `from ..data.kinds import K_PASSIVE`（2026-09-13 下沉进包）
 from .tables import (BRANCH_BONUS, BRANCH_BONUS_BY_CLASS, PLAYER_BASE_GROWTH, TIER_GROWTH,
                      skill_info)
+
+#: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _domain_table(domain: str) -> dict:
+    """读一个包内域（D5 搬入的两张表用）→ 按名查值映射（fail-closed，不静默给空表）。
+
+    域元数据唯一源 = 包内 `editor/domains.json`；落点由声明的 `kind` 派生（不手抄路径）。
+    D5 两张表的落盘形是编辑器口径的条目表 `{id: {"name": …, "value": …}}` ⇒ 这里**只剥那一层壳**。
+    `RecordsDeclarationError` 由引擎在「域未声明 / 文件不在盘上 / 落点与声明不符」时抛；
+    `bad_json` 由引擎显式降级为空表 + `problems` 留痕 ⇒ 这里**再点名抛一次**
+    （空表会让面板属性名静默回落到英文键、被动映射静默失效 —— 同 `content/config.py:_read_table` 口径）。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain)
+    table = rec.all()
+    if rec.missing or rec.problems or not isinstance(table, dict) or not table:
+        raise RecordsDeclarationError(
+            "D5 域 %r 读不到内容（空表/坏 JSON）：missing=%r problems=%r"
+            % (domain, rec.missing, rec.problems[:3]))
+    for k, e in table.items():
+        if not isinstance(e, dict) or "value" not in e:
+            raise RecordsDeclarationError(
+                "D5 域 %r 的条目 %r 形状不是 {name, value}：%r" % (domain, k, e))
+    return {k: e["value"] for k, e in table.items()}
+
 
 
 # ============================================================
@@ -109,39 +141,16 @@ def player_final_stats(class_name: str, level: int, equipment: dict, tier: int =
 # 被动 stat → (bonus_key, 操作, 需 cond is None)
 # 不在表内的 stat：条件型(rage>=5/battle_start/dual_stat) 与战斗内机制(chi_gain/proc 型) 由 battle.py 结算，面板不处理
 # （v109.2：dual_stat 双修精通在 battle.py:1582 按 cond 查，fire 已改 proc fire_bonus）
-_PASSIVE_STAT_APPLY = {
-    "mp":   ("mp_mult", "mul", True),   # 原代码特判：mp 仅在无 cond 时结算
-    "spd":  ("spd_mult", "mul", False),
-    "crit": ("crit_add", "add", False),
-    # v106.1：冷却缩减被动支持（面板结算 + 战斗内 _set_skill_cd 消费）
-    "cdr":  ("cdr_add", "add", False),
-    # v106.2：穿透被动支持（战斗内乘算合成，职业特色渠道）
-    "pene_phys": ("pene_phys_add", "add", False),
-    "pene_magi": ("pene_magi_add", "add", False),
-    # v106.3：吸血/暴击伤害/格挡被动支持（面板结算 + 战斗内消费）
-    "lifesteal": ("lifesteal_add", "add", False),
-    "crit_dmg": ("crit_dmg_add", "add", False),
-    "block": ("block_add", "add", False),
-    # v106.4：反伤/物魔免/物法吸被动支持
-    "thorns": ("thorns_add", "add", False),
-    "phys_reduce": ("phys_reduce_add", "add", False),
-    "magic_reduce": ("magic_reduce_add", "add", False),
-    "lifesteal_phys": ("lifesteal_phys_add", "add", False),
-    "lifesteal_magi": ("lifesteal_magi_add", "add", False),
-    # v107 隐藏职业专属属性被动支持（面板结算 + 战斗内消费）
-    # v109.2 清理：shield_power/abyss_res 无对应被动技能（skills.py 零使用），
-    # 保留 elem_res/luck/summon_power（龙魂/星辰之力/万兽之力，P0-2 已实装）
-    "elem_res": ("elem_res_add", "add", False),
-    "luck": ("luck_add", "add", False),
-    "summon_power": ("summon_power_add", "add", False),
-    # v113.1 修复：时咒线依赖的 heal_power（牧师一转觉醒被动「圣光祝福」）与
-    # dodge（游侠一转觉醒被动「风之加护」）此前无映射 → 觉醒被动完全无效。
-    "heal_power": ("heal_power_add", "add", False),
-    "dodge": ("dodge_add", "add", False),
-    # v134.1 意见#45：速度→暴击转化被动（游侠/刺客"疾风之眼"）——spd_crit 系数含义：
-    #   每点速度 +0.001×mult 暴击（mult=0.1 → 每10点速度+1%），受 PCT_CAPS.crit 0.5 约束
-    "spd_crit": ("spd_crit_add", "add", False),
-}
+# ★ D5：20 行映射表 → 包内 `content/rules/passive_stat_apply.json` 域（装载期 fail-closed）。
+#   域文件是编辑器口径的条目表 `{stat: {"name": stat, "value": [bonus_key, op, need_cond_none]}}`。
+#   ★ 条目 id **必须是 stat 本身**（收口修正）：读点 = 下一行的 `.get(ps["stat"])` 按名查值，
+#   而 `_domain_table` 交回 `{条目 id: value}` —— 条目 id 取序号（`psa_NN`）会让 20 个 stat 全 miss、
+#   被动静默失效。本表按名查值、无迭代读点（AST 扫全包仅 `:182` 一处 `.get`）⇒ 键序不可观测，
+#   故按名升序落盘（同批 `slot_aliases`/`stat_names` 同款口径），不再用序号承载「插入序」。
+#   JSON 没有元组（原三元组落盘成 list）⇒ 读口**还原成元组**（D-BATCH §2.1「tuple/list 之别，
+#   不还原 = 静默错值」）后再交给消费点；`.get(stat)` + `key, op, need_cond_none = rule` 解包
+#   与源逐字等价（值/类型/序 三者对拍 diff 为空，见 `out/raw/05_diff_sorted.txt`）。
+_PASSIVE_STAT_APPLY: dict = {k: tuple(v) for k, v in _domain_table("passive_stat_apply").items()}
 
 
 def player_passive_stats(class_name: str, learned_skills: list | None = None) -> dict:
@@ -256,17 +265,11 @@ def is_passive_learned(class_name: str, passive_name: str, learned_skills: list 
 
 
 # 属性中文名（面板/来源展示用）
-STAT_NAMES = {"hp": "生命", "mp": "魔力", "atk": "攻击", "def": "防御", "matk": "魔攻",
-              "mdef": "魔防", "spd": "速度", "crit": "暴击", "dodge": "闪避", "precise": "精准",
-              "pene_phys": "物穿", "pene_magi": "法穿", "pene_flat": "固定物穿", "pene_mflat": "固定法穿",
-              "tenacity": "韧性", "luck": "幸运",  # v106 穿透/韧性/幸运
-              "cdr": "冷却缩减", "elem_res": "元素抗性", "abyss_res": "深渊抗性",
-              "exp_bonus": "经验加成", "gold_bonus": "金币加成",  # v106.1 冷却/抗性/成长
-              "heal_power": "治疗强度", "shield_power": "护盾强度",
-              "lifesteal": "吸血", "crit_dmg": "暴击伤害", "block": "格挡",
-              "thorns": "反伤", "phys_reduce": "物免", "magic_reduce": "魔免",
-              "lifesteal_phys": "物吸", "lifesteal_magi": "法吸",
-              "summon_power": "召唤强化"}  # v106.3/v106.4 + v107 召唤
+# ★ D5（数据进表 · 去重复拷贝）：本表与 `content/economy_cmds.py:142 _STAT_NAMES` 是**同一张
+#   32 键属性名表的两份拷贝**（逐键逐值相等；仅前 6 键序不同，实测见 `out/raw/02_merge_proof.json`）。
+#   现合为**一份**：单源 = 包内 `content/data/stat_names.json` 域（装载期 fail-closed）；
+#   两处读口（本文件 + economy_cmds 的 `_STAT_NAMES` 别名）取同一对象（`same_object=True` 有留档）。
+STAT_NAMES: dict = _domain_table("stat_names")
 
 
 def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int = 0, attributes: dict = None, evolve_path: int = 0, title_bonus: dict = None, race: str = None, learned_skills: list | None = None) -> tuple:

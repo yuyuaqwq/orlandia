@@ -1,0 +1,130 @@
+{
+  "abyss_res": {
+    "name": "深渊抗性",
+    "value": "深渊抗性"
+  },
+  "atk": {
+    "name": "攻击",
+    "value": "攻击"
+  },
+  "block": {
+    "name": "格挡",
+    "value": "格挡"
+  },
+  "cdr": {
+    "name": "冷却缩减",
+    "value": "冷却缩减"
+  },
+  "crit": {
+    "name": "暴击",
+    "value": "暴击"
+  },
+  "crit_dmg": {
+    "name": "暴击伤害",
+    "value": "暴击伤害"
+  },
+  "def": {
+    "name": "防御",
+    "value": "防御"
+  },
+  "dodge": {
+    "name": "闪避",
+    "value": "闪避"
+  },
+  "elem_res": {
+    "name": "元素抗性",
+    "value": "元素抗性"
+  },
+  "exp_bonus": {
+    "name": "经验加成",
+    "value": "经验加成"
+  },
+  "gold_bonus": {
+    "name": "金币加成",
+    "value": "金币加成"
+  },
+  "heal_power": {
+    "name": "治疗强度",
+    "value": "治疗强度"
+  },
+  "hp": {
+    "name": "生命",
+    "value": "生命"
+  },
+  "lifesteal": {
+    "name": "吸血",
+    "value": "吸血"
+  },
+  "lifesteal_magi": {
+    "name": "法吸",
+    "value": "法吸"
+  },
+  "lifesteal_phys": {
+    "name": "物吸",
+    "value": "物吸"
+  },
+  "luck": {
+    "name": "幸运",
+    "value": "幸运"
+  },
+  "magic_reduce": {
+    "name": "魔免",
+    "value": "魔免"
+  },
+  "matk": {
+    "name": "魔攻",
+    "value": "魔攻"
+  },
+  "mdef": {
+    "name": "魔防",
+    "value": "魔防"
+  },
+  "mp": {
+    "name": "魔力",
+    "value": "魔力"
+  },
+  "pene_flat": {
+    "name": "固定物穿",
+    "value": "固定物穿"
+  },
+  "pene_magi": {
+    "name": "法穿",
+    "value": "法穿"
+  },
+  "pene_mflat": {
+    "name": "固定法穿",
+    "value": "固定法穿"
+  },
+  "pene_phys": {
+    "name": "物穿",
+    "value": "物穿"
+  },
+  "phys_reduce": {
+    "name": "物免",
+    "value": "物免"
+  },
+  "precise": {
+    "name": "精准",
+    "value": "精准"
+  },
+  "shield_power": {
+    "name": "护盾强度",
+    "value": "护盾强度"
+  },
+  "spd": {
+    "name": "速度",
+    "value": "速度"
+  },
+  "summon_power": {
+    "name": "召唤强化",
+    "value": "召唤强化"
+  },
+  "tenacity": {
+    "name": "韧性",
+    "value": "韧性"
+  },
+  "thorns": {
+    "name": "反伤",
+    "value": "反伤"
+  }
+}

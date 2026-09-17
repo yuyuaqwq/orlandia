@@ -3280,6 +3280,42 @@
       "winter_lake"
     ]
   },
+  "mech_cash": {
+    "keys": [
+      "finisher",
+      "zhan_yi_fury",
+      "arcane_burst",
+      "guard_core_burst",
+      "element_burst_all",
+      "element_burst_3",
+      "poison_burst",
+      "poison_burst_finisher",
+      "faith_unload"
+    ]
+  },
+  "mech_cfg_class": {
+    "keys": [
+      "assassin_combo",
+      "shadow_step",
+      "echo",
+      "full_tension",
+      "blood_debt_gain",
+      "branch_resources",
+      "chi_hold_dmg"
+    ]
+  },
+  "mech_cfg_core": {
+    "keys": [
+      "dot",
+      "mech_stack",
+      "buff",
+      "element",
+      "crit",
+      "ctrl",
+      "boss",
+      "enemy_bar"
+    ]
+  },
   "monster_mods": {
     "keys": [
       "m_wild_dog",

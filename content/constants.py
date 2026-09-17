@@ -18,12 +18,17 @@ v181.P2B），外加唯一函数 `prof_exp_need`。宿主 `game/core/constants.p
   ④ V3（2026-09-16）**删整块 CTB 行动耗时死常量**（`BASE_DELAY` / `SPD_CT_CAP` / `SPD_REF` /
      `CAST_*` 共 10 个，全包零消费）：公式形状 + 参数改由包内数据单源给
      （`content/rules/game_config.json` → `formula_skeleton.TIME_MODEL`）。见下方原址注释。
+  ⑤ ★ D1（2026-09-17「数据进表」）：`OPTIONAL_STATS`（23 项，tuple）/ `DOT_MAX_TRIGGER`（7 档）
+     两张**规则词表**的字面量进包内域 `content/rules/optional_stats.json` /
+     `content/rules/dot_max_trigger.json`，本文件只留读口（见 §①b；值与键序逐名对拍 diff 为空）。
 
 缺口（报告登记）：`FORMULA_SKELETON`（宿主句柄，待 B14）；其余常量（约 50 个）是纯值，随本文件
 进包后宿主只剩再导出——`scripts/export_game_package.py:684/:2511` 读 `game.core.constants` 的
 `SUB_TYPE_*` / `PCT_STATS` / `PCT_CAPS` / `PENE_PCT_STATS`，走薄壳再导出后语义不变（已实测
 `--domain panel_rules --check` 与 `--domain maps --check` 同值）。
 """
+
+import os
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -36,6 +41,27 @@ _WIRE = Wire()
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db` / `data`）。"""
     _WIRE.bind(**objs)
+
+
+# ============================================================
+# ①b 包内域读口（★ D1 2026-09-17「数据进表」）
+# ------------------------------------------------------------
+# 本文件两张**规则词表**的原字面量随本批搬进包内域（本文件不再留第二份数值）：
+#   · `OPTIONAL_STATS`（23 项可选属性名，源侧 **tuple**）→ `content/rules/optional_stats.json`
+#     （域 id `optional_stats` / kind=rules）；有序清单走引擎**序声明读口** `orders_of`。
+#   · `DOT_MAX_TRIGGER`（7 档 DOT 每场上限）→ `content/rules/dot_max_trigger.json`
+#     （域 id `dot_max_trigger` / kind=rules）。
+# 域元数据唯一源 = 包内 `editor/domains.json`：缺声明 / 缺文件 / 声明与磁盘不符 →
+# 装载期 `RecordsDeclarationError`（不静默空表）。类型 / 序还原见两处读口注释。
+# ============================================================
+from saintess_engine.records import orders_of, set_from_domains  # noqa: E402
+
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # <pkg>
+# DOT 档位表的**真源插入序**（域文件外层键按落盘规范是字典序 ⇒ 顺序只能显式声明；
+# 键集与这份声明不一致 → `RecordsOrderMismatch`：拒绝静默改序、拒绝静默漏项）。
+_DOT_MAX_TRIGGER_ORDER = ("poison", "burn", "bleed", "corros", "freeze", "stun", "sleep")
+_R = set_from_domains(_PKG_ROOT, ("dot_max_trigger",),
+                      overrides={"dot_max_trigger": {"order": _DOT_MAX_TRIGGER_ORDER}})
 
 
 # -*- coding: utf-8 -*-
@@ -140,14 +166,12 @@ from .tables import CLASS_NOVICE  # noqa: E402  见习冒险者（行会就职�
 #   解 `content/rules/panel_rules.json` 的 `pct_caps`；值实测逐项相同）。再导出在文件末尾。
 
 # v106.4：特殊属性——面板 0 时不显示，有加成才显示（防面板爆炸，鱼鱼拍板）
-OPTIONAL_STATS = ("lifesteal", "crit_dmg", "block", "thorns", "phys_reduce", "magic_reduce",
-                  "lifesteal_phys", "lifesteal_magi", "summon_power",
-                  "pene_flat", "pene_mflat",  # v109.2 固定穿透 0 隐藏
-                  # v109.2 P1-5：0 值隐藏推广到全部特殊属性（防面板 13 行 0 值爆炸）
-                  "pene_phys", "pene_magi", "tenacity", "luck", "cdr",
-                  "elem_res", "abyss_res", "exp_bonus", "gold_bonus",
-                  "heal_power", "shield_power",
-                  "precise")  # v110 P2：精准 0 值隐藏收尾（与 P1-5 同规则）
+# ★ D1（2026-09-17「数据进表」）：23 项字面量随本批进包内域 `content/rules/optional_stats.json`
+#   （域 id `optional_stats` / kind=rules；条目 `OPTIONAL_STATS.keys` = 原插入序），本文件只留读口。
+#   类型还原：源侧是 **tuple**（JSON 只有 array）→ 读口 `tuple(...)`；缺域 / 缺条目 /
+#   形状不是 `{keys: [...]}` → 装载期 `RecordsDeclarationError` 点名（不静默给空词表）。
+#   （原行内注释保留在域侧语义：v109.2 固定穿透 0 隐藏 / v109.2 P1-5 推广 / v110 P2 精准收尾）
+OPTIONAL_STATS: tuple = tuple(orders_of(_PKG_ROOT, "OPTIONAL_STATS", domain="optional_stats"))
 
 # v106：百分比穿透属性（多来源乘算合成 1-Π(1-pᵢ)，不加法）
 # ★ B13-L6：原字面量随文件进包即删 → 改读包内读口（`content/tables.py:103`，解同 JSON 的
@@ -214,11 +238,36 @@ from .mech.we_data import ACT_TICK  # noqa: E402  1 刻 = 1.0 时刻 = 1 游戏�
 #         防极端构筑把异常乘区叠爆（对应 v133 峰值红线 40% 精神）
 DOT_THRESHOLD_MULT = 1.3                   # 律一：阈值递增倍率（每次触发后 ×1.3）
 DOT_THRESHOLD_CAP = 3.0                    # 律一：阈值封顶（相对首触基准 ×3.0，防无限复读被倍率反噬）
-DOT_MAX_TRIGGER = {                        # 律二：每场上限（达上限置饱和标记）
-    "poison": 5, "burn": 5, "bleed": 5,    #   伤害类 5 次：单轴输出天花板，配合层数上限 5 层双保险
-    "corros": 5,                           #   腐蚀（真伤轴）同样 5 次，与伤害类对齐
-    "freeze": 2, "stun": 2, "sleep": 2,    #   控制类 2 次：Boss 每场最多被控 2 次，永不被锁死
-}
+
+
+def _dot_max_trigger_load() -> dict:
+    """`dot_max_trigger` 域 → 真源同形的 `{str 异常键: int 每场上限}`（保真源插入序）。
+
+    律二（每场上限 + 饱和）的档位表。值型还原：JSON 数字已是 int（`true`/`false` 才是 bool，
+    这里显式排掉，防 0/1 与布尔混淆）；键序由 §①b 的 `order` 声明还原（域文件是字典序）。
+    读不到 / 空表 / 条目形状不对 → raise 点名（不许静默给空表 —— 饱和上限会静默全失效）。
+    """
+    raw = _R.dot_max_trigger.all()
+    if not raw:
+        raise RuntimeError(
+            "dot_max_trigger 域读不到内容：%s —— 缺表即报错，不许静默空表（饱和上限会静默全失效）"
+            % _R.dot_max_trigger.path)
+    out: dict = {}
+    for k, ent in raw.items():
+        if (not isinstance(ent, dict) or not isinstance(ent.get("max"), int)
+                or isinstance(ent.get("max"), bool)):
+            raise RuntimeError(
+                "dot_max_trigger 域条目 %r 形状/值型不对（须为 {max: <int>}）：%s"
+                % (k, _R.dot_max_trigger.path))
+        out[k] = ent["max"]
+    return out
+
+
+DOT_MAX_TRIGGER: dict = _dot_max_trigger_load()   # 律二：每场上限（达上限置饱和标记）
+#   原表行内注释（数值语义随表进域，注释留在原址供对读）：
+#     伤害类 poison/burn/bleed 5 次：单轴输出天花板，配合层数上限 5 层双保险
+#     腐蚀 corros（真伤轴）同样 5 次，与伤害类对齐
+#     控制类 freeze/stun/sleep 2 次：Boss 每场最多被控 2 次，永不被锁死
 DOT_PRESERVE_PCT = 0.5                     # 律三：跨阶段保留比例（层数保留 50%，向下取整）
 DOT_PRESERVE_THRESHOLD_BONUS = 0.15        # 律三：跨阶段阈值 +15%（新阶段对同一异常略微更抗）
 DOT_SATURATE_MULT = 0.8                    # 律五：饱和后乘区收敛倍率（逐次 ×0.8，指数衰减防叠爆）
@@ -228,7 +277,8 @@ def prof_exp_need(lv):
     """副业升级经验需求（v105 平衡曲线）：need(lv) = 5*lv² + 15*lv
 
     P2F-1：系数 a/b 进 data/formula_skeleton.py（FORMULA_SKELETON["prof_exp_need"]，默认 a=5/b=15）。
-    函数本体留在 core/constants.py（全文件唯一函数待后续清理批）；延迟导入防装配期循环
+    函数本体留在 core/constants.py（全文件唯一**业务**函数待后续清理批；D1 起另有域读口私有
+    helper `_dot_max_trigger_load`，随 `dot_max_trigger` 域一起进来）；延迟导入防装配期循环
     （data._assembly → core.maps → 本模块 时 game.data 尚未完成初始化，同 skill_flat_value 式函数内导入）
     设计意图（2026-08-13 鱼鱼拍板"无脑 x20 不合适"）：
     - 累计 2100 满级（原线性累计 900，无脑 x20 前期过快后期无爬升感）

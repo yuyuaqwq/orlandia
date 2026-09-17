@@ -19,6 +19,7 @@ import asyncio
 import functools
 import inspect
 import json
+import os
 import random
 import re
 import time
@@ -41,6 +42,37 @@ from . import wild as _wild          # B14-3：`ALL_WILD` 派生读口（content
 from . import reroll as _reroll      # V2 批新增：『重铸』数值/规则面（content/reroll.py）
 from .panel import STAT_NAMES  # 既有读口（原 `_HostRef("STAT_NAMES")`，门禁证明与宿主面同值同序）
 from ._pkgref import HANDLES   # ★ R2（终态补债）：库路径真源 `content/persistence/handles.db_path()`
+# ★ D5（数据进表）：本文件内联字面量表 → 包内域文件（唯一真源 = `editor/domains.json`；
+#   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
+#   读口 = 引擎既有 `records_from_domain`（本包 `catalog_items.py:341` 同款），不新增机制。
+from saintess_engine.records import RecordsDeclarationError, records_from_domain
+
+#: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _domain_table(domain: str, *, keep_entries: bool = False) -> dict:
+    """读一个包内域（D5 搬入的两张表用）→ 按名查值映射（fail-closed；`keep_entries` 留条目壳）。
+
+    域元数据唯一源 = 包内 `editor/domains.json`；落点由声明的 `kind` 派生（不手抄路径）。
+    D5 四个域的落盘形是编辑器口径的条目表 `{id: {"name": …, "value": …}}`（`affix_feature_rules`
+    的行序由条目 id 的前导序号承载）⇒ 缺省**只剥那一层壳**，值一字不改；`keep_entries=True`
+    返回原条目壳（需要 `name`/行序的读点用）。
+    缺键/形状不符 = 报错点名（空表会让三处部位解析 / 词条特色静默失效，比报错难查得多）。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain)
+    table = rec.all()
+    if rec.missing or rec.problems or not isinstance(table, dict) or not table:
+        raise RecordsDeclarationError(
+            "D5 域 %r 读不到内容（空表/坏 JSON）：missing=%r problems=%r"
+            % (domain, rec.missing, rec.problems[:3]))
+    for k, e in table.items():
+        if not isinstance(e, dict) or "value" not in e:
+            raise RecordsDeclarationError(
+                "D5 域 %r 的条目 %r 形状不是 {name, value}：%r" % (domain, k, e))
+    return table if keep_entries else {k: e["value"] for k, e in table.items()}
+
+
 # ★ R2（终态补债）：`db.DB_PATH` → `HANDLES.db_path()`。`db` 是宿主面 `_HostRef("db")`：
 #   旧路径拿到宿主 `game.db`（有 `DB_PATH` 常量），终态（bind 在位）拿到包内
 #   `content.persistence`（**故意不导出 `DB_PATH`**，真源 = `handles.db_path()`，见该包
@@ -53,6 +85,13 @@ from saintess_engine.presence import Lookup
 _WILD_NPCS_LOOKUP = Lookup(_cquest.WILD_NPCS)
 #: 行商行取用口（真源 = `ALL_WILD`，与旧 `_wild.ALL_WILD.get(id, {})` 同表同口径）
 _ALL_WILD_LOOKUP = Lookup(_wild.ALL_WILD)
+
+# ★ D5：部位中文别名 → 内部 id —— 三处（原 `_slot_map` / `_slot_map_c` / `_slot_map0` 各自内联
+#   一份**逐键逐序相等**的字面量，实测见 `out/raw/02_merge_proof.json`）合为**一张域**。
+#   域文件是编辑器口径的条目表 `{别名: {"name": 别名, "value": 部位 id}}`（外层键升序 = 落盘规范；
+#   别名→id 是**按名查值**，读点只 `.update()`，无迭代 ⇒ 键序不可观测）；`_domain_table` 已剥壳。
+#   三处仍是「按部位名反查的 `_b143.EQUIP_SLOTS` 反表 + 别名合并」。
+_SLOT_ALIASES: dict = _domain_table("slot_aliases")
 
 # ---- 宿主面（宿主壳 bind_host() 注入；顺序铁律见 economy_host 模块头）----
 C = _HostRef("C")
@@ -139,47 +178,28 @@ def _item_kind_type(t):
 # 原 item_detail 内 6 分支 if-elif 硬编码：加新物品类型 = 注册一个渲染函数
 # v89 汉化补全：与 engine.STAT_NAMES 同源全量属性名（原表仅 9 键 → 打造/掉落装备
 # 的 precise/lifesteal/crit_dmg/物魔免等属性键英文泄漏「属性 · precise + 10%」）
-_STAT_NAMES = {"atk": "攻击", "def": "防御", "matk": "魔攻", "mdef": "魔防",
-              "hp": "生命", "mp": "魔力", "spd": "速度", "crit": "暴击", "dodge": "闪避",
-              "precise": "精准", "pene_phys": "物穿", "pene_magi": "法穿",
-              "pene_flat": "固定物穿", "pene_mflat": "固定法穿",
-              "tenacity": "韧性", "luck": "幸运",
-              "cdr": "冷却缩减", "elem_res": "元素抗性", "abyss_res": "深渊抗性",
-              "exp_bonus": "经验加成", "gold_bonus": "金币加成",
-              "heal_power": "治疗强度", "shield_power": "护盾强度",
-              "lifesteal": "吸血", "crit_dmg": "暴击伤害", "block": "格挡",
-              "thorns": "反伤", "phys_reduce": "物免", "magic_reduce": "魔免",
-              "lifesteal_phys": "物吸", "lifesteal_magi": "法吸",
-              "summon_power": "召唤强化"}
+# ★ D5（数据进表 · 去重复拷贝）：本文件原 `_STAT_NAMES` 与 `content/panel.py:259 STAT_NAMES`
+#   是**同一张 32 键属性名表的两份拷贝**（逐键逐值相等；仅前 6 键序不同，实测见
+#   `out/raw/02_merge_proof.json`）。现合为**一份**：单源 = 包内 `content/data/stat_names.json`
+#   域，读口 = `content/panel.py`（本文件上面已 `from .panel import STAT_NAMES`），
+#   本名保留为**别名**（8 处读点不动；表是 dict 查值/成员判定，无迭代 → 序无行为差异）。
+_STAT_NAMES = STAT_NAMES
 _REQ_NAMES = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
 
 
 
 # v135 装备特色增强：词条特色标签（装备详情面板展示）
 # 按词条 trigger/effect 关键词归类，让玩家一眼看出这件装备的战斗性格
-_AFFIX_FEATURE_RULES = [
-    ("吸血", ("lifesteal", "lifesteal_phys", "lifesteal_magi", "thirst_phys", "thirst_magi", "血")),
-    ("破甲", ("armor_break", "pierce", "pene_", "破")),
-    ("连击", ("combo", "charge", "连")),
-    ("元素", ("element_", "元素", "冰", "雷", "火")),
-    ("护盾", ("shield", "护盾", "坚盾")),
-    ("减速", ("slow", "减速", "冰")),
-    ("暴击", ("crit", "暴击")),
-    ("闪避", ("dodge", "闪避")),
-    ("格挡", ("block", "格挡")),
-    ("反伤", ("thorns", "反伤")),
-    ("吸血", ("lifesteal", "血")),
-    ("回春", ("regen", "回春")),
-    ("冥想", ("meditate", "冥想")),
-    ("韧性", ("tenacity", "韧性")),
-    ("迅捷", ("swift", "迅捷", "速度")),
-    ("减伤", ("dmg_reduce", "phys_reduce", "magic_reduce", "减伤", "免伤")),
-    ("处决", ("execute", "处决")),
-    ("追猎", ("hunt", "追猎", "标记")),
-    ("破魔", ("break_magic", "破魔")),
-    ("龙威", ("dragon_aw", "龙威")),
-    ("成长", ("exp_bonus", "gold_bonus", "luck", "求知", "聚宝", "幸运")),
-]
+# ★ D5：21 行规则表 → 包内 `content/rules/affix_feature_rules.json` 域（读口 = 引擎既有
+#   `records_from_domain`，装载期 fail-closed）。域文件是编辑器口径的条目表
+#   `{"00_吸血": {"name": "吸血", "value": [关键词, …]}}`（条目 id 前导序号承载**行序**，
+#   键升序即行序 ⇒ 落盘规范与序两全）；读口按 id 升序还原源行序。JSON 无元组 ⇒ 原内层
+#   tuple 落盘成 list，读口**还原成元组**（D-BATCH §2.1「tuple/list 之别，不还原 = 静默错值」），
+#   与源逐字等价（消费点只 `for label, keys in …` 迭代）。
+_AFFIX_FEATURE_RULES = [(e.get("name"), tuple(e.get("value") or ()))
+                        for _, e in sorted(_domain_table("affix_feature_rules",
+                                                         keep_entries=True).items())]
+
 
 
 def _equip_affix_features(d: dict) -> list:
@@ -4891,11 +4911,9 @@ class EconomyImpl(CommandBase):
         if len(_parts) >= 2:
             _slot_word = _parts[1]
             # 部位别名（含"装备 头盔"里用户可能带"部"字等）
+            # ★ D5：三处 `_slot_map*` 内联的 17 别名合并为单源域 `slot_aliases`（键序逐位不变）
             _slot_map = {v: k for k, v in _slot_cn.items()}
-            _slot_map.update({"武器": "weapon", "头盔": "helm", "帽子": "helm", "头": "helm",
-                              "胸甲": "armor", "护甲": "armor", "衣服": "armor", "衣": "armor",
-                              "护腿": "legs", "腿": "legs", "靴子": "boots", "鞋": "boots", "靴": "boots",
-                              "戒指": "ring", "戒": "ring", "项链": "necklace", "链": "necklace"})
+            _slot_map.update(_SLOT_ALIASES)
             _slot = _slot_map.get(_slot_word)
             if len(_parts) >= 3 and _parts[2].isdigit():
                 _page = max(1, int(_parts[2]))
@@ -5506,11 +5524,9 @@ class EconomyImpl(CommandBase):
             if _lst_cmd.startswith("百科装备 "):
                 _parts_cmd = _lst_cmd.split()
                 if len(_parts_cmd) >= 2:
+                    # ★ D5：同 `_slot_map`（合并前与 `_slot_map0`/`_slot_map` 逐键逐序相等）
                     _slot_map_c = {v: k for k, v in _b143.EQUIP_SLOTS.items()}
-                    _slot_map_c.update({"武器": "weapon", "头盔": "helm", "帽子": "helm", "头": "helm",
-                                        "胸甲": "armor", "护甲": "armor", "衣服": "armor", "衣": "armor",
-                                        "护腿": "legs", "腿": "legs", "靴子": "boots", "鞋": "boots", "靴": "boots",
-                                        "戒指": "ring", "戒": "ring", "项链": "necklace", "链": "necklace"})
+                    _slot_map_c.update(_SLOT_ALIASES)
                     _slot_c = _slot_map_c.get(_parts_cmd[1])
                     _attr_cn3 = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
                     if _slot_c:
@@ -5552,11 +5568,9 @@ class EconomyImpl(CommandBase):
             # 原实现部位词检查在背包查找之后，注释说"优先"实际不优先（背包有同名项链先背包命中）。
             # 玩家意图：部位词=看身上装备；背包同名物品用『背包』列表序号或全名查。
             if not item_name.isdigit():
+                # ★ D5：同 `_slot_map`/`_slot_map_c`（合并前三份逐键逐序相等）
                 _slot_map0 = {v: k for k, v in _b143.EQUIP_SLOTS.items()}
-                _slot_map0.update({"武器": "weapon", "头盔": "helm", "帽子": "helm", "头": "helm",
-                                   "胸甲": "armor", "护甲": "armor", "衣服": "armor", "衣": "armor",
-                                   "护腿": "legs", "腿": "legs", "靴子": "boots", "鞋": "boots", "靴": "boots",
-                                   "戒指": "ring", "戒": "ring", "项链": "necklace", "链": "necklace"})
+                _slot_map0.update(_SLOT_ALIASES)
                 _slot_key0 = _slot_map0.get(item_name)
                 if _slot_key0:
                     _worn0 = (player.get("equipment") or {}).get(_slot_key0)

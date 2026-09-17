@@ -1,0 +1,41 @@
+{
+  "EVENT_MAP": {
+    "battle_start": [
+      "battle_start"
+    ],
+    "hit": [
+      "attack_hit",
+      "skill_hit"
+    ],
+    "skill_hit": [
+      "skill_hit"
+    ],
+    "skill_cast": [
+      "act_cast"
+    ],
+    "taken": [
+      "on_taken"
+    ],
+    "heal": [
+      "on_heal"
+    ],
+    "turn_start": [
+      "turn_start"
+    ],
+    "threshold": [
+      "threshold"
+    ],
+    "crit": [
+      "crit"
+    ],
+    "kill": [
+      "on_kill"
+    ],
+    "enemy_act": [
+      "act_done"
+    ],
+    "dot_taken": [
+      "dot_tick"
+    ]
+  }
+}

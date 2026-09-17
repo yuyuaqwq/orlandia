@@ -13,6 +13,8 @@
 """
 from __future__ import annotations
 
+import json
+import os
 import random
 # ---- 包内门面读口（W12 收口：真源顶层 `from ..data import MOUNT_*`）----
 from . import catalog_life as _cl                                  # noqa: E402  MOUNT_BY_KEY（派生索引）
@@ -20,6 +22,19 @@ from .catalog_b143 import MOUNT_DROP_BOSS, MOUNT_DROP_ELITE        # noqa: E402 
 
 from saintess_engine.wire import Wire
 _WIRE = Wire()
+
+_HERE = os.path.dirname(os.path.abspath(__file__))                  # <pkg>/content
+_DATA_DIR = os.path.join(_HERE, "data")                             # <pkg>/content/data
+
+
+def _read_json(name: str, default):
+    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
+    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
+    try:
+        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                        # noqa: BLE001
+        return default
 
 
 def bind_host(**objs):
@@ -63,8 +78,15 @@ def roll_mount_drop(role: str):
 
 
 # 坐骑效果字段（v101.11 新增效果统一入口；加效果 = 数据层加字段 + 本函数加 key + 消费点调用）
-_MOUNT_EFFECT_KEYS = ("discount", "elite_bonus", "stamina_reduce", "sell_bonus",
-                      "collect_bonus", "fish_bonus", "exp_mult")
+# ★ D9：字段键清单进包内域 `content/data/mount_effect_keys.json`（原模块级字面量元组，序 = 表内序）
+_MOUNT_TBL = _read_json("mount_effect_keys.json", {})
+_MOUNT_ENT = _MOUNT_TBL.get("mount_effect_keys") if isinstance(_MOUNT_TBL, dict) else None
+if not isinstance(_MOUNT_ENT, dict) or not isinstance(_MOUNT_ENT.get("keys"), list) \
+        or not _MOUNT_ENT["keys"]:
+    raise RuntimeError(
+        "mount_effect_keys 域缺 / 空 / 键型不符（content/data/mount_effect_keys.json"
+        " 应为 {\"mount_effect_keys\": {\"keys\": [...]}}）—— 拒绝静默空表")
+_MOUNT_EFFECT_KEYS: tuple = tuple(_MOUNT_ENT["keys"])
 
 
 def mount_effects(player: dict) -> dict:

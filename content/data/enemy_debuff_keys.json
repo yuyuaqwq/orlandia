@@ -1,0 +1,13 @@
+{
+  "enemy_debuff_keys": {
+    "keys": [
+      "def_down",
+      "spd_down",
+      "mon_atk_down",
+      "atk_down",
+      "stun",
+      "freeze",
+      "silence"
+    ]
+  }
+}

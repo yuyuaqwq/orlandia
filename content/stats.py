@@ -7,13 +7,16 @@
 `32_数值设计.md`；本文件搬运不涉及任何数值调整）。宿主 `game/core/stats.py` 现在是薄壳
 （全名单再导出，含 17 张数据表名与私有 `_stage_mult`/`_boss_atk_stage`/`_EXP_TABLE`）。
 
-正文改动面（**只有 1 处**：模块级 `from ..data import (…)` 那 17 行取件）：
+正文改动面（2 处）：
+  ① 模块级 `from ..data import (…)` 那 17 行取件：
   真源 `from ..data import (EQUIP_SLOT_BASE, …, ARMOR_FAMILY_ALIAS)`（data 聚合层再导出）
   → ★ B14 收口（2026-09-14）起改为**包内门面**直取（`_cr` = `catalog_rules` 的
      `game_config.stat_templates` 组 / `_c143` = `catalog_b143` 的 equipment 域键）—— 删宿主
      `game/data` 后仍可 import；旧写法（`_HostMod("data")` 逐名绑定）已退场（行内注释一字未动）。
   绑定是**同一对象**（不是拷贝）→ `scripts/numeric_lib/monster.py` 的 `curve_override`
   就地改表（`S.MONSTER_ROLE_GROWTH[role][attr] = val`）依旧生效。
+  ② ★ D1（2026-09-17「数据进表」）：`_EXP_TABLE` 100 档字面量进包内域
+  `content/data/exp_table.json`，本文件只留读口（见 §①b；值与键序逐名对拍 diff 为空）。
 
 缺口（报告登记，均为宿主句柄，待 B14 切包内读口）：
   `MONSTER_ROLE_BASE/GROWTH` · `MONSTER_ROLE_MODS` · `MONSTER_EXP_BASE` · `MONSTER_GOLD_BASE` ·
@@ -23,6 +26,8 @@
   `stats.json` 是面板快照 `lv_N→{level, exp_to_next}`；`monster_mods.json` 是 140 条 Boss 阶段表，
   与 `MONSTER_ROLE_MODS`（role→系数）**不同表**）。
 """
+
+import os
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -35,6 +40,23 @@ _WIRE = Wire()
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db` / `data`）。"""
     _WIRE.bind(**objs)
+
+
+# ============================================================
+# ①b 包内域读口（★ D1 2026-09-17「数据进表」）
+# ------------------------------------------------------------
+# `_EXP_TABLE`（100 档升级经验）原字面量随本批搬进包内域
+# `content/data/exp_table.json`（域 id `exp_table` / kind=data / 100 条 `{exp: int}`）——
+# 本文件不再留第二份数值。读口 = 引擎 records，域元数据唯一源 = 包内 `editor/domains.json`：
+#   · 缺域声明 / 缺文件 / 声明与磁盘不符 → 装载期 `RecordsDeclarationError`（不静默空表）；
+#   · 键是 **int 等级**（JSON 只有字符串键）→ 必须 `key_type=int` 还原：不还原 = 查表恒 miss
+#     ⇒ 整表静默走 `exp_to_next` 的兜底公式（本批点名的类型还原陷阱，同
+#     `content/tables.py:55` 对 `enhance_table` 的写法）。
+# ============================================================
+from saintess_engine.records import set_from_domains  # noqa: E402
+
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # <pkg>
+_R = set_from_domains(_PKG_ROOT, ("exp_table",), overrides={"exp_table": {"key_type": int}})
 
 
 # -*- coding: utf-8 -*-
@@ -272,28 +294,37 @@ def equip_value(stats: dict) -> float:
 #   设计意图：5 阶段成长（新手期轻、成长期递增、中后期爬坡、终局放缓），
 #   配合怪物经验供给，中活跃度玩家约 9~10 个月满级（旧曲线 40-50 天即满级，太平）。
 #   存量兼容：玩家经验按级内进度存储，改需求曲线只影响后续升级，无需动 DB。
-_EXP_TABLE = {
-    1: 2600,     2: 3000,     3: 3500,     4: 4000,     5: 4630,
-    6: 5300,     7: 6100,     8: 7100,     9: 8200,     10: 9409,
-    11: 10400,     12: 11400,     13: 12500,     14: 13800,     15: 15174,
-    16: 17300,     17: 19800,     18: 22600,     19: 25800,     20: 29409,
-    21: 32400,     22: 35600,     23: 39200,     24: 43200,     25: 47569,
-    26: 51300,     27: 55300,     28: 59700,     29: 64400,     30: 69422,
-    31: 74200,     32: 79200,     33: 84600,     34: 90400,     35: 96561,
-    36: 102100,     37: 108000,     38: 114200,     39: 120800,     40: 127693,
-    41: 134800,     42: 142300,     43: 150200,     44: 158500,     45: 167354,
-    46: 175800,     47: 184600,     48: 193900,     49: 203700,     50: 213918,
-    51: 230300,     52: 247900,     53: 266900,     54: 287400,     55: 309359,
-    56: 322700,     57: 336700,     58: 351200,     59: 366400,     60: 382253,
-    61: 397100,     62: 412500,     63: 428600,     64: 445200,     65: 462540,
-    66: 479500,     67: 497100,     68: 515400,     69: 534300,     70: 553894,
-    71: 591300,     72: 631200,     73: 673800,     74: 719300,     75: 767838,
-    76: 792900,     77: 818800,     78: 845500,     79: 873100,     80: 901590,
-    81: 929800,     82: 958900,     83: 989000,     84: 1019900,     85: 1051881,
-    86: 1083400,     87: 1115900,     88: 1149400,     89: 1183900,     90: 1219439,
-    91: 1254200,     92: 1289900,     93: 1326700,     94: 1364500,     95: 1403343,
-    96: 1442000,     97: 1481700,     98: 1522600,     99: 1564500,     100: 1607650,
-}
+# ★ D1（2026-09-17「数据进表」）：上列锚点注释保留（= 曲线设计账）；**100 档数值本体**
+#   已随本批搬进包内域 `content/data/exp_table.json`，本文件不再留第二份（防双源漂移）。
+#   读口见 §①b：`key_type=int` 还原 int 等级键；域文件外层键是字典序（"1"<"10"<"100"…），
+#   下面按**数值升序**重排，还原真源插入序（= 对拍口径的「序」，也是 Lv1→Lv100 的遍历序）。
+
+
+def _exp_table_load() -> dict:
+    """`exp_table` 域 → 真源同形的 `{int 等级: int 经验}`（保序；键型不符 / 空表 → raise）。"""
+    raw = _R.exp_table.all()
+    if not raw:
+        raise RuntimeError(
+            "exp_table 域读不到内容：%s —— 缺表即报错，不许静默空表（exp_to_next 会全表走兜底）"
+            % _R.exp_table.path)
+    bad = [k for k in raw if not isinstance(k, int) or isinstance(k, bool)]
+    if bad:
+        raise RuntimeError(
+            "exp_table 域键型不符（须为 int 等级，`key_type=int` 还原失败）：%r —— %s"
+            % (bad[:5], _R.exp_table.path))
+    out: dict = {}
+    for k in sorted(raw):
+        ent = raw[k]
+        if (not isinstance(ent, dict) or not isinstance(ent.get("exp"), int)
+                or isinstance(ent.get("exp"), bool)):
+            raise RuntimeError(
+                "exp_table 域条目 %r 形状/值型不对（须为 {exp: <int>}）：%s"
+                % (k, _R.exp_table.path))
+        out[k] = ent["exp"]
+    return out
+
+
+_EXP_TABLE: dict = _exp_table_load()
 
 
 def exp_to_next(level: int) -> int:

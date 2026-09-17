@@ -1,0 +1,46 @@
+{
+  "AFFIX_RES_GAIN_ON": {
+    "on_attack": [
+      "attack_hit",
+      {}
+    ],
+    "on_skill": [
+      "skill_hit",
+      {}
+    ],
+    "on_cast": [
+      "act_cast",
+      {
+        "not_basic": true
+      }
+    ],
+    "on_crit": [
+      "crit",
+      {}
+    ],
+    "on_taken": [
+      "on_taken",
+      {}
+    ],
+    "on_heal": [
+      "act_cast",
+      {
+        "kind": "治疗"
+      }
+    ],
+    "battle_start": [
+      "battle_start",
+      {}
+    ],
+    "buff_skill": [
+      "act_cast",
+      {
+        "kind": "增益"
+      }
+    ],
+    "combo_skill": [
+      "skill_hit",
+      {}
+    ]
+  }
+}
