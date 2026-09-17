@@ -12,6 +12,7 @@
 运行：python tests/test_v1303_feedback_fixes.py（exit=0 全绿）
 """
 import os
+import json
 import re
 import sys
 
@@ -129,9 +130,17 @@ async def main():
 
     # ⑤ 技能详情📈（v134.5 重构为「📈 数值成长：」逐级数值；v139 同步断言）
     # 终态：玩家命令实现体在包内 `content/player_cmds.py`（旧宿主壳已薄壳化）
-    src_pl = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "content",
-                               "player_cmds.py"), encoding="utf-8").read()
-    check("技能详情📈当前效果", "📈" in src_pl and ("当前效果" in src_pl or "数值成长" in src_pl))
+    # ★ 2026-09-18 收尾改判：C 档批 10 已把该文案搬进文案表（键 `skill_card.growth_head`），
+    #   源码侧只剩键名 ⇒ 原「源码含 📈/数值成长字面量」断言随迁移自然失效（基线同样红）。
+    #   新判据 = 文案表真源命中该文案 + 实现确实引用这些键（比原字面量扫描更贴终态口径）。
+    _pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src_pl = open(os.path.join(_pkg_root, "content", "player_cmds.py"), encoding="utf-8").read()
+    with open(os.path.join(_pkg_root, "content", "data", "texts.json"), encoding="utf-8") as _fh:
+        _texts_tbl = json.load(_fh)
+    _growth_keys = [k for k, v in _texts_tbl.items()
+                    if isinstance(v, dict) and "数值成长" in str(v.get("value") or "")]
+    check("技能详情📈当前效果",
+          bool(_growth_keys) and all(k in src_pl for k in _growth_keys), _growth_keys[:4])
 
     # ⑥ 注册表同步
     check("注册表含『怪物』键", "monster" in COMMAND_REGEX)

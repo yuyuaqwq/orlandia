@@ -97,8 +97,13 @@ CLASS = {
     "content/world_cmds.py::_render_talk_node": "E",
     "content/world_cmds.py::_apply_talk_action_async": "E",
     "content/world_cmds.py::_apply_talk_action": "E",
-    "content/world_cmds.py::npc_quick_dialog": "E",
-    "content/world_cmds.py::move": "E",
+    # ↓ 2026-09-18 由 E 改判 C：本次审计修复有意改了这两段的实现（非本线接引擎形状）
+    #   · npc_quick_dialog：`talk_choice` 漏传 group_id/qq_id/player ⇒ 生产壳 TypeError、
+    #     对话里回复数字整条挂掉（审计 #12）；修后行为=真能答，故与冻结基线不再相等。
+    #   · move：`inst_row["state"]["inst_id"]` 与地图 id 直比恒 False（副本内移动兼容分支
+    #     实为死代码）；改走 v137 统一口径 `_inst_map_id`。
+    "content/world_cmds.py::npc_quick_dialog": "C",
+    "content/world_cmds.py::move": "C",
     "content/world_cmds.py::time_cmd": "E",
     "content/world_cmds.py::wild_notes": "E",
     # ── C：本线接上引擎形状（Lookup / Presence / minutes_left / Cursor / Dialogue.pick·next_of·is_end）──

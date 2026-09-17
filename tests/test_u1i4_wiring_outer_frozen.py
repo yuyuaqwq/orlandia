@@ -39,6 +39,7 @@ import inspect
 import json
 import os
 import sys
+import tempfile
 import textwrap
 import types
 
@@ -53,8 +54,16 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 # ★ 独立私有库（绝不碰生产 game_data.db）
-os.environ.setdefault("GWEN_GAME_DB", os.path.join(LANE_ROOT, "out", "test_u1i4_outer.db"))
+# 2026-09-18 收尾修：原落点 `LANE_ROOT/out` 是旧「工作区布局」（`<lane>/work/pkg` 三层）；
+#   真仓布局下 LANE_ROOT = `C:\Users` ⇒ `C:\Users\out` 不存在 → sqlite connect 直接
+#   `unable to open database file`，[2] aux 段必崩（改前基线同样红，非本次修复引入）。
+#   私有库改落系统临时目录下自建子目录（不写包目录、不进 git；跑完仍在）。
+_DB_DIR = os.path.join(tempfile.gettempdir(), "gwen_u1i4_outer")
+os.makedirs(_DB_DIR, exist_ok=True)
+os.environ.setdefault("GWEN_GAME_DB", os.path.join(_DB_DIR, "test_u1i4_outer.db"))
 os.environ.setdefault("GWEN_TEST_MODE", "1")
+# 注：`GWEN_FRAMEWORK_DIR` / `GWEN_HOST_DIR` 的旧布局缺省保持不动 —— 真跑时由外层
+# （包仓 tests/run_all_tests.py 或 CI）注入；都没有时 `_paths` 会醒目报错，不静默跳过。
 os.environ.setdefault("GWEN_FRAMEWORK_DIR", os.path.join(LANE_ROOT, "work", "eng"))
 os.environ.setdefault("GWEN_HOST_DIR", os.path.join(LANE_ROOT, "work", "host"))
 _shim = os.path.join(_HERE, "shim_astrbot")
@@ -150,7 +159,7 @@ _PIN = {
         'content/shop.py::apprentice_protect_mats': '12f8e4751608242aa5d9de2daccaf3271edc5b710102db78fa718161216d7141',
         'content/cmds_world.py::quest_view': '7f482f99fa6605b6cca162aa3ad62bd798c270a1e066e0082b5e11669a9e0887',
         'content/economy_cmds.py::shop': '26116239eefc8181717b6d8f520a2a1e5c5ff37cdd1365872b3a8feab870233f',
-        'content/economy_cmds.py::buy': 'b497ca80f824ad6b90adb2da1c57169577740b764e669b21a785e22a022e1b29',
+        'content/economy_cmds.py::buy': 'c58470fbc31e416d343aa363727372259e65af0bb8d3e21cdf9f43ad4345ae33',
         'content/talk_actions.py::action_apprentice_check': '3079da595d629cb8a83530cbfdaf221a85ee971804ae29895c47577748585edc',
         'content/item_templates.py::tpl_teleport_portal': 'f833ca2a3eebd4c0fb13e365a049d0b3f484e906bb80f63c4481e15201cc2bd2',
         'content/combat_cmds.py::roll_wild_encounter': '2c66022b9137474a748b8bfb1135c88e09e7fa6cbcab9214016e95ae786709a1',

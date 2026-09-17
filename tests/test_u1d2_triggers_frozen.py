@@ -42,6 +42,7 @@ import inspect
 import json
 import os
 import sys
+import tempfile
 import types
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -55,7 +56,13 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 # ★ 独立私有库（绝不碰生产 game_data.db）
-os.environ.setdefault("GWEN_GAME_DB", os.path.join(LANE_ROOT, "out", "test_u1d2_L6.db"))
+# 2026-09-18 收尾修：原落点 `LANE_ROOT/out` 是旧「工作区布局」（`<lane>/work/pkg` 三层），
+#   真仓布局下 LANE_ROOT = `C:\Users` ⇒ `C:\Users\out` 不存在 → sqlite connect 直接
+#   `unable to open database file`（单跑必崩；改前基线同样红，非本次修复引入）。
+#   私有库改落系统临时目录下自建子目录（不写包目录、不进 git）。
+_DB_DIR = os.path.join(tempfile.gettempdir(), "gwen_test_u1d2_L6")
+os.makedirs(_DB_DIR, exist_ok=True)
+os.environ.setdefault("GWEN_GAME_DB", os.path.join(_DB_DIR, "test_u1d2_L6.db"))
 os.environ.setdefault("GWEN_TEST_MODE", "1")
 os.environ.setdefault("GWEN_FRAMEWORK_DIR", os.path.join(LANE_ROOT, "work", "eng"))
 os.environ.setdefault("GWEN_HOST_DIR", os.path.join(LANE_ROOT, "work", "host"))
@@ -988,7 +995,10 @@ _D2_MOVED_DATA = "data:content/mech/we_data.py"
 #: ★ 2026-09-17 主线收尾：搬前字面量表的**值面** canonical sha256（键序 + 每格 `repr(值)` + type 名）。
 #: 门禁原本直比 `base/pkg`（那是**线的工作区布局**）；真仓布局没有基线副本 ⇒ 不静默跳过、也不假绿，
 #: 改判这个同源钉值（由交付线的 `base/pkg` 现算，语义与直比等价：只认数据，不认注释/排版）。
-_D2_BASE_VALUE_SHA = "44fc53ce1817875cc92c7603ee4c17666b68f0afe769a8c7cdfa4a48a95ee6fd"
+#: 2026-09-18 重采：we.* 六条「接线即炸」文案修复（残留 `int(float(wd.get(...)))` 表达式 → 槽位
+#: `{pct}`/`{cap}` 化，含兰顿/冰脉的速度百分比同款）落到 `WEAPON_EFFECT_DATA` 的 7 处模板 ⇒ 值面
+#: 随之变；差异经逐行 diff 核对**只**含这 7 处文案（无键序/类型/数值变化）。旧值 44fc53ce…。
+_D2_BASE_VALUE_SHA = "2874519e80b26b731863b4f787a4892eda616c29652f6d68759f69e724d8beb8"
 
 
 def _canon_we_sha(tbl) -> str:

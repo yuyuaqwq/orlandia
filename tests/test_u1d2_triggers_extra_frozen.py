@@ -43,6 +43,7 @@ import inspect
 import json
 import os
 import sys
+import tempfile
 import types
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -55,7 +56,13 @@ LANE_ROOT = os.path.dirname(WORK_ROOT)
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-os.environ.setdefault("GWEN_GAME_DB", os.path.join(LANE_ROOT, "out", "test_u1d2_L7.db"))
+# 2026-09-18 收尾修：原落点 `LANE_ROOT/out` 是旧「工作区布局」（`<lane>/work/pkg` 三层），
+#   真仓布局下 LANE_ROOT = `C:\Users` ⇒ `C:\Users\out` 不存在 → sqlite connect 直接
+#   `unable to open database file`（单跑必崩；改前基线同样红，非本次修复引入）。
+#   私有库改落系统临时目录下自建子目录（不写包目录、不进 git）。
+_DB_DIR = os.path.join(tempfile.gettempdir(), "gwen_test_u1d2_L7")
+os.makedirs(_DB_DIR, exist_ok=True)
+os.environ.setdefault("GWEN_GAME_DB", os.path.join(_DB_DIR, "test_u1d2_L7.db"))
 os.environ.setdefault("GWEN_TEST_MODE", "1")
 os.environ.setdefault("GWEN_FRAMEWORK_DIR", os.path.join(LANE_ROOT, "work", "eng"))
 os.environ.setdefault("GWEN_HOST_DIR", os.path.join(LANE_ROOT, "work", "host"))

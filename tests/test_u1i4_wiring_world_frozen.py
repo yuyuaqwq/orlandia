@@ -43,6 +43,7 @@ import os
 import random
 import re
 import sys
+import tempfile
 import types
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -56,7 +57,13 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 # ★ 独立私有库（绝不碰生产 game_data.db）
-os.environ.setdefault("GWEN_GAME_DB", os.path.join(LANE_ROOT, "out", "test_u1i4_world.db"))
+# 2026-09-18 收尾修：原落点 `LANE_ROOT/out` 是旧「工作区布局」（`<lane>/work/pkg` 三层），
+#   真仓布局下 LANE_ROOT = `C:\Users` ⇒ `C:\Users\out` 不存在 → sqlite connect 直接
+#   `unable to open database file`（单跑必崩；改前基线同样红，非本次修复引入）。
+#   私有库改落系统临时目录下自建子目录（不写包目录、不进 git）。
+_DB_DIR = os.path.join(tempfile.gettempdir(), "gwen_test_u1i4_world")
+os.makedirs(_DB_DIR, exist_ok=True)
+os.environ.setdefault("GWEN_GAME_DB", os.path.join(_DB_DIR, "test_u1i4_world.db"))
 os.environ.setdefault("GWEN_TEST_MODE", "1")
 os.environ.setdefault("GWEN_FRAMEWORK_DIR", os.path.join(LANE_ROOT, "work", "eng"))
 os.environ.setdefault("GWEN_HOST_DIR", os.path.join(LANE_ROOT, "work", "host"))
@@ -194,16 +201,16 @@ _PIN = {
         'content/world_cmds.py::_apply_talk_action_async': '5d112ddfde2e89557a474980dfe998af450e49c73fb4d72ef9b65077e258205b',
         'content/world_cmds.py::_apply_talk_action': '0e9f55287f28d2e08354d2ab539b0d44fa38e16bac38ed7e6b2a97a06ce576f8',
         'content/world_cmds.py::talk_choice': '0a75f311f68aacf015f5041c836b9f04b00b68712fc90d3766caac1a791f077c',
-        'content/world_cmds.py::npc_quick_dialog': 'd2cea7fd1041323fe0822fba1b413094dfc49228c0558d03240e8ed7327fe129',
+        'content/world_cmds.py::npc_quick_dialog': '56ead1fe97f7182d520a3e2a3ed780bf7a5c802f57615ef3f04a93ffd09af23e',
         'content/world_cmds.py::find_npc': 'd6e5e411cbdf6623cb3f40b990d23529685cd515fd1dad949ca64675b349c91c',
-        'content/world_cmds.py::move': 'c5e307ec7b424ccba7487bf7f3191aa672b44374498c06a27216726158b02fd1',
+        'content/world_cmds.py::move': '17102c17f996a0a52e263a11429cda07512362e7e4d582670e0d8ba69c93f45f',
         'content/world_cmds.py::time_cmd': 'ecd979490d5019b349af04e3f2ac6526423cf7a0d32c35af7c1b6ede50302e39',
         'content/world_cmds.py::wild_notes': '99fddc5597f852dee3877e3b2ec9e3d0d0332d5b5c7ada99cf8a682ba87f4dcb',
         'content/world_cmds.py::turn_in': 'bb2d404f207d33b3067698aaad35ee09e5b9690db7d6f9368298c5dfa22a8c74',
         'content/world_cmds.py::_grant_wild_unlock_flags': '4ecdf31eec9b8b2b34b4e8d525149d5e82349673e1c090b7dc58acc1a127d41e',
         'content/world_cmds.py::_teach_by_npc': 'cc57f2fe211b55199068388cbd341aba7c56c89c26c962d63901c3fd5c6b704b',
         'content/world_cmds.py::_map_blocks': '7adce186867a63fd3b1ddf9ff1c2868bc36b12a1f396991a6595e41fdfce993d',
-        'content/world_cmds.py::_hurry_section': '9b41f1adfcf4e2306157e468335ad2b79ce60b3f3c023d6605449b7b66caaeaf',
+        'content/world_cmds.py::_hurry_section': '020a3f530cb17c08a049d40b71f51dcdab803f95cd1673f6533a5dcc048a84c2',
     },
     'aux': {
         'golden_wiring_probes': '79413d21ce4e29772bdbe72cda6e0058894780dce27ddbac6a2d9129c7b0097f',
@@ -228,8 +235,6 @@ _PIN = {
             'content/world_cmds.py::_render_talk_node',
             'content/world_cmds.py::_apply_talk_action_async',
             'content/world_cmds.py::_apply_talk_action',
-            'content/world_cmds.py::npc_quick_dialog',
-            'content/world_cmds.py::move',
             'content/world_cmds.py::time_cmd',
             'content/world_cmds.py::wild_notes',
         ],
@@ -239,7 +244,9 @@ _PIN = {
             'content/world_cmds.py::_start_talk_list',
             'content/world_cmds.py::_find_npc_in_map',
             'content/world_cmds.py::talk_choice',
+            'content/world_cmds.py::npc_quick_dialog',
             'content/world_cmds.py::find_npc',
+            'content/world_cmds.py::move',
             'content/world_cmds.py::turn_in',
             'content/world_cmds.py::_grant_wild_unlock_flags',
             'content/world_cmds.py::_teach_by_npc',
@@ -1070,6 +1077,15 @@ _GRIDS = [
 ]
 
 
+#: ★ 2026-09-18 有意行为变更登记（审计修复批次）：旧 ↔ 新的格子差异**只允许**出现在这些
+#: 符号上；其余 20 段必须继续逐格全等。登记表同时被下方「必须命中」断言守卫 —— 差异消失
+#: 或差异扩散到未登记段都会报红（不做静默放宽）。
+#:  · `_hurry_section`：旧实现把 `_map_scene` 的 (poi_lines, prop_lines) 二元组当平铺列表
+#:    用 ⇒ 直接打印 list repr（`  ['🛕 古老神龛(『探索』有机会发现)', …]`）且两区不分离；
+#:    修后按 🔎 可探索触发 / ✨ 可交互场景 两区逐行输出（与 `_map_blocks` 同口径）。
+_INTENDED_GRID_MISMATCH = {"_hurry_section"}
+
+
 def test_render_literals():
     """渲染行**逐字节不变**的明文证据（判据 #2）：冻结旧实现 ↔ 活实现 + 逐条字面量。"""
     print("【2′. 渲染行逐字节不变的明文证据（⏳剩N分 / 分节标题 / 「这里没有 NPC」/ 头衔括号）】")
@@ -1161,7 +1177,13 @@ def test_alpha_beta():
         for row in _MISM:
             hist[row[0]] = hist.get(row[0], 0) + 1
         print("     不一致分布 = %s" % sorted(hist.items(), key=lambda kv: -kv[1]))
-    check("21 段 旧 ↔ 新 逐格全等（返回值 + 副作用）", not _MISM, _MISM[:3])
+    _unexpected = [r for r in _MISM if r[1] not in _INTENDED_GRID_MISMATCH]
+    check("21 段 旧 ↔ 新 逐格全等（返回值 + 副作用；已登记有意变更段除外）",
+          not _unexpected, _unexpected[:3])
+    _hit = {r[1] for r in _MISM} & _INTENDED_GRID_MISMATCH
+    check("已登记有意变更段确实出现差异（%d 段，防登记表变免死金牌）"
+          % len(_INTENDED_GRID_MISMATCH), _hit == _INTENDED_GRID_MISMATCH,
+          sorted(_INTENDED_GRID_MISMATCH - _hit))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
