@@ -5023,7 +5023,7 @@ class EconomyImpl(CommandBase):
         新材料（v167 等）只要进 MATERIALS 即自动带出，无硬编码名单。"""
         _by_type = {}
         for _k, _m in _cit.MATERIALS.items():
-            _t = _m.get("type") or "杂物"
+            _t = _m.get("type") or _T.static("ency.mat_type_unknown")
             _by_type.setdefault(_t, []).append(_m.get("name", _k))
         # 显示顺序：craft 原料大分类在前，任务/杂物/收藏垫底；未收录分类自动追加
         _order = ["兽材", "矿石", "木材", "织物", "草药", "宝石", "精华",
@@ -5032,19 +5032,20 @@ class EconomyImpl(CommandBase):
         _order = [t for t in _order if t in _by_type]
         _rest = sorted(t for t in _by_type if t not in _order)
         _order += _rest
-        lines = ["🧪 【材料百科】共 {} 种材料 · 按分类速览".format(len(_cit.MATERIALS)), "━━━━━━━━━━━━"]
+        lines = [_T.text("ency.mat_title", n=len(_cit.MATERIALS)), "━━━━━━━━━━━━"]
         for _t in _order:
             _names = _by_type[_t]
             _cnt = len(_names)
             # 单件/双件分类（鱼王/元素/宝物/工具等）：名字列全
             if _cnt <= 2:
-                lines.append(f"{_t} ×{_cnt}　{'、'.join(_names)}")
+                lines.append(_T.text("ency.mat_row_small", cat=_t, n=_cnt,
+                                     names="、".join(_names)))
                 continue
             # 大分类：数量 + 每类代表性 3 个（价格降序即稀有度观感，稳定且不随插入序漂移）
             _rep = sorted(_names, key=lambda n: -int(_cit.MATERIALS_BY_NAME[n].get("price", 0)))[:3]
-            lines.append(f"{_t} ×{_cnt}　例：{'、'.join(_rep)}")
+            lines.append(_T.text("ency.mat_row_rep", cat=_t, n=_cnt, names="、".join(_rep)))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 输入『百科 <材料名>』看掉落来源；『图鉴』看收藏品")
+        lines.append(_T.static("ency.mat_tip"))
         return "\n".join(lines)
 
     def _ency_browse_world(self) -> str:
@@ -5187,17 +5188,17 @@ class EconomyImpl(CommandBase):
             if _hit_t is not None:
                 return self._gem_tier_detail(_hit_t)
         # ---- 全量 10 阶 ----
-        _lines = [f"💎 【幸运宝石百科】共 {len(_b143.GEM_TIERS)} 阶 · 碎裂 → 神话", "━━━━━━━━━━━━"]
+        _lines = [_T.text("ency.gem_title", n=len(_b143.GEM_TIERS)), "━━━━━━━━━━━━"]
         for _t in sorted(_b143.GEM_TIERS):
             _g = _b143.GEM_TIERS[_t]
             _nm = _b143.GEM_TIER_NAMES.get(_t, str(_t))
             _pct = int(_g.get("mult", 0) * 100)
-            _lines.append(f"{_t:>2}. {_nm}：随机属性 ×{_pct}%")
+            _lines.append(_T.text("ency.gem_row", idx=_t, name=_nm, pct=_pct))
         _lines.append("")
-        _lines.append("🔗 合成链：3 颗同级 → 1 颗上级（碎裂→黯淡→…→神话）")
-        _lines.append("🔩 打孔镶嵌：稀有装 1 孔（碎裂-普通）· 史诗装 2 孔（普通-无瑕）· 传说装 3 孔（无瑕-神话）")
+        _lines.append(_T.static("ency.gem_chain"))
+        _lines.append(_T.static("ency.gem_socket"))
         _lines.append("━━━━━━━━━━━━")
-        _lines.append("💡 『百科 宝石 <阶名>』看单阶详情（如『百科 宝石 碎裂』）｜『原石』看你背包的宝石")
+        _lines.append(_T.static("ency.gem_tip"))
         return "\n".join(_lines)
 
     def _gem_tier_detail(self, tier: int) -> str:
@@ -5233,17 +5234,19 @@ class EconomyImpl(CommandBase):
         _pages = max(1, (len(_items) + _per - 1) // _per)
         _page = max(1, min(_page, _pages))
         _view = _items[(_page - 1) * _per: _page * _per]
-        lines = [f"💎 【符文百科】共 {len(_cit.RUNES)} 个 · 第{_page}/{_pages}页", "━━━━━━━━━━━━"]
+        lines = [_T.text("ency.rune_title", n=len(_cit.RUNES), page=_page, pages=_pages),
+                 "━━━━━━━━━━━━"]
         for _i, (_rk, _rs) in enumerate(_view, (_page - 1) * _per + 1):
             _q = _b143.QUALITY.get(_rs.get("quality", ""), {})
             _ri = _mk_rune(_rs.get("effect"), 1) or {}
             _d = _ri.get("desc") or _rs.get("desc", "")
             if len(_d) > 30:
                 _d = _d[:30] + "…"
-            lines.append(f"{_i:>2}. {_q.get('color', '')}【{_rs.get('name', _rk)}】{_q.get('name', '')} · {_d}")
+            lines.append(_T.text("ency.rune_row", idx=_i, color=_q.get("color", ""),
+                                 name=_rs.get("name", _rk), qname=_q.get("name", ""), desc=_d))
         lines.append("━━━━━━━━━━━━")
-        lines.append(f"💡 『+』下页｜『-』回上页｜『百科 符文 <名>』查单个（如『百科 符文 残忍』）" if _page < _pages
-                     else "💡 『-』回上页｜『百科 符文 <名>』查单个（如『百科 符文 残忍』）")
+        lines.append(_T.static("ency.rune_tip_more") if _page < _pages
+                     else _T.static("ency.rune_tip"))
         if qq_id:
             self._record_list_state(qq_id, "百科 符文", _page, _pages)
         return "\n".join(lines)

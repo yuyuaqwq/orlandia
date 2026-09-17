@@ -779,6 +779,39 @@
     "category": "效果名",
     "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
   },
+  "ency.gem_chain": {
+    "value": "🔗 合成链：3 颗同级 → 1 颗上级（碎裂→黯淡→…→神话）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.gem_row": {
+    "value": "{idx:>2}. {name}：随机属性 ×{pct}%",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "idx",
+      "name",
+      "pct"
+    ]
+  },
+  "ency.gem_socket": {
+    "value": "🔩 打孔镶嵌：稀有装 1 孔（碎裂-普通）· 史诗装 2 孔（普通-无瑕）· 传说装 3 孔（无瑕-神话）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.gem_tip": {
+    "value": "💡 『百科 宝石 <阶名>』看单阶详情（如『百科 宝石 碎裂』）｜『原石』看你背包的宝石",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.gem_title": {
+    "value": "💎 【幸运宝石百科】共 {n} 阶 · 碎裂 → 神话",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "n"
+    ]
+  },
   "ency.help_affix": {
     "value": "✨ 词条：『百科 词条』看全部 76 词条 · 『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）",
     "category": "世界百科",
@@ -898,6 +931,76 @@
     "desc": "搬自 content/economy_cmds.py:_ency_browse_instances/_world（B 批 C 档）",
     "params": [
       "n"
+    ]
+  },
+  "ency.mat_row_rep": {
+    "value": "{cat} ×{n}　例：{names}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "cat",
+      "n",
+      "names"
+    ]
+  },
+  "ency.mat_row_small": {
+    "value": "{cat} ×{n}　{names}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "cat",
+      "n",
+      "names"
+    ]
+  },
+  "ency.mat_tip": {
+    "value": "💡 输入『百科 <材料名>』看掉落来源；『图鉴』看收藏品",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.mat_title": {
+    "value": "🧪 【材料百科】共 {n} 种材料 · 按分类速览",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "n"
+    ]
+  },
+  "ency.mat_type_unknown": {
+    "value": "杂物",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.rune_row": {
+    "value": "{idx:>2}. {color}【{name}】{qname} · {desc}",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "idx",
+      "color",
+      "name",
+      "qname",
+      "desc"
+    ]
+  },
+  "ency.rune_tip": {
+    "value": "💡 『-』回上页｜『百科 符文 <名>』查单个（如『百科 符文 残忍』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.rune_tip_more": {
+    "value": "💡 『+』下页｜『-』回上页｜『百科 符文 <名>』查单个（如『百科 符文 残忍』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
+  },
+  "ency.rune_title": {
+    "value": "💎 【符文百科】共 {n} 个 · 第{page}/{pages}页",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
+    "params": [
+      "n",
+      "page",
+      "pages"
     ]
   },
   "ency.world_dungeons": {
