@@ -20,6 +20,9 @@ from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（QUALITY/WEAPON_FLAVOR）
 from saintess_engine.trade import apply_rate
+# ★ U1-I4 L6：节点取用 → 引擎对话形状 `Dialogue.node`（注入面 = 包内 `dialogue._CFG`，
+#   与对外适配层 `C.dialogue_node` **同一实现**：未知节点回退 `start`、键在值为 `None` 原样返回）
+from . import dialogue as _dlg
 # ---- B14-2 L5 读点切换（2026-09-14）----
 # 数据名读点（SHOP_EQUIP/SHOP_WEAPONS/PAWN_RATES/ECON_CONFIG/FISH_POOL/MOUNT_BY_KEY ·
 # EQUIP_ROSTER/EQUIP_ROSTER_BY_NAME/MATERIALS/MATERIALS_BY_NAME/ITEMS · MAP_BY_ID ·
@@ -285,17 +288,25 @@ def apprentice_protect_mats(group_id, qq_id) -> dict:
     玩家正在导师考验节点（apprentice_check 选项）时，批量出售不能误卖这些
     材料——round68 小红实锤：『出售 材料』把铁矿石×7 混卖，挖掘拜师直接卡死。
     返回 {材料名: 需要数量}，无考验返回 {}。
+
+    ★ U1-I4 L6：**节点取用**换引擎对话形状 —— `_dlg._CFG.of(dlg).node(node_id)`（即
+    `Dialogue.node`：未知节点回退 `start`、判据是「键在不在」），不再经宿主门面
+    `C.dialogue_node`（两步同一实现，纯「转调」）。**节点非映射 → `{}`** 与 **无会话 → `{}`**
+    两条边界逐字保留；旧 ↔ 新逐格比 = 门禁④ 探针 `apprentice_protect_mats`
+    （708 节点网格 + 两边界 + 半残会话）。
+    ⚠ **实测出入（已点名）**：**没有**改用引擎 `Cursor.of` —— 它把「有 `npc` 但 `node` 为
+    空串 / 缺 `node` 键」的半残会话判为「无会话」→ `{}`，而旧实现会回退 `start` 节点取材料
+    （合成树 `zz_synth` 实测差异）；与作业书判据 3「返回映射逐键逐值与原实现相同」冲突，
+    故会话读口保持原容忍口径（`st` 真值判定 + 两个键 `get(..., "")`）。
     """
     db = _h('db')  # ← from .. import db  # 惰性导入
     st = db.get_talk_state(group_id, qq_id)
     if not st:
         return {}
-    npc_id = st.get("npc", "")
-    node_id = st.get("node", "")
-    dlg = C.get_dialogue(npc_id)
+    dlg = C.get_dialogue(st.get("npc", ""))
     if not dlg:
         return {}
-    node = C.dialogue_node(dlg, node_id)
+    node = _dlg._CFG.of(dlg).node(st.get("node", ""))
     if not isinstance(node, dict):
         return {}
     mats = {}

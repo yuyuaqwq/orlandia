@@ -46,6 +46,13 @@ from ._pkgref import HANDLES   # ★ R2（终态补债）：库路径真源 `con
 #   `content.persistence`（**故意不导出 `DB_PATH`**，真源 = `handles.db_path()`，见该包
 #   `__init__` 头注）。不改则 AttributeError 被 `except Exception` 吞掉 ⇒ 「已探索地图」静默恒空。
 from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（原 `C.gather_map_min_lv`，宿主已无对象）
+# ★ U1-I4 L6：行商标题名 / 行表取用 → 引擎多表首命中形状（单表**真值**链，口径逐字同义）
+from saintess_engine.presence import Lookup
+
+#: 行商标题名查表口（真源 = `WILD_NPCS`，与旧 `.get(id, {})` 同表同口径）
+_WILD_NPCS_LOOKUP = Lookup(_cquest.WILD_NPCS)
+#: 行商行取用口（真源 = `ALL_WILD`，与旧 `_wild.ALL_WILD.get(id, {})` 同表同口径）
+_ALL_WILD_LOOKUP = Lookup(_wild.ALL_WILD)
 
 # ---- 宿主面（宿主壳 bind_host() 注入；顺序铁律见 economy_host 模块头）----
 C = _HostRef("C")
@@ -6601,7 +6608,7 @@ class EconomyImpl(CommandBase):
             trader = self._wild_trader_here(player, group_id, qq_id)
             if not shop_items and trader:
                 shop_items = _clife.SHOP_WILD_TRADE  # v95.4：野外行商货物
-                tname = _cquest.WILD_NPCS.get(trader, {}).get("name", "行商")
+                tname = (_WILD_NPCS_LOOKUP.first(trader)[0] or {}).get("name", "行商")
                 shop_title = f"🧭 {tname}的货摊"  # #151：标题跟随实际在场的交易 NPC
             # 意见#130（2026-09-03 白云白云狸雾理云/鱼神）：铁港码头栈桥(harbor_docks_1)挂着
             # 行商(NPC 夜钓翁·老竿 map=harbor_docks 整图 roam)，本子区域没有商店也没有货摊，
@@ -6611,14 +6618,14 @@ class EconomyImpl(CommandBase):
             #  _wild_trader_here 原本只按 NPC 静态 map 判定，夜钓翁 map=harbor_docks 全图放行）。
             _here_trader_ok = False
             if trader:
-                _tr_npc = _wild.ALL_WILD.get(trader, {})
+                _tr_npc = _ALL_WILD_LOOKUP.first(trader)[0] or {}
                 _tr_roam = _tr_npc.get("roam")
                 _tr_timed = bool(C.get_timed(group_id, qq_id, f"wild:{trader}"))
                 # 无 roam 的 NPC 若 map 命中当前整图但未偶遇（无线时事件）→ 不在场，不显示行商
                 _here_trader_ok = bool(_tr_timed) if not _tr_roam else True
             if not shop_items and _here_trader_ok:
                 shop_items = _clife.SHOP_WILD_TRADE  # v95.4：野外行商货物
-                tname = _cquest.WILD_NPCS.get(trader, {}).get("name", "行商")
+                tname = (_WILD_NPCS_LOOKUP.first(trader)[0] or {}).get("name", "行商")
                 shop_title = f"🧭 {tname}的货摊"  # #151：标题跟随实际在场的交易 NPC
             for iid in shop_items:
                 it = _cit.ITEMS[iid]
@@ -6701,7 +6708,7 @@ class EconomyImpl(CommandBase):
             # 意见#130 同源修复（与 shop 面板一致）：未偶遇的静态野外行商不隔空放行——夜钓翁
             # map=harbor_docks 但没探索偶遇时，玩家在码头任何子区域都会被判定可买它的货
             _trader = self._wild_trader_here(player, group_id, qq_id)
-            _tr_npc = _wild.ALL_WILD.get(_trader, {}) if _trader else {}
+            _tr_npc = (_ALL_WILD_LOOKUP.first(_trader)[0] or {}) if _trader else {}
             _tr_timed = bool(C.get_timed(group_id, qq_id, f"wild:{_trader}")) if _trader else False
             if _trader and (_tr_npc.get("roam") or _tr_timed):
                 shop_items = _clife.SHOP_WILD_TRADE  # v95.4：野外行商货物

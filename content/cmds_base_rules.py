@@ -72,6 +72,8 @@ from .cmds_env import shell_state as _shell_state
 from .item_templates import TIPS
 from .panel import STAT_NAMES
 from .persistence import update_player
+# ★ U1-I4 L6：野外行商在场 → 引擎在场形状（`Lookup` 真值链 + `Presence` 清单装配）
+from saintess_engine.presence import Lookup, Presence
 
 __all__ = [
     "REGISTER_HINT", "BATTLE_NONE_HINT", "COMMAND_ALIASES", "TIP_POOL",
@@ -228,18 +230,36 @@ def sa_shop_kind(player: dict) -> str | None:
     return None
 
 
+def _wild_trader_keep(npc_id, wnpc) -> bool:
+    """野外行商在场判据（**唯一一条**）：货摊功能 —— `funcs` 含 `trade`。
+
+    与旧手写扫描的第一个过滤条件**逐字同义**；判据本身仍是内容侧取值，引擎只给顺序与短路。
+    """
+    return "trade" in (wnpc.get("funcs") or [])
+
+
+def _wild_trader_place(npc_id, wnpc, day=None):
+    """野外行商**当天定位**：`npc_map_id`（roam 日期哈希 / 静态 map）。
+
+    与旧手写扫描的第二个过滤条件同源；`day` 由引擎透传（本调用点恒为当日 ⇒ `None`）。
+    """
+    return _wild.npc_map_id(npc_id, wnpc)
+
+
 def wild_trader_here(player: dict, group_id: str = "", qq_id: str = "") -> str | None:
     """v95.4：当前地图是否有可交易的野外行商（funcs 含 trade 且出现条件满足）。
     #151 修复：返回命中的 NPC id（用于货摊标题显示正确 NPC 名），无则 None。
-    ★ B18-L7：逐字 = 宿主旧 `base.CommandBase._wild_trader_here`。"""
+    ★ B18-L7：逐字 = 宿主旧 `base.CommandBase._wild_trader_here`。
+    ★ U1-I4 L6：三段手写扫描（funcs 过滤 / `npc_map_id` 相等 / 首命中早退）换引擎在场形状
+    `Presence(keep=…, place_of=…)`（判据与定位仍由内容侧注入）+ `Lookup`（单表**真值**链）；
+    **判据、定位口径、首命中序一字未改**（旧 ↔ 新逐格比 = 门禁④ 探针 `wild_trader_here`）。
+    """
     if not (group_id and qq_id):
         return None
     cur = player.get("cur_map", "")
-    for nid, wnpc in _wild.ALL_WILD.items():
-        if "trade" not in (wnpc.get("funcs") or []):
-            continue
-        if _wild.npc_map_id(nid, wnpc) != cur:
-            continue
+    table = _wild.ALL_WILD
+    here = Presence(Lookup(table), keep=_wild_trader_keep, place_of=_wild_trader_place)
+    for nid, wnpc, _ in here.rows(tuple(table), place=cur):
         if _wild.wild_npc_findable(nid, wnpc, player, group_id, qq_id):
             return nid
     return None

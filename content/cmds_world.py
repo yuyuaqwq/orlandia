@@ -40,6 +40,11 @@ from .cmds_env import shell as _shell
 from .commands import register
 from .wild import ALL_WILD
 from .world_cmds import db, _DAILY_META_KEYS   # B2-W2：清死 import（C/_host_attr 全仓零调用点）
+# ★ U1-I4 L6：导师行取用 → 引擎多表首命中形状（单表**真值**链）
+from saintess_engine.presence import Lookup
+
+#: 导师行查表口（`NPCS.get(id) or {}` 的引擎形状；真值链口径逐字同义）
+_NPCS_LOOKUP = Lookup(NPCS)
 
 
 # ============================================================
@@ -258,8 +263,11 @@ def quest_view(env) -> list:
     _MASTER_IDS = ("npc_herb_master", "npc_mine_master", "npc_fish_master", "npc_cook_master",
                    "npc_alchemy_master", "npc_craft_master", "npc_enhance_master", "npc_rune_master")
     ts = db.get_talk_state(group_id, qq_id)
-    if ts and ts.get("npc") in _MASTER_IDS:
-        _tnpc = NPCS.get(ts["npc"]) or {}
+    # ★ U1-I4 L6：`ts and ts.get("npc")` → `(ts or {}).get("npc")`（同值；空会话/无会话都落 None），
+    #   导师行取用换引擎 `Lookup(NPCS).first(...)`（真值链，与原 `.get(id) or {}` 同口径）。
+    _master = (ts or {}).get("npc")
+    if _master in _MASTER_IDS:
+        _tnpc = _NPCS_LOOKUP.first(_master)[0] or {}
         lines.append("")
         lines.append("【师门考验】")
         lines.append(f"  ⏳ 正在接受【{_tnpc.get('name', '导师')}】的拜师考验，回复『继续』接着进行")

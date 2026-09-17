@@ -122,6 +122,8 @@ from . import texts as T                               # 文案表（B11-L1 起�
 HOST_PKG = "data.plugins.dragonfall.game"
 HOST_PKG_FALLBACK = "game"
 from saintess_engine.wire import Wire
+# ★ U1-I4 L6：副本层节点取用 → 引擎多表首命中形状（单表真值链）
+from saintess_engine.presence import Lookup
 _WIRE = Wire()
 
 
@@ -2084,7 +2086,11 @@ class InstanceImpl:
         return "\n".join(lines)
 
     def _stage_npcs(self, group_id, qq_id) -> list:
-        """当前副本层内 NPC 列表(供『找』路由)"""
+        """当前副本层内 NPC 列表(供『找』路由)
+
+        ★ U1-I4 L6：`stage.get("npcs") or []` 换引擎多表首命中形状
+        `Lookup(stage).first("npcs")`（**真值**链 ⇒ 命中但假值/缺键都回落 `[]`，逐字同义）。
+        """
         st_row = self._instance_battle_for(group_id, qq_id)
         if not st_row:
             return []
@@ -2092,7 +2098,7 @@ class InstanceImpl:
         stages = st.get("inst_stages") or []
         sidx = IR.stages_progress(st).index  # v185：当前层下标走 core/instance_run
         stage = stages[sidx] if sidx < len(stages) else {}
-        return stage.get("npcs") or []
+        return Lookup(stage).first("npcs")[0] or []
 
     # ---------------- 开本 ----------------
 
