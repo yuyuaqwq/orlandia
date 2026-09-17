@@ -779,6 +779,56 @@
     "category": "效果名",
     "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
   },
+  "ency.help_affix": {
+    "value": "✨ 词条：『百科 词条』看全部 76 词条 · 『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_browse": {
+    "value": "🌐 分类浏览：『百科 副本』看全部副本 · 『百科 材料』按分类看材料 · 『百科 世界』看全大陆区域",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_equip": {
+    "value": "⚔️ 装备：『百科 <装备名>』看单件（含属性/词条/专属）· 『百科 装备』总览",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_equip_slot": {
+    "value": "　　『百科装备 <部位>』列出该部位全部装备（部位：武器/头盔/胸甲/护腿/靴子/戒指/项链）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_example": {
+    "value": "例：『百科 铁皮头盔』→ 装备详情｜『百科装备 头盔 2』→ 头盔第2页",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_example2": {
+    "value": "　　『百科 狼皮』→ 材料｜『百科 光耀狼』→ 怪物",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_gem": {
+    "value": "💎 宝石：『百科 宝石』看幸运宝石 10 阶（碎裂→神话）· 『百科 宝石 <阶名>』查单个",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_query": {
+    "value": "🔍 可查询：装备 / 材料 / 怪物 / 地图 / 副本 / 符文",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_rune": {
+    "value": "　　『百科 符文』看全部符文 · 『百科 符文 <名>』查单个（如『百科 符文 残忍』）",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "ency.help_title": {
+    "value": "📚 【世界百科】想知道什么？输入『百科 <名称>』",
+    "category": "世界百科",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
     "category": "战斗日志",
@@ -818,6 +868,86 @@
     "value": "🌪️ 裂风矢 追加 {dmg} 点伤害！",
     "category": "战斗日志",
     "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
+  },
+  "footprint.empty": {
+    "value": "📍 还没去过任何地方……快去『探索』冒险吧！",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "footprint.fail": {
+    "value": "📍 足迹加载失败（{err}）～",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "err"
+    ]
+  },
+  "footprint.legend": {
+    "value": "💡 ✅=全到访 🟡=部分 ❌=未去 ｜ （MM-DD）=首访日期 ｜ 『探索』补全足迹",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "footprint.map_row": {
+    "value": "  {mark} {name}",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "mark",
+      "name"
+    ]
+  },
+  "footprint.map_row_subs": {
+    "value": "  {mark} {name}：{subs}{more}",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "mark",
+      "name",
+      "subs",
+      "more"
+    ]
+  },
+  "footprint.more": {
+    "value": " 等{n}处",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "n"
+    ]
+  },
+  "footprint.region": {
+    "value": "◈ {region}（{vis}/{tot} · {pct}%）",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "region",
+      "vis",
+      "tot",
+      "pct"
+    ]
+  },
+  "footprint.sub_with_date": {
+    "value": "{name}({date})",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "name",
+      "date"
+    ]
+  },
+  "footprint.title": {
+    "value": "📍 【我的足迹】",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
+  },
+  "footprint.total": {
+    "value": "探索足迹 {vis}/{tot}（城镇与野外）",
+    "category": "足迹",
+    "desc": "搬自 content/economy_cmds.py（B 批 C 档）",
+    "params": [
+      "vis",
+      "tot"
+    ]
   },
   "help_panel.CMD_HELP": {
     "value": "⚔️《奥兰迪亚：余烬纪年》指令大全\n📌 【常用指令】\n━━━━━━━━━━━━\n『探索』 去附近转转（遇怪/偶遇） ｜ 『打怪』 战斗入口\n『地图』 看周围 ｜ 『位置』 精简导航\n『状态』 看属性 ｜ 『背包』 看物品\n『物品详情 <名称>』 看详情 ｜ 『技能列表』 看技能\n『采集』 『挖掘』 『垂钓』 收集材料 ｜ 『商店』 买东西\n『锻造』 做装备 ｜ 『副本』 组队闯关 ｜ 『帮助 <分类>』 分类指令大全\n━━━━━━━━━━━━\n以下是全部指令：\n📚『帮助 <分类>』看该分类全部指令\n👥角色系统  🤝 冒险系统\n⚔️战斗系统  ✨技能系统\n🔨副业系统  🎒物品系统\n👫社交系统  🗺️世界系统\n❓其他",

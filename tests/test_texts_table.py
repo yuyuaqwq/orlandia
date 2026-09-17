@@ -255,7 +255,10 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "副业图标": PKG_ECONOMY_SRC,
          # ★ B 批 C 档（2026-09-17）：面板行级句壳（另开一档：每行一条 + f-string 槽位化）
          #   引用面 = 直接调用点（`_T.text("adventure.*", …)` / `_T.static(...)`）
-         "冒险手册": PKG_ECONOMY_SRC}
+         "冒险手册": PKG_ECONOMY_SRC,
+         # C 档 2：『足迹』面板 + 『百科』空参数提示面板（同为行级句壳）
+         "足迹": PKG_ECONOMY_SRC,
+         "世界百科": PKG_ECONOMY_SRC}
 
 
 def _wired_paths(path):
@@ -840,7 +843,7 @@ def t1_table_selfcheck():
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
                         "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板",
-                        "副业图标", "冒险手册"}, cats)
+                        "副业图标", "冒险手册", "足迹", "世界百科"}, cats)
 
 
 def t2_key_and_params_accounting():

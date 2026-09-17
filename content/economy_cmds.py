@@ -4113,7 +4113,7 @@ class EconomyImpl(CommandBase):
                     by_reg[reg] = []
                     order.append(reg)
                 by_reg[reg].append(_m)
-            lines = ["📍 【我的足迹】", "━━━━━━━━━━━━"]
+            lines = [_T.static("footprint.title"), "━━━━━━━━━━━━"]
             any_visit = False
             ov_vis = 0
             ov_tot = 0
@@ -4148,7 +4148,8 @@ class EconomyImpl(CommandBase):
                 any_visit = True
                 ov_vis += reg_vis
                 pct = int(round(reg_vis * 100.0 / reg_tot)) if reg_tot else 0
-                lines.append(f"◈ {reg}（{reg_vis}/{reg_tot} · {pct}%）")
+                lines.append(_T.text("footprint.region", region=reg, vis=reg_vis,
+                                     tot=reg_tot, pct=pct))
                 for mark, nm, vis_sas in rows:
                     _subs = []
                     for _sn, _ts in vis_sas[:6]:
@@ -4158,17 +4159,22 @@ class EconomyImpl(CommandBase):
                                 _d = time.strftime("%m-%d", time.localtime(int(_ts)))
                             except Exception:
                                 _d = ""
-                        _subs.append(f"{_sn}" + (f"({_d})" if _d else ""))
-                    more = f" 等{len(vis_sas)}处" if len(vis_sas) > 6 else ""
-                    lines.append(f"  {mark} {nm}" + (f"：{'、'.join(_subs[:6])}{more}" if vis_sas else ""))
+                        _subs.append(_T.text("footprint.sub_with_date", name=_sn, date=_d)
+                                     if _d else _sn)
+                    more = _T.text("footprint.more", n=len(vis_sas)) if len(vis_sas) > 6 else ""
+                    if vis_sas:
+                        lines.append(_T.text("footprint.map_row_subs", mark=mark, name=nm,
+                                             subs="、".join(_subs[:6]), more=more))
+                    else:
+                        lines.append(_T.text("footprint.map_row", mark=mark, name=nm))
             if not any_visit:
-                return "📍 还没去过任何地方……快去『探索』冒险吧！"
+                return _T.static("footprint.empty")
             lines.append("━━━━━━━━━━━━")
-            lines.append(f"探索足迹 {ov_vis}/{ov_tot}（城镇与野外）")
-            lines.append("💡 ✅=全到访 🟡=部分 ❌=未去 ｜ （MM-DD）=首访日期 ｜ 『探索』补全足迹")
+            lines.append(_T.text("footprint.total", vis=ov_vis, tot=ov_tot))
+            lines.append(_T.static("footprint.legend"))
             return "\n".join(lines)
         except Exception as e:
-            return f"📍 足迹加载失败（{e}）～"
+            return _T.text("footprint.fail", err=e)
 
     def _monster_view(self, group_id, qq_id, raw) -> str:
         """怪物视图（沿用原『图鉴』怪物列表，含分页）。"""
@@ -4469,17 +4475,17 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "百科").strip()
         if not raw:
             lines = [
-                "📚 【世界百科】想知道什么？输入『百科 <名称>』",
+                _T.static("ency.help_title"),
                 "━━━━━━━━━━━━",
-                "🔍 可查询：装备 / 材料 / 怪物 / 地图 / 副本 / 符文",
-                "🌐 分类浏览：『百科 副本』看全部副本 · 『百科 材料』按分类看材料 · 『百科 世界』看全大陆区域",
-                "⚔️ 装备：『百科 <装备名>』看单件（含属性/词条/专属）· 『百科 装备』总览",
-                "　　『百科装备 <部位>』列出该部位全部装备（部位：武器/头盔/胸甲/护腿/靴子/戒指/项链）",
-                "✨ 词条：『百科 词条』看全部 76 词条 · 『百科 词条 <关键词>』查单个（如『百科 词条 破甲』）",
-                "💎 宝石：『百科 宝石』看幸运宝石 10 阶（碎裂→神话）· 『百科 宝石 <阶名>』查单个",
-                "　　『百科 符文』看全部符文 · 『百科 符文 <名>』查单个（如『百科 符文 残忍』）",
-                "例：『百科 铁皮头盔』→ 装备详情｜『百科装备 头盔 2』→ 头盔第2页",
-                "　　『百科 狼皮』→ 材料｜『百科 光耀狼』→ 怪物",
+                _T.static("ency.help_query"),
+                _T.static("ency.help_browse"),
+                _T.static("ency.help_equip"),
+                _T.static("ency.help_equip_slot"),
+                _T.static("ency.help_affix"),
+                _T.static("ency.help_gem"),
+                _T.static("ency.help_rune"),
+                _T.static("ency.help_example"),
+                _T.static("ency.help_example2"),
                 self._tip("rune"),
             ]
             yield event.plain_result("\n".join(lines))
