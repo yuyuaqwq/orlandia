@@ -2045,7 +2045,7 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
         if 1 <= idx <= len(_avail):
             raw = _avail[idx - 1]["name"]
         else:
-            yield event.plain_result(f"❌ 序号无效！当前可接取 {len(_avail)} 个任务，输入『接取』查看列表～")
+            yield event.plain_result(_T.text("quest.no_idx", total=len(_avail)))
             return
     if mq:
         st = quests.get("main_status", "pending")
@@ -2056,23 +2056,25 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 yield event.plain_result("\n".join(lines))
                 return
             giver_map = _cat_space.MAP_BY_ID.get(npc.get("map", ""), {}).get("name", "？")
-            yield event.plain_result(f"当前主线『{mq['name']}』由 {npc.get('name', '？')}(在{giver_map}) 发布，去找他对话接取～")
+            yield event.plain_result(_T.text("quest.main_giver", name=mq['name'], npc=npc.get('name', '？'), where=giver_map))
             return
         # v95.8 #47：主线进行中/待交付时，无参数『接取』不应静默去接支线
         # v95.14：『接取任务』/『接取 主线』（raw=任务/主线）等同无参数，同样提示主线状态
         if not raw or raw in ("任务", "主线"):
             if st == "ready":
-                yield event.plain_result(f"主线『{mq['name']}』已完成目标！回 {(_cat_quests.NPCS.get(mq['giver']) or _wild.ALL_WILD.get(mq['giver']) or {}).get('name', '发布人')} 处对话领奖励～")
+                yield event.plain_result(_T.text("quest.main_ready", name=mq['name'],
+                                             where=(_cat_quests.NPCS.get(mq['giver']) or _wild.ALL_WILD.get(mq['giver']) or {}).get('name', '发布人')))
             else:
-                yield event.plain_result(f"主线『{mq['name']}』进行中！输入『任务』查看进度～")
+                yield event.plain_result(_T.text("quest.main_running", name=mq['name']))
             return
         # v95.20 #103：指名当前主线名但非 pending → 明确提示进行中/待交付
         # （此前会落到底部"可接取任务列表"分支，回显无关支线误导玩家）
         if raw == mq["name"]:
             if st == "ready":
-                yield event.plain_result(f"主线『{mq['name']}』已完成目标！回 {(_cat_quests.NPCS.get(mq['giver']) or _wild.ALL_WILD.get(mq['giver']) or {}).get('name', '发布人')} 处对话领奖励～")
+                yield event.plain_result(_T.text("quest.main_ready", name=mq['name'],
+                                             where=(_cat_quests.NPCS.get(mq['giver']) or _wild.ALL_WILD.get(mq['giver']) or {}).get('name', '发布人')))
             else:
-                yield event.plain_result(f"主线『{mq['name']}』已在进行中，无需重复接取！输入『任务』查看进度～")
+                yield event.plain_result(_T.text("quest.main_dup", name=mq['name']))
             return
     # 支线：必须指名道姓才接（v95.8 #47：无参数/『接取 任务』不再静默接支线）
     if raw and raw not in ("任务", "主线"):
@@ -2081,13 +2083,13 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 continue
             # v95.27：先判已接（此前 continue 跳过后 raw 落到底部无关列表，提示不明确）
             if sq["id"] in (quests.get("side") or {}):
-                yield event.plain_result(f"『{sq['name']}』已接取！输入『任务』查看进度～")
+                yield event.plain_result(_T.text("quest.accepted", name=sq['name']))
                 return
             # v104 审计 P1-1：『接取』指令同样校验 min_level
             # （此前只有 _offer_side_quests 自动接取路径校验，Lv.1 可直接接走 Lv.40 雾中灯塔）
             if sq.get("min_level") and player["level"] < sq["min_level"]:
                 yield event.plain_result(
-                    f"🛡️ 『{sq['name']}』需要 Lv.{sq['min_level']} 才能接取！（你当前 Lv.{player['level']}）"
+                    _T.text("quest.lv_short", name=sq['name'], need=sq['min_level'], lv=player['level'])
                 )
                 return
             # v124 链式支线：unlock 前置未满足 → 提示前置未完成
@@ -2099,7 +2101,7 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 elif isinstance(_pre, dict):
                     _pn = [next((q["name"] for q in _cat_quests.SIDE_QUESTS if q["id"] == _pre.get("id")), "前置任务")]
                 yield event.plain_result(
-                    f"🔒 『{sq['name']}』的线索还没出现——先完成『{_pn[0] if _pn else '前置任务'}』再来看看吧。"
+                    _T.text("quest.need_prev", name=sq['name'], prev=_pn[0] if _pn else '前置任务')
                 )
                 return
             # v124 隐藏线：require_stats 计数门槛
@@ -2107,7 +2109,7 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 _rs = sq.get("require_stats") or {}
                 _need = ", ".join(f"{k} {v}次" for k, v in _rs.items())
                 yield event.plain_result(
-                    f"🔒 这条委托背后还藏着秘密……（需要 {_need} 后才会出现）"
+                    _T.text("quest.secret", cond=_need)
                 )
                 return
             # v113 种族限制：require_race 指定血脉（隐藏线试炼）——非该种族拒绝接取
@@ -2118,8 +2120,7 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                     _rcn = (_cat_core.RACES.get(_rr) or {}).get("name", "对应血脉")
                     _ccn = (_cat_core.RACES.get(_cur) or {}).get("name", "未知血脉")
                     yield event.plain_result(
-                        f"⛔ 『{sq['name']}』需要{_rcn}的血脉才能接下——"
-                        f"你身为{_ccn}，与这份传承无缘。"
+                        _T.text("quest.blood", name=sq['name'], need=_rcn, mine=_ccn)
                     )
                     return
             # v97.1 告示委托（board: true）：在告示板所在的子区域接取，不要求发布 NPC 在场
@@ -2130,7 +2131,7 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 )
                 if not has_board:
                     yield event.plain_result(
-                        f"告示委托『{sq['name']}』要去告示板前才能接取！输入『交互 告示板』看看～")
+                        _T.text("quest.need_board", name=sq['name']))
                     return
                 # v95.27 修复：告示板只接指定委托，不连带同 giver 的其他支线
                 # （此前走 _offer_side_quests 按 giver 全接，寻猫·虎斑顺带接了史莱姆果冻）
@@ -2139,9 +2140,9 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 quests["side"] = side
                 db.save_quests(group_id, qq_id, quests)
                 lines = [
-                    f"📜 【支线】『{sq['name']}』{sq['desc']}",
-                    f"  奖励：经验 +{sq['reward_exp']} 金币 +{sq['reward_gold']}",
-                    f"  🎯 目标：{self._obj_text(sq['objective'])}",
+                    _T.text("quest.side_head", name=sq['name'], tail=sq['desc']),
+                    _T.text("quest.reward", exp=sq['reward_exp'], gold=sq['reward_gold']),
+                    _T.text("quest.objective", goal=self._obj_text(sq['objective'])),
                 ]
                 yield event.plain_result("\n".join(lines))
                 return
@@ -2154,19 +2155,19 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 quests["side"] = side
                 db.save_quests(group_id, qq_id, quests)
                 lines = [
-                    f"📜 【支线】『{sq['name']}』{sq['desc']}",
-                    f"  奖励：经验 +{sq['reward_exp']} 金币 +{sq['reward_gold']}",
-                    f"  🎯 目标：{self._obj_text(sq['objective'])}",
+                    _T.text("quest.side_head", name=sq['name'], tail=sq['desc']),
+                    _T.text("quest.reward", exp=sq['reward_exp'], gold=sq['reward_gold']),
+                    _T.text("quest.objective", goal=self._obj_text(sq['objective'])),
                 ]
                 yield event.plain_result("\n".join(lines))
                 return
             giver_map = _cat_space.MAP_BY_ID.get(npc.get("map", ""), {}).get("name", "？")
-            yield event.plain_result(f"支线『{sq['name']}』由 {npc.get('name', '？')}(在{giver_map}) 发布，去找他对话接取～")
+            yield event.plain_result(_T.text("quest.side_giver", name=sq['name'], npc=npc.get('name', '？'), where=giver_map))
             return
     # 无参数 → 列出当前地图可接任务（主线 pending + 未接支线）
     available = self._available_quest_list(player, quests, mq)
     if available:
-        lines = ["📜 【可接取任务】", "━━━━━━━━━━━━"]
+        lines = [_T.static("quest.list_head"), "━━━━━━━━━━━━"]
         lines += [f"{i:>2}. 📜 {a['line']}" for i, a in enumerate(available, 1)]
         lines.append(self._tip("accept"))
         yield event.plain_result("\n".join(lines))
@@ -2175,11 +2176,11 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
     if raw and raw not in ("任务", "主线"):
         all_names = [q["name"] for q in _cat_quests.SIDE_QUESTS] + [q["name"] for q in _cat_quests.MAIN_QUESTS]
         if raw in all_names:
-            yield event.plain_result(f"任务『{raw}』已接取或已完成，输入『任务』查看进度～")
+            yield event.plain_result(_T.text("quest.already", name=raw))
         else:
-            yield event.plain_result(f"未找到名为『{raw}』的任务。输入『任务』查看进度～")
+            yield event.plain_result(_T.text("quest.not_found", name=raw))
         return
-    yield event.plain_result("没有可接取的任务。输入『任务』查看进度～")
+    yield event.plain_result(_T.static("quest.none"))
 
 
 def _sq_unlocked(self, quests, sq):
@@ -2222,16 +2223,16 @@ async def quest_abandon(self, event: AstrMessageEvent, group_id, qq_id):
         main_id = quests.get("main_quest")
         mq = next((q for q in _cat_quests.MAIN_QUESTS if q["id"] == main_id), None) if main_id else None
         if raw in ("主线", "main") or (mq and raw == mq["name"]):
-            yield event.plain_result("主线任务无法放弃！主线是奥兰迪亚之王赐下的使命～")
+            yield event.plain_result(_T.static("abandon.main"))
             return
         if total == 0:
-            yield event.plain_result("🗑️ 当前没有可放弃的任务（进行中的支线或每日任务）～")
+            yield event.plain_result(_T.static("abandon.none"))
             return
-        yield event.plain_result(f"🗑️ 请指定要放弃的任务序号（1-{total}），发『放弃 <序号>』～")
+        yield event.plain_result(_T.text("abandon.usage", total=total))
         return
     idx = int(raw)
     if not (1 <= idx <= total):
-        yield event.plain_result(f"🗑️ 序号 {idx} 不存在！请输入 1-{total} 之间的序号～")
+        yield event.plain_result(_T.text("abandon.no_idx", idx=idx, total=total))
         return
     # 主线不可放弃：序号全部落在侧支线/每日，主线本来就不参与编号；单独拦截侧支线里的"主线位"不存在
     if 1 <= idx <= len(side_items):
@@ -2240,19 +2241,19 @@ async def quest_abandon(self, event: AstrMessageEvent, group_id, qq_id):
         quests["side"] = side
         qname = next((q["name"] for q in _cat_quests.SIDE_QUESTS if q["id"] == sid), "该支线")
         db.save_quests(group_id, qq_id, quests)
-        yield event.plain_result(f"🗑️ 已放弃任务：『{qname}』")
+        yield event.plain_result(_T.text("abandon.done", name=qname))
         return
     # 每日任务
     dk, dq = daily_items[idx - len(side_items) - 1]
     del daily[dk]
     quests["daily"] = daily
     db.save_quests(group_id, qq_id, quests)
-    yield event.plain_result(f"🗑️ 已放弃任务：『{dq.get('name', '该每日任务')}』")
+    yield event.plain_result(_T.text("abandon.done", name=dq.get('name', '该每日任务')))
 
 
 async def daily(self, event: AstrMessageEvent, group_id, qq_id, player):
     if self._is_redname(qq_id):
-        yield event.plain_result("☠️ 你是红名！悬赏板上的任务都被守卫收走了……(等红名消退再来)")
+        yield event.plain_result(_T.static("daily.redname"))
         return
     # v181 P4-1 试点：抽取/衰减/发布已收敛至 services.quests.draw_daily（红名守卫留命令层，
     # 上限/已有任务/跨天清理/面板行拼装全在 service 内，逐行原样搬迁）

@@ -1,4 +1,39 @@
 {
+  "abandon.done": {
+    "value": "🗑️ 已放弃任务：『{name}』",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_abandon（B 批 C 档）"
+  },
+  "abandon.main": {
+    "value": "主线任务无法放弃！主线是奥兰迪亚之王赐下的使命～",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_abandon（B 批 C 档）"
+  },
+  "abandon.no_idx": {
+    "value": "🗑️ 序号 {idx} 不存在！请输入 1-{total} 之间的序号～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_abandon（B 批 C 档）"
+  },
+  "abandon.none": {
+    "value": "🗑️ 当前没有可放弃的任务（进行中的支线或每日任务）～",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_abandon（B 批 C 档）"
+  },
+  "abandon.usage": {
+    "value": "🗑️ 请指定要放弃的任务序号（1-{total}），发『放弃 <序号>』～",
+    "params": [
+      "total"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_abandon（B 批 C 档）"
+  },
   "account.done": {
     "value": "🗡️ 冒险者 {name} 的故事就此落幕……\n所有角色数据已删除，可以重新『注册 <名字> <性别>』开始新旅程！",
     "params": [
@@ -1915,6 +1950,11 @@
     "value": "【每日】今日还没领取任务——输入『每日』发布今日悬赏～",
     "category": "每日任务",
     "desc": "面板：从未领取（新号/跨天清空）"
+  },
+  "daily.redname": {
+    "value": "☠️ 你是红名！悬赏板上的任务都被守卫收走了……(等红名消退再来)",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:daily（B 批 C 档）"
   },
   "daily.section": {
     "value": "【每日】",
@@ -7619,6 +7659,164 @@
     ],
     "category": "角色面板",
     "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "quest.accepted": {
+    "value": "『{name}』已接取！输入『任务』查看进度～",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.already": {
+    "value": "任务『{name}』已接取或已完成，输入『任务』查看进度～",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.blood": {
+    "value": "⛔ 『{name}』需要{need}的血脉才能接下——你身为{mine}，与这份传承无缘。",
+    "params": [
+      "name",
+      "need",
+      "mine"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.list_head": {
+    "value": "📜 【可接取任务】",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.lv_short": {
+    "value": "🛡️ 『{name}』需要 Lv.{need} 才能接取！（你当前 Lv.{lv}）",
+    "params": [
+      "name",
+      "need",
+      "lv"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.main_dup": {
+    "value": "主线『{name}』已在进行中，无需重复接取！输入『任务』查看进度～",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.main_giver": {
+    "value": "当前主线『{name}』由 {npc}(在{where}) 发布，去找他对话接取～",
+    "params": [
+      "name",
+      "npc",
+      "where"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.main_ready": {
+    "value": "主线『{name}』已完成目标！回 {where} 处对话领奖励～",
+    "params": [
+      "name",
+      "where"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.main_running": {
+    "value": "主线『{name}』进行中！输入『任务』查看进度～",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.need_board": {
+    "value": "告示委托『{name}』要去告示板前才能接取！输入『交互 告示板』看看～",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.need_prev": {
+    "value": "🔒 『{name}』的线索还没出现——先完成『{prev}』再来看看吧。",
+    "params": [
+      "name",
+      "prev"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.no_idx": {
+    "value": "❌ 序号无效！当前可接取 {total} 个任务，输入『接取』查看列表～",
+    "params": [
+      "total"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.none": {
+    "value": "没有可接取的任务。输入『任务』查看进度～",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.not_found": {
+    "value": "未找到名为『{name}』的任务。输入『任务』查看进度～",
+    "params": [
+      "name"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.objective": {
+    "value": "  🎯 目标：{goal}",
+    "params": [
+      "goal"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.reward": {
+    "value": "  奖励：经验 +{exp} 金币 +{gold}",
+    "params": [
+      "exp",
+      "gold"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.secret": {
+    "value": "🔒 这条委托背后还藏着秘密……（需要 {cond} 后才会出现）",
+    "params": [
+      "cond"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.side_giver": {
+    "value": "支线『{name}』由 {npc}(在{where}) 发布，去找他对话接取～",
+    "params": [
+      "name",
+      "npc",
+      "where"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.side_head": {
+    "value": "📜 【支线】『{name}』{tail}",
+    "params": [
+      "name",
+      "tail"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
   },
   "quests.done": {
     "value": "📜 每日『{name}』完成！奖励：经验 +{exp} 金币 +{gold}",

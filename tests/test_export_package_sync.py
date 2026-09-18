@@ -102,7 +102,10 @@ FROZEN_COUNTS = {
     #     location_view / _hurry_type / _hurry_panel / hurry_view / back_cmd / ask_way
     #     42 处替换 / 34 新键（world.inst_battle×4、world.hurry_tip×3、world.hidden×3、
     #     nav.cur_pos×2 幂等复用）⇒ 1549 → 1583。
-    "texts": 1583,
+    #   ★ 2026-09-18 C 档 18c（B-2 第 4 片第 2 小片）：world 散落「任务委托族」——
+    #     quest_accept（接取）· quest_abandon（放弃）· daily（悬赏板红名）
+    #     30 处替换 / 25 新键（main_ready×2、side_head×2、reward×2、objective×2、abandon.done×2 幂等复用）⇒ 1583 → 1608。
+    "texts": 1608,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
