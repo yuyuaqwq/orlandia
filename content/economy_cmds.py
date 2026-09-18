@@ -2546,11 +2546,11 @@ class EconomyImpl(CommandBase):
         item_name = self._strip_cmd(event, "强化")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能强化装备！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("strengthen.need_smith"))
             return
         item_name = item_name.strip()
         if not item_name:
-            yield event.plain_result("强化哪件装备？输入『强化 <装备名>』或『强化 <背包序号>』(如：强化 铁剑 / 强化 3)")
+            yield event.plain_result(_T.static("strengthen.usage"))
             return
         items = db.get_inventory(group_id, qq_id)
         target = None
@@ -2558,11 +2558,11 @@ class EconomyImpl(CommandBase):
         if item_name.isdigit():
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看全部～")
+                yield event.plain_result(_T.text("common.bag_no_idx", idx=idx, total=len(items)))
                 return
             target = items[idx - 1]
             if not target["data"].get("slot"):
-                yield event.plain_result(f"背包第 {idx} 件『{target['data']['name']}』不是装备，不能强化！『背包』看装备序号～")
+                yield event.plain_result(_T.text("strengthen.not_equip", idx=idx, name=target['data']['name']))
                 return
         else:
             for it in items:
@@ -2579,12 +2579,12 @@ class EconomyImpl(CommandBase):
                         target = {"key": f"eq_equipped_{slot}", "data": ed, "_equipped": slot}
                         break
             if not target:
-                yield event.plain_result(f"背包里没有叫『{item_name}』的装备！(已装备的武器也可以直接『强化 <武器名>』)")
+                yield event.plain_result(_T.text("strengthen.no_equip", name=item_name))
                 return
         d = target["data"]
         cur_enh = d.get("enhance", 0)
         if cur_enh >= _cit.MAX_ENHANCE:
-            yield event.plain_result(f"【{d['name']}】已经强化到极限 +{cur_enh} 了！")
+            yield event.plain_result(_T.text("strengthen.max", name=d['name'], lv=cur_enh))
             return
         info = _cit.ENHANCE_TABLE[cur_enh]
         # v67 强化归位锻造 → 导师进修后强化为独立副业（19 章第八章）：强化 +N 需要强化副业 Lv.N
@@ -2596,11 +2596,12 @@ class EconomyImpl(CommandBase):
         need = min(cur_enh + 1, 10)
         if prof_lv < need:
             yield event.plain_result(
-                f"强化 +{cur_enh} → +{cur_enh+1} 需要强化副业 Lv.{need}(你 Lv.{prof_lv})！多强化装备升级吧～"
+                _T.text("strengthen.prof_short", cur=cur_enh, next=cur_enh+1, need=need, lv=prof_lv)
             )
             return
         if player["gold"] < info["cost"]:
-            yield event.plain_result(f"强化 +{cur_enh} → +{cur_enh+1} 需要 {info['cost']} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("strengthen.gold_short", cur=cur_enh, next=cur_enh+1, gold=info['cost'],
+                                         have=player['gold']))
             return
         # v94 体力：强化消耗 10 体力（v104 M11：金币/副业等校验全通过后才扣，防白扣）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["enhance"], player, "强化")
@@ -2626,10 +2627,10 @@ class EconomyImpl(CommandBase):
         for _sk in _cr["stones_used"]:  # 等价原内联扣料+文案行（消耗顺序：精炼→祝福，与判定顺序一致）
             if _sk == _craft_svc.ENHANCE_STONE_REFINE:
                 db.remove_item(group_id, qq_id, _craft_svc.ENHANCE_STONE_REFINE, 1)
-                _stone_line += "\n✨ 精炼强化石淬入火中，成功率提升了！"
+                _stone_line += _T.static("strengthen.stone_bonus")
             elif _sk == _craft_svc.ENHANCE_STONE_BLESSED:
                 db.remove_item(group_id, qq_id, _craft_svc.ENHANCE_STONE_BLESSED, 1)
-                _stone_line += "\n✨ 祝福符石泛起微光，成功率提升了！"
+                _stone_line += _T.static("strengthen.rune_bonus")
         _protect_have = db.count_item(group_id, qq_id, _craft_svc.ENHANCE_STONE_PROTECT)
         # 掷强化
         if _boost or random.random() < _rate:
@@ -2643,17 +2644,17 @@ class EconomyImpl(CommandBase):
                 # F1 P0-1：背包格原子写回（替代 remove+add 两步非原子替换）
                 db.update_item_data(group_id, qq_id, target["key"], d)
             # O93 修复：成功文案补金币消耗显示（实际扣款在上方 db.update_player(gold=...)）
-            lines = [f"🔨 强化成功！【{d['name']}】+{cur_enh} → +{cur_enh+1}！(消耗 {info['cost']} 金币)"]
+            lines = [_T.text("strengthen.ok", name=d['name'], cur=cur_enh, next=cur_enh+1, gold=info['cost'])]
             # v101.30 强化经验按段位：+0→+1 给 1 …… +8→+9 给 9（高段强化是升级主路径，
             # 刷必成的 +0→+1 只能拿 1 经验/50 金，成长极慢——赌得越高练得越快）
             new_lv, leveled = db.add_prof_exp(group_id, qq_id, "enhance", cur_enh + 1)
             if leveled:
-                lines.append(f"🌟 强化副业提升到 Lv.{new_lv}！")
+                lines.append(_T.text("common.prof_lv_up", lv=new_lv))
                 # O108 修复：升级当次即按新等级重算手艺加成（原 _stone_line 仍用升级前旧等级，
                 # 导致当次提示 Lv.3 +1.5%、下次才 Lv.4 +2.0%）
                 if _craft_line:
                     _new_bonus = min(new_lv, 10) * 0.005
-                    _new_craft = f"\n🛠️ 强化师 Lv.{new_lv} 的手艺：成功率 +{_new_bonus*100:.1f}%！"
+                    _new_craft = _T.text("strengthen.master_bonus", lv=new_lv, pct=_new_bonus*100)
                     _stone_line = _stone_line.replace(_craft_line, _new_craft)
             _done, _msg = self._daily_prof_bump(group_id, qq_id, "enhance")
             if _msg:
@@ -2662,9 +2663,9 @@ class EconomyImpl(CommandBase):
             db.bump_stats(group_id, qq_id, enhance_count=1)
             C.check_achievements(group_id, qq_id, player)
             if cur_enh + 1 == 5:
-                lines.append("⚡ 装备绽放出耀眼的光芒！")
+                lines.append(_T.static("strengthen.glow"))
             elif cur_enh + 1 == 9:
-                lines.append("🌟 传说级的光芒冲天而起！你听见了铁匠们的惊叹！")
+                lines.append(_T.static("strengthen.legend_glow"))
             if _stone_line:
                 lines.append(_stone_line)
             yield event.plain_result("\n".join(lines))
@@ -2678,9 +2679,8 @@ class EconomyImpl(CommandBase):
                 # v101.30 强化石失败保护：消耗 1 个，不掉级
                 db.remove_item(group_id, qq_id, _craft_svc.ENHANCE_STONE_PROTECT, 1)
                 yield event.plain_result(
-                    f"💥 强化失败！但强化石轰然炸开挡住了冲击，【{d['name']}】保住了等级(+{cur_enh})！\n"
-                    # O93 修复：失败文案补金币消耗显示（强化石×1 之外同时列出金币）
-                    f"(消耗强化石×1 + {info['cost']} 金币{_stone_line})"
+                    _T.text("strengthen.fail_guard", name=d['name'], lv=cur_enh, gold=info['cost'],
+                        tail=_stone_line)
                 )
                 return
             if new_enh != cur_enh:
@@ -2694,10 +2694,10 @@ class EconomyImpl(CommandBase):
                     # F1 P0-1：背包格原子写回（替代 remove+add 两步非原子替换）
                     db.update_item_data(group_id, qq_id, target["key"], d)
                 # O93 修复：失败(降级)文案补金币消耗显示
-                yield event.plain_result(f"💥 强化失败！【{d['name']}】降级到 +{new_enh}。铁匠摇摇头：『下次一定行！』(消耗 {info['cost']} 金币)")
+                yield event.plain_result(_T.text("strengthen.fail_down", name=d['name'], lv=new_enh, gold=info['cost']))
             else:
                 # O93 修复：失败(保级)文案补金币消耗显示
-                yield event.plain_result(f"💥 强化失败！好在【{d['name']}】保住了等级(+{new_enh})。再试一次？(消耗 {info['cost']} 金币)")
+                yield event.plain_result(_T.text("strengthen.fail_keep", name=d['name'], lv=new_enh, gold=info['cost']))
 
     @declared("equip_upgrade")
     @require_player()
@@ -2714,11 +2714,11 @@ class EconomyImpl(CommandBase):
         item_name = self._strip_cmd(event, "升级")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能升级装备！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("upgrade.need_smith"))
             return
         item_name = item_name.strip()
         if not item_name:
-            yield event.plain_result("升级哪件装备？输入『升级 <装备名>』或『升级 <背包序号>』(如：升级 铁剑 / 升级 3)")
+            yield event.plain_result(_T.static("upgrade.usage"))
             return
         items = db.get_inventory(group_id, qq_id)
         target = None
@@ -2726,11 +2726,11 @@ class EconomyImpl(CommandBase):
         if item_name.isdigit():
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看全部～")
+                yield event.plain_result(_T.text("common.bag_no_idx", idx=idx, total=len(items)))
                 return
             target = items[idx - 1]
             if not target["data"].get("slot"):
-                yield event.plain_result(f"背包第 {idx} 件『{target['data']['name']}』不是装备，不能升级！『背包』看装备序号～")
+                yield event.plain_result(_T.text("upgrade.not_equip", idx=idx, name=target['data']['name']))
                 return
         else:
             for it in items:
@@ -2746,15 +2746,14 @@ class EconomyImpl(CommandBase):
                         target = {"key": f"eq_equipped_{slot}", "data": ed, "_equipped": slot}
                         break
             if not target:
-                yield event.plain_result(f"背包里没有叫『{item_name}』的装备！(已装备的装备也可以直接『升级 <装备名>』)")
+                yield event.plain_result(_T.text("upgrade.no_equip", name=item_name))
                 return
         d = target["data"]
         # v172 真等级化：升级 = 装备 lv +1（上限追平玩家等级，不许超前——穿装门槛按 d['lv'] 判）
         cur_lv = d.get("lv", 0) or 0
         next_lv = cur_lv + 1
         if next_lv > (player.get("level") or 1):
-            yield event.plain_result(f"【{d['name']}】已是 Lv.{cur_lv}，再升需要你 Lv.{next_lv}（你 Lv.{player.get('level')}）！"
-                                     f"升级追平玩家等级就到顶，先练级再来～")
+            yield event.plain_result(_T.text("upgrade.cap", name=d['name'], lv=cur_lv, need=next_lv, mine=player.get('level')))
             return
         # 金币：UPGRADE_TABLE cost 阶梯按装备当前级取（Lv.3→4 花 3 级档 675；超过 10 级封顶
         # 用 10 级档 11524——表只到 10，真等级化后高等级装备每 +1 级消耗表末档）
@@ -2769,17 +2768,15 @@ class EconomyImpl(CommandBase):
         need = min(next_lv, 10)
         if prof_lv < need:
             yield event.plain_result(
-                f"升级 Lv.{cur_lv} → Lv.{next_lv} 需要强化副业 Lv.{need}(你 Lv.{prof_lv})！"
-                f"强化与升级共修，多强化装备升级副业吧～"
+                _T.text("upgrade.prof_short", cur=cur_lv, next=next_lv, need=need, lv=prof_lv)
             )
             return
         if player["gold"] < info["cost"]:
-            yield event.plain_result(f"升级 Lv.{cur_lv} → Lv.{next_lv} 需要 {info['cost']} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("upgrade.gold_short", cur=cur_lv, next=next_lv, gold=info['cost'], have=player['gold']))
             return
         # 材料：每级 1 精炼强化石
         if db.count_item(group_id, qq_id, _cit.UPGRADE_STONE) < 1:
-            yield event.plain_result(f"升级 Lv.{cur_lv} → Lv.{next_lv} 需要 1 个{_cit.UPGRADE_MATERIAL_CN}！"
-                                     f"(铁匠铺/炼金可得，『背包』查看～)")
+            yield event.plain_result(_T.text("upgrade.mat_short", cur=cur_lv, next=next_lv, item=_cit.UPGRADE_MATERIAL_CN))
             return
         # 体力：升级消耗 10（全校验通过后才扣，防白扣）
         _ok, _st = self._spend_stamina(group_id, qq_id, _cit.UPGRADE_STAMINA, player, "升级")
@@ -2796,12 +2793,12 @@ class EconomyImpl(CommandBase):
             db.update_player(group_id, qq_id, equipment=eq)
         else:
             db.update_item_data(group_id, qq_id, target["key"], d)
-        lines = [f"🔧 装备升级成功！【{d['name']}】Lv.{cur_lv} → Lv.{next_lv}"
-                 f" ｜ 属性随等级重算(消耗 {info['cost']} 金币 + {_cit.UPGRADE_MATERIAL_CN}×1)"]
+        lines = [_T.text("upgrade.ok", name=d['name'], cur=cur_lv, next=next_lv, gold=info['cost'],
+                     item=_cit.UPGRADE_MATERIAL_CN)]
         # 升级也给强化副业少量经验（高段多给，与强化同思路：养得越深练得越快）
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "enhance", max(1, next_lv))
         if leveled:
-            lines.append(f"🌟 强化副业提升到 Lv.{new_lv}！")
+            lines.append(_T.text("common.prof_lv_up", lv=new_lv))
         _done, _msg = self._daily_prof_bump(group_id, qq_id, "enhance")
         if _msg:
             lines.append(_msg.strip())
@@ -2823,10 +2820,10 @@ class EconomyImpl(CommandBase):
         if item_name.isdigit():
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                return None, f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看全部～"
+                return None, _T.text("common.bag_no_idx", idx=idx, total=len(items))
             target = items[idx - 1]
             if not target["data"].get("slot"):
-                return None, f"背包第 {idx} 件『{target['data']['name']}』不是装备，不能操作！『背包』看装备序号～"
+                return None, _T.text("gem.not_equip", idx=idx, name=target['data']['name'])
             return target, ""
         for it in items:
             d = it["data"]
@@ -2836,7 +2833,7 @@ class EconomyImpl(CommandBase):
         for slot, ed in eq.items():
             if item_name in (ed.get("name", "") if isinstance(ed, dict) else ""):
                 return {"key": f"eq_equipped_{slot}", "data": ed, "_equipped": slot}, ""
-        return None, f"背包里没有叫『{item_name}』的装备！(已装备的装备也可以直接操作，如『打孔 铁剑』)"
+        return None, _T.text("gem.no_equip", name=item_name)
 
     def _gem_find_gem(self, group_id, qq_id, raw):
         """按 名称子串/背包序号 找背包里的原石（type=原石 或 gem=True）。
@@ -2845,18 +2842,18 @@ class EconomyImpl(CommandBase):
         """
         raw = (raw or "").strip()
         if not raw:
-            return None, "哪颗幸运宝石？输入『原石』查看背包里的幸运宝石～"
+            return None, _T.static("gem.pick_usage")
         gems = [it for it in db.get_inventory(group_id, qq_id)
                 if it["data"].get("gem") or it["data"].get("type") in ("原石", "幸运宝石")]
         if raw.isdigit():
             idx = int(raw)
             if idx < 1 or idx > len(gems):
-                return None, f"背包里没有第 {idx} 颗幸运宝石(共 {len(gems)} 颗)！『原石』查看～"
+                return None, _T.text("gem.no_gem_idx", idx=idx, total=len(gems))
             return gems[idx - 1], ""
         for it in gems:
             if raw in it["data"].get("name", ""):
                 return it, ""
-        return None, f"背包里没有『{raw}』！『原石』查看背包里的幸运宝石～"
+        return None, _T.text("gem.no_gem", name=raw)
 
     @declared("gem_drill")
     @require_player()
@@ -2871,11 +2868,11 @@ class EconomyImpl(CommandBase):
         item_name = self._strip_cmd(event, "打孔")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能打孔！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("gem.drill_need_smith"))
             return
         item_name = item_name.strip()
         if not item_name:
-            yield event.plain_result("给哪件装备打孔？输入『打孔 <装备名>』或『打孔 <背包序号>』(如：打孔 铁剑 / 打孔 3)")
+            yield event.plain_result(_T.static("gem.drill_usage"))
             return
         target, err = self._gem_find_equip(group_id, qq_id, player, item_name)
         if not target:
@@ -2886,14 +2883,14 @@ class EconomyImpl(CommandBase):
         qinfo = _b143.GEM_SOCKETS.get(quality)
         if not qinfo or qinfo.get("count", 0) <= 0:
             yield event.plain_result(
-                f"【{d['name']}】({_b143.QUALITY.get(quality, {}).get('name', '')})没有孔位可打，只有蓝/紫/橙装备可以打孔！")
+                _T.text("gem.drill_no_slot", name=d['name'], q=_b143.QUALITY.get(quality, {}).get('name', '')))
             return
         if d.get("sockets"):
-            yield event.plain_result(f"【{d['name']}】已经有 {len(d['sockets'])} 个孔位了，不用再打～")
+            yield event.plain_result(_T.text("gem.drill_has", name=d['name'], n=len(d['sockets'])))
             return
         info = _b143.GEM_DRILL.get(quality)
         if not info:
-            yield event.plain_result(f"【{d['name']}】的品质不支持打孔！")
+            yield event.plain_result(_T.text("gem.drill_bad_q", name=d['name']))
             return
         # 副业门槛：锻造副业等级（v95.22 拜师校验同款）
         ok, act_msg = self._prof_active_check(group_id, qq_id, "craft", require_apprentice=True)
@@ -2903,10 +2900,10 @@ class EconomyImpl(CommandBase):
         prof_lv = db.get_prof_level(group_id, qq_id, "craft")
         if prof_lv < info["craft_lv"]:
             yield event.plain_result(
-                f"打孔需要锻造副业 Lv.{info['craft_lv']}(你 Lv.{prof_lv})！多锻造装备升级吧～")
+                _T.text("gem.drill_prof_short", need=info['craft_lv'], lv=prof_lv))
             return
         if player["gold"] < info["cost"]:
-            yield event.plain_result(f"打孔需要 {info['cost']} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("gem.drill_gold_short", gold=info['cost'], have=player['gold']))
             return
         # 体力：打孔消耗 10（全校验通过后才扣，防白扣）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["craft"], player, "打孔")
@@ -2925,8 +2922,7 @@ class EconomyImpl(CommandBase):
         db.update_player(group_id, qq_id, gold=player["gold"] - info["cost"])
         names = "/".join(slots.keys())
         yield event.plain_result(
-            f"🔨 打孔成功！【{d['name']}】现在有 {count} 个孔位({names})！"
-            f"『镶嵌 {d['name']} <原石>』放入幸运宝石～")
+            _T.text("gem.drill_ok", name=d['name'], n=count, quota=names, slot_hint=d['name']))
 
     @declared("gem_socket")
     @require_player()
@@ -2941,13 +2937,12 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "镶嵌")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能镶嵌原石！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("gem.socket_need_smith"))
             return
         parts = raw.strip().split()
         if len(parts) < 2:
             yield event.plain_result(
-                "镶嵌哪颗幸运宝石到哪件装备？输入『镶嵌 <装备名> <原石名/序号> [孔位]』\n"
-                "如：『镶嵌 铁剑 碎裂的幸运宝石』『镶嵌 铁剑 1』『镶嵌 铁剑 碎裂 S2』(孔位默认第一个空孔)")
+                _T.static("gem.socket_usage"))
             return
         item_name, gem_raw = parts[0], parts[1]
         slot_arg = parts[2] if len(parts) > 2 else ""
@@ -2959,7 +2954,7 @@ class EconomyImpl(CommandBase):
         socks = d.get("sockets")
         if not socks:
             yield event.plain_result(
-                f"【{d['name']}】还没有孔位！先『打孔 {d['name']}』打出孔位再镶嵌～")
+                _T.text("gem.socket_no_slot", name=d['name'], cmd=d['name']))
             return
         gem_item, err = self._gem_find_gem(group_id, qq_id, gem_raw)
         if not gem_item:
@@ -2972,9 +2967,9 @@ class EconomyImpl(CommandBase):
         max_t = (cap or {}).get("max_tier", 0)
         if not (min_t <= gd.get("tier", 0) <= max_t):
             yield event.plain_result(
-                f"【{d['name']}】({_b143.QUALITY.get(quality, {}).get('name', '')})的孔位只能镶 "
-                f"{_b143.GEM_TIER_NAMES.get(min_t, min_t)}~{_b143.GEM_TIER_NAMES.get(max_t, max_t)} 的幸运宝石"
-                f"(你选的是 {gd['name']})！")
+                _T.text("gem.socket_tier", name=d['name'], q=_b143.QUALITY.get(quality, {}).get('name', ''),
+                    lo=_b143.GEM_TIER_NAMES.get(min_t, min_t),
+                    hi=_b143.GEM_TIER_NAMES.get(max_t, max_t), picked=gd['name']))
             return
         # 孔位解析：显式孔位（S1/S2/S3）→ 校验存在且空；未给 → 第一个空孔
         target_slot = ""
@@ -2982,12 +2977,12 @@ class EconomyImpl(CommandBase):
             slot_arg = slot_arg.strip().upper()
             if slot_arg not in socks:
                 yield event.plain_result(
-                    f"【{d['name']}】没有 {slot_arg} 这个孔位(孔位：{'/'.join(socks)})！")
+                    _T.text("gem.no_slot_idx", name=d['name'], slot=slot_arg, slots='/'.join(socks)))
                 return
             if socks[slot_arg] is not None:
                 yield event.plain_result(
-                    f"【{d['name']}】的 {slot_arg} 已经镶了『{socks[slot_arg].get('name', '')}』！"
-                    f"『拆卸 {d['name']} {slot_arg}』先拆下来～")
+                    _T.text("gem.slot_used", name=d['name'], slot=slot_arg, gem=socks[slot_arg].get('name', ''),
+                        cmd=d['name'], name2=slot_arg))
                 return
             target_slot = slot_arg
         else:
@@ -2997,8 +2992,7 @@ class EconomyImpl(CommandBase):
                     break
             if not target_slot:
                 yield event.plain_result(
-                    f"【{d['name']}】的 {len(socks)} 个孔位都满了，没有空孔！"
-                    f"『拆卸 <装备名> <孔位>』拆一颗再镶～")
+                    _T.text("gem.socket_full", name=d['name'], n=len(socks)))
                 return
         db.remove_item(group_id, qq_id, gem_item["key"], 1)
         socks[target_slot] = dict(gd)
@@ -3009,8 +3003,7 @@ class EconomyImpl(CommandBase):
         else:
             db.update_item_data(group_id, qq_id, target["key"], d)
         yield event.plain_result(
-            f"💎 镶嵌成功！【{d['name']}】{target_slot} 镶入 {gd['name']}！"
-            f"『原石』查看背包剩余幸运宝石～")
+            _T.text("gem.socket_ok", name=d['name'], slot=target_slot, gem=gd['name']))
 
     @declared("gem_remove")
     @require_player()
@@ -3024,12 +3017,12 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "拆卸")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能拆卸原石！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("gem.remove_need_smith"))
             return
         parts = raw.strip().split()
         if len(parts) < 2:
             yield event.plain_result(
-                "拆卸哪个孔位的幸运宝石？输入『拆卸 <装备名> <孔位>』(如：拆卸 铁剑 S1)")
+                _T.static("gem.remove_usage"))
             return
         item_name, slot_arg = parts[0], parts[1].strip().upper()
         target, err = self._gem_find_equip(group_id, qq_id, player, item_name)
@@ -3040,15 +3033,15 @@ class EconomyImpl(CommandBase):
         socks = d.get("sockets") or {}
         if slot_arg not in socks:
             yield event.plain_result(
-                f"【{d['name']}】没有 {slot_arg} 这个孔位(孔位：{'/'.join(socks) or '无'})！")
+                _T.text("gem.no_slot_idx2", name=d['name'], slot=slot_arg, slots='/'.join(socks) or '无'))
             return
         if socks[slot_arg] is None:
-            yield event.plain_result(f"【{d['name']}】的 {slot_arg} 是空孔，没有幸运宝石可拆～")
+            yield event.plain_result(_T.text("gem.empty_slot", name=d['name'], slot=slot_arg))
             return
         gd = socks[slot_arg]
         cost = C.gem_socket_cost(gd)
         if player["gold"] < cost:
-            yield event.plain_result(f"拆卸需要 {cost} 金币(500×层数)，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("gem.remove_gold_short", gold=cost, have=player['gold']))
             return
         db.update_player(group_id, qq_id, gold=player["gold"] - cost)
         import uuid
@@ -3061,8 +3054,7 @@ class EconomyImpl(CommandBase):
         else:
             db.update_item_data(group_id, qq_id, target["key"], d)
         yield event.plain_result(
-            f"🔧 拆卸成功！取回 {gd['name']}，花费 {cost} 金币"
-            f"(已放回背包，『原石』查看～)")
+            _T.text("gem.remove_ok", gem=gd['name'], gold=cost))
 
     @declared("gem_combine")
     @require_player()
@@ -3077,7 +3069,7 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "原石合成")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能合成原石！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("gem.combine_need_smith"))
             return
         items = db.get_inventory(group_id, qq_id)
         gems = [it for it in items
@@ -3087,7 +3079,7 @@ class EconomyImpl(CommandBase):
             by_tier = {}
             for it in gems:
                 by_tier.setdefault(it["data"].get("tier", 0), []).append(it)
-            lines = ["💎 【原石合成】3 个同级原石 → 1 个上级，无失败！", "━━━━━━━━━━━━"]
+            lines = [_T.static("gem.combine_head"), "━━━━━━━━━━━━"]
             shown = 0
             for tier in sorted(by_tier):
                 if tier >= 10:
@@ -3098,13 +3090,13 @@ class EconomyImpl(CommandBase):
                 lines.append(f"{ok} {gd['name']} ×{cnt}/3  →  {_b143.GEM_TIER_NAMES.get(tier + 1, '?')}")
                 shown += 1
             if shown == 0:
-                lines.append("背包里还没有可合成的幸运宝石！打怪有概率掉落幸运宝石～")
+                lines.append(_T.static("gem.combine_none_usable"))
             lines.append("━━━━━━━━━━━━")
-            lines.append("💡 『原石合成 <原石名/序号>』消耗 3 颗同级幸运宝石合成 1 颗上级(神话 不可再合成)")
+            lines.append(_T.static("gem.combine_tip"))
             yield event.plain_result("\n".join(lines))
             return
         if not gems:
-            yield event.plain_result("背包里还没有幸运宝石！打怪有概率掉落幸运宝石～")
+            yield event.plain_result(_T.static("gem.combine_none"))
             return
         gem_item, err = self._gem_find_gem(group_id, qq_id, raw)
         if not gem_item:
@@ -3113,14 +3105,14 @@ class EconomyImpl(CommandBase):
         gd = gem_item["data"]
         tier = gd.get("tier", 0)
         if tier >= 10:
-            yield event.plain_result(f"{gd['name']} 已是传说II，无法再合成了！")
+            yield event.plain_result(_T.text("gem.combine_max", name=gd['name']))
             return
         # 统计同 tier 全部原石数量（跨堆）
         same_tier = [it for it in gems if it["data"].get("tier") == tier]
         total = sum(it["count"] for it in same_tier)
         if total < 3:
             yield event.plain_result(
-                f"合成需要 3 颗 {_b143.GEM_TIER_NAMES.get(tier, tier)}，你有 {total} 颗！")
+                _T.text("gem.combine_lack", name=_b143.GEM_TIER_NAMES.get(tier, tier), have=total))
             return
         # 扣 3 颗同 tier（跨堆扣取，key 优先）
         remain = 3
@@ -3133,8 +3125,7 @@ class EconomyImpl(CommandBase):
         new_gem = C.gem_combine([gd, gd, gd])
         db.add_item(group_id, qq_id, f"gem_{__import__('uuid').uuid4().hex[:8]}", new_gem)
         yield event.plain_result(
-            f"✨ 三颗 {gd['name']} 光芒交织，合成了更纯粹的幸运宝石！\n"
-            f"✅ 合成成功！获得 {new_gem['name']}(消耗 3 颗，无失败)")
+            _T.text("gem.combine_ok", name=gd['name'], out=new_gem['name']))
 
     @declared("gem_view")
     @require_player()
@@ -3147,26 +3138,26 @@ class EconomyImpl(CommandBase):
                 if it["data"].get("gem") or it["data"].get("type") in ("原石", "幸运宝石")]
         if not gems:
             yield event.plain_result(
-                "💎 背包里还没有幸运宝石！打怪有概率掉落幸运宝石～\n"
-                "💡 『打孔 <装备>』给蓝/紫/橙装开孔，『镶嵌 <装备> <原石>』镶入获得属性！")
+                _T.static("gem.view_none"))
             return
-        lines = [f"💎 【幸运宝石】(共 {sum(it['count'] for it in gems)} 颗)", "━━━━━━━━━━━━"]
+        lines = [_T.text("gem.view_head", n=sum(it['count'] for it in gems)), "━━━━━━━━━━━━"]
         _SNAMES = C.STAT_NAMES if hasattr(C, "STAT_NAMES") else {}
         for it in gems:
             gd = it["data"]
             stats_str = "、".join(
                 f"{_SNAMES.get(k, k)}+{int(v * 100)}%" for k, v in (gd.get("stats") or {}).items())
             need = "蓝孔" if gd.get("tier", 1) <= 2 else ("紫孔" if gd.get("tier", 1) <= 4 else "橙孔")
-            lines.append(f"💎 {gd['name']} ×{it['count']} ｜ 阶{gd.get('tier', '?')} ｜ {stats_str} ｜ {need}")
+            lines.append(_T.text("gem.view_row", name=gd['name'], count=it['count'], tier=gd.get('tier', '?'),
+                             stats=stats_str, need=need))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 『镶嵌 <装备> <原石>』镶入装备 ｜ 『原石合成 <原石>』3 合 1 升级 ｜ 『拆卸 <装备> <孔位>』取下")
+        lines.append(_T.static("gem.view_tip"))
         yield event.plain_result("\n".join(lines))
 
     # ================= v136 符文制作 / 符文拆卸（Phase 3：掉落 → 掉落+可制作） =================
 
     def _rune_craft_panel(self, player):
         """符文制作面板（无参时展示全部配方：素材+碎片+制作费）。"""
-        lines = ["🔮 【符文制作】掉落之外，铁匠铺可用怪物素材+符文碎片合成符文(1 级)！",
+        lines = [_T.static("rune.panel_head"),
                  "━━━━━━━━━━━━"]
         for rkey, r in _cit.RUNES.items():
             cfg = _cit.RUNE_CRAFT.get(rkey)
@@ -3175,11 +3166,10 @@ class EconomyImpl(CommandBase):
             mname = C.display("materials", cfg["mat"])
             shards = _b143.RUNE_CRAFT_SHARDS.get(r["quality"], 3)
             fee = r.get("cost", 0) // 2
-            lines.append(f"{_b143.QUALITY[r['quality']]['color']}符文·{r.get('name', rkey)}"
-                         f"：{mname}×{cfg['count']}+符文碎片×{shards}+{fee}金")
+            lines.append(_T.text("rune.panel_row", name=_b143.QUALITY[r['quality']]['color'], desc=r.get('name', rkey),
+                             mat=mname, qty=cfg['count'], mats=shards, gold=fee))
         lines.append("━━━━━━━━━━━━")
-        lines.append("💡 『符文制作 <符文名>』消耗素材+符文碎片+金币，获得 1 级符文"
-                     "(符文碎片=拆卸符文回收，隐藏怪「符文魔像」也掉落)")
+        lines.append(_T.static("rune.panel_tip"))
         return "\n".join(lines)
 
     @declared("rune_craft")
@@ -3195,7 +3185,7 @@ class EconomyImpl(CommandBase):
         group_id, qq_id = self._uid(event)
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能制作符文！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("rune.craft_need_smith"))
             return
         raw = self._strip_cmd(event, "符文制作").strip()
         if not raw:
@@ -3212,12 +3202,12 @@ class EconomyImpl(CommandBase):
                 rkey = hits[0] if hits else rkey
         if rkey not in _cit.RUNES:
             yield event.plain_result(
-                f"没有『{raw}』这个符文！『符文制作』查看全部可制作符文～")
+                _T.text("rune.not_found", name=raw))
             return
         r = _cit.RUNES[rkey]
         cfg = _cit.RUNE_CRAFT.get(rkey)
         if not cfg:
-            yield event.plain_result(f"『{r.get('name', rkey)}』暂时不能制作，只能靠打怪掉落～")
+            yield event.plain_result(_T.text("rune.not_craftable", name=r.get('name', rkey)))
             return
         # 体力：所有校验通过后才扣（防白扣，与炼金/附魔对齐）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["craft"], player, "符文制作")
@@ -3229,17 +3219,16 @@ class EconomyImpl(CommandBase):
         mname = C.display("materials", cfg["mat"])
         have_mat = sum(it["count"] for it in items if it["data"].get("name") == mname)
         if have_mat < cfg["count"]:
-            yield event.plain_result(f"材料不足！制作【{r.get('name', rkey)}】需要 {mname}×{cfg['count']}(你有 {have_mat})")
+            yield event.plain_result(_T.text("rune.mat_short", name=r.get('name', rkey), mat=mname, qty=cfg['count'], have=have_mat))
             return
         shards = _b143.RUNE_CRAFT_SHARDS.get(r["quality"], 3)
         have_shard = db.count_item(group_id, qq_id, "符文碎片")
         if have_shard < shards:
-            yield event.plain_result(f"符文碎片不足！制作【{r.get('name', rkey)}】需要 符文碎片×{shards}(你有 {have_shard})"
-                                     f"(拆卸符文回收，或隐藏怪「符文魔像」掉落)")
+            yield event.plain_result(_T.text("rune.shard_short", name=r.get('name', rkey), need=shards, have=have_shard))
             return
         fee = r.get("cost", 0) // 2
         if player["gold"] < fee:
-            yield event.plain_result(f"制作【{r.get('name', rkey)}】需要 {fee} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("rune.gold_short", name=r.get('name', rkey), gold=fee, have=player['gold']))
             return
         # 扣素材（跨堆）+ 碎片 + 金币
         remain = cfg["count"]
@@ -3264,16 +3253,15 @@ class EconomyImpl(CommandBase):
         db.add_item(group_id, qq_id, f"rune_{r['effect']}_1", rune_data)
         # 副业经验（锻造 +1，与炼金/烹饪同思路）
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "craft", 1)
-        _lv_msg = f"\n🌟 锻造副业提升到 Lv.{new_lv}！" if leveled else ""
+        _lv_msg = _T.text("rune.prof_lv_up", lv=new_lv) if leveled else ""
         _done, _msg = self._daily_prof_bump(group_id, qq_id, "craft")
         if _msg:
             _lv_msg += "\n" + _msg.strip()
         db.bump_stats(group_id, qq_id, craft_count=1)
         C.check_achievements(group_id, qq_id, player)
         yield event.plain_result(
-            f"🔮 【符文制作成功】获得了【{rune_data['name']}】！({rune_data['desc']})\n"
-            f"(消耗 {mname}×{cfg['count']}+符文碎片×{shards}+{fee}金币)\n"
-            f"💡 『附魔 <装备> {rune_data['name']}』刻印到装备上！{_lv_msg}")
+            _T.text("rune.craft_ok", name=rune_data['name'], desc=rune_data['desc'], mat=mname,
+                qty=cfg['count'], shard=shards, gold=fee, cmd=rune_data['name'], tail=_lv_msg))
 
     @declared("rune_remove")
     @require_player()
@@ -3290,12 +3278,12 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "符文拆卸")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能拆卸符文！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("rune.remove_need_smith"))
             return
         parts = raw.strip().split()
         if not parts:
             yield event.plain_result(
-                "拆卸哪个装备上的符文？输入『符文拆卸 <装备名> [孔位]』(如：符文拆卸 铁剑 / 符文拆卸 铁剑 2)")
+                _T.static("rune.remove_usage"))
             return
         item_name = parts[0]
         slot_arg = parts[1] if len(parts) > 1 else ""
@@ -3305,11 +3293,11 @@ class EconomyImpl(CommandBase):
         if item_name.isdigit():
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看全部～")
+                yield event.plain_result(_T.text("common.bag_no_idx", idx=idx, total=len(items)))
                 return
             target = items[idx - 1]
             if not target["data"].get("slot"):
-                yield event.plain_result(f"背包第 {idx} 件『{target['data']['name']}』不是装备，不能拆符文！")
+                yield event.plain_result(_T.text("rune.not_equip", idx=idx, name=target['data']['name']))
                 return
         else:
             for it in items:
@@ -3324,7 +3312,7 @@ class EconomyImpl(CommandBase):
                         target = {"key": f"eq_equipped_{slot}", "data": ed, "_equipped": slot}
                         break
             if not target:
-                yield event.plain_result(f"背包里没有叫『{item_name}』的装备！(已装备的也可以直接『符文拆卸 <装备名>』)")
+                yield event.plain_result(_T.text("rune.no_equip", name=item_name))
                 return
         d = target["data"]
         orig = d.get("enchant") or []
@@ -3332,17 +3320,17 @@ class EconomyImpl(CommandBase):
         rune_pos = [(i, e) for i, e in enumerate(orig)
                     if e and isinstance(e, dict) and e.get("effect")]
         if not rune_pos:
-            yield event.plain_result(f"【{d['name']}】没有刻印任何符文～(『附魔 <装备> <符文>』刻印)")
+            yield event.plain_result(_T.text("rune.no_rune", name=d['name']))
             return
         # 孔位：默认拆最后一个符文；显式 <n> 指定第 n 个符文效果（1 起）
         idx = 0
         if slot_arg:
             if not slot_arg.isdigit():
-                yield event.plain_result(f"『{slot_arg}』不是有效孔位！输入『符文拆卸 <装备名> <孔位序号>』，如：符文拆卸 铁剑 1")
+                yield event.plain_result(_T.text("rune.bad_slot", slot=slot_arg))
                 return
             n = int(slot_arg)
             if n < 1 or n > len(rune_pos):
-                yield event.plain_result(f"【{d['name']}】只有 {len(rune_pos)} 个符文(孔位 1~{len(rune_pos)})，没有第 {n} 个！")
+                yield event.plain_result(_T.text("rune.slot_range", name=d['name'], n=len(rune_pos), max=len(rune_pos), idx=n))
                 return
             idx = n - 1
         else:
@@ -3352,7 +3340,7 @@ class EconomyImpl(CommandBase):
         lvl = int(en.get("lvl", 1) or 1)
         cost = _b143.RUNE_REMOVE_COST * lvl
         if player["gold"] < cost:
-            yield event.plain_result(f"拆卸 Lv.{lvl} 符文需要 {cost} 金币(1000×等级)，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("rune.remove_gold_short", lv=lvl, gold=cost, have=player['gold']))
             return
         # 回收符文碎片×等级（可堆叠，key=mat_fu_wen_sui_pian 已有定义）
         db.update_player(group_id, qq_id, gold=player["gold"] - cost)
@@ -3371,9 +3359,7 @@ class EconomyImpl(CommandBase):
             db.update_item_data(group_id, qq_id, target["key"], d)
         eff_name = _cit.RUNE_EFFECT_NAMES.get(eff, eff)
         yield event.plain_result(
-            f"🔧 符文拆卸成功！【{d['name']}】拆下了『{eff_name}』(Lv.{lvl})，"
-            f"花费 {cost} 金币\n"
-            f"🎒 回收 符文碎片×{lvl}（『附魔 <装备> <符文>』可重新刻印）")
+            _T.text("rune.remove_ok", name=d['name'], rune=eff_name, lv=lvl, gold=cost, shard=lvl))
 
     @declared("refine_equip")
     @require_player()
@@ -3388,7 +3374,7 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "装备重锻").strip()
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能重锻装备！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("refine.need_smith"))
             return
         if not raw:
             # 无参：列出全部可重锻配方（含路B 重锻专属——REFINE_EXCLUSIVE_RECIPES 以名册 rid 为目标）
@@ -3403,12 +3389,12 @@ class EconomyImpl(CommandBase):
                 _rid = _cfg.get("target", "")
                 _tgt_nm = _cit.EQUIP_ROSTER.get(_rid, {}).get("name", _rid)
                 _src_rows.append((_src, _tgt_nm, _cfg.get("mats", {}), _cfg.get("gold", 0)))
-            lines = ["🔀 【装备重锻】（怪猎派生树：旧→新，继承一半强化/升级）", ""]
+            lines = [_T.static("refine.head"), ""]
             for _src, _tgt_nm, _mats, _gold in _src_rows:
                 _mats_s = " + ".join(f"{C.display('materials', m)}×{n}" for m, n in _mats.items())
-                lines.append(f"  {_src} → {_tgt_nm}｜{_mats_s} + {_gold}金")
+                lines.append(_T.text("refine.row", from_name=_src, to_name=_tgt_nm, mats=_mats_s, gold=_gold))
             lines.append("")
-            lines.append("💡 『装备重锻 <装备名>』重锻你的装备，继承一半强化/升级！")
+            lines.append(_T.static("refine.tip"))
             yield event.plain_result("\n".join(lines))
             return
         target, err = self._gem_find_equip(group_id, qq_id, player, raw)
@@ -3424,7 +3410,7 @@ class EconomyImpl(CommandBase):
                 rec = _cfg
                 break
         if not rec:
-            yield event.plain_result(f"【{src_name}】没有重锻配方！『装备重锻』看可重锻列表～")
+            yield event.plain_result(_T.text("refine.no_recipe", name=src_name))
             return
         # v172 路B：重锻专属（REFINE_EXCLUSIVE_RECIPES，target = 名册 rid，无锻造配方）——
         # 命中时走 generate_roster_equip(rid) 精确生成；目标等级门槛从名册条目取。
@@ -3437,25 +3423,27 @@ class EconomyImpl(CommandBase):
         _is_exclusive = _excl_src is not None
         tgt_rec = _clife.CRAFT_RECIPES.get(rec["target"]) if not _is_exclusive else None
         if not _is_exclusive and not tgt_rec:
-            yield event.plain_result(f"【{src_name}】的重锻目标不存在(配置缺失)！")
+            yield event.plain_result(_T.text("refine.no_target", name=src_name))
             return
         # 校验等级门槛
         _tgt_lv = tgt_rec["lv"] if tgt_rec else _cit.EQUIP_ROSTER.get(rec["target"], {}).get("lv", 0)
         if _tgt_lv > player["level"] + 6:
-            yield event.plain_result(f"重锻目标【{_cit.EQUIP_ROSTER.get(rec['target'], {}).get('name', tgt_rec['name'] if tgt_rec else rec['target'])}】是 Lv.{_tgt_lv}，你才 Lv.{player['level']}，等级再高些才能驾驭！")
+            yield event.plain_result(_T.text("refine.lv_short",
+                                         target=_cit.EQUIP_ROSTER.get(rec['target'], {}).get('name', tgt_rec['name'] if tgt_rec else rec['target']),
+                                         need=_tgt_lv, lv=player['level']))
             return
         # 校验材料
         lack = []
         for m, n in rec["mats"].items():
             have = db.count_item(group_id, qq_id, m)
             if have < n:
-                lack.append(f"{C.display('materials', m)}×{n}(你有{have})")
+                lack.append(_T.text("craft.lack_detail", item=C.display('materials', m), qty=n, have=have))
         if lack:
-            yield event.plain_result(f"重锻材料不足！还缺：{'、'.join(lack)}。Boss 掉落稀有素材～")
+            yield event.plain_result(_T.text("refine.mat_short", lack='、'.join(lack)))
             return
         # 校验金币
         if player["gold"] < rec["gold"]:
-            yield event.plain_result(f"金币不足！重锻需要 {rec['gold']} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("refine.gold_short", gold=rec['gold'], have=player['gold']))
             return
         # 扣材料 + 扣金币 + 扣旧装备
         for m, n in rec["mats"].items():
@@ -3499,14 +3487,13 @@ class EconomyImpl(CommandBase):
         db.add_item(group_id, qq_id, key, new_equip)
         _eh = new_equip["enhance"]
         _lv_boost = _upg_boost // 2 if _inh != "full" else _upg_boost
-        _inh_str = f"继承强化+{_eh}" if _eh else ""
+        _inh_str = _T.text("refine.inherit_plus", lv=_eh) if _eh else ""
         if _lv_boost > 0:
-            _inh_str = (_inh_str + " / " if _inh_str else "") + f"升级继承 Lv.{_lv_boost}"
-        _inh_str = _inh_str or "（新装备）"
+            _inh_str = (_inh_str + " / " if _inh_str else "") + _T.text("refine.inherit_lv", lv=_lv_boost)
+        _inh_str = _inh_str or _T.static("refine.new_tag")
         yield event.plain_result(
-            f"🔀 【装备重锻成功】{src_name} 淬炼成 {_b143.QUALITY[new_equip['quality']]['color']}【{new_equip['name']}】！\n"
-            f"🎯 {_inh_str}——旧装备的强化/升级投资不沉没！\n"
-            f"💰 消耗 {rec['gold']} 金币 + 稀有素材")
+            _T.text("refine.ok", from_name=src_name, to_name=_b143.QUALITY[new_equip['quality']]['color'],
+                inherit=new_equip['name'], gold=_inh_str, tail=rec['gold']))
 
     @declared("calamity_forge")
     @require_player()
@@ -3521,10 +3508,10 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "炼成").strip()
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能怪异炼成！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("calamity.need_smith"))
             return
         if not raw:
-            yield event.plain_result("炼成哪件装备？输入『炼成 <装备名>』(如：炼成 铁剑)——每件限 3 次，随机强化属性(90%+3%/10%-1%)")
+            yield event.plain_result(_T.static("calamity.usage"))
             return
         target, err = self._gem_find_equip(group_id, qq_id, player, raw)
         if not target:
@@ -3533,19 +3520,19 @@ class EconomyImpl(CommandBase):
         d = target["data"]
         cnt = d.get("calamity_count", 0) or 0
         if cnt >= _clife.CALAMITY_MAX:
-            yield event.plain_result(f"【{d['name']}】已经炼成 {cnt}/{_clife.CALAMITY_MAX} 次，到极限了！换装备继续炼吧～")
+            yield event.plain_result(_T.text("calamity.max", name=d['name'], n=cnt, cap=_clife.CALAMITY_MAX))
             return
         # 校验材料/金币
         lack = []
         for m, n in _clife.CALAMITY_COST["mats"].items():
             have = db.count_item(group_id, qq_id, m)
             if have < n:
-                lack.append(f"{C.display('materials', m)}×{n}(你有{have})")
+                lack.append(_T.text("calamity.lack_detail", item=C.display('materials', m), qty=n, have=have))
         if lack:
-            yield event.plain_result(f"炼成材料不足！还缺：{'、'.join(lack)}。Boss 掉落稀有素材～")
+            yield event.plain_result(_T.text("calamity.mat_short", lack='、'.join(lack)))
             return
         if player["gold"] < _clife.CALAMITY_COST["gold"]:
-            yield event.plain_result(f"金币不足！怪异炼成需要 {_clife.CALAMITY_COST['gold']} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("calamity.gold_short", gold=_clife.CALAMITY_COST['gold'], have=player['gold']))
             return
         # 扣材料/金币
         for m, n in _clife.CALAMITY_COST["mats"].items():
@@ -3567,12 +3554,12 @@ class EconomyImpl(CommandBase):
             db.update_player(group_id, qq_id, equipment=eq)
         else:
             db.update_item_data(group_id, qq_id, target["key"], d)
-        _arrow = "✨ 炼成成功！" if _pos else "🌪️ 炼成波动……"
+        _arrow = _T.static("calamity.ok") if _pos else _T.static("calamity.wave")
         _sgn = "+" if _val > 0 else ""
         yield event.plain_result(
-            f"{_arrow}【{d['name']}】{_stat_cn}{_sgn}{int(_val * 100)}%！"
-            f"({d.get('calamity_count', 1)}/{_clife.CALAMITY_MAX} 次)\n"
-            f"💰 消耗 {_clife.CALAMITY_COST['gold']} 金币 + 稀有素材")
+            _T.text("calamity.result", arrow=_arrow, name=d['name'], stat=_stat_cn, sign=_sgn,
+                pct=int(_val * 100), n=d.get('calamity_count', 1), cap=_clife.CALAMITY_MAX,
+                gold=_clife.CALAMITY_COST['gold']))
 
     @declared("enchant")
     @require_player()
@@ -3589,7 +3576,8 @@ class EconomyImpl(CommandBase):
             # v104R3 M11 P3-2：符文名带品质前缀，与背包掉落名（rune_item 构造）一致，
             # 例『史诗符文·残忍』（用户输入名或子串均能匹配）
             _rune_list = "、".join(
-                f"{_b143.QUALITY[r.get('quality', 'white')]['name']}符文·{r.get('name', k)}"
+                _T.text("enchant.rune_name", quality=_b143.QUALITY[r.get('quality', 'white')]['name'],
+                    name=r.get('name', k))
                 for k, r in _cit.RUNES.items()
             )
             yield event.plain_result(
@@ -5285,18 +5273,18 @@ class EconomyImpl(CommandBase):
         _nm = _b143.GEM_TIER_NAMES.get(tier, str(tier))
         _pct = int(_g.get("mult", 0) * 100)
         _lines = [f"💎 【{_nm}】", "━━━━━━━━━━━━"]
-        _lines.append(f"阶位：{tier}/10 ｜ 效果：镶嵌后随机属性 ×{_pct}%")
+        _lines.append(_T.text("gem.tier_detail", tier=tier, pct=_pct))
         _up = tier + 1
         _up_nm = _b143.GEM_TIER_NAMES.get(_up)
         if _up_nm:
-            _lines.append(f"合成：3 颗『{_nm}』→ 1 颗『{_up_nm}』（『原石合成』）")
+            _lines.append(_T.text("gem.tier_combine", from_name=_nm, to_name=_up_nm))
         else:
-            _lines.append("已是最高阶，无法再合成！")
-        _lines.append("获取：打怪概率掉落（普通怪碎裂-无瑕 · 精英更高 · Boss 可出传说/神话）")
+            _lines.append(_T.static("gem.tier_max"))
+        _lines.append(_T.static("gem.tier_source"))
         if tier >= 8:
-            _lines.append(f"🌟 传说级特效：{' / '.join(_b143.GEM_LEGENDARY_EFFECTS)}（仅传说阶触发）")
+            _lines.append(_T.text("gem.tier_legend", name=' / '.join(_b143.GEM_LEGENDARY_EFFECTS)))
         _lines.append("")
-        _lines.append(f"💡 『镶嵌 <装备名> <幸运宝石>』塞进装备孔位｜『百科 宝石』看全部 10 阶")
+        _lines.append(_T.text("gem.tier_tip", ))
         return "\n".join(_lines)
 
     def _ency_browse_runes(self, raw: str = "", qq_id: str = "") -> str:

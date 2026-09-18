@@ -820,6 +820,87 @@
     "category": "流派",
     "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
   },
+  "calamity.gold_short": {
+    "value": "金币不足！怪异炼成需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "gold",
+      "have"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.lack_detail": {
+    "value": "{item}×{qty}(你有{have})",
+    "params": [
+      "item",
+      "qty",
+      "have"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.mat_short": {
+    "value": "炼成材料不足！还缺：{lack}。Boss 掉落稀有素材～",
+    "params": [
+      "lack"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.max": {
+    "value": "【{name}】已经炼成 {n}/{cap} 次，到极限了！换装备继续炼吧～",
+    "params": [
+      "name",
+      "n",
+      "cap"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能怪异炼成！(先『地图』移动到铁匠铺)",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.ok": {
+    "value": "✨ 炼成成功！",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.result": {
+    "value": "{arrow}【{name}】{stat}{sign}{pct}%！({n}/{cap} 次)\n💰 消耗 {gold} 金币 + 稀有素材",
+    "params": [
+      "arrow",
+      "name",
+      "stat",
+      "sign",
+      "pct",
+      "n",
+      "cap",
+      "gold"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.usage": {
+    "value": "炼成哪件装备？输入『炼成 <装备名>』(如：炼成 铁剑)——每件限 3 次，随机强化属性(90%+3%/10%-1%)",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "calamity.wave": {
+    "value": "🌪️ 炼成波动……",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
+  },
+  "common.bag_no_idx": {
+    "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看全部～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
   "common.page_no": {
     "value": "📄 第 {page}/{total} 页",
     "params": [
@@ -828,6 +909,14 @@
     ],
     "category": "生活副业",
     "desc": "搬自 content/economy_cmds.py:cooking_list（B 批 C 档）"
+  },
+  "common.prof_lv_up": {
+    "value": "🌟 强化副业提升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
   },
   "cond_label.element_marks": {
     "value": "敌方{element}印记≥{n}层",
@@ -2157,6 +2246,15 @@
     "value": "死亡标记",
     "category": "效果名",
     "desc": "战斗效果名（`_skill_tag` / 技能详情用；搬自 combat_cmds._EFFECT_CN）"
+  },
+  "enchant.rune_name": {
+    "value": "{quality}符文·{name}",
+    "params": [
+      "quality",
+      "name"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
   },
   "ency.affix_detail_chance": {
     "value": "（概率 {pct}%）",
@@ -3726,6 +3824,351 @@
       "vis",
       "tot"
     ]
+  },
+  "gem.combine_head": {
+    "value": "💎 【原石合成】3 个同级原石 → 1 个上级，无失败！",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_lack": {
+    "value": "合成需要 3 颗 {name}，你有 {have} 颗！",
+    "params": [
+      "name",
+      "have"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_max": {
+    "value": "{name} 已是传说II，无法再合成了！",
+    "params": [
+      "name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能合成原石！(先『地图』移动到铁匠铺)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_none": {
+    "value": "背包里还没有幸运宝石！打怪有概率掉落幸运宝石～",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_none_usable": {
+    "value": "背包里还没有可合成的幸运宝石！打怪有概率掉落幸运宝石～",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_ok": {
+    "value": "✨ 三颗 {name} 光芒交织，合成了更纯粹的幸运宝石！\n✅ 合成成功！获得 {out}(消耗 3 颗，无失败)",
+    "params": [
+      "name",
+      "out"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.combine_tip": {
+    "value": "💡 『原石合成 <原石名/序号>』消耗 3 颗同级幸运宝石合成 1 颗上级(神话 不可再合成)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
+  },
+  "gem.drill_bad_q": {
+    "value": "【{name}】的品质不支持打孔！",
+    "params": [
+      "name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_gold_short": {
+    "value": "打孔需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "gold",
+      "have"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_has": {
+    "value": "【{name}】已经有 {n} 个孔位了，不用再打～",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能打孔！(先『地图』移动到铁匠铺)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_no_slot": {
+    "value": "【{name}】({q})没有孔位可打，只有蓝/紫/橙装备可以打孔！",
+    "params": [
+      "name",
+      "q"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_ok": {
+    "value": "🔨 打孔成功！【{name}】现在有 {n} 个孔位({quota})！『镶嵌 {slot_hint} <原石>』放入幸运宝石～",
+    "params": [
+      "name",
+      "n",
+      "quota",
+      "slot_hint"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_prof_short": {
+    "value": "打孔需要锻造副业 Lv.{need}(你 Lv.{lv})！多锻造装备升级吧～",
+    "params": [
+      "need",
+      "lv"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.drill_usage": {
+    "value": "给哪件装备打孔？输入『打孔 <装备名>』或『打孔 <背包序号>』(如：打孔 铁剑 / 打孔 3)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
+  },
+  "gem.empty_slot": {
+    "value": "【{name}】的 {slot} 是空孔，没有幸运宝石可拆～",
+    "params": [
+      "name",
+      "slot"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
+  },
+  "gem.no_equip": {
+    "value": "背包里没有叫『{name}』的装备！(已装备的装备也可以直接操作，如『打孔 铁剑』)",
+    "params": [
+      "name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_find_equip（B 批 C 档）"
+  },
+  "gem.no_gem": {
+    "value": "背包里没有『{name}』！『原石』查看背包里的幸运宝石～",
+    "params": [
+      "name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
+  },
+  "gem.no_gem_idx": {
+    "value": "背包里没有第 {idx} 颗幸运宝石(共 {total} 颗)！『原石』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
+  },
+  "gem.no_slot_idx": {
+    "value": "【{name}】没有 {slot} 这个孔位(孔位：{slots})！",
+    "params": [
+      "name",
+      "slot",
+      "slots"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.no_slot_idx2": {
+    "value": "【{name}】没有 {slot} 这个孔位(孔位：{slots})！",
+    "params": [
+      "name",
+      "slot",
+      "slots"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
+  },
+  "gem.not_equip": {
+    "value": "背包第 {idx} 件『{name}』不是装备，不能操作！『背包』看装备序号～",
+    "params": [
+      "idx",
+      "name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_find_equip（B 批 C 档）"
+  },
+  "gem.pick_usage": {
+    "value": "哪颗幸运宝石？输入『原石』查看背包里的幸运宝石～",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
+  },
+  "gem.remove_gold_short": {
+    "value": "拆卸需要 {gold} 金币(500×层数)，你只有 {have}。",
+    "params": [
+      "gold",
+      "have"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
+  },
+  "gem.remove_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能拆卸原石！(先『地图』移动到铁匠铺)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
+  },
+  "gem.remove_ok": {
+    "value": "🔧 拆卸成功！取回 {gem}，花费 {gold} 金币(已放回背包，『原石』查看～)",
+    "params": [
+      "gem",
+      "gold"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
+  },
+  "gem.remove_usage": {
+    "value": "拆卸哪个孔位的幸运宝石？输入『拆卸 <装备名> <孔位>』(如：拆卸 铁剑 S1)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
+  },
+  "gem.slot_used": {
+    "value": "【{name}】的 {slot} 已经镶了『{gem}』！『拆卸 {cmd} {name2}』先拆下来～",
+    "params": [
+      "name",
+      "slot",
+      "gem",
+      "cmd",
+      "name2"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.socket_full": {
+    "value": "【{name}】的 {n} 个孔位都满了，没有空孔！『拆卸 <装备名> <孔位>』拆一颗再镶～",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.socket_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能镶嵌原石！(先『地图』移动到铁匠铺)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.socket_no_slot": {
+    "value": "【{name}】还没有孔位！先『打孔 {cmd}』打出孔位再镶嵌～",
+    "params": [
+      "name",
+      "cmd"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.socket_ok": {
+    "value": "💎 镶嵌成功！【{name}】{slot} 镶入 {gem}！『原石』查看背包剩余幸运宝石～",
+    "params": [
+      "name",
+      "slot",
+      "gem"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.socket_tier": {
+    "value": "【{name}】({q})的孔位只能镶 {lo}~{hi} 的幸运宝石(你选的是 {picked})！",
+    "params": [
+      "name",
+      "q",
+      "lo",
+      "hi",
+      "picked"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.socket_usage": {
+    "value": "镶嵌哪颗幸运宝石到哪件装备？输入『镶嵌 <装备名> <原石名/序号> [孔位]』\n如：『镶嵌 铁剑 碎裂的幸运宝石』『镶嵌 铁剑 1』『镶嵌 铁剑 碎裂 S2』(孔位默认第一个空孔)",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
+  },
+  "gem.tier_combine": {
+    "value": "合成：3 颗『{from_name}』→ 1 颗『{to_name}』（『原石合成』）",
+    "params": [
+      "from_name",
+      "to_name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
+  },
+  "gem.tier_detail": {
+    "value": "阶位：{tier}/10 ｜ 效果：镶嵌后随机属性 ×{pct}%",
+    "params": [
+      "tier",
+      "pct"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
+  },
+  "gem.tier_legend": {
+    "value": "🌟 传说级特效：{name}（仅传说阶触发）",
+    "params": [
+      "name"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
+  },
+  "gem.tier_max": {
+    "value": "已是最高阶，无法再合成！",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
+  },
+  "gem.tier_source": {
+    "value": "获取：打怪概率掉落（普通怪碎裂-无瑕 · 精英更高 · Boss 可出传说/神话）",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
+  },
+  "gem.tier_tip": {
+    "value": "💡 『镶嵌 <装备名> <幸运宝石>』塞进装备孔位｜『百科 宝石』看全部 10 阶",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
+  },
+  "gem.view_head": {
+    "value": "💎 【幸运宝石】(共 {n} 颗)",
+    "params": [
+      "n"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
+  },
+  "gem.view_none": {
+    "value": "💎 背包里还没有幸运宝石！打怪有概率掉落幸运宝石～\n💡 『打孔 <装备>』给蓝/紫/橙装开孔，『镶嵌 <装备> <原石>』镶入获得属性！",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
+  },
+  "gem.view_row": {
+    "value": "💎 {name} ×{count} ｜ 阶{tier} ｜ {stats} ｜ {need}",
+    "params": [
+      "name",
+      "count",
+      "tier",
+      "stats",
+      "need"
+    ],
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
+  },
+  "gem.view_tip": {
+    "value": "💡 『镶嵌 <装备> <原石>』镶入装备 ｜ 『原石合成 <原石>』3 合 1 升级 ｜ 『拆卸 <装备> <孔位>』取下",
+    "category": "宝石",
+    "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
   "gm.query_class": {
     "value": "职业：{cls}｜种族：{race}｜性别：{gender}",
@@ -7254,6 +7697,108 @@
     "category": "锻造",
     "desc": "搬自 content/economy_cmds.py:recipe_list（B 批 C 档）"
   },
+  "refine.gold_short": {
+    "value": "金币不足！重锻需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "gold",
+      "have"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.head": {
+    "value": "🔀 【装备重锻】（怪猎派生树：旧→新，继承一半强化/升级）",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.inherit_lv": {
+    "value": "升级继承 Lv.{lv}",
+    "params": [
+      "lv"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.inherit_plus": {
+    "value": "继承强化+{lv}",
+    "params": [
+      "lv"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.lv_short": {
+    "value": "重锻目标【{target}】是 Lv.{need}，你才 Lv.{lv}，等级再高些才能驾驭！",
+    "params": [
+      "target",
+      "need",
+      "lv"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.mat_short": {
+    "value": "重锻材料不足！还缺：{lack}。Boss 掉落稀有素材～",
+    "params": [
+      "lack"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能重锻装备！(先『地图』移动到铁匠铺)",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.new_tag": {
+    "value": "（新装备）",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.no_recipe": {
+    "value": "【{name}】没有重锻配方！『装备重锻』看可重锻列表～",
+    "params": [
+      "name"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.no_target": {
+    "value": "【{name}】的重锻目标不存在(配置缺失)！",
+    "params": [
+      "name"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.ok": {
+    "value": "🔀 【装备重锻成功】{from_name} 淬炼成 {to_name}【{inherit}】！\n🎯 {gold}——旧装备的强化/升级投资不沉没！\n💰 消耗 {tail} 金币 + 稀有素材",
+    "params": [
+      "from_name",
+      "to_name",
+      "inherit",
+      "gold",
+      "tail"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.row": {
+    "value": "  {from_name} → {to_name}｜{mats} + {gold}金",
+    "params": [
+      "from_name",
+      "to_name",
+      "mats",
+      "gold"
+    ],
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "refine.tip": {
+    "value": "💡 『装备重锻 <装备名>』重锻你的装备，继承一半强化/升级！",
+    "category": "重锻炼成",
+    "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
   "register.already": {
     "value": "你已经注册过角色啦！输入『角色』查看～",
     "category": "注册",
@@ -7443,6 +7988,180 @@
     "value": "战意",
     "category": "资源名",
     "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "rune.bad_slot": {
+    "value": "『{slot}』不是有效孔位！输入『符文拆卸 <装备名> <孔位序号>』，如：符文拆卸 铁剑 1",
+    "params": [
+      "slot"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.craft_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能制作符文！(先『地图』移动到铁匠铺)",
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.craft_ok": {
+    "value": "🔮 【符文制作成功】获得了【{name}】！({desc})\n(消耗 {mat}×{qty}+符文碎片×{shard}+{gold}金币)\n💡 『附魔 <装备> {cmd}』刻印到装备上！{tail}",
+    "params": [
+      "name",
+      "desc",
+      "mat",
+      "qty",
+      "shard",
+      "gold",
+      "cmd",
+      "tail"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.gold_short": {
+    "value": "制作【{name}】需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "name",
+      "gold",
+      "have"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.mat_short": {
+    "value": "材料不足！制作【{name}】需要 {mat}×{qty}(你有 {have})",
+    "params": [
+      "name",
+      "mat",
+      "qty",
+      "have"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.no_equip": {
+    "value": "背包里没有叫『{name}』的装备！(已装备的也可以直接『符文拆卸 <装备名>』)",
+    "params": [
+      "name"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.no_rune": {
+    "value": "【{name}】没有刻印任何符文～(『附魔 <装备> <符文>』刻印)",
+    "params": [
+      "name"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.not_craftable": {
+    "value": "『{name}』暂时不能制作，只能靠打怪掉落～",
+    "params": [
+      "name"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.not_equip": {
+    "value": "背包第 {idx} 件『{name}』不是装备，不能拆符文！",
+    "params": [
+      "idx",
+      "name"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.not_found": {
+    "value": "没有『{name}』这个符文！『符文制作』查看全部可制作符文～",
+    "params": [
+      "name"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.panel_head": {
+    "value": "🔮 【符文制作】掉落之外，铁匠铺可用怪物素材+符文碎片合成符文(1 级)！",
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:_rune_craft_panel（B 批 C 档）"
+  },
+  "rune.panel_row": {
+    "value": "{name}符文·{desc}：{mat}×{qty}+符文碎片×{mats}+{gold}金",
+    "params": [
+      "name",
+      "desc",
+      "mat",
+      "qty",
+      "mats",
+      "gold"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:_rune_craft_panel（B 批 C 档）"
+  },
+  "rune.panel_tip": {
+    "value": "💡 『符文制作 <符文名>』消耗素材+符文碎片+金币，获得 1 级符文(符文碎片=拆卸符文回收，隐藏怪「符文魔像」也掉落)",
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:_rune_craft_panel（B 批 C 档）"
+  },
+  "rune.prof_lv_up": {
+    "value": "\n🌟 锻造副业提升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.remove_gold_short": {
+    "value": "拆卸 Lv.{lv} 符文需要 {gold} 金币(1000×等级)，你只有 {have}。",
+    "params": [
+      "lv",
+      "gold",
+      "have"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.remove_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能拆卸符文！(先『地图』移动到铁匠铺)",
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.remove_ok": {
+    "value": "🔧 符文拆卸成功！【{name}】拆下了『{rune}』(Lv.{lv})，花费 {gold} 金币\n🎒 回收 符文碎片×{shard}（『附魔 <装备> <符文>』可重新刻印）",
+    "params": [
+      "name",
+      "rune",
+      "lv",
+      "gold",
+      "shard"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.remove_usage": {
+    "value": "拆卸哪个装备上的符文？输入『符文拆卸 <装备名> [孔位]』(如：符文拆卸 铁剑 / 符文拆卸 铁剑 2)",
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "rune.shard_short": {
+    "value": "符文碎片不足！制作【{name}】需要 符文碎片×{need}(你有 {have})(拆卸符文回收，或隐藏怪「符文魔像」掉落)",
+    "params": [
+      "name",
+      "need",
+      "have"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_craft（B 批 C 档）"
+  },
+  "rune.slot_range": {
+    "value": "【{name}】只有 {n} 个符文(孔位 1~{max})，没有第 {idx} 个！",
+    "params": [
+      "name",
+      "n",
+      "max",
+      "idx"
+    ],
+    "category": "符文",
+    "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
   },
   "season_name.autumn": {
     "value": "🍂 秋",
@@ -8589,6 +9308,135 @@
     "category": "属性名",
     "desc": "搬自 content/player_cmds.py:attributes（B 批 C 档）"
   },
+  "strengthen.fail_down": {
+    "value": "💥 强化失败！【{name}】降级到 +{lv}。铁匠摇摇头：『下次一定行！』(消耗 {gold} 金币)",
+    "params": [
+      "name",
+      "lv",
+      "gold"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.fail_guard": {
+    "value": "💥 强化失败！但强化石轰然炸开挡住了冲击，【{name}】保住了等级(+{lv})！\n(消耗强化石×1 + {gold} 金币{tail})",
+    "params": [
+      "name",
+      "lv",
+      "gold",
+      "tail"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.fail_keep": {
+    "value": "💥 强化失败！好在【{name}】保住了等级(+{lv})。再试一次？(消耗 {gold} 金币)",
+    "params": [
+      "name",
+      "lv",
+      "gold"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.glow": {
+    "value": "⚡ 装备绽放出耀眼的光芒！",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.gold_short": {
+    "value": "强化 +{cur} → +{next} 需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "cur",
+      "next",
+      "gold",
+      "have"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.legend_glow": {
+    "value": "🌟 传说级的光芒冲天而起！你听见了铁匠们的惊叹！",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.master_bonus": {
+    "value": "\n🛠️ 强化师 Lv.{lv} 的手艺：成功率 +{pct:.1f}%！",
+    "params": [
+      "lv",
+      "pct"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.max": {
+    "value": "【{name}】已经强化到极限 +{lv} 了！",
+    "params": [
+      "name",
+      "lv"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能强化装备！(先『地图』移动到铁匠铺)",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.no_equip": {
+    "value": "背包里没有叫『{name}』的装备！(已装备的武器也可以直接『强化 <武器名>』)",
+    "params": [
+      "name"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.not_equip": {
+    "value": "背包第 {idx} 件『{name}』不是装备，不能强化！『背包』看装备序号～",
+    "params": [
+      "idx",
+      "name"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.ok": {
+    "value": "🔨 强化成功！【{name}】+{cur} → +{next}！(消耗 {gold} 金币)",
+    "params": [
+      "name",
+      "cur",
+      "next",
+      "gold"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.prof_short": {
+    "value": "强化 +{cur} → +{next} 需要强化副业 Lv.{need}(你 Lv.{lv})！多强化装备升级吧～",
+    "params": [
+      "cur",
+      "next",
+      "need",
+      "lv"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.rune_bonus": {
+    "value": "\n✨ 祝福符石泛起微光，成功率提升了！",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.stone_bonus": {
+    "value": "\n✨ 精炼强化石淬入火中，成功率提升了！",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
+  "strengthen.usage": {
+    "value": "强化哪件装备？输入『强化 <装备名>』或『强化 <背包序号>』(如：强化 铁剑 / 强化 3)",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:enhance（B 批 C 档）"
+  },
   "supply.all_done": {
     "value": "  今天/本周的补给箱都已领过啦，明天再来吧～",
     "category": "补给箱",
@@ -9471,6 +10319,88 @@
     "value": "每刻开始",
     "category": "触发名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "upgrade.cap": {
+    "value": "【{name}】已是 Lv.{lv}，再升需要你 Lv.{need}（你 Lv.{mine}）！升级追平玩家等级就到顶，先练级再来～",
+    "params": [
+      "name",
+      "lv",
+      "need",
+      "mine"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.gold_short": {
+    "value": "升级 Lv.{cur} → Lv.{next} 需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "cur",
+      "next",
+      "gold",
+      "have"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.mat_short": {
+    "value": "升级 Lv.{cur} → Lv.{next} 需要 1 个{item}！(铁匠铺/炼金可得，『背包』查看～)",
+    "params": [
+      "cur",
+      "next",
+      "item"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能升级装备！(先『地图』移动到铁匠铺)",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.no_equip": {
+    "value": "背包里没有叫『{name}』的装备！(已装备的装备也可以直接『升级 <装备名>』)",
+    "params": [
+      "name"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.not_equip": {
+    "value": "背包第 {idx} 件『{name}』不是装备，不能升级！『背包』看装备序号～",
+    "params": [
+      "idx",
+      "name"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.ok": {
+    "value": "🔧 装备升级成功！【{name}】Lv.{cur} → Lv.{next} ｜ 属性随等级重算(消耗 {gold} 金币 + {item}×1)",
+    "params": [
+      "name",
+      "cur",
+      "next",
+      "gold",
+      "item"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.prof_short": {
+    "value": "升级 Lv.{cur} → Lv.{next} 需要强化副业 Lv.{need}(你 Lv.{lv})！强化与升级共修，多强化装备升级副业吧～",
+    "params": [
+      "cur",
+      "next",
+      "need",
+      "lv"
+    ],
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "upgrade.usage": {
+    "value": "升级哪件装备？输入『升级 <装备名>』或『升级 <背包序号>』(如：升级 铁剑 / 升级 3)",
+    "category": "强化",
+    "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
   },
   "we.abyss_barrier.log": {
     "value": "🌑 深渊屏障：最大生命 +{bonus}！（持续整场）",

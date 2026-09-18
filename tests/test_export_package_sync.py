@@ -92,7 +92,12 @@ FROZEN_COUNTS = {
     #     craft / craft_commission / learn / _learned_blueprint_list / _craft_line /
     #     _craft_town_hint / _craft_list_{available,all,class} / _recipe_detail / recipe_list
     #     78 处替换 / 71 新键（craft.removed×3、not_found×2、lack_detail×2、page_no×3 幂等复用）⇒ 1363 → 1434。
-    "texts": 1434,
+    #   ★ 2026-09-18 C 档 17b（B-2 第 3 片第 3 小片）：economy 散落「强化·宝石·符文·重锻·炼成·附魔」——
+    #     enhance / equip_upgrade / gem_drill / gem_socket / gem_remove / gem_combine / gem_view /
+    #     _gem_find_equip / _gem_find_gem / _gem_tier_detail / _rune_craft_panel / rune_craft /
+    #     rune_remove / refine_equip / calamity_forge / enchant
+    #     120 处替换 / 115 新键（common.bag_no_idx×4、common.prof_lv_up×2、craft.lack_detail×3 幂等复用）⇒ 1434 → 1549。
+    "texts": 1549,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
