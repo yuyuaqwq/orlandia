@@ -161,6 +161,7 @@ PKG_INSTANCE_SRC = os.path.join(PKG_CONTENT, "instance_cmds.py")
 #   `game/commands/{world,misc}.py` 搬进包内 `content/cmds_{world,misc}.py`（宿主侧退化为 0 调用点）
 #   → 两域扫描根同批扩到「宿主 + 包内」两侧（与「周常」「补给箱」同款口径）。
 PKG_WORLD_SRC = os.path.join(PKG_CONTENT, "cmds_world.py")
+PKG_WORLDCMDS_SRC = os.path.join(PKG_CONTENT, "world_cmds.py")   # ★ C 档 18a（B-2 第 4 片）：地图面板族
 PKG_MISC_SRC = os.path.join(PKG_CONTENT, "cmds_misc.py")
 # ★ B18-L8（2026-09-14）：社交域 **33 条命令**整块进包 —— 宿主 `game/commands/social.py`
 #   退化为「`@declared` 注册 + 一行 `_BRIDGE.run` 转发」，守卫/取参/分支/提示行/文案全在包内
@@ -307,7 +308,10 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "强化": PKG_ECONOMY_SRC,
          "宝石": PKG_ECONOMY_SRC,
          "符文": PKG_ECONOMY_SRC,
-         "重锻炼成": PKG_ECONOMY_SRC}
+         "重锻炼成": PKG_ECONOMY_SRC,
+         # ★ C 档 18a（B-2 第 4 片第 1 小片）：world 散落「地图面板族」
+         #   （地图设施/场景 · 地图·区域·位置·赶路四视图共用句 · 导航主体 · 返回停用 · 问路/寻路）
+         "地图导航": PKG_WORLDCMDS_SRC}
 
 
 def _wired_paths(path):
@@ -887,7 +891,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -899,7 +903,8 @@ def t1_table_selfcheck():
                         "道具模板",
                         "冒险手册", "足迹", "世界百科", "来源图标", "触发名",
                         "生活副业", "炼金", "烹饪", "锻造",
-                        "强化", "宝石", "符文", "重锻炼成"}, cats)
+                        "强化", "宝石", "符文", "重锻炼成",
+                        "地图导航"}, cats)
 
 
 def t2_key_and_params_accounting():

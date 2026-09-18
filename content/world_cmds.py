@@ -78,6 +78,7 @@ from . import catalog_b143 as _cat_b143
 from .catalog_rules import (FACTION_SHOP, FACTION_CAMPS, FACTION_CAMP_OPEN_LV, FACTION_CAMP_SWITCH_COOLDOWN,
                             FACTION_CAMP_DAILY_TASKS, FACTION_CAMP_DAILY_LIMIT, FACTION_CAMP_SHOP)
 from . import wild as _wild
+from . import texts as _T      # ★ C 档 18a（2026-09-18）：文案表读口（本文件首次接入）
 from .flow import instance_gate      # 副本图门禁准入链（`_instance_gate_block` 的判定本体）
 from .flow import instance_run as IR
 from .panel import player_final_stats
@@ -265,9 +266,9 @@ def _map_facilities(self, cur_map: dict, player: dict = None, sa_id_override: st
     sa_healer = sa_obj.get("healer") if sa_obj else None
     # 设施
     if (sa_shop is not None and sa_shop) or (sa_shop is None and cur_map.get("shop")):
-        lines.append("🏪 商店(『购买』)")
+        lines.append(_T.static("fac.shop"))
     if (sa_healer is not None and sa_healer) or (sa_healer is None and cur_map.get("healer")):
-        lines.append("🏨 旅店(『住宿』恢复全状态)")
+        lines.append(_T.static("fac.inn"))
     if mid in _cat_items.ENHANCE_SMITH_MAPS:
         _sa_name = sa_obj.get("name", "") if sa_obj else ""
         _sa_funcs = (sa_obj.get("funcs") or []) if sa_obj else []
@@ -275,21 +276,21 @@ def _map_facilities(self, cur_map: dict, player: dict = None, sa_id_override: st
         # 地图设施清单同步显示铁匠铺入口（否则设施显示与『强化』可用性矛盾）
         _smith = "craft" in _sa_funcs or _cat_life.SUBAREA_KIND.get(sa_id) in ("smith", "enhance")
         if _smith:
-            lines.append("🔨 铁匠铺(『强化』『附魔』)")
+            lines.append(_T.static("fac.smith"))
     # 旅者方碑（只在中心广场/首个子区域提示）
     if mid in PORTALS:
         p = PORTALS[mid]
         if sa_obj is None or sa_obj is cur_map.get("subareas", [None])[0]:
             if mid in portals:
-                lines.append(f"🌌 {p['icon']}{p['name']}(已激活，『传送 <名称>』)")
+                lines.append(_T.text("fac.portal_on", icon=p['icon'], name=p['name']))
             else:
-                lines.append(f"🌌 {p['icon']}{p['name']}(『激活』解锁传送点)")
+                lines.append(_T.text("fac.portal_off", icon=p['icon'], name=p['name']))
     # F2 副本入口设施化：funcs 含 instance 的子区域 = 副本入口设施（消费 F1 标记）
     if sa_obj and "instance" in (sa_obj.get("funcs") or []):
         for _ik, _iv in _cat_space.INSTANCES.items():
             _ie = _iv.get("entry") or {}
             if _ie.get("map") == mid and _ie.get("subarea") == sa_id:
-                lines.append(f"🏰 此处是【{_iv.get('name', '副本')}】入口（『副本 {_iv.get('name', '')}』进入）")
+                lines.append(_T.text("fac.instance", name=_iv.get('name', '副本'), cmd=_iv.get('name', '')))
                 break
     # 自然互动（9.3：垂钓点显示特色描述；v87.17 子区域绑定：不在对应子区域不显示）
     if mid in _cat_life.FISHING_SPOTS:
@@ -301,13 +302,14 @@ def _map_facilities(self, cur_map: dict, player: dict = None, sa_id_override: st
             _flv = db.get_prof_level(player.get("group_id", "g"), player["qq_id"], "fishing") if player else 1
             _lock = " 🔒" if _flv < _fneed else ""
             _fdesc = _fi.get("desc", "") if isinstance(_fi, dict) else ""
-            lines.append(f"🎣 垂钓点·{_fname}(垂钓Lv.{_fneed}){_lock}(『垂钓』){(' · ' + _fdesc) if _fdesc else ''}")
+            lines.append(_T.text("fac.fishing", name=_fname, lv=_fneed, mark=_lock,
+                             tail=(' · ' + _fdesc) if _fdesc else ''))
     if mid in _cat_life.CAMP_SPOTS:
         _cp = _cat_life.CAMP_SPOTS[mid]
         _cp_sa = _cp.get("subarea", "") if isinstance(_cp, dict) else ""
         if not (_cp_sa and (sa_obj is None or sa_obj.get("id") != _cp_sa)):
             _cp_name = _cp.get("name", "营地") if isinstance(_cp, dict) else str(_cp)
-            lines.append(f"🔥 篝火营地·{_cp_name}(『休息』恢复一半生命)")
+            lines.append(_T.text("fac.camp", name=_cp_name))
     # v105R3 M14 P3-3：城镇地图不显示矿脉（『挖掘』已被城镇拦截，防"⛏️ 矿脉"与"城镇安全区"观感冲突）
     # v173：MINE_SPOTS dict 化（name/min_lv），显示同垂钓点——副业等级不足显示 🔒
     if mid in _cat_life.MINE_SPOTS and cur_map.get("type") != "城镇区域":
@@ -318,13 +320,13 @@ def _map_facilities(self, cur_map: dict, player: dict = None, sa_id_override: st
             _mneed = int(_mi.get("min_lv", 1)) if isinstance(_mi, dict) else 1
             _mlv = db.get_prof_level(player.get("group_id", "g"), player["qq_id"], "mining") if player else 1
             _lock = " 🔒" if _mlv < _mneed else ""
-            lines.append(f"⛏️ 矿脉·{_mi_name}(挖掘Lv.{_mneed}){_lock}(『挖掘』)")
+            lines.append(_T.text("fac.mine", name=_mi_name, lv=_mneed, mark=_lock))
     # v173：野地采集也按副业等级分档显示（同垂钓/矿脉）——等级不足显示 🔒
     if cur_map.get("type") == "野外" and mid not in _cat_life.CAMP_SPOTS:
         _glv = db.get_prof_level(player.get("group_id", "g"), player["qq_id"], "gather") if player else 1
         _gneed = int(gather_map_min_lv(int(cur_map.get("lv") or 0)))
         _lock = " 🔒" if _glv < _gneed else ""
-        lines.append(f"🌿 野地可采集(采集Lv.{_gneed}){_lock}(『采集』)")
+        lines.append(_T.text("fac.gather", lv=_gneed, mark=_lock))
     return lines
 
 
@@ -368,7 +370,7 @@ def _map_scene(self, cur_map: dict, player: dict = None, sa_id_override: str = N
                     _icon = {"chest": "📦", "campfire": "🔥", "rune_stone": "🗿",
                              "mechanism": "⚙️", "trap": "⚠️", "supply": "🎒",
                              "corpse": "💀"}.get(_p.get("type"), "❓")
-                poi_lines.append(f"{_icon} {_p['name']}(『探索』有机会发现)")
+                poi_lines.append(_T.text("scene.explore", icon=_icon, name=_p['name']))
     # v87.9 场景元素 PROPS 显示（子区域挂载，直接交互）
     # v87.11 支持专属名：挂载条目可为 (prop_id, 专属名) 元组
     if player:
@@ -378,11 +380,12 @@ def _map_scene(self, cur_map: dict, player: dict = None, sa_id_override: str = N
             _pp = _cat_items.PROPS.get(_ppid)
             if _pp:
                 _name = _label or _pp['name']
-                prop_lines.append(f"{_pp['icon']} {_name}(『交互 {_name}』)")
+                prop_lines.append(_T.text("scene.prop", icon=_pp['icon'], name=_name, cmd=_name))
     # v87.2 副本地图化：内联 POI（副本层自带 pois → 直接显示，『调查 <名称>』互动）
     for _p in (cur_map.get("pois") or []):
         if isinstance(_p, dict) and _p.get("name"):
-            poi_lines.append(f"{_p.get('icon', '❓')} {_p['name']}：{_p.get('hint', '')}(『调查 {_p['name']}』)")
+            poi_lines.append(_T.text("scene.poi", icon=_p.get('icon', '❓'), name=_p['name'], desc=_p.get('hint', ''),
+                                 cmd=_p['name']))
     # v87.4 NPC 不再进场景（由地图面板「👥 这里的 NPC」统一显示，避免重复）
     return poi_lines, prop_lines
 
@@ -684,9 +687,7 @@ async def map_view(self, event: AstrMessageEvent, group_id, qq_id, player):
                 yield event.plain_result(self._instance_map_view(_st, group_id))
                 return
         yield event.plain_result(
-            "🗺️ 【副本战斗中】\n"
-            "你正在副本里与敌人作战，战斗结束前无法查看外界地图～\n"
-            f"{self._tip('instance')}"
+            _T.text("world.inst_battle", tail=self._tip('instance'))
         )
         return
     cur = player["cur_map"]
@@ -732,7 +733,7 @@ async def map_view(self, event: AstrMessageEvent, group_id, qq_id, player):
                 lines.append("")
                 lines.extend(sec)
         lines.append("")
-        lines.append("💡 赶路模式中：回复序号直接赶路，回复 0 结束")
+        lines.append(_T.static("world.hurry_tip"))
         yield event.plain_result("\n".join(lines))
         return
     # v134.2 排版修复：导航区与公共区块间补空行——_map_blocks 内部从空 lines 开始，
@@ -748,9 +749,7 @@ async def region_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     _inst_row = self._instance_battle_for(group_id, qq_id)
     if _inst_row:
         yield event.plain_result(
-            "🗺️ 【副本战斗中】\n"
-            "你正在副本里与敌人作战，战斗结束前无法查看外界地图～\n"
-            f"{self._tip('instance')}"
+            _T.text("world.inst_battle", tail=self._tip('instance'))
         )
         return
     cur = player.get("cur_map") or ""
@@ -759,7 +758,7 @@ async def region_view(self, event: AstrMessageEvent, group_id, qq_id, player):
         return
     cur_map = _cat_space.MAP_BY_ID.get(cur)
     if cur_map is None:
-        yield event.plain_result("🧭 找不到当前区域信息……")
+        yield event.plain_result(_T.static("region.not_found"))
         return
     cur_sa = player.get("cur_subarea") or ""
     cur_name = cur_map.get("name") or cur
@@ -795,7 +794,7 @@ async def region_view(self, event: AstrMessageEvent, group_id, qq_id, player):
         _mid = conn[0] if isinstance(conn, tuple) else conn
         nm = _cat_space.MAP_BY_ID.get(_mid)
         if nm:
-            _lock = " (🔒隐藏)" if nm.get("hidden") else ""
+            _lock = _T.static("world.hidden") if nm.get("hidden") else ""
             _nlv = nm.get("lv")
             # v167.1：⊕ 跨区域连接带等级 Lv.N（对齐标题格式）
             _lvs = f"(Lv.{_nlv})" if _nlv else ""
@@ -1019,26 +1018,26 @@ def _map_nav_body(self, player: dict, cur_map: dict, cur_sa: str,
         _compact = True
         # v128 位置面板（show_here=False）始终显示当前位置；『地图』保持原有 if sa_now 语义
         if not _compact and (sa_now or not show_here):
-            lines.append(f"📍 当前位置：{sa_now or title}")
+            lines.append(_T.text("nav.cur_pos", name=sa_now or title))
         elif not show_here:
             # v132.1 城镇紧凑：『位置』面板/到达视图仍显示 📍（精简导航核心信息）；
             # 仅『地图』面板（show_here=True）按鱼鱼模板隐藏（标题已含位置）
-            lines.append(f"📍 当前位置：{sa_now or title}")
-        lines.append("📮 可前往：")
+            lines.append(_T.text("nav.cur_pos", name=sa_now or title))
+        lines.append(_T.static("nav.dest_head"))
         if _compact and shown:
             _parts = [f"●{i}. {sa['name']}" for i, sa in shown]
             lines.append("  " + " ".join(_parts))
         else:
             for i, sa in shown:
                 # v128 位置面板精简：不显示 "(你在这里)"（show_here=True 时保留）
-                mark = f" (你在这里)" if (show_here and sa["id"] == cur_sa) else ""
+                mark = _T.text("nav.here", ) if (show_here and sa["id"] == cur_sa) else ""
                 lv_mark = f" Lv.{sa['lv']}" if sa.get("lv") else ""
                 lines.append(f"  {i}. {_sa_mark(sa)}{sa['name']}{lv_mark}{mark}")
         # 隐藏未揭示房：显示 🔒？？？ 不编号（不可直接前往）
         _hidden_sas = [s for s in sas if s["id"] in links and s["id"] not in _v_ids]
         if _hidden_sas:
             for _hs in _hidden_sas:
-                lines.append("  🔒？？？(隐藏角落)")
+                lines.append(_T.static("nav.hidden_corner"))
         exit_sa_id = _maps.map_exit_subarea(cur_map.get("id", ""))
         at_exit = (not exit_sa_id) or (cur_sa == exit_sa_id)
         # v137 副本地图化：副本内（no_exit）不显示通往野外的连接——副本是封闭地图
@@ -1054,14 +1053,14 @@ def _map_nav_body(self, player: dict, cur_map: dict, cur_sa: str,
                 for i, nid in enumerate(neighbors, len(_v_links) + 1):
                     nm, want_sa = self._conn_target(nid)
                     sa_lbl = self._conn_subarea_name(nm, want_sa)
-                    lock = " (🔒隐藏)" if nm.get("hidden") else ""
+                    lock = _T.static("world.hidden") if nm.get("hidden") else ""
                     _parts.append(f"●{i}. {nm['name']}{sa_lbl}{lock}")
                 lines.append("  " + " ".join(_parts))
             else:
                 for i, nid in enumerate(neighbors, len(_v_links) + 1):
                     nm, want_sa = self._conn_target(nid)
                     sa_lbl = self._conn_subarea_name(nm, want_sa)
-                    lock = " (🔒隐藏)" if nm.get("hidden") else ""
+                    lock = _T.static("world.hidden") if nm.get("hidden") else ""
                     lines.append(f"  {i}. {nm['name']}{sa_lbl} Lv.{nm['lv']}{lock}")
         else:
             # v95.25 #133：非出口子区域提示必经出口（与旧 _subarea_body 同口径，
@@ -1076,10 +1075,10 @@ def _map_nav_body(self, player: dict, cur_map: dict, cur_sa: str,
                 _r = _maps.map_route(_mid, cur_sa, exit_sa_id)
                 if len(_r) >= 2:
                     _hint = next((s["name"] for s in sas if s["id"] == _r[1]), _hint)
-            lines.append(f"  🧭 出城需先到『{_hint}』")
+            lines.append(_T.text("nav.need_first", sa=_hint))
         # v114.3 尽头标记图例（有深度数据才显示；城镇紧凑模式不显示——鱼鱼模板无此行）
         if _depth is not None and not _compact:
-            lines.append("  💡 🔚=尽头（此路到头，需原路返回）")
+            lines.append(_T.static("nav.dead_end"))
     return lines
 
 
@@ -1096,9 +1095,7 @@ async def location_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     _inst_row = self._instance_battle_for(group_id, qq_id)
     if _inst_row:
         yield event.plain_result(
-            "🗺️ 【副本战斗中】\n"
-            "你正在副本里与敌人作战，战斗结束前无法查看外界地图～\n"
-            f"{self._tip('instance')}"
+            _T.text("world.inst_battle", tail=self._tip('instance'))
         )
         return
     cur = player["cur_map"]
@@ -1111,9 +1108,9 @@ async def location_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     lines = self._map_nav_body(player, cur_map, cur_sa, group_id, qq_id, show_here=False)
     # v128.2 赶路模式提示：唯一入口=『赶路』指令（旧『位置 0』捷径已移除）
     if db.get_event_state(f"move_mode:{qq_id}"):
-        lines.append("💡 赶路模式中：回复序号直接赶路，回复 0 结束")
+        lines.append(_T.static("world.hurry_tip"))
     else:
-        lines.append("💡 想赶路请发送『赶路』指令（可选『赶路 NPC/怪物/场景/设施』过滤）～")
+        lines.append(_T.static("location.hurry_hint"))
     yield event.plain_result("\n".join(lines))
 
 
@@ -1232,7 +1229,7 @@ def _hurry_panel(self, player: dict, cur_map: dict, cur_sa: str,
             lines.append("")
         lines.extend(rest)
     lines.append("")
-    lines.append("💡 赶路模式中：回复序号直接赶路，回复 0 结束")
+    lines.append(_T.static("world.hurry_tip"))
     return "\n".join(lines)
 
 
@@ -1246,16 +1243,14 @@ async def hurry_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     _inst_row = self._instance_battle_for(group_id, qq_id)
     if _inst_row:
         yield event.plain_result(
-            "🗺️ 【副本战斗中】\n"
-            "你正在副本里与敌人作战，战斗结束前无法查看外界地图～\n"
-            f"{self._tip('instance')}"
+            _T.text("world.inst_battle", tail=self._tip('instance'))
         )
         return
     raw = self._strip_cmd(event, "赶路").strip()
     ftype = self._hurry_type(raw)
     if ftype is None:
         yield event.plain_result(
-            "『赶路』可选参数：NPC / 怪物 / 场景 / 设施（例：『赶路 NPC』；无参=看当前全部可前往）～")
+            _T.static("hurry.usage"))
         return
     # 进入赶路模式（0 结束；无参也进，方便直接回复序号走）
     db.set_event_state(f"move_mode:{qq_id}", "1")
@@ -1280,10 +1275,9 @@ async def back_cmd(self, event: AstrMessageEvent, group_id, qq_id):
     dest = self._strip_cmd(event, "返回").strip()
     if dest:
         yield event.plain_result(
-            f"🧭 『返回 {dest}』已停用，请使用『前往 {dest}』赶路"
-            f"(或『传送 <名称>』用已激活的方碑直达)～")
+            _T.text("back.deprecated_named", arg=dest, arg2=dest))
     else:
-        yield event.plain_result("🧭 『返回』指令已停用，请使用『前往 <地名>』赶路～")
+        yield event.plain_result(_T.static("back.deprecated"))
 
 
 async def ask_way(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1291,7 +1285,7 @@ async def ask_way(self, event: AstrMessageEvent, group_id, qq_id, player):
     _cmd_used = "寻路" if re.search(r"(?:\[At:[^\]]*\]\s*)?寻路", msg0) else "问路"
     raw = self._strip_cmd(event, _cmd_used).strip()
     if not raw:
-        yield event.plain_result("格式：问路 <地名>！比如『问路 海蚀洞窟』～")
+        yield event.plain_result(_T.static("way.usage"))
         return
     cur = player.get("cur_map", "")
     cur_map = _cat_space.MAP_BY_ID.get(cur, {})
@@ -1299,11 +1293,11 @@ async def ask_way(self, event: AstrMessageEvent, group_id, qq_id, player):
     for sa in (cur_map.get("subareas") or []):
         if raw in (sa.get("name", ""), sa.get("id", "")):
             if sa.get("id") == player.get("cur_subarea"):
-                yield event.plain_result(f"你已经在【{cur_map.get('name', '')}·{sa.get('name', '')}】了～")
+                yield event.plain_result(_T.text("way.already_here_sub", map=cur_map.get('name', ''), sa=sa.get('name', '')))
             else:
                 yield event.plain_result(
-                    f"🧭 【{sa.get('name', '')}】就在{cur_map.get('name', '')}里，"
-                    f"输入『前往 {sa.get('name', '')}』即可到达～")
+                    _T.text("way.nearby", name=sa.get('name', ''), map=cur_map.get('name', ''),
+                        cmd=sa.get('name', '')))
             return
     # 2) 跨图目标：地图名/id/区域名/旧别名（与『前往』同口径）
     target = None
@@ -1319,10 +1313,10 @@ async def ask_way(self, event: AstrMessageEvent, group_id, qq_id, player):
                 target = m
                 break
     if not target:
-        yield event.plain_result(f"没找到『{raw}』这个地方。输入『地图』看看周围，或『百科 地图』查询全大陆～")
+        yield event.plain_result(_T.text("way.not_found", name=raw))
         return
     if target["id"] == cur:
-        yield event.plain_result(f"你已经在【{target['name']}】了～")
+        yield event.plain_result(_T.text("way.already_here", name=target['name']))
         return
     # 3) BFS 最短路径（MAP_CONNECTIONS 无向图）
     from collections import deque
@@ -1341,7 +1335,7 @@ async def ask_way(self, event: AstrMessageEvent, group_id, qq_id, player):
                 seen.add(_nid)
                 q.append((_nid, _path + [_nid]))
     if not route:
-        yield event.plain_result(f"🧭 【{target['name']}】暂时没有通路抵达，去『地图』看看附近的路吧～")
+        yield event.plain_result(_T.text("way.no_route", name=target['name']))
         return
     # v167.1 展示优化：起止标记 + 每段区域名(Lv.N)（首段=当前，末段=目标）
     _path_n = []
@@ -1357,9 +1351,7 @@ async def ask_way(self, event: AstrMessageEvent, group_id, qq_id, player):
         else:
             _path_n.append(f"{_nm}{_lvs}")
     yield event.plain_result(
-        f"🧭 【{target['name']}】寻路结果（{len(route) - 1} 段）：\n"
-        f"{' → '.join(_path_n)}\n"
-        f"💡 沿路『前往 <下一站>』逐段移动；方碑已激活的地区可用『传送 <名称>』直达～")
+        _T.text("way.path", name=target['name'], n=len(route) - 1, path=' → '.join(_path_n)))
 
 
 def _instance_gate_block(shell, player, group_id, qq_id, target):

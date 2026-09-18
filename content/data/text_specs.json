@@ -675,6 +675,20 @@
     "category": "属性名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
   },
+  "back.deprecated": {
+    "value": "🧭 『返回』指令已停用，请使用『前往 <地名>』赶路～",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:back_cmd（B 批 C 档）"
+  },
+  "back.deprecated_named": {
+    "value": "🧭 『返回 {arg}』已停用，请使用『前往 {arg2}』赶路(或『传送 <名称>』用已激活的方碑直达)～",
+    "params": [
+      "arg",
+      "arg2"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:back_cmd（B 批 C 档）"
+  },
   "bind.already_qq": {
     "value": "✅ 你当前的平台身份 {qq} 已是 QQ 号，无需绑定～",
     "params": [
@@ -3781,6 +3795,86 @@
     "category": "战斗日志",
     "desc": "搬自 we_procs.py:_EXTRA_LOG（B 批 B-1）"
   },
+  "fac.camp": {
+    "value": "🔥 篝火营地·{name}(『休息』恢复一半生命)",
+    "params": [
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.fishing": {
+    "value": "🎣 垂钓点·{name}(垂钓Lv.{lv}){mark}(『垂钓』){tail}",
+    "params": [
+      "name",
+      "lv",
+      "mark",
+      "tail"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.gather": {
+    "value": "🌿 野地可采集(采集Lv.{lv}){mark}(『采集』)",
+    "params": [
+      "lv",
+      "mark"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.inn": {
+    "value": "🏨 旅店(『住宿』恢复全状态)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.instance": {
+    "value": "🏰 此处是【{name}】入口（『副本 {cmd}』进入）",
+    "params": [
+      "name",
+      "cmd"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.mine": {
+    "value": "⛏️ 矿脉·{name}(挖掘Lv.{lv}){mark}(『挖掘』)",
+    "params": [
+      "name",
+      "lv",
+      "mark"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.portal_off": {
+    "value": "🌌 {icon}{name}(『激活』解锁传送点)",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.portal_on": {
+    "value": "🌌 {icon}{name}(已激活，『传送 <名称>』)",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.shop": {
+    "value": "🏪 商店(『购买』)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fac.smith": {
+    "value": "🔨 铁匠铺(『强化』『附魔』)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
   "footprint.empty": {
     "value": "📍 还没去过任何地方……快去『探索』冒险吧！",
     "category": "足迹",
@@ -4440,6 +4534,11 @@
     "value": "🗺️ 【世界】指令\n━━━━━━━━━━━━\n【地图】地图 位置 移动 <名称/序号> 探索 休息 住宿 探索进度（查看全大陆探索度）\n【见闻】见闻录（野外 NPC 见闻收集） 编年史\n【传送】方碑（查看激活列表） 激活（解锁传送点） 传送 <名称/序号>（付费直达）\n【任务】任务 主线 每日 接取 对话 <NPC> 交付任务\n【事件】事件（查看当前世界事件） 讨伐（世界 Boss，需到达指定地点）\n【房产】地契（在售/我的） 买房 <编号> 卖房 回家 出门 拜访 <玩家> 仓库 取出\n【探索】探索进度（区域探索度） 足迹（区域足迹明细） 冒险手册（总览/物品/收藏）\n【声望】声望 百科（查材料/怪物/地图掉落来源）；声望商店 <势力名>（声望等级解锁专属商品）\n【排行】排行 战力\n💡 移动可能撞怪：等级低于地图容易被拦路，高级玩家威慑低级怪不撞",
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_WORLD（B 批 B-1 B 档）"
+  },
+  "hurry.usage": {
+    "value": "『赶路』可选参数：NPC / 怪物 / 场景 / 设施（例：『赶路 NPC』；无参=看当前全部可前往）～",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:hurry_view（B 批 C 档）"
   },
   "instance.already_in": {
     "value": "你已在战斗中！『攻击』『技能 <名称>』『防御』行动～",
@@ -6398,6 +6497,11 @@
     "category": "锻造",
     "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
   },
+  "location.hurry_hint": {
+    "value": "💡 想赶路请发送『赶路』指令（可选『赶路 NPC/怪物/场景/设施』过滤）～",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:location_view（B 批 C 档）"
+  },
   "mech_name.arcane": {
     "value": "奥术",
     "category": "机制名",
@@ -6622,6 +6726,42 @@
     "value": "战意狂暴",
     "category": "机制名",
     "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "nav.cur_pos": {
+    "value": "📍 当前位置：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
+  },
+  "nav.dead_end": {
+    "value": "  💡 🔚=尽头（此路到头，需原路返回）",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
+  },
+  "nav.dest_head": {
+    "value": "📮 可前往：",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
+  },
+  "nav.here": {
+    "value": " (你在这里)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
+  },
+  "nav.hidden_corner": {
+    "value": "  🔒？？？(隐藏角落)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
+  },
+  "nav.need_first": {
+    "value": "  🧭 出城需先到『{sa}』",
+    "params": [
+      "sa"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
   },
   "pageflip.no_list": {
     "value": "📄 先打开一个列表（『背包』『技能列表』『任务』等）再发翻页快捷键～",
@@ -7835,6 +7975,11 @@
     "category": "重锻炼成",
     "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
   },
+  "region.not_found": {
+    "value": "🧭 找不到当前区域信息……",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:region_view（B 批 C 档）"
+  },
   "register.already": {
     "value": "你已经注册过角色啦！输入『角色』查看～",
     "category": "注册",
@@ -8198,6 +8343,36 @@
     ],
     "category": "符文",
     "desc": "搬自 content/economy_cmds.py:rune_remove（B 批 C 档）"
+  },
+  "scene.explore": {
+    "value": "{icon} {name}(『探索』有机会发现)",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_scene（B 批 C 档）"
+  },
+  "scene.poi": {
+    "value": "{icon} {name}：{desc}(『调查 {cmd}』)",
+    "params": [
+      "icon",
+      "name",
+      "desc",
+      "cmd"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_scene（B 批 C 档）"
+  },
+  "scene.prop": {
+    "value": "{icon} {name}(『交互 {cmd}』)",
+    "params": [
+      "icon",
+      "name",
+      "cmd"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_scene（B 批 C 档）"
   },
   "season_name.autumn": {
     "value": "🍂 秋",
@@ -10438,6 +10613,64 @@
     "category": "强化",
     "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
   },
+  "way.already_here": {
+    "value": "你已经在【{name}】了～",
+    "params": [
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
+  "way.already_here_sub": {
+    "value": "你已经在【{map}·{sa}】了～",
+    "params": [
+      "map",
+      "sa"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
+  "way.nearby": {
+    "value": "🧭 【{name}】就在{map}里，输入『前往 {cmd}』即可到达～",
+    "params": [
+      "name",
+      "map",
+      "cmd"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
+  "way.no_route": {
+    "value": "🧭 【{name}】暂时没有通路抵达，去『地图』看看附近的路吧～",
+    "params": [
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
+  "way.not_found": {
+    "value": "没找到『{name}』这个地方。输入『地图』看看周围，或『百科 地图』查询全大陆～",
+    "params": [
+      "name"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
+  "way.path": {
+    "value": "🧭 【{name}】寻路结果（{n} 段）：\n{path}\n💡 沿路『前往 <下一站>』逐段移动；方碑已激活的地区可用『传送 <名称>』直达～",
+    "params": [
+      "name",
+      "n",
+      "path"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
+  "way.usage": {
+    "value": "格式：问路 <地名>！比如『问路 海蚀洞窟』～",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
+  },
   "we.abyss_barrier.log": {
     "value": "🌑 深渊屏障：最大生命 +{bonus}！（持续整场）",
     "category": "武器特效",
@@ -10910,5 +11143,23 @@
     ],
     "category": "周常",
     "desc": "进度面板标题"
+  },
+  "world.hidden": {
+    "value": " (🔒隐藏)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:region_view（B 批 C 档）"
+  },
+  "world.hurry_tip": {
+    "value": "💡 赶路模式中：回复序号直接赶路，回复 0 结束",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:map_view（B 批 C 档）"
+  },
+  "world.inst_battle": {
+    "value": "🗺️ 【副本战斗中】\n你正在副本里与敌人作战，战斗结束前无法查看外界地图～\n{tail}",
+    "params": [
+      "tail"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:map_view（B 批 C 档）"
   }
 }
