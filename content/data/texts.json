@@ -5155,6 +5155,84 @@
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_WORLD（B 批 B-1 B 档）"
   },
+  "hn.bad": {
+    "value": "⚜️ 兑换失败：商品没有配置 reward 类型！请找 GM 检查数据～",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.has": {
+    "value": "⚜️ 你已经拥有【{name}】了！荣誉商店的珍品每人限兑一件。",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.has_bag": {
+    "value": "⚜️ 你背包里已有【{name}】！用完后可以再来兑换～",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.has_title": {
+    "value": "⚜️ 你已经拥有【{name}】称号了！",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.no_item": {
+    "value": "没有第 {idx} 件商品！『荣誉』查看商店～",
+    "params": [
+      "idx"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.ok_title": {
+    "value": "⚜️ 你兑换了【{name}】称号！(花费 {cost} 荣誉)\n{x}",
+    "params": [
+      "name",
+      "cost",
+      "x"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.red": {
+    "value": "☠️ 你当前红名中(剩余 {min} 分钟)！",
+    "params": [
+      "min"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:honor_shop（B 批 C 档）"
+  },
+  "hn.short": {
+    "value": "荣誉不足！兑换【{name}】需要 {need} 荣誉，你只有 {have}。",
+    "params": [
+      "name",
+      "need",
+      "have"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.title": {
+    "value": "⚜️ 【荣誉商店】(荣誉：{honor})",
+    "params": [
+      "honor"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:honor_shop（B 批 C 档）"
+  },
+  "hn.usage": {
+    "value": "格式：『荣誉 兑换 <编号>』！『荣誉』查看商店～",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:honor_shop（B 批 C 档）"
+  },
   "home.owner_left": {
     "value": "这个家的主人已经离开了……(『出门』离开)",
     "category": "家园地契",
@@ -8933,6 +9011,232 @@
     "value": "传送到哪？『方碑』查看已激活方碑，『传送 <名称/序号>』直达～",
     "category": "传送方碑",
     "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "pv.busy_self": {
+    "value": "你正在战斗中！先解决眼前的敌人。",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.busy_target": {
+    "value": "【{name}】正在战斗中，无法应战！",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.cd": {
+    "value": "⏳ 你刚结束一场 PVP，{sec} 秒后才能再次袭击玩家！",
+    "params": [
+      "sec"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.dead": {
+    "value": "💀 【{name}】被击败了！",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.diff_map": {
+    "value": "你与【{name}】不在同一张地图，无法袭击！(PVP 需同地图)",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.engage": {
+    "value": "⚔️ 你向【{name}】发起攻击！\n━━━━━━━━━━━━\n你：❤️ {hp}/{hpmax} 💙 {mp}/{mpmax} ｜ Lv.{lv}\n对方：❤️ {ohp}/{ohpmax} 💙 {omp}/{ompmax} ｜ Lv.{olv}\n━━━━━━━━━━━━\n你先手！输入『攻击』『技能 <名称/序号>』『防御』",
+    "params": [
+      "name",
+      "hp",
+      "hpmax",
+      "mp",
+      "mpmax",
+      "lv",
+      "ohp",
+      "ohpmax",
+      "omp",
+      "ompmax",
+      "olv"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.gap": {
+    "value": "等级差超过 10 级，无法发起攻击！(你 {mine} 级 vs 对方 {theirs} 级)",
+    "params": [
+      "mine",
+      "theirs"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.gone_other": {
+    "value": "对手状态异常，PVP 已解除～",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.gone_self": {
+    "value": "⏳ 你已不在战斗中（状态异常），请重新发起攻击～",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.gray": {
+    "value": "⚪ 【{name}】灰名期间被击败（主动袭击标记；本次战败按普通规则结算）。",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.honor_red": {
+    "value": "⚜️ 你讨伐了红名玩家！荣誉+50(当前 {honor})",
+    "params": [
+      "honor"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.honor_win": {
+    "value": "⚜️ PVP 胜利！荣誉+10(当前 {honor})",
+    "params": [
+      "honor"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.hospital": {
+    "value": "🏥 对方被送回{where}疗养(HP 1)。",
+    "params": [
+      "where"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.loot": {
+    "value": "💰 你夺走了 {gold} 金币！",
+    "params": [
+      "gold"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.lv_short": {
+    "value": "该技能需要 Lv.{need} 才能使用，你才 Lv.{have}",
+    "params": [
+      "need",
+      "have"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.newbie_self": {
+    "value": "你才 Lv.{lv}，处于新手保护期(Lv.<10 不能攻击玩家)！去野外打怪练练级吧～",
+    "params": [
+      "lv"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.newbie_t": {
+    "value": "【{name}】才 Lv.{lv}，处于新手保护期(Lv.<10 不能被攻击)！",
+    "params": [
+      "name",
+      "lv"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.no_char": {
+    "value": "对方还没有角色！",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.no_mp": {
+    "value": "💙 魔力不足！",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.no_skill": {
+    "value": "没有技能『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.no_user": {
+    "value": "找不到玩家『{arg}』！用『攻击 @对方』发起决斗。",
+    "params": [
+      "arg"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.red_lose": {
+    "value": "☠️ 红名期间战败：额外损失 {gold} 金币(上限 2000)！",
+    "params": [
+      "gold"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.red_new": {
+    "value": "☠️ 你击杀了玩家，红名 30 分钟！(红名期间无法进入安全区)",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.red_stack": {
+    "value": "☠️ 你击杀了玩家，红名叠加 10 分钟(上限 120 分钟)！(红名期间无法进入安全区)",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_finish（B 批 C 档）"
+  },
+  "pv.safe": {
+    "value": "🏘️ 这里是安全区，禁止攻击玩家！去野外地图才能 PK。",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.self": {
+    "value": "你不能攻击自己！",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_start（B 批 C 档）"
+  },
+  "pv.stale1": {
+    "value": "⏳ PVP 旧存档已失效，请重新发起攻击～",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.stale2": {
+    "value": "⏳ PVP 存档已失效，请重新发起攻击～",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.turn": {
+    "value": "{name}\n━━━━━━━━━━━━\n【{hp}】❤️ {hpmax}/{mp} 💙 {mpmax}/{hp2}\n你：❤️ {hpmax2}/{mp2} 💙 {mpmax2}/{tail}\n━━━━━━━━━━━━\n已轮到对方行动！(对方输入『攻击』『技能』『防御』)",
+    "params": [
+      "name",
+      "hp",
+      "hpmax",
+      "mp",
+      "mpmax",
+      "hp2",
+      "hpmax2",
+      "mp2",
+      "mpmax2",
+      "tail"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
+  },
+  "pv.wait": {
+    "value": "⏳ 还没轮到你行动！等对方出手……",
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_pvp_act（B 批 C 档）"
   },
   "quest.accepted": {
     "value": "『{name}』已接取！输入『任务』查看进度～",

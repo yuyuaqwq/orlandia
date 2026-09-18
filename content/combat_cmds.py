@@ -3139,31 +3139,31 @@ async def honor_shop(self, event: AstrMessageEvent, group_id, qq_id, player, raw
     if raw.startswith("兑换"):
         num = raw[2:].strip()
         if not num.isdigit():
-            yield event.plain_result("格式：『荣誉 兑换 <编号>』！『荣誉』查看商店～")
+            yield event.plain_result(_T.static("hn.usage"))
             return
         async for _r in self._honor_buy(event, group_id, qq_id, player, int(num)):
             yield _r
         return
     honor = self._get_honor(qq_id)
-    lines = [f"⚜️ 【荣誉商店】(荣誉：{honor})", "━━━━━━━━━━━━"]
+    lines = [_T.text("hn.title", honor=honor), "━━━━━━━━━━━━"]
     for i, item in _b143.HONOR_SHOP.items():
         lines.append(f"{i}. {item['name']} ｜ {item['cost']} 荣誉")
         lines.append(f"   {item['desc']}")
     lines.append("━━━━━━━━━━━━")
     lines.append(self._tip("honor"))
     if self._is_redname(qq_id):
-        lines.append(f"☠️ 你当前红名中(剩余 {max(0, self._red_until(qq_id) - int(time.time())) // 60} 分钟)！")
+        lines.append(_T.text("hn.red", min=max(0, self._red_until(qq_id) - int(time.time())) // 60))
     yield event.plain_result("\n".join(lines))
 
 async def _honor_buy(self, event, group_id, qq_id, player, num):
     """荣誉兑换：扣荣誉 → 按 reward 类型发放（v99.4 数据化 → data/honor_shop.py）"""
     item = _b143.HONOR_SHOP.get(num)
     if not item:
-        yield event.plain_result(f"没有第 {num} 件商品！『荣誉』查看商店～")
+        yield event.plain_result(_T.text("hn.no_item", idx=num))
         return
     honor = self._get_honor(qq_id)
     if honor < item["cost"]:
-        yield event.plain_result(f"荣誉不足！兑换【{item['name']}】需要 {item['cost']} 荣誉，你只有 {honor}。")
+        yield event.plain_result(_T.text("hn.short", name=item['name'], need=item['cost'], have=honor))
         return
     reward = item.get("reward") or {}
     # v104 M09 修复：item 类防重复兑换——背包已有同名物品则拦截（title 类保持可重复）
@@ -3174,71 +3174,70 @@ async def _honor_buy(self, event, group_id, qq_id, player, num):
         if db.count_item(group_id, qq_id, _iname) > 0:
             _ritem = reward.get("item") or {}
             if _ritem.get("stackable") or _ritem.get("type") == "消耗品":
-                yield event.plain_result(f"⚜️ 你背包里已有【{item['name']}】！用完后可以再来兑换～")
+                yield event.plain_result(_T.text("hn.has_bag", name=item['name']))
             else:
-                yield event.plain_result(f"⚜️ 你已经拥有【{item['name']}】了！荣誉商店的珍品每人限兑一件。")
+                yield event.plain_result(_T.text("hn.has", name=item['name']))
             return
     # v104 M09 P2 修复：title 类重复兑换拦截（此前无 honor_{title_id}_{qq} 检查，连兑 2 次白扣荣誉）
     if reward.get("type") == "title" and db.get_event_state(f"honor_{reward['title_id']}_{qq_id}"):
-        yield event.plain_result(f"⚜️ 你已经拥有【{reward['label']}】称号了！")
+        yield event.plain_result(_T.text("hn.has_title", name=reward['label']))
         return
     db.set_event_state(f"honor_{qq_id}", str(honor - item["cost"]))
     import uuid as _uuid
     if reward.get("type") == "title":
         db.set_event_state(f"honor_{reward['title_id']}_{qq_id}", "1")
         yield event.plain_result(
-            f"⚜️ 你兑换了【{reward['label']}】称号！(花费 {item['cost']} 荣誉)\n"
-            f"{reward.get('msg', '')}")
+            _T.text("hn.ok_title", name=reward['label'], cost=item['cost'], x=reward.get('msg', '')))
     elif reward.get("type") == "item":
         db.add_item(group_id, qq_id, f"{reward.get('item_prefix', 'h_')}{_uuid.uuid4().hex[:8]}", reward["item"])
         yield event.plain_result(f"⚜️ 你兑换了【{item['name']}】！(花费 {item['cost']} 荣誉)\n{reward.get('msg', '')}")
     else:
-        yield event.plain_result(f"⚜️ 兑换失败：商品没有配置 reward 类型！请找 GM 检查数据～")
+        yield event.plain_result(_T.text("hn.bad", ))
 
 async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     """PVP 发起：『攻击 @目标』(安全区/等级保护/灰名/袭击CD)"""
     cd = self._pvp_cd_left(qq_id)
     if cd > 0:
-        yield event.plain_result(f"⏳ 你刚结束一场 PVP，{cd} 秒后才能再次袭击玩家！")
+        yield event.plain_result(_T.text("pv.cd", sec=cd))
         return
     parsed = self._parse_target_qq(target_arg)
     if not parsed:
-        yield event.plain_result(f"找不到玩家『{target_arg}』！用『攻击 @对方』发起决斗。")
+        yield event.plain_result(_T.text("pv.no_user", arg=target_arg))
         return
     target_qq, _tname = parsed
     if str(target_qq) == str(qq_id):
-        yield event.plain_result("你不能攻击自己！")
+        yield event.plain_result(_T.static("pv.self"))
         return
     target_player = db.get_player(group_id, target_qq)
     if not target_player:
-        yield event.plain_result("对方还没有角色！")
+        yield event.plain_result(_T.static("pv.no_char"))
         return
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("你正在战斗中！先解决眼前的敌人。")
+        yield event.plain_result(_T.static("pv.busy_self"))
         return
     if self._in_battle(group_id, target_qq):
-        yield event.plain_result(f"【{target_player['name']}】正在战斗中，无法应战！")
+        yield event.plain_result(_T.text("pv.busy_target", name=target_player['name']))
         return
     # v84 新手保护（26 章二）：Lv.<10 不能被攻击
     if target_player["level"] < 10:
-        yield event.plain_result(f"【{target_player['name']}】才 Lv.{target_player['level']}，处于新手保护期(Lv.<10 不能被攻击)！")
+        yield event.plain_result(_T.text("pv.newbie_t", name=target_player['name'], lv=target_player['level']))
         return
     if player["level"] < 10:
-        yield event.plain_result(f"你才 Lv.{player['level']}，处于新手保护期(Lv.<10 不能攻击玩家)！去野外打怪练练级吧～")
+        yield event.plain_result(_T.text("pv.newbie_self", lv=player['level']))
         return
     # 安全区检查（城镇区域不可 PK；'城镇外郊' 类型数据不存在，v102.1 清理）
     cur_map = _cs.MAP_BY_ID.get(player["cur_map"], {})
     tgt_map = _cs.MAP_BY_ID.get(target_player["cur_map"], {})
     if cur_map.get("type") == _cc.MAP_TYPE_TOWN or tgt_map.get("type") == _cc.MAP_TYPE_TOWN:
-        yield event.plain_result("🏘️ 这里是安全区，禁止攻击玩家！去野外地图才能 PK。")
+        yield event.plain_result(_T.static("pv.safe"))
         return
     # v110 审计修复：26 章 §二「发起：野外同地图」——原实现可跨任意地图按名远程袭击
     if player["cur_map"] != target_player["cur_map"]:
-        yield event.plain_result(f"你与【{target_player['name']}】不在同一张地图，无法袭击！(PVP 需同地图)")
+        yield event.plain_result(_T.text("pv.diff_map", name=target_player['name']))
         return
     # 等级保护：等级差 > 10 不能主动攻击
     if abs(player["level"] - target_player["level"]) > 10:
-        yield event.plain_result(f"等级差超过 10 级，无法发起攻击！(你 {player['level']} 级 vs 对方 {target_player['level']} 级)")
+        yield event.plain_result(_T.text("pv.gap", mine=player['level'], theirs=target_player['level']))
         return
     # N5b4-4：创建 PVP 战斗状态（saintess_engine）——sides 双 actor 持久化 + meta 外壳。
     #   sides.player 固定 = 攻击者(发起方)、sides.enemy = 防守方；双方 human_controlled
@@ -3297,11 +3296,9 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     db.set_event_state(f"grey_{qq_id}", str(int(time.time()) + 600))
     a, d = _my_actor, _opp_actor
     yield event.plain_result(
-        f"⚔️ 你向【{target_player['name']}】发起攻击！\n"
-        f"━━━━━━━━━━━━\n"
-        f"你：❤️ {a['hp']}/{a['max_hp']} 💙 {a['mp']}/{a['max_mp']} ｜ Lv.{a['level']}\n"
-        f"对方：❤️ {d['hp']}/{d['max_hp']} 💙 {d['mp']}/{d['max_mp']} ｜ Lv.{d['level']}\n"
-        f"━━━━━━━━━━━━\n你先手！输入『攻击』『技能 <名称/序号>』『防御』"
+        _T.text("pv.engage", name=target_player['name'], hp=a['hp'], hpmax=a['max_hp'], mp=a['mp'],
+            mpmax=a['max_mp'], lv=a['level'], ohp=d['hp'], ohpmax=d['max_hp'], omp=d['mp'],
+            ompmax=d['max_mp'], olv=d['level'])
     )
 
 async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_name=None):
@@ -3319,19 +3316,19 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
     if not isinstance(state.get("sides"), dict) or not state["sides"] or not meta.get("attacker_qq"):
         self._unlock_battle(group_id, qq_id)
         db.clear_battle(group_id, qq_id)
-        yield event.plain_result("⏳ PVP 旧存档已失效，请重新发起攻击～")
+        yield event.plain_result(_T.static("pv.stale1"))
         return
     from saintess_engine import Battle as B2
     b = B2.from_state(state)
     if b is None:
         self._unlock_battle(group_id, qq_id)
         db.clear_battle(group_id, qq_id)
-        yield event.plain_result("⏳ PVP 存档已失效，请重新发起攻击～")
+        yield event.plain_result(_T.static("pv.stale2"))
         return
     attacker_qq = str(meta.get("attacker_qq", ""))
     my_key = "attacker" if str(qq_id) == attacker_qq else "defender"
     if meta.get("actor") != my_key:
-        yield event.plain_result("⏳ 还没轮到你行动！等对方出手……")
+        yield event.plain_result(_T.static("pv.wait"))
         return
     opp_key = "defender" if my_key == "attacker" else "attacker"
     # 我的 actor 在 my_side（攻击者=player 侧/防守者=enemy 侧），对方在 opp_side
@@ -3340,13 +3337,13 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
     my_actor = next((_a for _a in b.sides_of(my_side) if _a.get("human_controlled")), None)
     opp_actor = next((_a for _a in b.sides_of(opp_side) if _a.get("human_controlled")), None)
     if my_actor is None:
-        yield event.plain_result("⏳ 你已不在战斗中（状态异常），请重新发起攻击～")
+        yield event.plain_result(_T.static("pv.gone_self"))
         return
     if opp_actor is None:
         # 对方记录异常（正常该在）→ 保险清场
         self._unlock_battle(group_id, qq_id)
         db.clear_battle(group_id, qq_id)
-        yield event.plain_result("对手状态异常，PVP 已解除～")
+        yield event.plain_result(_T.static("pv.gone_other"))
         return
     opp_qq = str(opp_actor.get("qq_id", "") or "")
     # PVP 战斗中血量/蓝量以战斗 state 为准（actor 副本；不写回 db，避免被重置）
@@ -3354,10 +3351,10 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
     if action == "skill":
         info = skill_info(player["class_name"], skill_name)
         if not info:
-            yield event.plain_result(f"没有技能『{skill_name}』！")
+            yield event.plain_result(_T.text("pv.no_skill", name=skill_name))
             return
         if not is_skill_learned(player["class_name"], player["level"], skill_name, player.get("learned_skills", [])):
-            yield event.plain_result(f"该技能需要 Lv.{info['lv']} 才能使用，你才 Lv.{player['level']}")
+            yield event.plain_result(_T.text("pv.lv_short", need=info['lv'], have=player['level']))
             return
         # v181.M-smallfix：PVP mp 预检与引擎 actions._skill_pay_of 同源折算——my_actor
         # 为 restore 后战斗 actor（bonus.cost 词条装配随档在），pay = 引擎实际扣费值
@@ -3365,7 +3362,7 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
         if info.get("mp", 0) or 0:
             _pvp_mp_need = skill_mp_pay_of(my_actor or player, info)
             if _pvp_mp_need > 0 and int(my_actor.get("mp") or 0) < _pvp_mp_need:
-                yield event.plain_result("💙 魔力不足！")
+                yield event.plain_result(_T.static("pv.no_mp"))
                 return
     # PVP『防御』（saintess_engine：目标 actor defending=True → landing deal_damage 减半统一消费）。
     # 防御姿态随 actor dict 持久化（to_state 带 defending）——上一击 defend 的人恢复后
@@ -3425,10 +3422,11 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
         db.save_battle(group_id, opp_qq, st)
     body = "\n".join(logs)
     yield event.plain_result(
-        f"{body}\n━━━━━━━━━━━━\n"
-        f"【{opp_actor.get('name', '对方')}】❤️ {_opp_hp}/{max(0, int(opp_actor.get('max_hp', 1) or 1))} 💙 {_opp_mp}/{max(0, int(opp_actor.get('max_mp', 1) or 1))}\n"
-        f"你：❤️ {_my_hp}/{max(0, int(my_actor.get('max_hp', 1) or 1))} 💙 {_my_mp}/{max(0, int(my_actor.get('max_mp', 1) or 1))}\n"
-        f"━━━━━━━━━━━━\n已轮到对方行动！(对方输入『攻击』『技能』『防御』)"
+        _T.text("pv.turn", name=body, hp=opp_actor.get('name', '对方'), hpmax=_opp_hp,
+            mp=max(0, int(opp_actor.get('max_hp', 1) or 1)), mpmax=_opp_mp,
+            hp2=max(0, int(opp_actor.get('max_mp', 1) or 1)), hpmax2=_my_hp,
+            mp2=max(0, int(my_actor.get('max_hp', 1) or 1)), mpmax2=_my_mp,
+            tail=max(0, int(my_actor.get('max_mp', 1) or 1)))
     )
 
 async def _pvp_finish(self, event, group_id, winner_qq, loser_qq, attacker_qq, log_body):
@@ -3467,34 +3465,34 @@ async def _pvp_finish(self, event, group_id, winner_qq, loser_qq, attacker_qq, l
         grey_active = bool(_grey_st) and int(_grey_st) > now
     except Exception:
         grey_active = False
-    lines = [log_body, "", f"💀 【{loser['name']}】被击败了！"]
+    lines = [log_body, "", _T.text("pv.dead", name=loser['name'])]
     if lost > 0:
-        lines.append(f"💰 你夺走了 {lost} 金币！")
+        lines.append(_T.text("pv.loot", gold=lost))
     if extra > 0:
-        lines.append(f"☠️ 红名期间战败：额外损失 {extra} 金币(上限 2000)！")
+        lines.append(_T.text("pv.red_lose", gold=extra))
     if grey_active:
-        lines.append(f"⚪ 【{loser['name']}】灰名期间被击败（主动袭击标记；本次战败按普通规则结算）。")
+        lines.append(_T.text("pv.gray", name=loser['name']))
     _town_name = _cs.MAP_BY_ID.get(_town_id, {}).get("name", "城镇")
-    lines.append(f"🏥 对方被送回{_town_name}疗养(HP 1)。")
+    lines.append(_T.text("pv.hospital", where=_town_name))
     if self._is_redname(loser_qq):
         honor = self._get_honor(winner_qq) + 50
         db.set_event_state(f"honor_{winner_qq}", str(honor))
-        lines.append(f"⚜️ 你讨伐了红名玩家！荣誉+50(当前 {honor})")
+        lines.append(_T.text("pv.honor_red", honor=honor))
     else:
         # v110 审计修复：26 章 §3.3「PVP 胜利 +10」补全（原仅击杀红名 +50）
         honor = self._get_honor(winner_qq) + 10
         db.set_event_state(f"honor_{winner_qq}", str(honor))
-        lines.append(f"⚜️ PVP 胜利！荣誉+10(当前 {honor})")
+        lines.append(_T.text("pv.honor_win", honor=honor))
         if str(winner_qq) == str(attacker_qq):
             red_until = self._red_until(winner_qq)
             # v110 审计修复：26 章 §3.1——击杀红名 30 分钟基础，红名期间每多击杀
             # 叠加 10 分钟，上限 120 分钟（原固定 +30 分钟无叠加无上限）
             if red_until > now:
                 new_red = min(red_until + 600, now + 7200)
-                lines.append("☠️ 你击杀了玩家，红名叠加 10 分钟(上限 120 分钟)！(红名期间无法进入安全区)")
+                lines.append(_T.static("pv.red_stack"))
             else:
                 new_red = now + 1800
-                lines.append("☠️ 你击杀了玩家，红名 30 分钟！(红名期间无法进入安全区)")
+                lines.append(_T.static("pv.red_new"))
             db.set_event_state(f"red_{winner_qq}", str(new_red))
     yield event.plain_result("\n".join(lines))
 

@@ -126,7 +126,11 @@ FROZEN_COUNTS = {
     #     _skill_list_gains / _skill_gains_curve
     #     44 处替换 / 34 新键（技能面板分类已存在；PVP/旧存档/Boss 不可逃/食物提示跨片复用）
     #     ⇒ 1804 → 1838。
-    "texts": 1838,
+    #   ★ 2026-09-19 C 档 19c（B-2 第 5 片第 3 小片）：combat「PvP·荣誉」——
+    #     honor_shop / _honor_buy / _pvp_start / _pvp_act / _pvp_finish
+    #     40 处替换 / 40 新键（新分类 PvP荣誉）⇒ 1838 → 1878。
+    #     一条不迁：荣誉商店普通物品兑换行（elif 分支单段 f-string，工具 needle 命中 0）
+    "texts": 1878,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,

@@ -329,7 +329,10 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          # ★ C 档 19a（B-2 第 5 片第 1 小片）：combat 战斗域「探索·战斗主循环」
          #   （explore/attack/defend/flee · 摸宝箱 · 战斗状态行/编队/底栏/胜利行）
          "战斗主循环": os.path.join(PKG_CONTENT, "combat_cmds.py"),
-         "战斗面板": os.path.join(PKG_CONTENT, "combat_cmds.py")}
+         "战斗面板": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         # ★ C 档 19c（B-2 第 5 片第 3 小片）：combat「PvP·荣誉」
+         #   （荣誉商店面板/兑换全分支 · PVP 袭击前置校验/回合行动/胜负结算）
+         "PvP荣誉": os.path.join(PKG_CONTENT, "combat_cmds.py")}
 
 
 def _wired_paths(path):
@@ -924,7 +927,7 @@ def t1_table_selfcheck():
                         "强化", "宝石", "符文", "重锻炼成",
                         "地图导航", "任务委托", "家园地契",
                         "营地休息", "声望阵营", "传送方碑", "场景交互",
-                        "战斗主循环", "战斗面板"}, cats)
+                        "战斗主循环", "战斗面板", "PvP荣誉"}, cats)
 
 
 def t2_key_and_params_accounting():
