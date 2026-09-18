@@ -1274,7 +1274,7 @@ async def wish(self, event: AstrMessageEvent, group_id, qq_id, player, opt):
     import json as _json, time as _time
     raw = db.get_event_state(f"wish_{group_id}_{qq_id}")
     if not raw:
-        yield event.plain_result("没有流星在等你许愿……(野外『探索』偶遇流星许愿彩蛋时才能许愿)")
+        yield event.plain_result(_T.static("ws.no_meteor"))
         return
     try:
         st = _json.loads(raw)
@@ -1286,10 +1286,10 @@ async def wish(self, event: AstrMessageEvent, group_id, qq_id, player, opt):
         st = {"ts": 0}
     if _time.time() - st.get("ts", 0) > 120:
         db.set_event_state(f"wish_{group_id}_{qq_id}", "")
-        yield event.plain_result("流星已经划过天际，你的愿望随风消散了……(下次探索再碰碰运气)")
+        yield event.plain_result(_T.static("ws.gone"))
         return
     if opt not in ("经验", "金币", "材料"):
-        yield event.plain_result("『许愿 经验』『许愿 金币』『许愿 材料』——快选一个吧！")
+        yield event.plain_result(_T.static("ws.usage"))
         return
     db.set_event_state(f"wish_{group_id}_{qq_id}", "")
     if opt == "经验":
@@ -1300,11 +1300,11 @@ async def wish(self, event: AstrMessageEvent, group_id, qq_id, player, opt):
         player["_title_bonus"] = self._title_bonus(group_id, qq_id)
         lv_logs, _ = check_player_level_up(group_id, qq_id, player)
         tail = ("\n" + "\n".join(lv_logs)) if lv_logs else ""
-        msg = f"✨ 流星回应了你的愿望！经验 +{gain}{tail}"
+        msg = _T.text("ws.exp", v=gain, tail=tail)
     elif opt == "金币":
         gain = 80 + player["level"] * 8
         db.update_player(group_id, qq_id, gold=player["gold"] + gain)
-        msg = f"💰 流星回应了你的愿望！金币 +{gain}"
+        msg = _T.text("ws.gold", v=gain)
     else:
         # v101.4：流星愿望材料池数据化 → data/poi_pools.py WISH_POOL
         mat = random.choice(_b143.WISH_POOL)
@@ -1313,9 +1313,9 @@ async def wish(self, event: AstrMessageEvent, group_id, qq_id, player, opt):
             db.add_item(group_id, qq_id, mid,
                         {"name": _display("materials", mid), "type": "材料",
                          "stackable": True, "price": _ci.MATERIALS[mid]["price"]})
-        msg = f"🎒 流星回应了你的愿望！获得材料：{_display('materials', mid)}"
+        msg = _T.text("ws.mat", v=_display('materials', mid))
     _check_achievements(group_id, qq_id, player, {"wish_met": True})
-    yield event.plain_result(f"🌠 【许愿成真】{msg}")
+    yield event.plain_result(_T.text("ws.real", msg=msg))
 
 async def trader_confirm(self, event: AstrMessageEvent, group_id, qq_id):
     """v113.5 O71：流浪商人强卖确认/拒绝——探索遇商人挂起报价
@@ -1324,7 +1324,7 @@ async def trader_confirm(self, event: AstrMessageEvent, group_id, qq_id):
     import json as _json, time as _time, uuid
     raw = db.get_event_state(f"trader_{group_id}_{qq_id}")
     if not raw:
-        yield event.plain_result("没有商人在等你答复……(野外『探索』偶遇流浪商人时才会向你兜售)")
+        yield event.plain_result(_T.static("tr.none"))
         return
     try:
         st = _json.loads(raw)
@@ -1335,26 +1335,26 @@ async def trader_confirm(self, event: AstrMessageEvent, group_id, qq_id):
         st = {"ts": 0}
     if _time.time() - st.get("ts", 0) > 120:
         db.set_event_state(f"trader_{group_id}_{qq_id}", "")
-        yield event.plain_result("商人等得不耐烦，收起货摊走了……(下次探索再碰碰运气)")
+        yield event.plain_result(_T.static("tr.gone"))
         return
     # v113.5 O71 实测修正：『确认购买』剥离指令后为空串，不能用剥离结果判分支——
     # 直接看原始消息（正则已限定只有 确认购买/拒绝 两种输入）
     opt = "确认购买" if "确认购买" in (event.get_message_str() or "") else "拒绝"
     db.set_event_state(f"trader_{group_id}_{qq_id}", "")
     if opt == "拒绝":
-        yield event.plain_result("🛒 你摇了摇头：不买不买。商人悻悻地走了。")
+        yield event.plain_result(_T.static("tr.decline"))
         return
     equip = st.get("equip") or {}
     price = int(st.get("price", 0))
     player = self._player(group_id, qq_id)
     if player["gold"] < price:
-        yield event.plain_result(f"🛒 你摸了摸口袋，只有 {player['gold']} 金币，买不起这件装备……商人悻悻地走了。")
+        yield event.plain_result(_T.text("tr.poor", gold=player['gold']))
         return
     db.update_player(group_id, qq_id, gold=player["gold"] - price)
     db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", equip)
     q = _b143.QUALITY.get(equip.get("quality", "white"), {})
     qtxt = q.get("color", "")
-    yield event.plain_result(f"🛒 你花 {price} 金币买下了 {qtxt}【{equip.get('name', '装备')}】")
+    yield event.plain_result(_T.text("tr.buy", gold=price, name=qtxt, x=equip.get('name', '装备')))
 
 async def revive_confirm(self, event: AstrMessageEvent, group_id, qq_id):
     """O119 战败结算二段回复：消耗复活羽毛免扣金币 / 放弃复活损失金币。
@@ -1367,7 +1367,7 @@ async def revive_confirm(self, event: AstrMessageEvent, group_id, qq_id):
     key = f"revive_choice_{group_id}_{qq_id}"
     raw = db.get_event_state(key)
     if not raw:
-        yield event.plain_result("没有待处理的复活选择……(战败且背包有复活羽毛时才会出现)")
+        yield event.plain_result(_T.static("rv.none"))
         return
     try:
         st = _json.loads(raw) if isinstance(raw, str) and raw else {}
@@ -1375,7 +1375,7 @@ async def revive_confirm(self, event: AstrMessageEvent, group_id, qq_id):
         st = {}
     if not isinstance(st, dict) or not st:
         db.set_event_state(key, "")
-        yield event.plain_result("复活选择已失效……")
+        yield event.plain_result(_T.static("rv.stale"))
         return
     lost = int(st.get("lost", 0) or 0)
     extra = int(st.get("extra", 0) or 0)
@@ -1384,7 +1384,7 @@ async def revive_confirm(self, event: AstrMessageEvent, group_id, qq_id):
         db.set_event_state(key, "")
         player = self._player(group_id, qq_id)
         db.update_player(group_id, qq_id, gold=max(0, player["gold"] - lost - extra))
-        yield event.plain_result(f"⏰ 复活羽毛的光芒黯淡了……你损失了 {lost + extra} 金币。")
+        yield event.plain_result(_T.text("rv.fade", gold=lost + extra))
         return
     # 直接看原始消息（正则已限定只有 使用复活羽毛/放弃复活 两种输入）
     opt = "使用复活羽毛" if "复活羽毛" in (event.get_message_str() or "") else "放弃复活"
@@ -1398,13 +1398,13 @@ async def revive_confirm(self, event: AstrMessageEvent, group_id, qq_id):
         if cnt <= 0:
             # 背包里已没有羽毛（可能被其他途径消耗）→ 按损失金币兜底
             db.update_player(group_id, qq_id, gold=max(0, player["gold"] - lost - extra))
-            yield event.plain_result(f"🪶 复活羽毛不见了……你损失了 {lost + extra} 金币。")
+            yield event.plain_result(_T.text("rv.lost", gold=lost + extra))
             return
         db.remove_item(group_id, qq_id, "i_fu_huo_yu_mao", 1)
-        yield event.plain_result(f"🪶 你捏碎复活羽毛，光芒环绕周身——免于损失 {lost + extra} 金币！")
+        yield event.plain_result(_T.text("rv.ok", gold=lost + extra))
         return
     db.update_player(group_id, qq_id, gold=max(0, player["gold"] - lost - extra))
-    yield event.plain_result(f"💸 你选择了放弃复活，损失 {lost + extra} 金币……")
+    yield event.plain_result(_T.text("rv.give", gold=lost + extra))
 
 def _roll_find_quest_events(self, group_id, qq_id, player, cur_map):
     """v97.1 条件探索事件：进行中的 find 型任务，在指定地图探索按 chance 触发。
