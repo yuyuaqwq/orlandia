@@ -3493,84 +3493,84 @@ async def battle_prefs_form(self, event: AstrMessageEvent, group_id, qq_id, play
     cls_id = _resolve("classes", player.get("class_name", ""))
     forms = _DF139_CLASS_FORMS.get(cls_id)
     if not forms:
-        lines.append("🗡️ 当前职业不支持双形态预设（狂战士/龙裔/暮影/淬势者专属）。")
+        lines.append(_T.static("bp.form_na"))
         yield event.plain_result("\n".join(lines))
         return
     fname, fkey = forms
     if not arg:
         cur = (player.get("battle_prefs") or {}).get("dual_form", "")
-        lines.append(f"⚔️ 双形态预设：{'【' + cur + '】' if cur else '未设置（默认按资源自动入形态）'}")
+        lines.append(_T.text("bp.form_cur", v='【' + cur + '】' if cur else '未设置（默认按资源自动入形态）'))
         lines.append(f"可用：{fname}（当前职业仅此一种双形态）")
         yield event.plain_result("\n".join(lines))
         return
     if arg not in (fname, fkey):
-        lines.append(f"⚠️ 未知形态『{arg}』！当前职业可用：{fname}")
+        lines.append(_T.text("bp.form_unknown", arg=arg, name=fname))
         yield event.plain_result("\n".join(lines))
         return
     prefs = dict(player.get("battle_prefs") or {})
     prefs["dual_form"] = fname
     db.update_player(group_id, qq_id, battle_prefs=prefs)
-    lines.append(f"⚔️ 战前形态预设：{fname} ✅")
-    lines.append("入战将自动启用该形态（免费切换，不占行动）。")
+    lines.append(_T.text("bp.form_ok", name=fname))
+    lines.append(_T.static("bp.form_tip"))
     yield event.plain_result("\n".join(lines))
 
 async def battle_prefs_finisher(self, event: AstrMessageEvent, group_id, qq_id, player, arg):
     lines = []
     if _resolve("classes", player.get("class_name", "")) != "cls_ci_ke":
-        lines.append("🗡️ 终结阈值是刺客专属战前设置。")
+        lines.append(_T.static("bp.fin_na"))
         yield event.plain_result("\n".join(lines))
         return
     if not arg:
         cur = (player.get("battle_prefs") or {}).get("finisher", "满刃")
-        lines.append(f"⚔️ 终结阈值：{'【' + cur + '】'}")
-        lines.append("档位：快刀(cp≥3) / 满刃(cp=5) / 残血(HP<40%+cp≥3) / 满段(链值≥8)")
+        lines.append(_T.text("bp.fin_cur", v='【' + cur + '】'))
+        lines.append(_T.static("bp.fin_usage"))
         yield event.plain_result("\n".join(lines))
         return
     if arg not in _FINISHER139_OPTIONS:
-        lines.append(f"⚠️ 未知档位『{arg}』！可用：{'/'.join(_FINISHER139_OPTIONS)}")
+        lines.append(_T.text("bp.fin_unknown", arg=arg, avail='/'.join(_FINISHER139_OPTIONS)))
         yield event.plain_result("\n".join(lines))
         return
     prefs = dict(player.get("battle_prefs") or {})
     prefs["finisher"] = arg
     db.update_player(group_id, qq_id, battle_prefs=prefs)
-    lines.append(f"⚔️ 终结阈值：{arg} ✅")
-    lines.append("战斗中达到对应条件即触发终结技（与四档 DSL 一致）。")
+    lines.append(_T.text("bp.fin_ok", name=arg))
+    lines.append(_T.static("bp.fin_tip"))
     yield event.plain_result("\n".join(lines))
 
 async def battle_prefs_arcane_field(self, event: AstrMessageEvent, group_id, qq_id, player, arg):
     lines = []
     if _resolve("classes", player.get("class_name", "")) != "cls_fa_shi":
-        lines.append("🔮 奥术力场是法师专属战前设置。")
+        lines.append(_T.static("bp.af_na"))
         yield event.plain_result("\n".join(lines))
         return
     if not arg:
         cur = (player.get("battle_prefs") or {}).get("arcane_field", "盾")
-        lines.append(f"🔮 奥术力场：{'【' + cur + '】'}")
-        lines.append("档位：盾（护盾，消耗 2 充能 × 8% 魔攻） / 刃（下次奥术技伤害 ×1.3）")
+        lines.append(_T.text("bp.af_cur", v='【' + cur + '】'))
+        lines.append(_T.static("bp.af_usage"))
         yield event.plain_result("\n".join(lines))
         return
     if arg not in _ARCANE_FIELD_OPTIONS:
-        lines.append(f"⚠️ 未知档位『{arg}』！可用：{'/'.join(_ARCANE_FIELD_OPTIONS)}")
+        lines.append(_T.text("bp.af_unknown", arg=arg, avail='/'.join(_ARCANE_FIELD_OPTIONS)))
         yield event.plain_result("\n".join(lines))
         return
     prefs = dict(player.get("battle_prefs") or {})
     prefs["arcane_field"] = arg
     db.update_player(group_id, qq_id, battle_prefs=prefs)
-    lines.append(f"🔮 奥术力场：{arg} ✅")
-    lines.append("施放『奥术力场』时按此档落地。")
+    lines.append(_T.text("bp.af_ok", name=arg))
+    lines.append(_T.static("bp.af_tip"))
     yield event.plain_result("\n".join(lines))
 
 async def battle_prefs_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     prefs = player.get("battle_prefs") or {}
-    lines = ["⚙️ 战前指令（当前预设）："]
+    lines = [_T.static("bp.view_title")]
     if not prefs:
-        lines.append("  （未设置任何战前指令）")
+        lines.append(_T.static("bp.view_empty"))
     else:
         if prefs.get("dual_form"):
-            lines.append(f"  ⚔️ 形态：{prefs['dual_form']}")
+            lines.append(_T.text("bp.view_form", v=prefs['dual_form']))
         if prefs.get("finisher"):
-            lines.append(f"  🗡️ 终结阈值：{prefs['finisher']}")
-    lines.append("用法：战前形态 <狂暴> / 战前阈值 <快刀|满刃|残血|满段>")
+            lines.append(_T.text("bp.view_fin", v=prefs['finisher']))
+    lines.append(_T.static("bp.view_usage"))
     yield event.plain_result("\n".join(lines))
 
 

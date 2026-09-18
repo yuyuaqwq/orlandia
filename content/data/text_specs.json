@@ -808,6 +808,46 @@
     "category": "身份绑定",
     "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
   },
+  "bp.af_cur": {
+    "value": "🔮 奥术力场：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_arcane_field（B 批 C 档）"
+  },
+  "bp.af_na": {
+    "value": "🔮 奥术力场是法师专属战前设置。",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_arcane_field（B 批 C 档）"
+  },
+  "bp.af_ok": {
+    "value": "🔮 奥术力场：{name} ✅",
+    "params": [
+      "name"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_arcane_field（B 批 C 档）"
+  },
+  "bp.af_tip": {
+    "value": "施放『奥术力场』时按此档落地。",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_arcane_field（B 批 C 档）"
+  },
+  "bp.af_unknown": {
+    "value": "⚠️ 未知档位『{arg}』！可用：{avail}",
+    "params": [
+      "arg",
+      "avail"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_arcane_field（B 批 C 档）"
+  },
+  "bp.af_usage": {
+    "value": "档位：盾（护盾，消耗 2 充能 × 8% 魔攻） / 刃（下次奥术技伤害 ×1.3）",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_arcane_field（B 批 C 档）"
+  },
   "bp.dead": {
     "value": "📜【{name}】（已失效/旧版本残留，可出售）",
     "params": [
@@ -815,6 +855,81 @@
     ],
     "category": "锻造",
     "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
+  "bp.fin_cur": {
+    "value": "⚔️ 终结阈值：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
+  },
+  "bp.fin_na": {
+    "value": "🗡️ 终结阈值是刺客专属战前设置。",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
+  },
+  "bp.fin_ok": {
+    "value": "⚔️ 终结阈值：{name} ✅",
+    "params": [
+      "name"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
+  },
+  "bp.fin_tip": {
+    "value": "战斗中达到对应条件即触发终结技（与四档 DSL 一致）。",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
+  },
+  "bp.fin_unknown": {
+    "value": "⚠️ 未知档位『{arg}』！可用：{avail}",
+    "params": [
+      "arg",
+      "avail"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
+  },
+  "bp.fin_usage": {
+    "value": "档位：快刀(cp≥3) / 满刃(cp=5) / 残血(HP<40%+cp≥3) / 满段(链值≥8)",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
+  },
+  "bp.form_cur": {
+    "value": "⚔️ 双形态预设：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_form（B 批 C 档）"
+  },
+  "bp.form_na": {
+    "value": "🗡️ 当前职业不支持双形态预设（狂战士/龙裔/暮影/淬势者专属）。",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_form（B 批 C 档）"
+  },
+  "bp.form_ok": {
+    "value": "⚔️ 战前形态预设：{name} ✅",
+    "params": [
+      "name"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_form（B 批 C 档）"
+  },
+  "bp.form_tip": {
+    "value": "入战将自动启用该形态（免费切换，不占行动）。",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_form（B 批 C 档）"
+  },
+  "bp.form_unknown": {
+    "value": "⚠️ 未知形态『{arg}』！当前职业可用：{name}",
+    "params": [
+      "arg",
+      "name"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_form（B 批 C 档）"
   },
   "bp.head": {
     "value": "📜 【已学图纸】共 {n} 张",
@@ -833,6 +948,37 @@
     "value": "💡 已学图纸锻造/烹饪/炼金不再消耗图纸 ｜ 背包里新图纸发『学习 <图纸名>』解锁",
     "category": "锻造",
     "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
+  "bp.view_empty": {
+    "value": "  （未设置任何战前指令）",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_view（B 批 C 档）"
+  },
+  "bp.view_fin": {
+    "value": "  🗡️ 终结阈值：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_view（B 批 C 档）"
+  },
+  "bp.view_form": {
+    "value": "  ⚔️ 形态：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_view（B 批 C 档）"
+  },
+  "bp.view_title": {
+    "value": "⚙️ 战前指令（当前预设）：",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_view（B 批 C 档）"
+  },
+  "bp.view_usage": {
+    "value": "用法：战前形态 <狂暴> / 战前阈值 <快刀|满刃|残血|满段>",
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_view（B 批 C 档）"
   },
   "bt.boss_noflee": {
     "value": "\n👑 Boss 战无法逃跑！『防御』不耗体力可拖延等待自然恢复，或吃食物(『使用 <食物>』)立即恢复～",

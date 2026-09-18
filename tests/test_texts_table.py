@@ -338,7 +338,10 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "世界Boss": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          # ★ C 档 19e-1（B-2 第 5 片第 5 小片）：combat「许愿·流浪商人·复活确认」
          #   （流星许愿三选 · 商人强卖成交/拒绝/钱不够 · 复活羽毛二段确认）
-         "许愿商人": os.path.join(PKG_CONTENT, "combat_cmds.py")}
+         "许愿商人": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         # ★ C 档 19e-2（B-2 第 5 片第 6 小片）：combat「battle_prefs 战前设置」
+         #   （双形态预设 · 终结阈值 · 奥术力场 · 战前指令总览）
+         "战前设置": os.path.join(PKG_CONTENT, "combat_cmds.py")}
 
 
 def _wired_paths(path):
@@ -933,7 +936,8 @@ def t1_table_selfcheck():
                         "强化", "宝石", "符文", "重锻炼成",
                         "地图导航", "任务委托", "家园地契",
                         "营地休息", "声望阵营", "传送方碑", "场景交互",
-                        "战斗主循环", "战斗面板", "PvP荣誉", "世界Boss", "许愿商人"}, cats)
+                        "战斗主循环", "战斗面板", "PvP荣誉", "世界Boss", "许愿商人",
+                        "战前设置"}, cats)
 
 
 def t2_key_and_params_accounting():
