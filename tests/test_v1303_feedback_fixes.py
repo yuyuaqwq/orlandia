@@ -117,10 +117,9 @@ async def main():
         return "\n".join(out)
 
     src_eco = _eco_src()
-    check("批量购买星号支持", "*" in src_eco and "数量至少 1 个" in src_eco)
-    # ★ C 档 21b（2026-09-19）：buy() 的名称路径句壳已入**单源文案表**（`shop.qty_max`）——
-    #   实现侧只剩 `_T.text("shop.qty_max", max=…)`，字面量不再出现在源码里。
-    #   断言改为「源码字面量 **或** 文案表条目值」任一侧命中（语义不变：上限提示存在）。
+    # ★ C 档 21b/21c（2026-09-19）：buy()/use() 的句壳已入**单源文案表**——
+    #   实现侧只剩 `_T.text("shop.qty_max" / "shop.qty_min_buy", …)`，字面量不再出现在源码里。
+    #   断言改为「源码字面量 **或** 文案表条目值」任一侧命中（语义不变：上限/数量提示存在）。
     def _tbl_value(key):
         _p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                           "content", "data", "text_specs.json")
@@ -129,6 +128,10 @@ async def main():
                 return json.load(_f).get(key, {}).get("value", "")
         except Exception:
             return ""
+
+    check("批量购买星号支持",
+          "*" in src_eco and ("数量至少 1 个" in src_eco
+                              or "数量至少 1 个" in _tbl_value("shop.qty_min_buy")))
 
     check("批量购买上限提示",
           "单次最多购买" in src_eco or "单次最多购买" in _tbl_value("shop.qty_max"))

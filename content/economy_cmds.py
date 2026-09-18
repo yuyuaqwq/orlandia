@@ -5507,17 +5507,16 @@ class EconomyImpl(CommandBase):
             if page < 1:
                 page = 1
         if filter_only and category is None and not step:
-            return "🎒 背包筛选：『背包筛选 <类型>』，如『背包筛选 材料』『筛选装备』\n" \
-                   "类型：装备/材料/消耗品/符文/宠物蛋/坐骑/图纸/鱼；支持翻页『背包筛选 材料 2』"
+            return _T.static("bag.filter_hint")
         items = db.get_inventory(group_id, qq_id)
         if category:
             items = [it for it in items if self._item_category(it["data"]) == category]
             if not items:
-                return f"背包里没有『{category}』类物品～『背包』看全部"
+                return _T.text("bag.filter_empty", cat=category)
         if not items:
             # v134.6：空背包也记录列表状态（否则『查看 <数字>』会沿用上一列表的技能上下文）
             self._record_list_state(qq_id, f"背包 {category}" if category else "背包", 1, 1)
-            return "你的背包空空如也……去『探索』打点东西吧！"
+            return _T.static("bag.empty")
         page_items, pages, page = self._page_items(items, page, per_page=10)  # v127.2 背包每页 10 件
         # 记录当前视图(分类+页码)，供『上一页/下一页』相对翻页
         try:
@@ -5527,7 +5526,7 @@ class EconomyImpl(CommandBase):
             pass
         # v123 通用列表状态：翻页快捷键 +/−/= 恢复本列表（保留上方旧相对翻页状态，两者并存）
         self._record_list_state(qq_id, f"背包 {category}" if category else "背包", page, pages)
-        title = f"🎒 【背包·{category}】" if category else "🎒 【背包】"
+        title = _T.text("bag.title", cat=category) if category else _T.static("bag.title_all")
         lines = [title, "━━━━━━━━━━━━"]  # 玩家意见 #5 zerc：页数/翻页提示移到列表底部（见下方 📄 行）
         for i, it in enumerate(page_items, (page - 1) * 10 + 1):  # v130.3 序号起点随 per_page=10 同步（原 5 错位）
             d = it["data"]
@@ -5538,12 +5537,12 @@ class EconomyImpl(CommandBase):
                 if _mm and _mm.get("quality") in _b143.QUALITY:
                     lines.append(f"{i:>2}. {_b143.QUALITY[_mm['quality']]['color']}{d['name']} ×{it['count']} ({_mm.get('type', '杂物')})")
                 else:
-                    lines.append(f"{i:>2}. {d['name']} ×{it['count']} (材料)")
+                    lines.append(_T.text("bag.mat_row_plain", i=i, name=d['name'], count=it['count']))
             elif d.get("type") == "图纸":
                 # v101.25 #326：图纸标注——玩家学完才能用（playtest round67 小蓝抓包海风长弓图纸误导）
                 # v101.30d #O47：措辞修正——"需解锁锻造副业"误导（实际学到即可在铁匠铺锻造，
                 # 小白实测珍珠项链图纸与行为矛盾），改为动作指引
-                lines.append(f"{i:>2}. 📜 {d['name']} ×{it['count']} (图纸：学习后到铁匠铺锻造)")
+                lines.append(_T.text("bag.bp_row", i=i, name=d['name'], count=it['count']))
             elif d.get("slot"):
                 q = _b143.QUALITY[d["quality"]]
                 enh = d.get("enhance", 0)
@@ -5561,14 +5560,14 @@ class EconomyImpl(CommandBase):
         lines.append("━━━━━━━━━━━━")  # v127.2 提示区上方分隔
         # 玩家意见 #5（zerc）：页数/翻页提示从标题移到底部，
         # 与炼金/烹饪/锻造/技能列表的底部页数风格统一（📄 行）
-        _flip = f"｜『背包筛选 {category} {page + 1}』下一页" if (category and page < pages) \
-            else (f"｜『背包 {page + 1}』下一页" if page < pages else "")
-        lines.append(f"📄 第 {page}/{pages} 页 · 共 {len(items)} 件{_flip}")
+        _flip = _T.text("bag.flip_filter", cat=category, next=page + 1) if (category and page < pages) \
+            else (_T.text("bag.flip", next=page + 1) if page < pages else "")
+        lines.append(_T.text("bag.page_line", page=page, pages=pages, total=len(items), flip=_flip))
         # v127.4.1 移除物品列表与分隔线之间的空行——分隔线本身即视觉间隔，空行多余（鱼鱼反馈）
         # v127.1 每面板只抽 1 条随机提示；筛选序号警告(防卖错)仅筛选视图显示
         lines.append(self._tip("bag"))
         if category:
-            lines.append("💡 筛选视图序号与全局背包不同，『出售 <序号>』按全局序号——出售/装备请用物品名称（#234）")
+            lines.append(_T.static("bag.filter_warn"))
         return "\n".join(lines)
 
     @declared("item_view_mode_cmd", priority=50)
@@ -5846,7 +5845,7 @@ class EconomyImpl(CommandBase):
         item_name = self._strip_cmd(event, "装备")
         player = self._player(group_id, qq_id)
         if self._in_battle(group_id, qq_id):
-            yield event.plain_result("战斗中不能更换装备！先解决眼前的敌人吧～")
+            yield event.plain_result(_T.static("equip.in_battle"))
             return
         item_name = item_name.strip()
         # v134.1 意见#43：『我的装备』/『装备 状态』= 查看当前穿戴一览（与『装备 <序号>』穿戴语义不冲突）
@@ -5854,7 +5853,7 @@ class EconomyImpl(CommandBase):
             yield event.plain_result(self._my_equipment_view(group_id, qq_id, player))
             return
         if not item_name:
-            yield event.plain_result("要穿哪件？『装备 <名称>』或『装备 <背包序号>』（『背包』看序号）；『我的装备』查看当前穿戴～")
+            yield event.plain_result(_T.static("equip.usage"))
             return
         items = db.get_inventory(group_id, qq_id)
         # 找装备
@@ -5863,10 +5862,10 @@ class EconomyImpl(CommandBase):
             # 序号装备：『装备 1』→ 背包第 1 件物品（须为装备，与『背包』序号一致）
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看～")
+                yield event.plain_result(_T.text("enhance.idx_missing", idx=idx, total=len(items)))
                 return
             if not items[idx - 1]["data"].get("slot"):
-                yield event.plain_result(f"背包第 {idx} 件『{items[idx-1]['data']['name']}』不是装备！『背包』查看～")
+                yield event.plain_result(_T.text("equip.idx_not_equip", idx=idx, name=items[idx-1]['data']['name']))
                 return
             target = items[idx - 1]
         else:
@@ -5885,7 +5884,7 @@ class EconomyImpl(CommandBase):
                 # 明确指定第 n 件同名装备
                 target = matches[idx_part - 1]
             elif len(matches) > 1:
-                lines = [f"❓ 找到 {len(matches)} 件『{name_part}』，用序号指定穿哪件："]
+                lines = [_T.text("equip.multi_head", n=len(matches), name=name_part)]
                 for i, it in enumerate(matches, 1):
                     d = it["data"]
                     q = _b143.QUALITY[d["quality"]]
@@ -5898,7 +5897,7 @@ class EconomyImpl(CommandBase):
             if matches:
                 target = matches[0]
         if not target:
-            yield event.plain_result(f"背包里没有叫『{item_name}』的装备！")
+            yield event.plain_result(_T.text("equip.none", name=item_name))
             return
         d = target["data"]
         # 阶段八：武器不锁职业（20 章），改为属性需求检查（力量/智力/敏捷/耐力）
@@ -5907,11 +5906,11 @@ class EconomyImpl(CommandBase):
             # v101.25 #321：按实际缺失属性生成加点引导（缺耐力引导『加点 耐力』，
             # 不再写死『加点 力量 N』误导玩家）
             first_miss = _ATTR_CN.get(miss_keys[0], "力量") if miss_keys else "力量"
-            yield event.plain_result(f"属性不够，穿不上【{d['name']}】！{req_msg}\n加点后属性达标才能装备(『属性』查看、『加点 {first_miss} N』加点)")
+            yield event.plain_result(_T.text("equip.req_fail", name=d['name'], req=req_msg, attr=first_miss))
             return
         # 等级限制
         if player["level"] < d["lv"]:
-            yield event.plain_result(f"需要 Lv.{d['lv']} 才能装备【{d['name']}】，你才 Lv.{player['level']}")
+            yield event.plain_result(_T.text("equip.lv_fail", lv=d['lv'], name=d['name'], plv=player['level']))
             return
         equipment = dict(player["equipment"])
         old = equipment.get(d["slot"])
@@ -5942,12 +5941,12 @@ class EconomyImpl(CommandBase):
                     else:
                         diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(diff))}")
         # v101.21b 排版：每项一行 + 两侧空格，不显示当前属性
-        lines = [f"✅ 你装备了 {q['color']}【{d['name']}】！", "📊 属性变化："]
+        lines = [_T.text("equip.ok", color=q['color'], name=d['name']), _T.static("equip.diff_head")]
         if diff_parts:
             for p in diff_parts:
                 lines.append(f"  · {p}")
         else:
-            lines.append("  · (无变化)")
+            lines.append(_T.static("equip.diff_none"))
         yield event.plain_result("\n".join(lines))
 
     @declared("unequip")
@@ -6041,17 +6040,17 @@ class EconomyImpl(CommandBase):
                 item_name = _head.strip()
             else:
                 yield event.plain_result(
-                    "数量格式不对！例：『使用 治疗药水*5』或『使用 治疗药水 5』；『背包』查看物品～"
+                    _T.static("use.qty_fmt")
                 )
                 return
         if _qty_raw is not None:
             try:
                 qty = int(_qty_raw)
             except ValueError:
-                yield event.plain_result("数量不合法！请输入正整数，如『使用 治疗药水 5』～")
+                yield event.plain_result(_T.static("use.qty_bad"))
                 return
             if qty < 1:
-                yield event.plain_result("数量至少 1 个！大批量使用用『使用 <物品> 数量』或『使用 <物品>*数量』～")
+                yield event.plain_result(_T.static("use.qty_min"))
                 return
         items = db.get_inventory(group_id, qq_id)
         target = None
@@ -6059,10 +6058,10 @@ class EconomyImpl(CommandBase):
             # 序号使用：『使用 1』→ 背包第 1 件物品（须非装备，与『背包』序号一致）
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看～")
+                yield event.plain_result(_T.text("enhance.idx_missing", idx=idx, total=len(items)))
                 return
             if items[idx - 1]["data"].get("slot"):
-                yield event.plain_result(f"背包第 {idx} 件是装备，用『装备 {idx}』穿上！")
+                yield event.plain_result(_T.text("use.idx_is_equip", idx=idx, idx2=idx))
                 return
             target = items[idx - 1]
         else:
@@ -6084,14 +6083,14 @@ class EconomyImpl(CommandBase):
             _eq_hit = [it for it in items if it["data"].get("slot") and item_name in it["data"]["name"]]
             if _eq_hit:
                 _d0 = _eq_hit[0]["data"]
-                yield event.plain_result(f"『{_d0['name']}』是装备，用『装备 {_d0['name']}』穿上，或『物品详情 {_d0['name']}』查看属性～")
+                yield event.plain_result(_T.text("use.equip_hint", name=_d0['name'], name2=_d0['name'], name3=_d0['name']))
                 return
-            yield event.plain_result(f"背包里没有『{item_name}』！")
+            yield event.plain_result(_T.text("sell.no_item", name=item_name))
             return
         d = target["data"]
         # v130.4 玩家意见#11：批量数量超过持有 → 显式报错（对齐购买超上限语义，不静默钳制）
         if qty > 1 and qty > target.get("count", 1):
-            yield event.plain_result(f"你只有 {target.get('count', 1)} 个『{d['name']}』，用不了这么多～")
+            yield event.plain_result(_T.text("use.over_qty", n=target.get('count', 1), name=d['name']))
             return
         # ---- v97.7 道具效果模板引擎分发（消灭 if-elif 硬编码，行为与旧实现逐条对齐）----
         IT = _h('item_templates')  # ← from ..core import item_templates as IT
@@ -6107,14 +6106,14 @@ class EconomyImpl(CommandBase):
         if self._in_battle(group_id, qq_id) or inst_battling:
             # v130.4 玩家意见#11：战斗中一次只能使用 1 个道具（批量留战斗结束）
             if qty > 1:
-                yield event.plain_result("战斗中一次只能使用 1 个道具！剩下的留到战斗结束再用～")
+                yield event.plain_result(_T.static("use.battle_one"))
                 return
             # 副本战斗优先（v95r55 #269 补充：队员视角——副本 battle 存队长名下，
             # _instance_battle_for 先查自己再查队长，与 combat.py 攻击/技能分流一致）
             if inst_battling:
                 battle = inst_row
                 if battle["state"].get("type") != "instance":
-                    yield event.plain_result("你不在战斗中！")
+                    yield event.plain_result(_T.static("use.not_in_battle"))
                     return
                 # v95r75 #380：层肃清后(boss=None, 地图模式)使用道具走战斗外路径——
                 # 旧代码仍按战斗内处理：先执行模板+扣道具，再调 _instance_act 被
@@ -6125,7 +6124,7 @@ class EconomyImpl(CommandBase):
                     # teleport_portal 只改 cur_map 不清 instance battle（锁残留+_in_battle
                     # 悬挂，实测回城后移动/传送全被拦，须『离开副本』手动解除）
                     if tpl_name in ("return_vila", "teleport_portal"):
-                        yield event.plain_result("副本内无法使用传送类卷轴！『撤退』可保留进度离开副本～")
+                        yield event.plain_result(_T.static("use.inst_scroll"))
                         return
                     ctx = IT.ItemContext(group_id, qq_id, player, d, battle=None, hooks=hooks)
                     r = IT.TEMPLATES[tpl_name](ctx)
@@ -6137,7 +6136,7 @@ class EconomyImpl(CommandBase):
                 # 旧代码漏检查，材料类道具（如材料版『麦酒』）被当战斗道具执行
                 # none 模板 → 显示"你使用了战斗道具！"但无效果不消耗，误导玩家
                 if not meta["battle_ok"]:
-                    yield event.plain_result("战斗中只能使用恢复类道具或战斗药水！战斗结束才能用其他物品～")
+                    yield event.plain_result(_T.static("use.battle_item_only"))
                     return
                 # 副本战斗：道具走副本轮流刻（v95.29 #269——此前漏掉 instance 分流，
                 # 走普通分支会 BT.Battle.from_state + save_battle 把 leader 名下的
@@ -6150,7 +6149,7 @@ class EconomyImpl(CommandBase):
                 _tk = str(_mk[_ti]) if _mk and _ti < len(_mk) else str(qq_id)
                 if str(qq_id) != _tk:
                     _tn = (self._player(group_id, _tk) or {}).get("name", _tk)
-                    yield event.plain_result(f"⏳ 现在是 {_tn} 的刻，等待 TA 行动～")
+                    yield event.plain_result(_T.text("instance.结算_等待行动", name=_tn))
                     return
                 ctx = IT.ItemContext(group_id, qq_id, player, d, battle=battle["state"], hooks=hooks)
                 r = IT.TEMPLATES[tpl_name](ctx)
@@ -6165,7 +6164,7 @@ class EconomyImpl(CommandBase):
                 if _it_cast0:
                     _pl0 = f"{_pl0};cast:{_it_cast0}" if _pl0 else f"cast:{_it_cast0}"
                 if not _b2u_can(_pl0):
-                    yield event.plain_result("⚠️ 该道具的战斗内效果尚未迁移，请在战斗外使用～")
+                    yield event.plain_result(_T.static("use.not_migrated"))
                     return
                 if r.consume:
                     db.remove_item(group_id, qq_id, target["key"])
@@ -6186,21 +6185,21 @@ class EconomyImpl(CommandBase):
                 return
             # 战斗中：只允许恢复类 + 战斗药水（模板 meta battle_ok），且算一刻（敌方会行动）
             if not meta["battle_ok"]:
-                yield event.plain_result("战斗中只能使用恢复类道具或战斗药水！战斗结束才能用其他物品～")
+                yield event.plain_result(_T.static("use.battle_item_only"))
                 return
             battle = db.get_battle(group_id, qq_id)
             if not battle:
-                yield event.plain_result("你不在战斗中！")
+                yield event.plain_result(_T.static("use.not_in_battle"))
                 return
             if battle["state"].get("type") == "pvp":
-                yield event.plain_result("PVP 战斗无法使用道具！")
+                yield event.plain_result(_T.static("use.pvp_item"))
                 return
             b = self._restore_battle(battle["state"])
             if b is None:
                 # 旧格式存档作废：清档重开（N5b 约定不迁移）
                 db.clear_battle(group_id, qq_id)
                 self._unlock_battle(group_id, qq_id)
-                yield event.plain_result("⏳ 旧存档已失效，重新探索开始新的战斗吧！")
+                yield event.plain_result(_T.static("bt.stale_explore"))
                 return
             # I4：from_state 后注入道具行动回调（action_override 不可序列化）
             try:
@@ -6221,7 +6220,7 @@ class EconomyImpl(CommandBase):
             if _it_cast0:
                 _pl0 = f"{_pl0};cast:{_it_cast0}" if _pl0 else f"cast:{_it_cast0}"
             if not _b2u_can(_pl0):
-                yield event.plain_result("⚠️ 该道具的战斗内效果尚未迁移，请在战斗外使用～")
+                yield event.plain_result(_T.static("use.not_migrated"))
                 return
             if r.consume:
                 db.remove_item(group_id, qq_id, target["key"])
@@ -6230,7 +6229,7 @@ class EconomyImpl(CommandBase):
             if d.get("stamina"):
                 st_gain = self._add_stamina(group_id, qq_id, int(d["stamina"]), player)
                 if st_gain > 0:
-                    st_msg = f"⚡ 恢复 {st_gain} 点体力({self._stamina(player)}/{self._stamina_max(player)})\n"
+                    st_msg = _T.text("use.stamina_gain", n=st_gain, cur=self._stamina(player), cap=self._stamina_max(player))
             # 战斗内 mana 由模板算 payload（"mana:N"/"hm:hp,mp"）交 battle.player_turn
             # 的 _do_use_item 应用（v101.27/v104R3 M16 P2-3），模板不再直接改快照
             payload = r.payload if r.payload is not None else "0"
@@ -6246,7 +6245,7 @@ class EconomyImpl(CommandBase):
                         _my = _a
                         break
             if _my is None:
-                yield event.plain_result("你不在战斗中（状态异常）！")
+                yield event.plain_result(_T.static("use.state_odd"))
                 return
             logs, ended, _who = b.human_act("use_item", payload, _my)
             # saintess_engine 行动后回写 player dict（副本 actor 改动不自动落回）
@@ -6276,9 +6275,8 @@ class EconomyImpl(CommandBase):
             if "恢复 0 点生命" in log_str and st_msg:
                 log_str = log_str.replace("💊 你使用了战斗道具，恢复 0 点生命！", "🍖 你吃下了食物，恢复了体力！")
             yield event.plain_result(
-                f"{log_str}\n{st_msg}━━━━━━━━━━━━\n"
-                f"❤️ HP {player['hp']}/{player['max_hp']}  💙 MP {player['mp']}/{player['max_mp']}\n"
-                f"你的行动：『攻击』『技能 <名称>』『防御』『逃跑』"
+                _T.text("use.battle_block", log=log_str, st=st_msg, hp=player['hp'], max_hp=player['max_hp'],
+                    mp=player['mp'], max_mp=player['max_mp'])
             )
             return
         # 战斗外：模板直接执行副作用并返回展示文本
@@ -6310,7 +6308,7 @@ class EconomyImpl(CommandBase):
                         _fst = self._mining_fatigue_state(group_id, qq_id)
                         if _fst and int(time.time()) - _fst.get("ts", 0) <= _prof_svc.MINING_FATIGUE_RECOVER:
                             db.set_event_state(f"mining_fatigue_{qq_id}", "")
-                            _fat_line = "\n🍖 吃饱喝足，疲劳一扫而空！(挖掘稀有矿脉概率恢复)"
+                            _fat_line = _T.static("use.fatigue_clear")
                     _use_q_line = self._update_use_quests(group_id, qq_id, d.get("name", ""))
                 break
             if use_count == 1:
@@ -6320,15 +6318,15 @@ class EconomyImpl(CommandBase):
                     _fst = self._mining_fatigue_state(group_id, qq_id)
                     if _fst and int(time.time()) - _fst.get("ts", 0) <= _prof_svc.MINING_FATIGUE_RECOVER:
                         db.set_event_state(f"mining_fatigue_{qq_id}", "")
-                        _fat_line = "\n🍖 吃饱喝足，疲劳一扫而空！(挖掘稀有矿脉概率恢复)"
+                        _fat_line = _T.static("use.fatigue_clear")
                 # v124 use 目标支线：批量只推进一次
                 _use_q_line = self._update_use_quests(group_id, qq_id, d.get("name", ""))
         _text = "\n".join(_parts)
         if qty > 1 and use_count > 0:
             if use_count == qty:
-                _text += f"\n━━━━━━━━━━━━\n✅ 已使用 {use_count} 个『{d.get('name')}』"
+                _text += _T.text("use.batch_done", n=use_count, name=d.get('name'))
             else:
-                _text += f"\n━━━━━━━━━━━━\n✅ 已使用 {use_count}/{qty} 个『{d.get('name')}』（状态已满，剩余保留）"
+                _text += _T.text("use.batch_partial", n=use_count, qty=qty, name=d.get('name'))
         yield event.plain_result(_text + _fat_line + _use_q_line)
 
     def _item_use_hooks(self, group_id, qq_id, target, player):

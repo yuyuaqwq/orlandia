@@ -769,6 +769,90 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:back_cmd（B 批 C 档）"
   },
+  "bag.bp_row": {
+    "value": "{i:>2}. 📜 {name} ×{count} (图纸：学习后到铁匠铺锻造)",
+    "params": [
+      "i",
+      "name",
+      "count"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.empty": {
+    "value": "你的背包空空如也……去『探索』打点东西吧！",
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.filter_empty": {
+    "value": "背包里没有『{cat}』类物品～『背包』看全部",
+    "params": [
+      "cat"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.filter_hint": {
+    "value": "🎒 背包筛选：『背包筛选 <类型>』，如『背包筛选 材料』『筛选装备』\n类型：装备/材料/消耗品/符文/宠物蛋/坐骑/图纸/鱼；支持翻页『背包筛选 材料 2』",
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.filter_warn": {
+    "value": "💡 筛选视图序号与全局背包不同，『出售 <序号>』按全局序号——出售/装备请用物品名称（#234）",
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.flip": {
+    "value": "｜『背包 {next}』下一页",
+    "params": [
+      "next"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.flip_filter": {
+    "value": "｜『背包筛选 {cat} {next}』下一页",
+    "params": [
+      "cat",
+      "next"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.mat_row_plain": {
+    "value": "{i:>2}. {name} ×{count} (材料)",
+    "params": [
+      "i",
+      "name",
+      "count"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.page_line": {
+    "value": "📄 第 {page}/{pages} 页 · 共 {total} 件{flip}",
+    "params": [
+      "page",
+      "pages",
+      "total",
+      "flip"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.title": {
+    "value": "🎒 【背包·{cat}】",
+    "params": [
+      "cat"
+    ],
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
+  "bag.title_all": {
+    "value": "🎒 【背包】",
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:_bag_view（B 批 C 档）"
+  },
   "bf.clock": {
     "value": "🕐 时刻 {s:.1f}s",
     "params": [
@@ -4289,6 +4373,81 @@
     ],
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
+  },
+  "equip.diff_head": {
+    "value": "📊 属性变化：",
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.diff_none": {
+    "value": "  · (无变化)",
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.idx_not_equip": {
+    "value": "背包第 {idx} 件『{name}』不是装备！『背包』查看～",
+    "params": [
+      "idx",
+      "name"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.in_battle": {
+    "value": "战斗中不能更换装备！先解决眼前的敌人吧～",
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.lv_fail": {
+    "value": "需要 Lv.{lv} 才能装备【{name}】，你才 Lv.{plv}",
+    "params": [
+      "lv",
+      "name",
+      "plv"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.multi_head": {
+    "value": "❓ 找到 {n} 件『{name}』，用序号指定穿哪件：",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.none": {
+    "value": "背包里没有叫『{name}』的装备！",
+    "params": [
+      "name"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.ok": {
+    "value": "✅ 你装备了 {color}【{name}】！",
+    "params": [
+      "color",
+      "name"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.req_fail": {
+    "value": "属性不够，穿不上【{name}】！{req}\n加点后属性达标才能装备(『属性』查看、『加点 {attr} N』加点)",
+    "params": [
+      "name",
+      "req",
+      "attr"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
+  },
+  "equip.usage": {
+    "value": "要穿哪件？『装备 <名称>』或『装备 <背包序号>』（『背包』看序号）；『我的装备』查看当前穿戴～",
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:equip（B 批 C 档）"
   },
   "evolve.done_all": {
     "value": "👑 你已完成全部转职！{title}\n当前职业：{icon} {cls}(Lv.{lv})",
@@ -15152,6 +15311,131 @@
     "value": "升级哪件装备？输入『升级 <装备名>』或『升级 <背包序号>』(如：升级 铁剑 / 升级 3)",
     "category": "强化",
     "desc": "搬自 content/economy_cmds.py:equip_upgrade（B 批 C 档）"
+  },
+  "use.batch_done": {
+    "value": "\n━━━━━━━━━━━━\n✅ 已使用 {n} 个『{name}』",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.batch_partial": {
+    "value": "\n━━━━━━━━━━━━\n✅ 已使用 {n}/{qty} 个『{name}』（状态已满，剩余保留）",
+    "params": [
+      "n",
+      "qty",
+      "name"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.battle_block": {
+    "value": "{log}\n{st}━━━━━━━━━━━━\n❤️ HP {hp}/{max_hp}  💙 MP {mp}/{max_mp}\n你的行动：『攻击』『技能 <名称>』『防御』『逃跑』",
+    "params": [
+      "log",
+      "st",
+      "hp",
+      "max_hp",
+      "mp",
+      "max_mp"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.battle_item_only": {
+    "value": "战斗中只能使用恢复类道具或战斗药水！战斗结束才能用其他物品～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.battle_one": {
+    "value": "战斗中一次只能使用 1 个道具！剩下的留到战斗结束再用～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.equip_hint": {
+    "value": "『{name}』是装备，用『装备 {name2}』穿上，或『物品详情 {name3}』查看属性～",
+    "params": [
+      "name",
+      "name2",
+      "name3"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.fatigue_clear": {
+    "value": "\n🍖 吃饱喝足，疲劳一扫而空！(挖掘稀有矿脉概率恢复)",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.idx_is_equip": {
+    "value": "背包第 {idx} 件是装备，用『装备 {idx2}』穿上！",
+    "params": [
+      "idx",
+      "idx2"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.inst_scroll": {
+    "value": "副本内无法使用传送类卷轴！『撤退』可保留进度离开副本～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.not_in_battle": {
+    "value": "你不在战斗中！",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.not_migrated": {
+    "value": "⚠️ 该道具的战斗内效果尚未迁移，请在战斗外使用～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.over_qty": {
+    "value": "你只有 {n} 个『{name}』，用不了这么多～",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.pvp_item": {
+    "value": "PVP 战斗无法使用道具！",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.qty_bad": {
+    "value": "数量不合法！请输入正整数，如『使用 治疗药水 5』～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.qty_fmt": {
+    "value": "数量格式不对！例：『使用 治疗药水*5』或『使用 治疗药水 5』；『背包』查看物品～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.qty_min": {
+    "value": "数量至少 1 个！大批量使用用『使用 <物品> 数量』或『使用 <物品>*数量』～",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.stamina_gain": {
+    "value": "⚡ 恢复 {n} 点体力({cur}/{cap})\n",
+    "params": [
+      "n",
+      "cur",
+      "cap"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.state_odd": {
+    "value": "你不在战斗中（状态异常）！",
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
   },
   "way.already_here": {
     "value": "你已经在【{name}】了～",

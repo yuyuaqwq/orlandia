@@ -146,7 +146,12 @@ FROZEN_COUNTS = {
     #   ★ 2026-09-19 C 档 20c（B-2 第 6 片第 3 小片）：社交「世界事件 · 拍卖竞拍」——
     #     content/social_cmds.py 全 4 函数（maybe_roll_event / world_event_run / auction_run / bid_run）
     #     23 处替换 / 19 新键（新分类 世界事件 / 社交拍卖）⇒ 2073 → 2092。
-    "texts": 2208,   # ★ C 档 21b（商店·买卖，35 新键 / 52 处替换，17 处同值幂等复用）⇒ 2173 → 2208
+    "texts": 2247,   # ★ C 档 21c（使用·背包·装备，39 新键 / 48 处替换，5 处同值幂等复用）⇒ 2208 → 2247
+    #     · _bag_view 背包/筛选/翻页 11 新键（新分类 背包面板）
+    #     · equip 穿戴与守卫 10 新键（新分类 装备面板；序号越界复用 enhance.idx_missing）
+    #     · use 道具使用 18 新键（新分类 道具使用；复用 sell.no_item / instance.结算_等待行动 /
+    #       bt.stale_explore / enhance.idx_missing）
+    # ★ C 档 21b（商店·买卖，35 新键 / 52 处替换，17 处同值幂等复用）⇒ 2173 → 2208
     #     · buy 名称路径 8 新键（shop.gold_short / buy_ok / equip_one … 共 17 处同值复用 21a 键）
     #     · sell 全分支 27 新键（新分类 商店出售）
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
