@@ -137,7 +137,7 @@ FROZEN_COUNTS = {
     #   ★ 2026-09-19 C 档 19e-2（B-2 第 5 片第 6 小片）：combat「battle_prefs 战前设置」——
     #     battle_prefs_form / _finisher / _arcane_field / _view　23 处替换 / 22 新键
     #     （新分类 战前设置）⇒ 1908 → 1930。
-    "texts": 1930,
+    "texts": 1939,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,

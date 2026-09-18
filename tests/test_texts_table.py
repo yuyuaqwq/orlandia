@@ -341,7 +341,9 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "许愿商人": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          # ★ C 档 19e-2（B-2 第 5 片第 6 小片）：combat「battle_prefs 战前设置」
          #   （双形态预设 · 终结阈值 · 奥术力场 · 战前指令总览）
-         "战前设置": os.path.join(PKG_CONTENT, "combat_cmds.py")}
+         "战前设置": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         # ★ C 档 19f（B-2 第 5 片第 7 小片）：combat 散尾（探索点 POI 两分支 + find 型委托「找到目标」）
+         "探索事件": os.path.join(PKG_CONTENT, "combat_cmds.py")}
 
 
 def _wired_paths(path):
@@ -921,7 +923,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -937,7 +939,7 @@ def t1_table_selfcheck():
                         "地图导航", "任务委托", "家园地契",
                         "营地休息", "声望阵营", "传送方碑", "场景交互",
                         "战斗主循环", "战斗面板", "PvP荣誉", "世界Boss", "许愿商人",
-                        "战前设置"}, cats)
+                        "战前设置", "探索事件"}, cats)
 
 
 def t2_key_and_params_accounting():

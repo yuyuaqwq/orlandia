@@ -611,9 +611,9 @@ def pet_battle_status_note(pet: dict | None) -> str:
         sat = int(pet.get("satiety", 0) or 0)
         name = pet.get("name") or "宠物"
         if lv >= int(_b143.PET_SKILL_UNLOCK_LV) and sat <= 0:
-            return (f"🐾 {name} 饿得没力气战斗了……『喂养 <食物>』（肉/鱼/草药）恢复饱食度！")
+            return (_T.text("pet_battle.hungry", name=name))
         if lv < int(_b143.PET_SKILL_UNLOCK_LV):
-            return f"🐾 {name} 还小（Lv.{lv}），Lv.{int(_b143.PET_SKILL_UNLOCK_LV)} 解锁战斗技能！"
+            return _T.text("pet_battle.small", name=name, lv=lv, need=int(_b143.PET_SKILL_UNLOCK_LV))
     except Exception:
         pass
     return ""
@@ -666,7 +666,7 @@ def resource_stack_text(effects) -> str:
         if n <= 0:
             continue
         cap = (rules.get(k) or {}).get("cap")
-        parts.append(f"{cn} {n}/{int(cap)}层" if cap else f"{cn} {n}层")
+        parts.append(_T.text("res_stack.with_cap", cn=cn, n=n, cap=int(cap)) if cap else _T.text("res_stack.no_cap", cn=cn, n=n))
     return " ".join(parts)
 
 
@@ -1006,8 +1006,7 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
             _T.text("ex.hidden", mark=tag, name=monster['name'], lv=monster['lv'], desc=flavor,
                 tail=self._battle_formation_panel(player, b))
             + (f"{self._resource_line(player, b)}\n" if self._resource_line(player, b) else "")
-            + f"{bless_note}━━━━━━━━━━━━\n"
-            f"你的行动：{_acts}"
+            + _T.text("ex.hidden_turn", bless=bless_note, tail=_acts)
         )
         return
     # 随机遇怪：精英/首领独立保底判定（不混进普通怪池子玄学抽）
@@ -1438,10 +1437,8 @@ def _roll_find_quest_events(self, group_id, qq_id, player, cur_map):
         giver = _cq.NPCS.get(sqd["giver"]) or _wild.ALL_WILD.get(sqd["giver"]) or {}
         gname = giver.get("name", "发布人")
         return (
-            f"🐱【找到目标】你在{mname}的灌木丛里听到一声细弱的『喵——』！\n"
-            f"一只{target}怯生生地探出头，你小心翼翼地靠近，用食物引诱，一把将它抱了起来！\n"
-            f"━━━━━━━━━━━━\n"
-            f"📜 『{sqd['name']}』目标达成！回去找 {gname} {self._deliver_hint(sqd['giver'])}吧～"
+            _T.text("explore.find_found", where=mname, target=target, quest=sqd['name'], giver=gname,
+                hint=self._deliver_hint(sqd['giver']))
         )
     return None
 
@@ -1542,10 +1539,10 @@ def _handle_poi(self, group_id, qq_id, player, cur_map, poi_id, poi, st=None):
         "[dragonfall] 未知 POI effect %r（poi_id=%s），效果未结算——"
         "请检查 data/pois.py 或 instance_stage_maps.py", eff, poi_id)
     if poi.get("type"):
-        return f"你检查了{poi.get('name', '')}，没发现特别之处。"
+        return _T.text("poi.check_plain", name=poi.get('name', ''))
     icon = poi.get("icon", "🌿")
     pname = poi.get("name", "探索点")
-    return f"{icon} 【{pname}】你打量了一下{ctx.loc}的{poi.get('desc', '这处探索点')}，似乎没什么特别的。"
+    return _T.text("poi.look", icon=icon, name=pname, loc=ctx.loc, desc=poi.get('desc', '这处探索点'))
 
 async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_arg):
     battle = db.get_battle(group_id, qq_id)
@@ -3182,7 +3179,7 @@ async def _honor_buy(self, event, group_id, qq_id, player, num):
             _T.text("hn.ok_title", name=reward['label'], cost=item['cost'], x=reward.get('msg', '')))
     elif reward.get("type") == "item":
         db.add_item(group_id, qq_id, f"{reward.get('item_prefix', 'h_')}{_uuid.uuid4().hex[:8]}", reward["item"])
-        yield event.plain_result(f"⚜️ 你兑换了【{item['name']}】！(花费 {item['cost']} 荣誉)\n{reward.get('msg', '')}")
+        yield event.plain_result(_T.text("hn.ok_item", name=item['name'], cost=item['cost'], x=reward.get('msg', '')))
     else:
         yield event.plain_result(_T.text("hn.bad", ))
 

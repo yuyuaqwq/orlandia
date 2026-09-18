@@ -4429,6 +4429,15 @@
     "category": "战斗主循环",
     "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
   },
+  "ex.hidden_turn": {
+    "value": "{bless}━━━━━━━━━━━━\n你的行动：{tail}",
+    "params": [
+      "bless",
+      "tail"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
   "ex.in_battle": {
     "value": "你正在战斗中！先解决眼前的敌人",
     "category": "战斗主循环",
@@ -4505,6 +4514,18 @@
     ],
     "category": "战斗主循环",
     "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "explore.find_found": {
+    "value": "🐱【找到目标】你在{where}的灌木丛里听到一声细弱的『喵——』！\n一只{target}怯生生地探出头，你小心翼翼地靠近，用食物引诱，一把将它抱了起来！\n━━━━━━━━━━━━\n📜 『{quest}』目标达成！回去找 {giver} {hint}吧～",
+    "params": [
+      "where",
+      "target",
+      "quest",
+      "giver",
+      "hint"
+    ],
+    "category": "探索事件",
+    "desc": "搬自 content/combat_cmds.py:_roll_find_quest_events（B 批 C 档）"
   },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
@@ -5334,6 +5355,16 @@
     "value": "没有第 {idx} 件商品！『荣誉』查看商店～",
     "params": [
       "idx"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
+  },
+  "hn.ok_item": {
+    "value": "⚜️ 你兑换了【{name}】！(花费 {cost} 荣誉)\n{x}",
+    "params": [
+      "name",
+      "cost",
+      "x"
     ],
     "category": "PvP荣誉",
     "desc": "搬自 content/combat_cmds.py:_honor_buy（B 批 C 档）"
@@ -8327,6 +8358,24 @@
     "category": "增益名",
     "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
   },
+  "pet_battle.hungry": {
+    "value": "🐾 {name} 饿得没力气战斗了……『喂养 <食物>』（肉/鱼/草药）恢复饱食度！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:pet_battle_status_note（B 批 C 档）"
+  },
+  "pet_battle.small": {
+    "value": "🐾 {name} 还小（Lv.{lv}），Lv.{need} 解锁战斗技能！",
+    "params": [
+      "name",
+      "lv",
+      "need"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:pet_battle_status_note（B 批 C 档）"
+  },
   "pet_skill_desc.atk_pct": {
     "value": "每 {iv} 刻 {pct}% 攻击伤害",
     "params": [
@@ -8398,6 +8447,25 @@
     ],
     "category": "宠物技能描述",
     "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "poi.check_plain": {
+    "value": "你检查了{name}，没发现特别之处。",
+    "params": [
+      "name"
+    ],
+    "category": "探索事件",
+    "desc": "搬自 content/combat_cmds.py:_handle_poi（B 批 C 档）"
+  },
+  "poi.look": {
+    "value": "{icon} 【{name}】你打量了一下{loc}的{desc}，似乎没什么特别的。",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "desc"
+    ],
+    "category": "探索事件",
+    "desc": "搬自 content/combat_cmds.py:_handle_poi（B 批 C 档）"
   },
   "points.attr_drop": {
     "value": "\n⚔️ 属性不足，以下装备自动卸下回背包：{names}\n（『加点』后可用『装备 <名称>』重新穿上）",
@@ -10138,6 +10206,25 @@
     "value": "重铸哪件装备？输入『重铸 <装备名>』(如：重铸 烈焰之刃，背包序号也可)\n重铸会把该装备的随机词条整体重掷；连续 %d 轮未出金，第 %d 轮必出金。",
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:reroll（B 批 C 档）"
+  },
+  "res_stack.no_cap": {
+    "value": "{cn} {n}层",
+    "params": [
+      "cn",
+      "n"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:resource_stack_text（B 批 C 档）"
+  },
+  "res_stack.with_cap": {
+    "value": "{cn} {n}/{cap}层",
+    "params": [
+      "cn",
+      "n",
+      "cap"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:resource_stack_text（B 批 C 档）"
   },
   "resource_name.arcane": {
     "value": "奥术",
