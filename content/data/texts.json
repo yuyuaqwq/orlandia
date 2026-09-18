@@ -8300,6 +8300,15 @@
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:_render_mount（B 批 C 档）"
   },
+  "item.req_check": {
+    "value": "需求：{req}(你当前 {cur})",
+    "params": [
+      "req",
+      "cur"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:_req_check（B 批 C 档）"
+  },
   "item.req_line": {
     "value": "需求：{req}",
     "params": [
@@ -8509,6 +8518,61 @@
     "value": "木材",
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
+  },
+  "item_detail.bag_idx_missing": {
+    "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看全部～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
+  },
+  "item_detail.eq_fuzzy_head": {
+    "value": "❓ 找到 {n} 件名字含『{q}』的装备（未拥有），用全名查询：",
+    "params": [
+      "n",
+      "q"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
+  },
+  "item_detail.eq_fuzzy_tip": {
+    "value": "💡 『百科装备 <部位>』按部位浏览全部装备",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
+  },
+  "item_detail.eq_idx_missing": {
+    "value": "没有第 {idx} 件装备（{slot}共 {total} 件）！『百科装备 {slot2}』看列表～",
+    "params": [
+      "idx",
+      "slot",
+      "total",
+      "slot2"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
+  },
+  "item_detail.not_found": {
+    "value": "背包里没有叫『{name}』的物品！『背包』查看全部～",
+    "params": [
+      "name"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
+  },
+  "item_detail.slot_bare": {
+    "value": "{slot}部位未穿戴装备！『我的装备』查看穿戴情况～",
+    "params": [
+      "slot"
+    ],
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
+  },
+  "item_detail.usage": {
+    "value": "格式：物品详情 <名称/序号>，如『物品详情 雷霆之锤』、『查看 1』或『查看 雷霆之锤』\n",
+    "category": "经济面板",
+    "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
   },
   "learn.already": {
     "value": "『{name}』你已经学会了，不需要重复学习～",
@@ -8882,6 +8946,28 @@
     ],
     "category": "坐骑面板",
     "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "my_equip.footer": {
+    "value": "已穿戴 {worn}/{total} 件 ｜ 『装备 <序号>』换装 ｜ 『卸下 <部位>』脱下 ｜ 『物品详情 <名称>』看详情",
+    "params": [
+      "worn",
+      "total"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:_my_equipment_view（B 批 C 档）"
+  },
+  "my_equip.slot_bare": {
+    "value": "  {slot}：未穿戴",
+    "params": [
+      "slot"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:_my_equipment_view（B 批 C 档）"
+  },
+  "my_equip.title": {
+    "value": "⚔️ 【当前穿戴】",
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:_my_equipment_view（B 批 C 档）"
   },
   "nav.cur_pos": {
     "value": "📍 当前位置：{name}",
@@ -15193,6 +15279,34 @@
     "value": "每刻开始",
     "category": "触发名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5b）"
+  },
+  "unequip.not_found": {
+    "value": "没找到『{name}』对应装备！用『卸下 <部位/装备名>』，如『卸下 头盔』『卸下 烈焰之刃』。\n部位：{slots}",
+    "params": [
+      "name",
+      "slots"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:unequip（B 批 C 档）"
+  },
+  "unequip.ok": {
+    "value": "✅ 你卸下了 {color}【{name}{enh}】({slot})",
+    "params": [
+      "color",
+      "name",
+      "enh",
+      "slot"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:unequip（B 批 C 档）"
+  },
+  "unequip.slot_bare": {
+    "value": "{slot}位置没有装备！",
+    "params": [
+      "slot"
+    ],
+    "category": "装备面板",
+    "desc": "搬自 content/economy_cmds.py:unequip（B 批 C 档）"
   },
   "upgrade.cap": {
     "value": "【{name}】已是 Lv.{lv}，再升需要你 Lv.{need}（你 Lv.{mine}）！升级追平玩家等级就到顶，先练级再来～",

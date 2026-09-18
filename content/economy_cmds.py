@@ -5607,7 +5607,7 @@ class EconomyImpl(CommandBase):
         item_name = item_name.strip()
         if not item_name:
             yield event.plain_result(
-                "格式：物品详情 <名称/序号>，如『物品详情 雷霆之锤』、『查看 1』或『查看 雷霆之锤』\n"
+                _T.static("item_detail.usage")
                 + self._tip("item_detail")
             )
             return
@@ -5652,23 +5652,24 @@ class EconomyImpl(CommandBase):
                             el = [f"⚔️ {_q.get('color', '')}【{_r['name']}】({_snm}·Lv.{_r.get('lv', '?')}·{_q.get('name', _r.get('quality'))})",
                                   "━━━━━━━━━━━━"]
                             if _r.get("series"):
-                                el.append(f"系列：{_r['series']}")
-                            el.append(f"需求：{_reqs}")
+                                el.append(_T.text("item.series_line", series=_r['series']))
+                            el.append(_T.text("item.req_line", req=_reqs))
                             if _r.get("source"):
-                                el.append(f"来源：{_r['source']}")
+                                el.append(_T.text("item.src_line", source=_r['source']))
                             if _r.get("set"):
-                                el.append(f"套装：{_r['set']}")
+                                el.append(_T.text("item.set_line", set=_r['set']))
                             if _r.get("special"):
-                                el.append(f"特效：{_r['special']}")
+                                el.append(_T.text("item.special_line", special=_r['special']))
                             if _r.get("desc"):
                                 el.append(f"{_r['desc']}")
                             yield event.plain_result("\n".join(el))
                             return
-                        yield event.plain_result(f"没有第 {_idx_c} 件装备（{_parts_cmd[1]}共 {len(_items_c)} 件）！『百科装备 {_parts_cmd[1]}』看列表～")
+                        yield event.plain_result(_T.text("item_detail.eq_idx_missing", idx=_idx_c, slot=_parts_cmd[1], total=len(_items_c),
+                                                     slot2=_parts_cmd[1]))
                         return
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品(共 {len(items)} 件)！『背包』查看全部～")
+                yield event.plain_result(_T.text("item_detail.bag_idx_missing", idx=idx, total=len(items)))
                 return
             target = items[idx - 1]
         else:
@@ -5686,7 +5687,7 @@ class EconomyImpl(CommandBase):
                         target = {"data": _worn0}
                         equipped = True
                     else:
-                        yield event.plain_result(f"{_b143.EQUIP_SLOTS[_slot_key0]}部位未穿戴装备！『我的装备』查看穿戴情况～")
+                        yield event.plain_result(_T.text("item_detail.slot_bare", slot=_b143.EQUIP_SLOTS[_slot_key0]))
                         return
             if not target:
                 # v101.28l #420：名称查找装备优先于图纸（同名图纸不再抢占命中）
@@ -5717,12 +5718,12 @@ class EconomyImpl(CommandBase):
                     yield event.plain_result(_render_encyclopedia_equip(_hit_r[0]))
                     return
                 if len(_hit_r) > 1:
-                    fl = [f"❓ 找到 {len(_hit_r)} 件名字含『{item_name}』的装备（未拥有），用全名查询："]
+                    fl = [_T.text("item_detail.eq_fuzzy_head", n=len(_hit_r), q=item_name)]
                     for _i, _r in enumerate(_hit_r[:8], 1):
                         _q = _b143.QUALITY.get(_r.get("quality", "white"), {})
                         _snm = _b143.EQUIP_SLOTS.get(_r.get("slot", ""), "?")
                         fl.append(f"  {_i}. {_q.get('color', '')}【{_r['name']}】({_snm}·Lv.{_r.get('lv', '?')})")
-                    fl.append("💡 『百科装备 <部位>』按部位浏览全部装备")
+                    fl.append(_T.static("item_detail.eq_fuzzy_tip"))
                     yield event.plain_result("\n".join(fl))
                     return
             else:
@@ -5731,7 +5732,7 @@ class EconomyImpl(CommandBase):
                 yield event.plain_result(_render_encyclopedia_equip(_cit.EQUIP_ROSTER[_rids[0]]))
                 return
         if not target:
-            yield event.plain_result(f"背包里没有叫『{item_name}』的物品！『背包』查看全部～")
+            yield event.plain_result(_T.text("item_detail.not_found", name=item_name))
             return
         d = target["data"]
         lines = []
@@ -5746,12 +5747,12 @@ class EconomyImpl(CommandBase):
         属性渲染复用 _render_equip 同款行式（属性每项一行）；空槽显示 未穿戴。
         """
         eq = player.get("equipment") or {}
-        lines = ["⚔️ 【当前穿戴】", "━━━━━━━━━━━━"]
+        lines = [_T.static("my_equip.title"), "━━━━━━━━━━━━"]
         worn = 0
         for slot in _b143.EQUIP_SLOTS:
             item = eq.get(slot)
             if not item:
-                lines.append(f"  {_b143.EQUIP_SLOTS[slot]}：未穿戴")
+                lines.append(_T.text("my_equip.slot_bare", slot=_b143.EQUIP_SLOTS[slot]))
                 continue
             worn += 1
             q = _b143.QUALITY.get(item.get("quality", ""), {})
@@ -5777,7 +5778,7 @@ class EconomyImpl(CommandBase):
                 if info:
                     lines.append(f"      · {info.get('name', af)}：{info.get('desc', '')}" if info.get("desc") else f"      · {info.get('name', af)}")
         lines.append("━━━━━━━━━━━━")
-        lines.append(f"已穿戴 {worn}/{len(_b143.EQUIP_SLOTS)} 件 ｜ 『装备 <序号>』换装 ｜ 『卸下 <部位>』脱下 ｜ 『物品详情 <名称>』看详情")
+        lines.append(_T.text("my_equip.footer", worn=worn, total=len(_b143.EQUIP_SLOTS)))
         return "\n".join(lines)
 
     def _req_check(self, player: dict, d: dict):
@@ -5803,7 +5804,7 @@ class EconomyImpl(CommandBase):
                 missing_keys.append(k)
         if missing:
             req_str = "、".join(f"{names.get(k, k)} {v}" for k, v in req.items())
-            return False, f"需求：{req_str}(你当前 {'、'.join(missing)})", missing_keys
+            return False, _T.text("item.req_check", req=req_str, cur='、'.join(missing)), missing_keys
         return True, "", []
 
     def _req_label(self, r: dict) -> str:
@@ -5958,7 +5959,7 @@ class EconomyImpl(CommandBase):
         raw = self._strip_cmd(event, "卸下").strip()
         player = self._player(group_id, qq_id)
         if self._in_battle(group_id, qq_id):
-            yield event.plain_result("战斗中不能更换装备！先解决眼前的敌人吧～")
+            yield event.plain_result(_T.static("equip.in_battle"))
             return
         equipment = dict(player["equipment"])
         # 匹配部位：中文部位名或装备名
@@ -5973,13 +5974,12 @@ class EconomyImpl(CommandBase):
                     break
         if not slot:
             yield event.plain_result(
-                f"没找到『{raw}』对应装备！用『卸下 <部位/装备名>』，如『卸下 头盔』『卸下 烈焰之刃』。\n"
-                f"部位：{'、'.join(_b143.EQUIP_SLOTS.values())}"
+                _T.text("unequip.not_found", name=raw, slots='、'.join(_b143.EQUIP_SLOTS.values()))
             )
             return
         item = equipment.get(slot)
         if not item:
-            yield event.plain_result(f"{_b143.EQUIP_SLOTS[slot]}位置没有装备！")
+            yield event.plain_result(_T.text("unequip.slot_bare", slot=_b143.EQUIP_SLOTS[slot]))
             return
         # 属性变化对比（复用 equip 逻辑；v95.7 #28：title_bonus 与卸后一致）
         old_stats = player_final_stats(player["class_name"], player["level"], equipment,
@@ -6003,12 +6003,13 @@ class EconomyImpl(CommandBase):
         enh = item.get("enhance", 0)
         enh_str = f" +{enh}" if enh > 0 else ""
         # v101.21b 排版：每项一行 + 两侧空格，不显示当前属性
-        lines = [f"✅ 你卸下了 {q['color']}【{item['name']}{enh_str}】({_b143.EQUIP_SLOTS[slot]})", "📊 属性变化："]
+        lines = [_T.text("unequip.ok", color=q['color'], name=item['name'], enh=enh_str,
+                     slot=_b143.EQUIP_SLOTS[slot]), _T.static("equip.diff_head")]
         if diff_parts:
             for p in diff_parts:
                 lines.append(f"  · {p}")
         else:
-            lines.append("  · (无变化)")
+            lines.append(_T.static("equip.diff_none"))
         yield event.plain_result("\n".join(lines))
 
     @declared("use")
