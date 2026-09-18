@@ -1716,7 +1716,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
             skill_name = bar[idx - 1]
         else:
             yield event.plain_result(
-                f"技能栏 {idx} 号位是空的！『技能栏』查看，『设置技能 {idx} <技能名>』配置后才能在战斗中使用～"
+                _T.text("sk.bar_empty", idx=idx, idx2=idx)
             )
             return
     # 其他 → 战斗中施放
@@ -1742,7 +1742,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
                 for _k, _v in info["res_cost"].items():
                     _rc_list.append(f"{_v} {_res_display_name(_k)}")
                 yield event.plain_result(
-                    f"『{info.get('name', skill_name)}』需要战斗内核心资源才能施放（消耗 {' + '.join(_rc_list)}），脱战中无法使用～"
+                    _T.text("sk.res_off", res=info.get('name', skill_name), cost=' + '.join(_rc_list))
                 )
                 return
             # v164.3 修复：技能数据 v161 起支持 res_cost（精力/怒气等核心资源），无 mp 字段——
@@ -1753,10 +1753,10 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
             # 装配只在战斗 actor 上）→ 折算直通声明费（行为零变化），口径与战斗内一致。
             _mp_need = skill_mp_pay_of(player, info)
             if _mp_need > 0 and player["mp"] < _mp_need:
-                yield event.plain_result("💙 魔力不足！休息一下或使用魔力药水吧～")
+                yield event.plain_result(_T.static("sk.no_mp"))
                 return
             if player.get("hp", 0) >= player.get("max_hp", 1):
-                yield event.plain_result(f"你精神饱满，不需要治疗～(当前 {player['hp']}/{player['max_hp']})")
+                yield event.plain_result(_T.text("sk.heal_full", cur=player['hp'], cap=player['max_hp']))
                 return
             st = player_final_stats(player["class_name"], player["level"],
                                       player.get("equipment", {}), player.get("class_tier", 0),
@@ -1776,11 +1776,10 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
             new_hp = min(player.get("max_hp", 1), player.get("hp", 0) + heal)
             db.update_player(group_id, qq_id, hp=new_hp, mp=player["mp"] - info["mp"])
             yield event.plain_result(
-                f"✨ 你施展【{skill_name}】，圣光治愈了你 {heal} 点生命！({new_hp}/{player['max_hp']})\n"
-                f"💡 脱战施放不消耗体力～(『使用 <食物>』也能恢复)"
+                _T.text("sk.heal_ok", name=skill_name, hp=heal, cur=new_hp, cap=player['max_hp'])
             )
             return
-        yield event.plain_result("你附近没有敌人！输入『探索』寻找敌人～(『技能列表』查看技能)")
+        yield event.plain_result(_T.static("sk.no_enemy"))
         return
     skill_name = skill_name.strip()
     # v2 技能带目标解析：『技能 <名> <目标名>』——当前位于"施放"分支（学习/列表/详情/
@@ -1795,36 +1794,34 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
     if not info:
         # v95.25 #145：报错读 learned_skills（v52 后 skills 列不再更新），并引流『技能列表』
         learned = [_display("skills", s) for s in (player.get("learned_skills") or [])]
-        learned_str = "、".join(learned) if learned else "无（『技能列表』查看可学技能）"
+        learned_str = "、".join(learned) if learned else _T.static("sk.none")
         yield event.plain_result(
-            f"没有技能『{skill_name}』！你当前的技能：{learned_str}"
+            _T.text("sk.unknown", name=skill_name, list=learned_str)
         )
         return
     if not is_skill_learned(player["class_name"], player["level"], skill_name, player.get("learned_skills", [])):
         need_lv = info["lv"]
         if player["level"] < need_lv:
             yield event.plain_result(
-                f"『{skill_name}』需要 Lv.{need_lv} 才能学习，你才 Lv.{player['level']}！"
+                _T.text("sk.lv_short", name=skill_name, need=need_lv, have=player['level'])
             )
         else:
             cost = skill_learn_cost_for(player, need_lv)
             yield event.plain_result(
-                f"『{skill_name}』还没学会！『技能学习 {skill_name}』消耗 {cost} 技能点学会后再使用～"
+                _T.text("sk.not_learned", name=skill_name, name2=skill_name, cost=cost)
             )
         return
     # v64 被动技能：无需施放，学习后战斗自动生效
     if info.get("kind") == K_PASSIVE:
         yield event.plain_result(
-            f"⚙️ 『{skill_name}』是被动技能，学会后战斗自动生效，无需施放！\n"
-            f"『技能列表』查看效果，『技能详情 {skill_name}』看说明～"
+            _T.text("sk.passive", name=skill_name, name2=skill_name)
         )
         return
     # v52 Build 系统：战斗中只能使用技能栏里设置的技能
     bar = db.get_skill_bar(qq_id)
     if skill_name not in (bar or []):
         yield event.plain_result(
-            f"『{skill_name}』没放进技能栏！『技能栏』查看，『设置技能 1 {skill_name}』(或任意空槽)配置后才能在战斗中使用～\n"
-            f"{self._tip('build')}"
+            _T.text("sk.not_in_bar", name=skill_name, slot=skill_name, name2=self._tip('build'))
         )
         return
     # v164.3 修复：技能数据 v161 起支持 res_cost（精力/怒气等核心资源），无 mp 字段——
@@ -1855,7 +1852,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
     except Exception:
         pass  # 取 actor 异常 → 保留 player dict 口径（兜底铁律）
     if _mp_need > 0 and _mp_cur < _mp_need:
-        yield event.plain_result("💙 魔力不足！休息一下或使用魔力药水吧～")
+        yield event.plain_result(_T.static("sk.no_mp"))
         return
     # 2026-09-11 ★P0 冷却预检（与引擎 actions._cd_left_of 同源：绝对时刻制
     # `actor.cooldown[name] = 施放时刻 + cd`，与战斗 state["now"] 比较）。
@@ -1874,8 +1871,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
             _cd_left = 0.0
         if _cd_left > 0:
             yield event.plain_result(
-                f"⏳ 『{info.get('name', skill_name)}』冷却中：还需 {_cd_left:.1f} 刻！"
-                f"换个技能、『普攻』或『防御』～"
+                _T.text("sk.cd", name=info.get('name', skill_name), ticks=_cd_left)
             )
             return
     if battle["state"].get("type") == "instance":
@@ -1885,7 +1881,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
         return
     if battle["state"].get("type") == "pvp":
         if self._pvp_handle_timeout(battle, group_id, qq_id):
-            yield event.plain_result("⏰ PVP 战斗超过 5 分钟无人行动，自动解除！")
+            yield event.plain_result(_T.static("bt.pvp_timeout"))
             return
         async for _r in self._pvp_act(event, group_id, qq_id, player, battle["state"], "skill", skill_name):
             yield _r
@@ -1896,7 +1892,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
         if b is None:
             db.clear_battle(group_id, qq_id)
             self._unlock_battle(group_id, qq_id)
-            yield event.plain_result("⏳ 旧存档已失效，重新讨伐吧！")
+            yield event.plain_result(_T.static("bt.stale_boss"))
             return
         async for _r in self._worldboss_act(event, group_id, qq_id, player, b, "skill", skill_name, target=_resolve_target_arg(b, _skill_target)):
             yield _r
@@ -1906,16 +1902,16 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
         # 旧格式存档作废：清档重开（N5b 约定不迁移）
         db.clear_battle(group_id, qq_id)
         self._unlock_battle(group_id, qq_id)
-        yield event.plain_result("⏳ 旧存档已失效，重新探索开始新的战斗吧！")
+        yield event.plain_result(_T.static("bt.stale_explore"))
         return
     # v94.2 体力：施放技能扣 1（instance/pvp/worldboss 已在上方分流）
     _ok, _st = self._spend_stamina(group_id, qq_id, 1, player, "施放技能")
     if not _ok:
         if self._b_enemy(b).get("is_boss"):
             # v95.20 #101：Boss 战无法逃跑，体力耗尽=被困战斗——提示必须说清出路
-            yield event.plain_result(_st + "\n👑 Boss 战无法逃跑！『防御』不耗体力可拖延等待自然恢复，或吃食物(『使用 <食物>』)立即恢复～")
+            yield event.plain_result(_st + _T.static("bt.boss_noflee"))
         else:
-            yield event.plain_result(_st + "\n🍖 战斗中『使用 <食物>』恢复体力继续战斗，或『逃跑』脱离战斗～")
+            yield event.plain_result(_st + _T.static("bt.food_tip"))
         return
     logs, ended, _who = b.human_act("skill", skill_name, b.focus(), target=_resolve_target_arg(b, _skill_target))
     self._sync_battle_player(player, b)
@@ -2015,9 +2011,9 @@ def _player_skill_table(self, player: dict) -> dict:
     return table
 
 def _skill_tag(self, info: dict) -> str:
-    """功能标签：被动优先，其次 effect/mech/cond"""
+    _T.static("sk.tag_passive")
     if info.get("kind") == K_PASSIVE:
-        return "被动"
+        return _T.static("sk.tag_passive")
     if info.get("effect"):
         return _effect_cn(info["effect"])
     if info.get("mech"):
@@ -2028,16 +2024,15 @@ def _skill_tag(self, info: dict) -> str:
     return ""
 
 def _skill_range_label(self, info: dict) -> str:
-    """v122c 技能范围标签（鱼鱼拍板两轮）：只保留 <群体>——
-    AOE（aoe 字段）或团队广播（team *_all）→ "群体"；单体 → ""（不显示，避免与范围数字冗余）。"""
+    _T.static("sk.range_multi")
     if str(info.get("team") or "").endswith("_all"):
-        return "群体"
+        return _T.static("sk.range_multi")
     r = info.get("range")
     if r and r != "single":
-        return "群体"
+        return _T.static("sk.range_multi")
     aoe = info.get("aoe")
     if isinstance(aoe, str) and aoe:
-        return "群体"
+        return _T.static("sk.range_multi")
     return ""
 
 def _skill_list_gains(self, info: dict, lv: int) -> list:
@@ -2049,13 +2044,13 @@ def _skill_list_gains(self, info: dict, lv: int) -> list:
         label = "治疗" if kind == K_HEAL else "伤害"
         parts.append(f"{label} {int(info['power'] * skill_power_mult(lv, info) * 100)}%")
     if kind in (K_BUFF, K_TAUNT):
-        parts.append(f"持续 {skill_buff_turns(lv)} 刻")
+        parts.append(_T.text("sk.gain_dur", v=skill_buff_turns(lv)))
     if info.get("cond"):
-        parts.append(f"条件 ×{skill_cond_mult(info['cond'], lv, info):g}")
+        parts.append(_T.text("sk.gain_cond", v=skill_cond_mult(info['cond'], lv, info)))
     if info.get("mech_val"):
-        parts.append(f"叠层 {skill_mech_val(info, lv)}")
+        parts.append(_T.text("sk.gain_stack", v=skill_mech_val(info, lv)))
     if info.get("lifesteal"):
-        parts.append(f"吸血 {int(skill_lifesteal_pct(info, lv) * 100)}%")
+        parts.append(_T.text("sk.gain_leech", v=int(skill_lifesteal_pct(info, lv) * 100)))
     return parts
 
 def _skill_gains_curve(self, info: dict, cur: int, mx: int) -> str:
@@ -2074,21 +2069,21 @@ def _skill_gains_curve(self, info: dict, cur: int, mx: int) -> str:
     if kind in (K_BUFF, K_TAUNT):
         vals = _curve_vals(lambda lv: skill_buff_turns(lv), cur, mx)
         if len(vals) > 1:
-            parts.append(f"持续 {'/'.join(f'{v}刻' for v in vals)}")
+            parts.append(_T.text("sk.curve_dur", v='/'.join(f'{v}刻' for v in vals)))
     if info.get("cond"):
         vals = _curve_vals(
             lambda lv: round(skill_cond_mult(info["cond"], lv, info), 2), cur, mx)
         if len(vals) > 1:
-            parts.append(f"条件 ×{'/×'.join(_fmt_mult(v) for v in vals)}")
+            parts.append(_T.text("sk.curve_cond", v='/×'.join(_fmt_mult(v) for v in vals)))
     if info.get("mech_val"):
         vals = _curve_vals(lambda lv: skill_mech_val(info, lv), cur, mx)
         if len(vals) > 1:
-            parts.append(f"叠层 {'/'.join(str(v) for v in vals)}")
+            parts.append(_T.text("sk.curve_stack", v='/'.join(str(v) for v in vals)))
     if info.get("lifesteal"):
         vals = _curve_vals(
             lambda lv: int(skill_lifesteal_pct(info, lv) * 100), cur, mx)
         if len(vals) > 1:
-            parts.append(f"吸血 {'/'.join(f'{v}%' for v in vals)}")
+            parts.append(_T.text("sk.curve_leech", v='/'.join(f'{v}%' for v in vals)))
     return " · ".join(parts)
 
 def _skill_list_page(self, player: dict, page: int = 1) -> str:
@@ -2122,16 +2117,16 @@ def _skill_list_page(self, player: dict, page: int = 1) -> str:
                 # v95.7 #36：已达解锁等级 → 显示"可学(X技能点)"而非静态"未学(Lv.X解锁)"
                 # v95.7 修复：cost 用 skill_learn_cost_for（含种族折扣），与『技能学习』实际扣点一致
                 cost = skill_learn_cost_for(player, need_lv)
-                lv_str = f"可学({cost}技能点)"
+                lv_str = _T.text("skl.learnable", cost=cost)
             else:
-                lv_str = f"未学(Lv.{need_lv}解锁)"  # v95.4：标注解锁等级
+                lv_str = _T.text("skl.locked", lv=need_lv)  # v95.4：标注解锁等级
         tags = [info.get("kind", "")]
         tags.append(self._skill_range_label(info))  # v122 范围标签：kind 后、机制前
         ftag = self._skill_tag(info)
         if ftag and ftag != info.get("kind", ""):
             tags.append(ftag)
         if info.get("team"):
-            tags.append("团队")  # v56.4：团队标记放标签，不进描述
+            tags.append(_T.static("skl.team"))  # v56.4：团队标记放标签，不进描述
         if sname in branch_tags:
             tags.append(branch_tags[sname])
         tag_str = "".join(f"<{t}>" for t in tags if t)  # v122c：过滤空标签（单体无范围标签）
@@ -2158,14 +2153,14 @@ def _skill_list_page(self, player: dict, page: int = 1) -> str:
         if _mp or _rc_parts:
             _cost_parts = []
             if _mp:
-                _cost_parts.append(f"{_mp} 魔力")
+                _cost_parts.append(_T.text("skl.mp", v=_mp))
             _cost_parts.extend(_rc_parts)
             _cost.append(" ｜ ".join(_cost_parts))
         else:
             _cost.append("无")
         # v122d 攻击距离（鱼鱼拍板用「射程」：技能自带 reach 覆盖职业 reach）
         _cls_reach = int((_cc.CLASSES.get(player.get("class_name", ""), {}) or {}).get("reach", 2) or 2)
-        _cost.append(f"射程：{int(info.get('reach') or _cls_reach)}")
+        _cost.append(_T.text("skl.range", v=int(info.get('reach') or _cls_reach)))
         _rg = info.get("res_gain") or 0
         if _rg:
             # res_gain 可为 int（常规）或 dict（按资源名取值，如林语印记 {"energy": 10}）
@@ -2175,18 +2170,18 @@ def _skill_list_page(self, player: dict, page: int = 1) -> str:
             else:
                 # int res_gain 无 key（旧「职业主资源隐含」口径随 core_resource_def 退役；
                 # 现网技能表无 int res_gain 条目 → 此分支不可达，固定 '资源' 标签兜底）
-                _cost.append(f"资源 +{_rg}")
+                _cost.append(_T.text("skl.res", v=_rg))
         _cd = info.get("cd") or 0
         if _cd:
-            _cost.append(f"冷却 {_cd} 刻")
+            _cost.append(_T.text("skl.cd", v=_cd))
         if _cost:
-            lines.append(f"  · 消耗：{' ｜ '.join(_cost)}")
+            lines.append(_T.text("skl.cost", v=' ｜ '.join(_cost)))
         else:
-            lines.append("  · 消耗：无")  # v104 R3 P3-1：零消耗技能如实显示"无"（原"免费"易误解为有价免费）
+            lines.append(_T.static("skl.cost_none"))  # v104 R3 P3-1：零消耗技能如实显示"无"（原"免费"易误解为有价免费）
     lines.append("━━━━━━━━━━━━")  # v114.6：页数上方分隔线加回（v114.5 删每条间隔线时误伤）
-    lines.append(f"页数：{page}/{pages}")
+    lines.append(_T.text("skl.pages", cur=page, tot=pages))
     if pages > 1 and page < pages:
-        lines.append(f"『技能列表 {page+1}』看下一页")
+        lines.append(_T.text("skl.next", page=page+1))
     # v130.5 意见#8 落地：固定长引导 → TIPS.skill 随机提示池(带 emoji，≤20字)，
     # 与背包/炼金等面板风格统一；操作要点(战斗施放/学习/副本指定队友)已拆入提示池
     lines.append(self._tip("skill"))

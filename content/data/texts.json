@@ -10223,6 +10223,190 @@
     "category": "签到",
     "desc": "每 7 天额外装备奖励（color/name 由装备实例给）"
   },
+  "sk.bar_empty": {
+    "value": "技能栏 {idx} 号位是空的！『技能栏』查看，『设置技能 {idx2} <技能名>』配置后才能在战斗中使用～",
+    "params": [
+      "idx",
+      "idx2"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.cd": {
+    "value": "⏳ 『{name}』冷却中：还需 {ticks:.1f} 刻！换个技能、『普攻』或『防御』～",
+    "params": [
+      "name",
+      "ticks"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.curve_cond": {
+    "value": "条件 ×{v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_gains_curve（B 批 C 档）"
+  },
+  "sk.curve_dur": {
+    "value": "持续 {v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_gains_curve（B 批 C 档）"
+  },
+  "sk.curve_leech": {
+    "value": "吸血 {v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_gains_curve（B 批 C 档）"
+  },
+  "sk.curve_stack": {
+    "value": "叠层 {v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_gains_curve（B 批 C 档）"
+  },
+  "sk.gain_cond": {
+    "value": "条件 ×{v:g}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_gains（B 批 C 档）"
+  },
+  "sk.gain_dur": {
+    "value": "持续 {v} 刻",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_gains（B 批 C 档）"
+  },
+  "sk.gain_leech": {
+    "value": "吸血 {v}%",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_gains（B 批 C 档）"
+  },
+  "sk.gain_stack": {
+    "value": "叠层 {v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_gains（B 批 C 档）"
+  },
+  "sk.heal_full": {
+    "value": "你精神饱满，不需要治疗～(当前 {cur}/{cap})",
+    "params": [
+      "cur",
+      "cap"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.heal_ok": {
+    "value": "✨ 你施展【{name}】，圣光治愈了你 {hp} 点生命！({cur}/{cap})\n💡 脱战施放不消耗体力～(『使用 <食物>』也能恢复)",
+    "params": [
+      "name",
+      "hp",
+      "cur",
+      "cap"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.lv_short": {
+    "value": "『{name}』需要 Lv.{need} 才能学习，你才 Lv.{have}！",
+    "params": [
+      "name",
+      "need",
+      "have"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.no_enemy": {
+    "value": "你附近没有敌人！输入『探索』寻找敌人～(『技能列表』查看技能)",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.no_mp": {
+    "value": "💙 魔力不足！休息一下或使用魔力药水吧～",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.none": {
+    "value": "无（『技能列表』查看可学技能）",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.not_in_bar": {
+    "value": "『{name}』没放进技能栏！『技能栏』查看，『设置技能 1 {slot}』(或任意空槽)配置后才能在战斗中使用～\n{name2}",
+    "params": [
+      "name",
+      "slot",
+      "name2"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.not_learned": {
+    "value": "『{name}』还没学会！『技能学习 {name2}』消耗 {cost} 技能点学会后再使用～",
+    "params": [
+      "name",
+      "name2",
+      "cost"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.passive": {
+    "value": "⚙️ 『{name}』是被动技能，学会后战斗自动生效，无需施放！\n『技能列表』查看效果，『技能详情 {name2}』看说明～",
+    "params": [
+      "name",
+      "name2"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.range_multi": {
+    "value": "v122c 技能范围标签（鱼鱼拍板两轮）：只保留 <群体>——\n    AOE（aoe 字段）或团队广播（team *_all）→ \"群体\"；单体 → \"\"（不显示，避免与范围数字冗余）。",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_range_label（B 批 C 档）"
+  },
+  "sk.res_off": {
+    "value": "『{res}』需要战斗内核心资源才能施放（消耗 {cost}），脱战中无法使用～",
+    "params": [
+      "res",
+      "cost"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
+  "sk.tag_passive": {
+    "value": "功能标签：被动优先，其次 effect/mech/cond",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_tag（B 批 C 档）"
+  },
+  "sk.unknown": {
+    "value": "没有技能『{name}』！你当前的技能：{list}",
+    "params": [
+      "name",
+      "list"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:skill（B 批 C 档）"
+  },
   "skill.learn_already": {
     "value": "『{name}』你已学会了，去战斗里试试吧～",
     "params": [
@@ -10807,6 +10991,89 @@
     ],
     "category": "技能面板",
     "desc": "搬自 content/combat_cmds.py:_skill_panel（B 批 C 档）"
+  },
+  "skl.cd": {
+    "value": "冷却 {v} 刻",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.cost": {
+    "value": "  · 消耗：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.cost_none": {
+    "value": "  · 消耗：无",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.learnable": {
+    "value": "可学({cost}技能点)",
+    "params": [
+      "cost"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.locked": {
+    "value": "未学(Lv.{lv}解锁)",
+    "params": [
+      "lv"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.mp": {
+    "value": "{v} 魔力",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.next": {
+    "value": "『技能列表 {page}』看下一页",
+    "params": [
+      "page"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.pages": {
+    "value": "页数：{cur}/{tot}",
+    "params": [
+      "cur",
+      "tot"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.range": {
+    "value": "射程：{v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.res": {
+    "value": "资源 +{v}",
+    "params": [
+      "v"
+    ],
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
+  },
+  "skl.team": {
+    "value": "团队",
+    "category": "技能面板",
+    "desc": "搬自 content/combat_cmds.py:_skill_list_page（B 批 C 档）"
   },
   "src_icon.boss": {
     "value": "👹",
