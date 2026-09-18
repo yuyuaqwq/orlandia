@@ -355,7 +355,14 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          #   （事件惰性调度通知/面板两态 · 落槌结算头 · 拍卖未开张两态/开张面板 ·
          #    竞拍格式/无此物/四道守卫/被超越退还/一口价/成功两态）
          "世界事件": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py")],
-         "社交拍卖": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py")]}
+         "社交拍卖": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py")],
+         # ★ C 档 20d（B-2 第 6 片第 4 小片）：社交「宠物 · 坐骑」
+         #   （content/social_pet.py **全 5 函数**首次接入 `_T`：宠物面板全行 · 喂养全分支 ·
+         #    改名/放生 · 坐骑面板/骑乘/下马 —— 命令层 cmds_social.py 只做转发，调用点全在本文件）
+         "宠物面板": os.path.join(PKG_CONTENT, "social_pet.py"),
+         "宠物喂养": os.path.join(PKG_CONTENT, "social_pet.py"),
+         "宠物管理": os.path.join(PKG_CONTENT, "social_pet.py"),
+         "坐骑面板": os.path.join(PKG_CONTENT, "social_pet.py")}
 
 
 def _wired_paths(path):
@@ -935,7 +942,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -952,7 +959,8 @@ def t1_table_selfcheck():
                         "营地休息", "声望阵营", "传送方碑", "场景交互",
                         "战斗主循环", "战斗面板", "PvP荣誉", "世界Boss", "许愿商人",
                         "战前设置", "探索事件", "社交市场", "社交队伍", "社交公会",
-                        "世界事件", "社交拍卖"}, cats)
+                        "世界事件", "社交拍卖",
+                        "宠物面板", "宠物喂养", "宠物管理", "坐骑面板"}, cats)
 
 
 def t2_key_and_params_accounting():

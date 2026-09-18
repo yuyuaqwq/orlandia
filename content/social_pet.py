@@ -43,6 +43,7 @@ from __future__ import annotations
 from . import catalog_items as _ci        # ITEMS / MATERIALS
 from . import catalog_life as _cl         # PET_POOL / MOUNT_POOL / MOUNT_BY_KEY
 from . import catalog_b143 as _b143       # B14-3：PET_MAX_LEVEL / PET_SKILL_UNLOCK_LV（原缺口名已建域）
+from . import texts as _T                 # C 档 20d（2026-09-19）：文案表读口（本文件首次接入）
 
 # ============================================================
 # ① 宿主替身口（存储层 / 读表口 / 品质色表）
@@ -123,8 +124,8 @@ def pet_view(qq_id):
         dex_line = ""
         if dex:
             names = [next((p["name"] for p in _cl.PET_POOL if p["key"] == k), k) for k in dex]
-            dex_line = f"\n📖 图鉴收集：{'、'.join(names)}"
-        return [f"你还没有宠物！打怪有概率掉落宠物蛋，『使用 宠物蛋』孵化～{dex_line}"], False
+            dex_line = _T.text("pet.dex_line", names='、'.join(names))
+        return [_T.text("pet.none_dex", dex=dex_line)], False
     pdef = next((p for p in _cl.PET_POOL if p["key"] == pet["pet_key"]), None)
     icon = pdef["icon"] if pdef else "🐾"
     # 饱食度衰减持久化
@@ -138,31 +139,32 @@ def pet_view(qq_id):
     bonus = C.pct_str(_pb)
     skill_line = ""
     if pdef:
-        skill_line = f"\n🎯 技能：{C.pet_skill_label(pet['pet_key'])} (Lv.{int(_b143.PET_SKILL_UNLOCK_LV)} 解锁)"
+        skill_line = _T.text("pet.skill_line", skill=C.pet_skill_label(pet['pet_key']),
+                              lv=int(_b143.PET_SKILL_UNLOCK_LV))
     if sat <= 0:
-        skill_line = "\n😵 技能失效(饱食度归零)"
+        skill_line = _T.static("pet.skill_dead")
     lines = [
-        f"{icon} 【宠物 · {pdef['name'] if pdef else pet['name']}】",
+        _T.text("pet.header", icon=icon, name=pdef['name'] if pdef else pet['name']),
         f"━━━━━━━━━━━━",
-        f"名字：{pet['name']} | Lv.{pet['level']}/{_b143.PET_MAX_LEVEL}",
+        _T.text("pet.name_line", name=pet['name'], lv=pet['level'], max=_b143.PET_MAX_LEVEL),
     ]
     # v101.14 品质/出处展示
     if pdef:
         ql = C.pet_quality_label(pet["pet_key"])
         if ql:
-            lines.append(f"📖 品质：{ql}")
+            lines.append(_T.text("pet.quality", quality=ql))
         if pdef.get("source"):
-            lines.append(f"📍 出处：{pdef['source']}")
+            lines.append(_T.text("pet.source", source=pdef['source']))
     if skill_line:
         lines.append(skill_line.lstrip("\n"))
-    lines.append(f"❤️ 饱食度：{sat}/100")
+    lines.append(_T.text("pet.satiety", sat=sat))
     # v104 M17 P3：亲密度展示（bond 原本只写不读）
     bond = pet.get("bond", 0)
-    bond_line = f"💕 亲密度：{bond}/100"
+    bond_line = _T.text("pet.bond", bond=bond)
     if bond >= 50:
-        bond_line += "（羁绊生效：战斗经验 +5%）"
+        bond_line += _T.static("pet.bond_bonus")
     lines.append(bond_line)
-    lines.append(f"✨ 经验加成：+{bonus}%(主人战斗经验)" + ("(饱食度归零，加成减半)" if sat <= 0 else ""))
+    lines.append(_T.text("pet.exp_bonus", bonus=bonus) + (_T.static("pet.exp_halved") if sat <= 0 else ""))
     lines.append("━━━━━━━━━━━━")
     return lines, True
 
@@ -181,7 +183,7 @@ def pet_feed(group_id, qq_id, mat_name: str):
     # 饱食度自然衰减先结算
     pet = db.pet_decay_satiety(pet)
     if not pet:
-        return ["你还没有宠物！打怪有概率掉落宠物蛋，『使用 宠物蛋』孵化～"]
+        return [_T.static("pet.none")]
     db.pet_update(qq_id, satiety=pet["satiety"], last_sat_time=pet["last_sat_time"])
     if not mat_name:
         # #117 喂养列表看不见：无参『喂养』列出背包可喂食物（名+数量+序号），照抄即可喂
@@ -198,17 +200,9 @@ def pet_feed(group_id, qq_id, mat_name: str):
                 f"{i}.{it['data'].get('name', it['key'])}×{it.get('count', 1)}"
                 for i, it in enumerate(_foods, 1)
             )
-            return [
-                f"🍖 『喂养 <食物名/序号>』喂宠物（饱食度 +30 / 亲密度 +5 / 经验 +10）\n"
-                f"背包可喂食物：{_food_lines}\n"
-                f"例：『喂养 1』或『喂养 {_foods[0]['data'].get('name', '')}』"
-                "(打怪/采集/垂钓可获得食物)"
-            ]
-        return [
-            "格式：喂养 <食物名/序号>，如『喂养 烤鸟肉』或『喂养 1』\n"
-            "背包里还没有可喂食的食物——打怪、『采集』、『垂钓』可获得食物，"
-            "『烹饪』能做更顶饱的料理！"
-        ]
+            return [_T.text("pet.feed_list", foods=_food_lines,
+                            name=_foods[0]['data'].get('name', ''))]
+        return [_T.static("pet.feed_no_food")]
     # v130.7 意见#21：批量喂养『喂养 <名>*<数量>』/『喂养 <名> <数量>』双格式
     # （对齐 v130.4『使用』批量解析）；名字后带数量时名字按子串/序号匹配
     qty = 1
@@ -228,14 +222,14 @@ def pet_feed(group_id, qq_id, mat_name: str):
             _qty_raw = _tail
             mat_name = _head.strip()
         else:
-            return ["数量格式不对！例：『喂养 银鳞鱼*5』或『喂养 银鳞鱼 5』～"]
+            return [_T.static("pet.feed_qty_fmt")]
     if _qty_raw is not None:
         try:
             qty = int(_qty_raw)
         except ValueError:
-            return ["数量不合法！请输入正整数，如『喂养 银鳞鱼 5』～"]
+            return [_T.static("pet.feed_qty_bad")]
         if qty < 1:
-            return ["数量至少 1 个！大批量喂养用『喂养 <食物> 数量』或『喂养 <食物>*数量』～"]
+            return [_T.static("pet.feed_qty_min")]
     # v130.7 意见#22：喂养只能吃食物——白名单 = 带 food 标记的食物 + 鱼（原"材料/鱼中非食物"已剔除）
     items = db.get_inventory(group_id, qq_id)
     FOOD_TYPES = {"鱼"}
@@ -253,7 +247,7 @@ def pet_feed(group_id, qq_id, mat_name: str):
         mats = [it for it in items if _is_feed_food(it)]
         idx = int(mat_name)
         if idx < 1 or idx > len(mats):
-            return [f"背包里没有第 {idx} 个食物(共 {len(mats)} 个)！打怪、『采集』、『垂钓』可获得食物。"]
+            return [_T.text("pet.feed_no_idx", idx=idx, total=len(mats))]
         target = mats[idx - 1]
     else:
         for it in items:
@@ -262,13 +256,13 @@ def pet_feed(group_id, qq_id, mat_name: str):
                 target = it
                 break
     if not target:
-        return [f"背包里没有可喂食的食物『{mat_name}』！打怪、『采集』、『垂钓』可获得食物。"]
+        return [_T.text("pet.feed_no_mat", mat=mat_name)]
     # v130.7 意见#21：批量喂养（对齐 v130.4『使用』批量模板）——
     # 数量超持有显式报错不扣物；循环每次扣 1 + 喂 1 次（饱食度 +30 上限 100、
     # 亲密度 +5 封顶 100、经验 +10），饱食度到 100 自动停，超上限部分不扣物品
     if qty > 1:
         if qty > target.get("count", 1):
-            return [f"最多喂养 {target.get('count', 1)} 个『{target['data']['name']}』！"]
+            return [_T.text("pet.feed_max", count=target.get('count', 1), name=target['data']['name'])]
         fed = 0
         _lv0 = pet["level"]
         _lv_end = _lv0
@@ -290,11 +284,11 @@ def pet_feed(group_id, qq_id, mat_name: str):
             pet = {**pet, "satiety": _sat, "bond": _bond, "exp": _exp, "level": _lv}
             _lv_end = _lv
             fed += 1
-        _lv_s = f"\n🎉 宠物升级到 Lv.{_lv_end}！" if _lv_end > _lv0 else ""
-        _full_s = "（饱食度已满）" if fed < qty and pet["satiety"] >= 100 else ""
+        _lv_s = _T.text("pet.levelup", lv=_lv_end) if _lv_end > _lv0 else ""
+        _full_s = _T.static("pet.feed_full") if fed < qty and pet["satiety"] >= 100 else ""
         return [
-            f"🍖 你喂了【{pet['name']}】{fed} 份{target['data']['name']}！\n"
-            f"✅ 已喂食 {fed}/{qty} 份{_full_s}{_lv_s}"
+            _T.text("pet.feed_batch", pet=pet['name'], fed=fed,
+                    food=target['data']['name'], fed2=fed, qty=qty, full=_full_s, lv=_lv_s)
         ]
     # 喂食：饱食度 +30（24 章四），亲密度 +5，经验 +10
     db.remove_item(group_id, qq_id, target["key"])
@@ -309,8 +303,8 @@ def pet_feed(group_id, qq_id, mat_name: str):
     if lv >= _b143.PET_MAX_LEVEL:
         exp = min(exp, C.pet_exp_need(_b143.PET_MAX_LEVEL) - 1)
     db.pet_update(qq_id, satiety=sat, bond=bond, exp=exp, level=lv)
-    lv_str = f"\n🎉 宠物升级到 Lv.{lv}！" if lv > pet["level"] else ""
-    return [f"🍖 你喂了【{pet['name']}】一份{target['data']['name']}！\n😋 饱食度 +30 ｜ 💕 亲密度 +5 ｜ ✨ 经验 +10{lv_str}"]
+    lv_str = _T.text("pet.levelup", lv=lv) if lv > pet["level"] else ""
+    return [_T.text("pet.feed_one", pet=pet['name'], food=target['data']['name'], lv=lv_str)]
 
 
 # ============================================================
@@ -335,8 +329,8 @@ def mount_run(group_id, qq_id, player, raw: str, msg: str, cmd: str, tip_fn):
         if mounts.get("active"):
             mounts["active"] = None
             db.update_player(group_id, qq_id, mounts=mounts)
-            return ["🛑 你翻身下马，坐骑回到了马厩。"]
-        return ["你现在没有骑乘任何坐骑～"]
+            return [_T.static("mount.dismount")]
+        return [_T.static("mount.none_active")]
     # 骑乘/购买（带参数）
     if msg.startswith(("骑乘", "[At:")) or raw:
         name = (raw or "").strip()
@@ -357,20 +351,20 @@ def mount_run(group_id, qq_id, player, raw: str, msg: str, cmd: str, tip_fn):
                         # v105 M17 P3-4：提示按真实渠道（商店直购/desc 括号渠道），
                         # 此前驼马/驯鹿/独角兽等生活渠道坐骑也提示打精英/Boss，误导玩家
                         if (m.get("price") or 0) > 0:
-                            _tip = f"去商店『购买 {m['name']}』"
+                            _tip = _T.text("mount.buy_hint", name=m['name'])
                         else:
                             _d = m.get("desc", "")
                             _ch = _d[_d.rindex("(") + 1:] if "(" in _d else ""
                             if "『" in _ch:
                                 _ch = _ch.split("『")[0]
-                            _tip = f"{_ch or '打精英/Boss 掉缰绳'}后用『使用 缰绳』解锁"
-                        return [f"你还没有『{m['name']}』！{_tip}～"]
-                return [f"没有叫『{name}』的坐骑～『坐骑』查看全部"]
+                            _tip = _T.text("mount.unlock_hint", channel=_ch or '打精英/Boss 掉缰绳')
+                        return [_T.text("mount.not_owned", name=m['name'], tip=_tip)]
+                return [_T.text("mount.no_such", name=name)]
             if player["level"] < target["lv"]:
-                return [f"『{target['name']}』需要 Lv.{target['lv']} 才能骑乘，你才 Lv.{player['level']}！"]
+                return [_T.text("mount.lv_gate", name=target['name'], lv=target['lv'], plv=player['level'])]
             mounts["active"] = target["key"]
             db.update_player(group_id, qq_id, mounts=mounts)
-            return [f"{target['icon']} 你骑上了【{target['name']}】！{target['desc']}"]
+            return [_T.text("mount.ride_ok", icon=target['icon'], name=target['name'], desc=target['desc'])]
     # 坐骑面板
     mounts = player.get("mounts") or {}
     owned = mounts.get("owned") or []
@@ -381,9 +375,9 @@ def mount_run(group_id, qq_id, player, raw: str, msg: str, cmd: str, tip_fn):
         q = _Q.get(m.get("quality", "white"), {})
         return f"{q.get('color', '⚪')}{q.get('name', '普通')}"
 
-    lines = ["🐾 【坐骑】", "━━━━━━━━━━━━"]
+    lines = [_T.static("mount.panel_title"), "━━━━━━━━━━━━"]
     if not owned:
-        lines.append("你还没有坐骑。去橡木镇商店『购买 老马』，或者打精英/Boss 碰碰运气！")
+        lines.append(_T.static("mount.panel_empty"))
     for mk in owned:
         m = _cl.MOUNT_BY_KEY.get(mk)
         if not m:
@@ -395,7 +389,7 @@ def mount_run(group_id, qq_id, player, raw: str, msg: str, cmd: str, tip_fn):
         lines.append(tip_fn())
     else:
         lines.append("")
-        lines.append("💡 可获得的坐骑：" + "、".join(f"{_q_label(m)}{m['name']}" for m in _cl.MOUNT_POOL))
+        lines.append(_T.static("mount.obtainable") + "、".join(f"{_q_label(m)}{m['name']}" for m in _cl.MOUNT_POOL))
     return ["\n".join(lines)]
 
 
@@ -413,12 +407,12 @@ def pet_rename_run(qq_id, raw_name):
     """
     pet = db.pet_get(qq_id)
     if not pet:
-        return ["你还没有宠物！"]
+        return [_T.static("pet.rename_none")]
     new_name = (raw_name or "").strip()[:8]
     if not new_name:
-        return ["格式：宠物改名 <名字>"]
+        return [_T.static("pet.rename_fmt")]
     db.pet_update(qq_id, name=new_name)
-    return [f"🐾 你的宠物改名为【{new_name}】！"]
+    return [_T.text("pet.rename_ok", name=new_name)]
 
 
 def pet_release_run(qq_id):
@@ -428,6 +422,6 @@ def pet_release_run(qq_id):
     """
     pet = db.pet_get(qq_id)
     if not pet:
-        return ["你还没有宠物～"]
+        return [_T.static("pet.release_none")]
     db.pet_delete(qq_id)
-    return [f"🕊️ 你放生了【{pet['name']}】……它会记得你的。\n📖 图鉴记录已保留，之后还有机会遇到它！"]
+    return [_T.text("pet.release_ok", name=pet['name'])]

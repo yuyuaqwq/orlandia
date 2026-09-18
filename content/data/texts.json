@@ -8646,6 +8646,84 @@
     "category": "机制名",
     "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
   },
+  "mount.buy_hint": {
+    "value": "去商店『购买 {name}』",
+    "params": [
+      "name"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.dismount": {
+    "value": "🛑 你翻身下马，坐骑回到了马厩。",
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.lv_gate": {
+    "value": "『{name}』需要 Lv.{lv} 才能骑乘，你才 Lv.{plv}！",
+    "params": [
+      "name",
+      "lv",
+      "plv"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.no_such": {
+    "value": "没有叫『{name}』的坐骑～『坐骑』查看全部",
+    "params": [
+      "name"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.none_active": {
+    "value": "你现在没有骑乘任何坐骑～",
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.not_owned": {
+    "value": "你还没有『{name}』！{tip}～",
+    "params": [
+      "name",
+      "tip"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.obtainable": {
+    "value": "💡 可获得的坐骑：",
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.panel_empty": {
+    "value": "你还没有坐骑。去橡木镇商店『购买 老马』，或者打精英/Boss 碰碰运气！",
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.panel_title": {
+    "value": "🐾 【坐骑】",
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.ride_ok": {
+    "value": "{icon} 你骑上了【{name}】！{desc}",
+    "params": [
+      "icon",
+      "name",
+      "desc"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.unlock_hint": {
+    "value": "{channel}后用『使用 缰绳』解锁",
+    "params": [
+      "channel"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
   "nav.cur_pos": {
     "value": "📍 当前位置：{name}",
     "params": [
@@ -9046,6 +9124,233 @@
     "value": "🌵反伤",
     "category": "增益名",
     "desc": "搬自 combat_cmds.py:_P_BUFF_NAMES（B 批 B-1）"
+  },
+  "pet.bond": {
+    "value": "💕 亲密度：{bond}/100",
+    "params": [
+      "bond"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.bond_bonus": {
+    "value": "（羁绊生效：战斗经验 +5%）",
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.dex_line": {
+    "value": "\n📖 图鉴收集：{names}",
+    "params": [
+      "names"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.exp_bonus": {
+    "value": "✨ 经验加成：+{bonus}%(主人战斗经验)",
+    "params": [
+      "bonus"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.exp_halved": {
+    "value": "(饱食度归零，加成减半)",
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.feed_batch": {
+    "value": "🍖 你喂了【{pet}】{fed} 份{food}！\n✅ 已喂食 {fed2}/{qty} 份{full}{lv}",
+    "params": [
+      "pet",
+      "fed",
+      "food",
+      "fed2",
+      "qty",
+      "full",
+      "lv"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_full": {
+    "value": "（饱食度已满）",
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_list": {
+    "value": "🍖 『喂养 <食物名/序号>』喂宠物（饱食度 +30 / 亲密度 +5 / 经验 +10）\n背包可喂食物：{foods}\n例：『喂养 1』或『喂养 {name}』(打怪/采集/垂钓可获得食物)",
+    "params": [
+      "foods",
+      "name"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_max": {
+    "value": "最多喂养 {count} 个『{name}』！",
+    "params": [
+      "count",
+      "name"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_no_food": {
+    "value": "格式：喂养 <食物名/序号>，如『喂养 烤鸟肉』或『喂养 1』\n背包里还没有可喂食的食物——打怪、『采集』、『垂钓』可获得食物，『烹饪』能做更顶饱的料理！",
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_no_idx": {
+    "value": "背包里没有第 {idx} 个食物(共 {total} 个)！打怪、『采集』、『垂钓』可获得食物。",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_no_mat": {
+    "value": "背包里没有可喂食的食物『{mat}』！打怪、『采集』、『垂钓』可获得食物。",
+    "params": [
+      "mat"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_one": {
+    "value": "🍖 你喂了【{pet}】一份{food}！\n😋 饱食度 +30 ｜ 💕 亲密度 +5 ｜ ✨ 经验 +10{lv}",
+    "params": [
+      "pet",
+      "food",
+      "lv"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_qty_bad": {
+    "value": "数量不合法！请输入正整数，如『喂养 银鳞鱼 5』～",
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_qty_fmt": {
+    "value": "数量格式不对！例：『喂养 银鳞鱼*5』或『喂养 银鳞鱼 5』～",
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.feed_qty_min": {
+    "value": "数量至少 1 个！大批量喂养用『喂养 <食物> 数量』或『喂养 <食物>*数量』～",
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.header": {
+    "value": "{icon} 【宠物 · {name}】",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.levelup": {
+    "value": "\n🎉 宠物升级到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.name_line": {
+    "value": "名字：{name} | Lv.{lv}/{max}",
+    "params": [
+      "name",
+      "lv",
+      "max"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.none": {
+    "value": "你还没有宠物！打怪有概率掉落宠物蛋，『使用 宠物蛋』孵化～",
+    "category": "宠物喂养",
+    "desc": "搬自 content/social_pet.py:pet_feed（B 批 C 档）"
+  },
+  "pet.none_dex": {
+    "value": "你还没有宠物！打怪有概率掉落宠物蛋，『使用 宠物蛋』孵化～{dex}",
+    "params": [
+      "dex"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.quality": {
+    "value": "📖 品质：{quality}",
+    "params": [
+      "quality"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.release_none": {
+    "value": "你还没有宠物～",
+    "category": "宠物管理",
+    "desc": "搬自 content/social_pet.py:pet_release_run（B 批 C 档）"
+  },
+  "pet.release_ok": {
+    "value": "🕊️ 你放生了【{name}】……它会记得你的。\n📖 图鉴记录已保留，之后还有机会遇到它！",
+    "params": [
+      "name"
+    ],
+    "category": "宠物管理",
+    "desc": "搬自 content/social_pet.py:pet_release_run（B 批 C 档）"
+  },
+  "pet.rename_fmt": {
+    "value": "格式：宠物改名 <名字>",
+    "category": "宠物管理",
+    "desc": "搬自 content/social_pet.py:pet_rename_run（B 批 C 档）"
+  },
+  "pet.rename_none": {
+    "value": "你还没有宠物！",
+    "category": "宠物管理",
+    "desc": "搬自 content/social_pet.py:pet_rename_run（B 批 C 档）"
+  },
+  "pet.rename_ok": {
+    "value": "🐾 你的宠物改名为【{name}】！",
+    "params": [
+      "name"
+    ],
+    "category": "宠物管理",
+    "desc": "搬自 content/social_pet.py:pet_rename_run（B 批 C 档）"
+  },
+  "pet.satiety": {
+    "value": "❤️ 饱食度：{sat}/100",
+    "params": [
+      "sat"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.skill_dead": {
+    "value": "\n😵 技能失效(饱食度归零)",
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.skill_line": {
+    "value": "\n🎯 技能：{skill} (Lv.{lv} 解锁)",
+    "params": [
+      "skill",
+      "lv"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.source": {
+    "value": "📍 出处：{source}",
+    "params": [
+      "source"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
   },
   "pet_battle.hungry": {
     "value": "🐾 {name} 饿得没力气战斗了……『喂养 <食物>』（肉/鱼/草药）恢复饱食度！",
