@@ -779,11 +779,11 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
         # O121 Boss 战不提示『逃跑』（无法逃跑，防误导）
         _bt = db.get_battle(group_id, qq_id) or {}
         _is_boss = bool((_bt.get("state") or {}).get("enemy", {}).get("is_boss"))
-        yield event.plain_result("你正在战斗中！先解决眼前的敌人" + ("" if _is_boss else "(攻击/逃跑)"))
+        yield event.plain_result(_T.static("ex.in_battle") + ("" if _is_boss else _T.static("ex.battle_hint")))
         return
     cur = player["cur_map"]
     if cur.startswith("home_"):
-        yield event.plain_result("在家里安心休息吧，没有怪物会闯进来～(『出门』去冒险)")
+        yield event.plain_result(_T.static("ex.at_home"))
         return
     cur_map = _cs.MAP_BY_ID[cur]
     # 城镇区域（安全区）：可触发 POI，无怪
@@ -796,7 +796,7 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
         except Exception:
             _last_town = 0
         if time.time() - _last_town < 60:
-            yield event.plain_result("🏘️ 城镇里此刻风平浪静，没什么新鲜事，过一会儿再来逛逛吧。")
+            yield event.plain_result(_T.static("ex.town_quiet"))
             return
         db.set_event_state(_town_cd_key, str(time.time()))
         cur_sa_id_poi = player.get("cur_subarea") or ""
@@ -811,9 +811,7 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
                 yield event.plain_result(poi_text)
                 return
         yield event.plain_result(
-            f"🏘️ 你在{cur_map['name']}里闲逛，这里是安全的城镇。\n"
-            f"👥 输入『对话 <NPC名>』与这里的 NPC 交谈，『商店』购买补给。\n"
-            f"🧭 前往『地图』查看周边可去的地方。"
+            _T.text("ex.town_walk", map=cur_map['name'])
         )
         return
     # v95.26 #265：副本区域探索不触发普通战斗——副本怪按组队强度设计（如海蚀洞窟
@@ -826,9 +824,7 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     if cur_map.get("type") == _cc.MAP_TYPE_INSTANCE and not self._main_kill_target_on_map(group_id, qq_id, cur_map):
         inst_name = cur_map.get("name", "这个副本")
         yield event.plain_result(
-            f"🏰 【{inst_name}】是组队副本区域，这里的敌人按队伍强度设计！\n"
-            f"💡 组好队伍后输入『副本 {inst_name}』开本挑战——按顺序轮流出手，Boss 血量随人数上涨！\n"
-            f"（『副本』查看全部副本列表）"
+            _T.text("ex.inst_party", name=inst_name, name2=inst_name)
         )
         return
     # 9.4：野外 NPC 偶遇（满足条件 → 偶遇提示，不消耗探索；30 分钟冷却防刷）
@@ -845,15 +841,12 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
         b = self._open_battle(player, group, "monster", group_id=group_id, qq_id=qq_id)
         db.save_battle(group_id, qq_id, b.to_state())
         self._lock_battle(group_id, qq_id)
-        _acts = "『攻击』『技能 <名称>』『防御』"  # 野王=Boss 战，不可逃跑
+        _acts = _T.static("ex.act_hint")  # 野王=Boss 战，不可逃跑
         yield event.plain_result(
-            f"🔥 遭遇【{monster['name']}】！{_king.get('icon', '👑')} 野王看守宝箱中！\n"
-            f"👑 Lv.{monster['lv']} ❤️ {monster['hp']:,}\n"
-            f"{self._battle_formation_panel(player, b)}\n"
+            _T.text("ex.wildking", name=monster['name'], killer=_king.get('icon', '👑'), lv=monster['lv'],
+                hp=monster['hp'], panel=self._battle_formation_panel(player, b))
             + (f"{self._resource_line(player, b)}\n" if self._resource_line(player, b) else "")
-            + f"━━━━━━━━━━━━\n"
-            f"⚔️ 击败它即可解锁它看守的宝箱！\n"
-            f"你的行动：{_acts}"
+            + _T.text("ex.chest_tip", tail=_acts)
         )
         return
     wild = roll_wild_encounter(group_id, qq_id, player, cur)
@@ -862,11 +855,9 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
         _ta = "她" if wnpc.get("gender") == "女" else "他"  # v95 #141：代词跟随 NPC 性别
         _dur = int(wnpc.get("duration", 60) or 60)  # v127.5 限时NPC：在场分钟数
         yield event.plain_result(
-            f"🍃 你在{cur_map['name']}偶遇了【{wnpc['icon']}{wnpc['name']}】！\n"
-            f"　　{wnpc.get('desc', '')}\n"
-            f"“{wnpc.get('dialogue', '……')}”\n"
-            f"━━━━━━━━━━━━\n"
-            f"💡 『对话 {wnpc['name']}』与{_ta}交谈——⏳ {_ta}只在这里停留 {_dur} 分钟，错过要等下次了！"
+            _T.text("ex.wildnpc", where=cur_map['name'], name=wnpc['icon'], desc=wnpc['name'],
+                line=wnpc.get('desc', ''), npc=wnpc.get('dialogue', '……'), who=wnpc['name'],
+                when=_ta, min=_ta, tail=_dur)
         )
         return
     # v87 02 章 7.6：POI 探索点独立判定（15%）
@@ -935,7 +926,7 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     # 全有怪 → 分支不可达，规则 100% 死规则），现经此路径复活。
     if random.random() < max(0.05, 0.25 - _fx.get("encounter_rate", 0)):
         _rule_txt = self._rule_fire('explore_done', group_id, qq_id, player, cur_map, {'event': 'empty'})
-        yield event.plain_result("你四处搜寻，什么也没发现……"
+        yield event.plain_result(_T.static("ex.nothing")
                                  + (f"\n{_rule_txt}" if _rule_txt else ""))
         return
     # 探索事件池（v86 子区域：用当前子区域的怪物，无则回退地图级）
@@ -987,7 +978,7 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     # v95r38 空池保护：纯精英/Boss 房（如野猪王巢）探索不报"什么也没发现"，由下方必遇逻辑接管
     if not events and not sa_elite and not sa_boss:
         _rule_txt = self._rule_fire('explore_done', group_id, qq_id, player, cur_map, {'event': 'empty'})
-        yield event.plain_result("你四处搜寻，什么也没发现……"
+        yield event.plain_result(_T.static("ex.nothing")
                                  + (f"\n{_rule_txt}" if _rule_txt else ""))
         return
     # v87 04 章十六节：隐藏怪物独立判定（低概率彩蛋怪，优先级最高）
@@ -1004,18 +995,16 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
         bless_note = ""
         if _bl and _bl.get("mult"):
             _pct = int(round((float(_bl["mult"]) - 1.0) * 100))
-            bless_note += f"✨ 回声祝福生效：本场攻击力 +{_pct}%！\n"
+            bless_note += _T.text("ex.echo_bless", pct=_pct)
         _pb = player.get("poi_buff")
         if _pb:
             _pct_pb = int(round((float(_pb.get("mult", 1.10)) - 1.0) * 100))
-            bless_note += f"🛕 神龛祝福生效：{_pb.get('name', _pb['stat'])}+{_pct_pb}%！\n"
+            bless_note += _T.text("ex.shrine_bless", text=_pb.get('name', _pb['stat']), pct=_pct_pb)
         # O121 Boss 战隐藏『逃跑』选项（引擎/命令层均禁逃，防误导）
-        _acts = "『攻击』『技能 <名称>』『防御』" + ("" if monster.get("is_boss") else "『逃跑』")
+        _acts = _T.static("ex.act_hint") + ("" if monster.get("is_boss") else _T.static("ex.act_hint2"))
         yield event.plain_result(
-            f"✨ 遭遇隐藏怪物！\n"
-            f"{tag}【{monster['name']}】Lv.{monster['lv']}\n"
-            f"　　{flavor}\n"
-            f"{self._battle_formation_panel(player, b)}\n"
+            _T.text("ex.hidden", mark=tag, name=monster['name'], lv=monster['lv'], desc=flavor,
+                tail=self._battle_formation_panel(player, b))
             + (f"{self._resource_line(player, b)}\n" if self._resource_line(player, b) else "")
             + f"{bless_note}━━━━━━━━━━━━\n"
             f"你的行动：{_acts}"
@@ -1030,13 +1019,13 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     # v115 今日奇遇：精英遭遇率叠加 elite_chance
     if sa_elite and (random.random() < (0.08 + eb + _fx.get("elite_chance", 0)) or not events):
         monster = build_monster(sa_elite, cur_map)
-        tag = "⭐ 精英"
+        tag = _T.static("ex.elite_tag")
     elif sa_boss and (random.random() < _cc.SA_BOSS_CHANCE or not events):
         monster = build_monster(sa_boss, cur_map)
         tag = "👑 BOSS"
         # v95.20 #101：Boss 战无法逃跑且每刻耗体力，体力低时预警，避免中途耗尽被困
         if (player.get("stamina") or 0) < 20:
-            stam_warn = f"\n⚠️ 当前体力 {player.get('stamina')} 点！Boss 战每刻耗 1 点体力且无法逃跑，体力耗尽将被困战斗——建议备好食物或先恢复再战！"
+            stam_warn = _T.text("ex.boss_stamina", stamina=player.get('stamina'))
     elif events:
         # v101.25c 怪物等级波动：普通怪 ±1 级（精英/Boss 固定）——同图练级不单调
         # v130.8 意见#32：±1 感知弱 → 增强为 ±2；v132 鱼鱼拍板改回 ±1（"随机等级大概在正负1就行了"，
@@ -1060,13 +1049,13 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
             except Exception:
                 pass
             if time.time() - _last_hint > 600:
-                hint = f"\n💨 空气中有不寻常的气息……⭐ 此地精英【{sa_elite[1]}】似乎在附近徘徊，继续『探索』有机会遇到！"
+                hint = _T.text("ex.elite_near", name=sa_elite[1])
                 try:
                     db.set_event_state(_hint_key, str(int(time.time())))
                 except Exception:
                     pass
         elif sa_boss:
-            hint = f"\n💨 隐约感到强大的威压……👑 此地首领【{sa_boss[1]}】蛰伏于深处，继续『探索』有机会遇到！"
+            hint = _T.text("ex.boss_near", name=sa_boss[1])
     # 保存战斗状态（v9 统一引擎）
     # v2 多对多：经 build_monster_group 生成敌方阵列（普通怪 single/double；精英带爪牙；
     # Boss 带 2 爪牙）后传入 Battle 构造（enemies 参数）
@@ -1079,28 +1068,26 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     bless_note = ""
     if _bl and _bl.get("mult"):
         _pct = int(round((float(_bl["mult"]) - 1.0) * 100))
-        bless_note += f"✨ 回声祝福生效：本场攻击力 +{_pct}%！\n"
+        bless_note += _T.text("ex.echo_bless", pct=_pct)
     _pb = player.get("poi_buff")
     if _pb:
         _pct_pb = int(round((float(_pb.get("mult", 1.10)) - 1.0) * 100))
-        bless_note += f"🛕 神龛祝福生效：{_pb.get('name', _pb['stat'])}+{_pct_pb}%！\n"
-    role_mark = tag or ("👑 BOSS" if monster["is_boss"] else ("⭐ 精英" if monster["is_elite"] else "🐾"))
+        bless_note += _T.text("ex.shrine_bless", text=_pb.get('name', _pb['stat']), pct=_pct_pb)
+    role_mark = tag or ("👑 BOSS" if monster["is_boss"] else (_T.static("ex.elite_tag") if monster["is_elite"] else "🐾"))
     # v104 修复（M06 P2-2）：展示 MONSTER_MODS 个体特色文案（此前只有数值生效，玩家看不到）
     mod_line = f"📜 {monster['mod']}\n" if monster.get("mod") else ""
     # O121 Boss 战隐藏『逃跑』选项（引擎/命令层均禁逃，防误导）
-    _acts = "『攻击』『技能 <名称>』『防御』" + ("" if monster.get("is_boss") else "『逃跑』")
+    _acts = _T.static("ex.act_hint") + ("" if monster.get("is_boss") else _T.static("ex.act_hint2"))
     # v110 P0（#119 宠物不动）：遭遇瞬间就提示宠物为何无法出手（饿肚子/Lv 不足），
     # 不必等进战斗页脚——第一眼就消除『宠物怎么不动了』的困惑。
     _pet_note = pet_battle_status_note(getattr(b, "pet", None))
     yield event.plain_result(
-        f"⚔️ 遭遇战斗！\n"
-        f"{role_mark}【{monster['name']}】Lv.{monster['lv']}\n"
-        f"{mod_line}"
-        f"{self._battle_formation_panel(player, b)}\n"
+        _T.text("ex.battle", mark=role_mark, name=monster['name'], lv=monster['lv'], tail=mod_line,
+            tail2=self._battle_formation_panel(player, b))
         + (f"{self._resource_line(player, b)}\n" if self._resource_line(player, b) else "")
         + f"{bless_note}━━━━━━━━━━━━\n"
         + (f"{_pet_note}\n" if _pet_note else "")
-        + f"你的行动：{_acts}"
+        + _T.text("ex.turn", tail=_acts)
         + f"{hint}{stam_warn}"
     )
 
@@ -1112,16 +1099,16 @@ async def wild_king_chest(self, event: AstrMessageEvent, group_id, qq_id, player
     个人连续 3 时段参与未开箱 → 第 4 时段保底券（不占次数）。
     """
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("你正在战斗中！先解决眼前的敌人再摸宝箱～")
+        yield event.plain_result(_T.static("chest.in_battle"))
         return
     cur = player.get("cur_map") or ""
     if cur.startswith("home_"):
-        yield event.plain_result("家里可没有野王宝箱……(『出门』去野外)")
+        yield event.plain_result(_T.static("chest.at_home"))
         return
     try:
         text, need_bc = open_chest(group_id, qq_id, cur)
     except Exception:
-        text = "⏳ 宝箱暂时无法打开，稍后再试试……"
+        text = _T.static("chest.locked")
         need_bc = False
     yield event.plain_result(text)
     if need_bc:
@@ -1578,7 +1565,7 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
                 yield _r
             return
     if not battle:
-        yield event.plain_result("你附近没有敌人！输入『探索』寻找敌人～")
+        yield event.plain_result(_T.static("bt.no_enemy"))
         return
     if battle["state"].get("type") == "instance":
         # N5b4-5a R2：接线点 attack → 新 Router（saintess_engine 原生；老 _instance_act R3 删除）
@@ -1587,7 +1574,7 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
         return
     if battle["state"].get("type") == "pvp":
         if self._pvp_handle_timeout(battle, group_id, qq_id):
-            yield event.plain_result("⏰ PVP 战斗超过 5 分钟无人行动，自动解除！")
+            yield event.plain_result(_T.static("bt.pvp_timeout"))
             return
         async for _r in self._pvp_act(event, group_id, qq_id, player, battle["state"], "attack", None):
             yield _r
@@ -1599,7 +1586,7 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
         if b is None:
             db.clear_battle(group_id, qq_id)
             self._unlock_battle(group_id, qq_id)
-            yield event.plain_result("⏳ 旧存档已失效，重新讨伐吧！")
+            yield event.plain_result(_T.static("bt.stale_boss"))
             return
         async for _r in self._worldboss_act(event, group_id, qq_id, player, b, "attack", None, target=_resolve_target_arg(b, target_arg)):
             yield _r
@@ -1609,7 +1596,7 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
         # 旧格式存档作废：清档重开（N5b 约定不迁移）
         db.clear_battle(group_id, qq_id)
         self._unlock_battle(group_id, qq_id)
-        yield event.plain_result("⏳ 旧存档已失效，重新探索开始新的战斗吧！")
+        yield event.plain_result(_T.static("bt.stale_explore"))
         return
     # v2 指定目标：『攻击 <名字>』解析为目标名传给引擎（引擎会校验射程/存活）；无参→None 自动
     # ★ P1 修复：解析成 **actor**（`_resolve_target_arg`）—— v181 引擎 `ActCtx.target` 只认 actor，
@@ -1620,9 +1607,9 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
     if not _ok:
         if self._b_enemy(b).get("is_boss"):
             # v95.20 #101：Boss 战无法逃跑，体力耗尽=被困战斗——提示必须说清出路
-            yield event.plain_result(_st + "\n👑 Boss 战无法逃跑！『防御』不耗体力可拖延等待自然恢复，或吃食物(『使用 <食物>』)立即恢复～")
+            yield event.plain_result(_st + _T.static("bt.boss_noflee"))
         else:
-            yield event.plain_result(_st + "\n🍖 战斗中『使用 <食物>』恢复体力继续战斗，或『逃跑』脱离战斗～")
+            yield event.plain_result(_st + _T.static("bt.food_tip"))
         return
     logs, ended, _who = b.human_act("attack", None, b.focus(), target=_target)
     self._sync_battle_player(player, b)
@@ -1634,7 +1621,7 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
         _stealth_left = bool((player.get("effects") or {}).get("stealth")) \
             if isinstance(player.get("effects"), dict) else False
         if _stealth_left:
-            logs.append("🌫️ 潜行的影子在战局结束后消散了……")
+            logs.append(_T.static("bt.shadow_gone"))
         if b.result == "victory":
             # N5b4-2：胜利结算用原主怪引用（sides["enemy"][0]——死亡不移除，读存活首怪或引用）
             _mon = self._b_enemy(b)
@@ -2219,7 +2206,7 @@ async def defend(self, event: AstrMessageEvent, group_id, qq_id, player):
         return
     if battle["state"].get("type") == "pvp":
         if self._pvp_handle_timeout(battle, group_id, qq_id):
-            yield event.plain_result("⏰ PVP 战斗超过 5 分钟无人行动，自动解除！")
+            yield event.plain_result(_T.static("bt.pvp_timeout"))
             return
         async for _r in self._pvp_act(event, group_id, qq_id, player, battle["state"], "defend", None):
             yield _r
@@ -2230,7 +2217,7 @@ async def defend(self, event: AstrMessageEvent, group_id, qq_id, player):
         if b is None:
             db.clear_battle(group_id, qq_id)
             self._unlock_battle(group_id, qq_id)
-            yield event.plain_result("⏳ 旧存档已失效，重新讨伐吧！")
+            yield event.plain_result(_T.static("bt.stale_boss"))
             return
         async for _r in self._worldboss_act(event, group_id, qq_id, player, b, "defend", None):
             yield _r
@@ -2239,7 +2226,7 @@ async def defend(self, event: AstrMessageEvent, group_id, qq_id, player):
     if b is None:
         db.clear_battle(group_id, qq_id)
         self._unlock_battle(group_id, qq_id)
-        yield event.plain_result("⏳ 旧存档已失效，重新探索开始新的战斗吧！")
+        yield event.plain_result(_T.static("bt.stale_explore"))
         return
     logs, ended, _who = b.human_act("defend", None, b.focus())
     self._sync_battle_player(player, b)
@@ -2263,7 +2250,7 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
         if inst_row:
             battle = inst_row
     if battle["state"].get("type") == "instance":
-        yield event.plain_result("🏰 副本 Boss 锁定了战场，无法逃跑！背水一战吧！")
+        yield event.plain_result(_T.static("fl.inst_locked"))
         return
     if battle["state"].get("type") == "pvp":
         # PVP 逃跑 = 脱离战斗（双方解除，互不追究），避免被锁死/被骚扰
@@ -2279,7 +2266,7 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
         if opp_qq:
             self._unlock_battle(group_id, opp_qq)
             db.clear_battle(group_id, opp_qq)
-        yield event.plain_result("💨 你脱离了 PVP 战斗！双方原地休整，互不追究。")
+        yield event.plain_result(_T.static("fl.pvp_out"))
         return
     # Boss 锁场检查：saintess_engine 格式读 sides["enemy"] 存活怪 is_boss；旧格式读 state.enemy
     _is_boss = False
@@ -2289,7 +2276,7 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
     else:
         _is_boss = bool((battle["state"].get("enemy") or {}).get("is_boss"))
     if _is_boss:
-        yield event.plain_result("👑 Boss 锁定了你，无法逃跑！背水一战吧！")
+        yield event.plain_result(_T.static("fl.boss_locked"))
         return
     # worldboss 战斗（N5b4-3：saintess_engine 恢复；世界Boss 通常被 is_boss 拦截不可逃，兜底）
     if battle["state"].get("type") == "worldboss":
@@ -2297,7 +2284,7 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
         if b is None:
             db.clear_battle(group_id, qq_id)
             self._unlock_battle(group_id, qq_id)
-            yield event.plain_result("⏳ 旧存档已失效，重新讨伐吧！")
+            yield event.plain_result(_T.static("bt.stale_boss"))
             return
         logs, ended, _who = b.human_act("flee", None, b.focus())
         self._sync_battle_player(player, b)
@@ -2311,15 +2298,15 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
         monster = self._b_enemy(b)
         result = "\n".join(logs)
         yield event.plain_result(
-            f"{result}\n"
-            f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}"
+            _T.text("bt.hp_mp_log", log=result, hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
+                mpmax=player['max_mp'])
         )
         return
     b = self._restore_battle(battle["state"])
     if b is None:
         db.clear_battle(group_id, qq_id)
         self._unlock_battle(group_id, qq_id)
-        yield event.plain_result("⏳ 旧存档已失效，重新探索开始新的战斗吧！")
+        yield event.plain_result(_T.static("bt.stale_explore"))
         return
     logs, ended, _who = b.human_act("flee", None, b.focus())
     self._sync_battle_player(player, b)
@@ -2338,8 +2325,8 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
     monster = self._b_enemy(b)
     result = "\n".join(logs)
     yield event.plain_result(
-        f"{result}\n"
-        f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}"
+        _T.text("bt.hp_mp_log", log=result, hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
+            mpmax=player['max_mp'])
     )
 
 def _buff_left_ticks(k, v, now_t) -> "tuple[str | None, str]":
@@ -2359,15 +2346,15 @@ def _buff_left_ticks(k, v, now_t) -> "tuple[str | None, str]":
         if isinstance(exp, (int, float)) and exp is not None:
             _left = float(exp) - now_t
             if _left > 0:
-                return f"剩{max(1, int(round(_left / (ACT_TICK or 1.0))))}刻", None
+                return _T.text("st.left_ticks", n=max(1, int(round(_left / (ACT_TICK or 1.0))))), None
             return None, None  # 已到期将清 → 只显名
         return None, None  # 无到期语义（bar 状态/永久）→ 只显名
     # int/float 形态（旧引擎）
     if k in _SPECIAL_NO_DECAY:
-        return f"剩{int(v)}刻", None
+        return _T.text("st.left_ticks", n=int(v)), None
     _left = float(v) * (ACT_TICK or 1.0) - now_t
     if _left > 0:
-        return f"剩{max(1, int(round(_left / (ACT_TICK or 1.0))))}刻", None
+        return _T.text("st.left_ticks", n=max(1, int(round(_left / (ACT_TICK or 1.0))))), None
     return None, None
 
 def _status_line(self, player: dict, b) -> str:
@@ -2421,11 +2408,11 @@ def _status_line(self, player: dict, b) -> str:
                 _left_sec = max(0.0, float(s.get("turns", 0) or 0)) * (ACT_TICK or 1.0)
             if _left_sec is not None and _left_sec > 0:
                 _turns = max(1, int(round(_left_sec / (ACT_TICK or 1.0))))
-                pbuf.append(f"✨护盾{s['value']}({_turns}刻)")
+                pbuf.append(_T.text("st.shield_ticks", tail=s['value'], ticks=_turns))
             else:
-                pbuf.append(f"✨护盾{s['value']}")
+                pbuf.append(_T.text("st.shield", tail=s['value']))
     if pbuf:
-        parts.append(f"🛡️你：「{' '.join(pbuf)}」")
+        parts.append(_T.text("st.self_buffs", buffs=' '.join(pbuf)))
     # 敌方状态（当前主目标怪；saintess_engine 效果容器 effects）
     ebuf = []
     _eb = self._b_enemy(b) or {}
@@ -2479,15 +2466,15 @@ def _status_line(self, player: dict, b) -> str:
         pass  # 条显示异常不影响战报
     # 敌方狂暴（v58 mech）
     if _eb.get("enraged"):
-        ebuf.append("😡狂暴")
+        ebuf.append(_T.static("st.enrage"))
     # v114：敌方援军（真召唤实体）——独立行『👥 援军：爪牙×2（HP 320/320、300/300）』
     mins = getattr(b, "e_minions", []) or []
     if mins:
         _grp = {}
         for _m in mins:
-            _grp.setdefault(_m.get("name", "爪牙"), []).append(_m)
+            _grp.setdefault(_m.get("name", _T.static("st.minion")), []).append(_m)
         for _nm, _ms in _grp.items():
-            parts.append(f"👥 援军：{_nm}×{len(_ms)}（HP " + "、".join(
+            parts.append(_T.text("st.reinforce", name=_nm, n=len(_ms)) + "、".join(
                 f"{_m.get('hp', 0)}/{_m.get('max_hp', 1)}" for _m in _ms) + "）")
     # DOT/减益重构（契约 §7）：敌方持续减益（毒/灼烧/标记/流血）读 enemy["debuffs"]
     deb = _eb.get("debuffs") or {}
@@ -2499,9 +2486,9 @@ def _status_line(self, player: dict, b) -> str:
     # 异常抗性（dot_res>0 才显示——普通怪不设键=0）
     _dres = float(_eb.get("dot_res", 0) or 0)
     if _dres > 0:
-        ebuf.append(f"🛡️异常抗性{int(_dres * 100)}%")
+        ebuf.append(_T.text("st.anti", pct=int(_dres * 100)))
     if ebuf:
-        parts.append(f"👹敌：「{' '.join(ebuf)}」")
+        parts.append(_T.text("st.enemy_buffs", buffs=' '.join(ebuf)))
     return "\n".join(parts)
 
 def _resource_line(self, player: dict, b) -> str:
@@ -2578,8 +2565,8 @@ def _battle_formation_panel(self, player: dict, b) -> str:
     _enemies = (getattr(b, "sides", None) or {}).get("enemy") or []
     _alive_enemies = alive_units(_enemies)
     enemy_rows = formation_view(_alive_enemies, side="enemy") if _alive_enemies else []
-    panel = (("── 敌方 ──\n" + "\n".join(enemy_rows) + "\n") if enemy_rows else "") \
-        + "── 我方 ──\n" + "\n".join(ally_rows)
+    panel = ((_T.static("bf.enemy_head") + "\n".join(enemy_rows) + "\n") if enemy_rows else "") \
+        + _T.static("bf.self_head") + "\n".join(ally_rows)
     return panel.rstrip("\n")
 
 def _battle_footer(self, player: dict, b, monster: dict) -> str:
@@ -2595,10 +2582,11 @@ def _battle_footer(self, player: dict, b, monster: dict) -> str:
     # v163 全局时刻显示（野外/世界Boss）：b._now = 战斗绝对时刻（1 刻 = 1 游戏秒）
     try:
         _bnow = float(getattr(b, "_now", 0.0) or 0.0)
-        lines.insert(1, f"🕐 时刻 {_bnow:.1f}s")
+        lines.insert(1, _T.text("bf.clock", s=_bnow))
     except Exception:
         pass
-    lines.append(f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}")
+    lines.append(_T.text("bt.hp_mp", hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
+                     mpmax=player['max_mp']))
     rl = self._resource_line(player, b)
     if rl:
         lines.append(rl)
@@ -2610,7 +2598,7 @@ def _battle_footer(self, player: dict, b, monster: dict) -> str:
     if _pnote:
         lines.append(_pnote)
     # v127.3 选敌引导：站位图编号 a1/a2(敌) b1/b2(友)，『技能 <槽位> <编号>』指定目标
-    lines.append("💡 选敌：『技能1 a2』打2号(纯数字同义)；治疗『技能 <名称> b1』奶自己")
+    lines.append(_T.static("bf.select_tip"))
     return "\n".join(lines)
 
 def _handle_victory(self, event, group_id, qq_id, player, monster, result, extra_kills=None):
@@ -2665,7 +2653,8 @@ def _handle_victory(self, event, group_id, qq_id, player, monster, result, extra
     if _next:
         lines.append(_next)
     lines.append("━━━━━━━━━━━━")
-    lines.append(f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}")
+    lines.append(_T.text("bt.hp_mp", hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
+                     mpmax=player['max_mp']))
     yield event.plain_result("\n".join(lines))
 
 def _next_step_hint(self, group_id, qq_id, player, monster) -> str:

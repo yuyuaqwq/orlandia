@@ -117,7 +117,11 @@ FROZEN_COUNTS = {
     #   ★ 2026-09-19 C 档 18d-3（B-2 第 4 片第 5 小片）：world 散落「传送·方碑·场景交互」——
     #     portal_view / portal_activate / portal_travel / interact_prop
     #     38 处替换 / 35 新键（井水同值 ×2、翻找同值 ×3 幂等复用）⇒ 1720 → 1755。
-    "texts": 1755,
+    #   ★ 2026-09-19 C 档 19a（B-2 第 5 片第 1 小片）：combat 战斗域「探索·战斗主循环」——
+    #     explore / attack / defend / flee / wild_king_chest / _status_line / _buff_left_ticks /
+    #     _battle_formation_panel / _battle_footer / _handle_victory
+    #     65 处替换 / 49 新键（explore 内多片段同值 + 跨函数复用）⇒ 1755 → 1804。
+    "texts": 1804,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,

@@ -688,6 +688,29 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:back_cmd（B 批 C 档）"
   },
+  "bf.clock": {
+    "value": "🕐 时刻 {s:.1f}s",
+    "params": [
+      "s"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_battle_footer（B 批 C 档）"
+  },
+  "bf.enemy_head": {
+    "value": "── 敌方 ──\n",
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_battle_formation_panel（B 批 C 档）"
+  },
+  "bf.select_tip": {
+    "value": "💡 选敌：『技能1 a2』打2号(纯数字同义)；治疗『技能 <名称> b1』奶自己",
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_battle_footer（B 批 C 档）"
+  },
+  "bf.self_head": {
+    "value": "── 我方 ──\n",
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_battle_formation_panel（B 批 C 档）"
+  },
   "bind.already_qq": {
     "value": "✅ 你当前的平台身份 {qq} 已是 QQ 号，无需绑定～",
     "params": [
@@ -774,6 +797,64 @@
     "value": "💡 已学图纸锻造/烹饪/炼金不再消耗图纸 ｜ 背包里新图纸发『学习 <图纸名>』解锁",
     "category": "锻造",
     "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
+  "bt.boss_noflee": {
+    "value": "\n👑 Boss 战无法逃跑！『防御』不耗体力可拖延等待自然恢复，或吃食物(『使用 <食物>』)立即恢复～",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
+  },
+  "bt.food_tip": {
+    "value": "\n🍖 战斗中『使用 <食物>』恢复体力继续战斗，或『逃跑』脱离战斗～",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
+  },
+  "bt.hp_mp": {
+    "value": "你：❤️ {hp}/{hpmax} 💙 {mp}/{mpmax}",
+    "params": [
+      "hp",
+      "hpmax",
+      "mp",
+      "mpmax"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:_battle_footer（B 批 C 档）"
+  },
+  "bt.hp_mp_log": {
+    "value": "{log}\n你：❤️ {hp}/{hpmax} 💙 {mp}/{mpmax}",
+    "params": [
+      "log",
+      "hp",
+      "hpmax",
+      "mp",
+      "mpmax"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:flee（B 批 C 档）"
+  },
+  "bt.no_enemy": {
+    "value": "你附近没有敌人！输入『探索』寻找敌人～",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
+  },
+  "bt.pvp_timeout": {
+    "value": "⏰ PVP 战斗超过 5 分钟无人行动，自动解除！",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
+  },
+  "bt.shadow_gone": {
+    "value": "🌫️ 潜行的影子在战局结束后消散了……",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
+  },
+  "bt.stale_boss": {
+    "value": "⏳ 旧存档已失效，重新讨伐吧！",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
+  },
+  "bt.stale_explore": {
+    "value": "⏳ 旧存档已失效，重新探索开始新的战斗吧！",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:attack（B 批 C 档）"
   },
   "build.missing_item": {
     "value": "『{name}』(Lv.{lv})",
@@ -1279,6 +1360,21 @@
     "value": "格式：『阵营任务 <序号>』交付；『阵营任务』查看今日任务。",
     "category": "声望阵营",
     "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "chest.at_home": {
+    "value": "家里可没有野王宝箱……(『出门』去野外)",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:wild_king_chest（B 批 C 档）"
+  },
+  "chest.in_battle": {
+    "value": "你正在战斗中！先解决眼前的敌人再摸宝箱～",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:wild_king_chest（B 批 C 档）"
+  },
+  "chest.locked": {
+    "value": "⏳ 宝箱暂时无法打开，稍后再试试……",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:wild_king_chest（B 批 C 档）"
   },
   "common.bag_no_idx": {
     "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看全部～",
@@ -4098,6 +4194,172 @@
     "category": "转职",
     "desc": "搬自 content/player_cmds.py:evolve（B 批 C 档）"
   },
+  "ex.act_hint": {
+    "value": "『攻击』『技能 <名称>』『防御』",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.act_hint2": {
+    "value": "『逃跑』",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.at_home": {
+    "value": "在家里安心休息吧，没有怪物会闯进来～(『出门』去冒险)",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.battle": {
+    "value": "⚔️ 遭遇战斗！\n{mark}【{name}】Lv.{lv}\n{tail}{tail2}\n",
+    "params": [
+      "mark",
+      "name",
+      "lv",
+      "tail",
+      "tail2"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.battle_hint": {
+    "value": "(攻击/逃跑)",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.boss_near": {
+    "value": "\n💨 隐约感到强大的威压……👑 此地首领【{name}】蛰伏于深处，继续『探索』有机会遇到！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.boss_stamina": {
+    "value": "\n⚠️ 当前体力 {stamina} 点！Boss 战每刻耗 1 点体力且无法逃跑，体力耗尽将被困战斗——建议备好食物或先恢复再战！",
+    "params": [
+      "stamina"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.chest_tip": {
+    "value": "━━━━━━━━━━━━\n⚔️ 击败它即可解锁它看守的宝箱！\n你的行动：{tail}",
+    "params": [
+      "tail"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.echo_bless": {
+    "value": "✨ 回声祝福生效：本场攻击力 +{pct}%！\n",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.elite_near": {
+    "value": "\n💨 空气中有不寻常的气息……⭐ 此地精英【{name}】似乎在附近徘徊，继续『探索』有机会遇到！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.elite_tag": {
+    "value": "⭐ 精英",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.hidden": {
+    "value": "✨ 遭遇隐藏怪物！\n{mark}【{name}】Lv.{lv}\n　　{desc}\n{tail}\n",
+    "params": [
+      "mark",
+      "name",
+      "lv",
+      "desc",
+      "tail"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.in_battle": {
+    "value": "你正在战斗中！先解决眼前的敌人",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.inst_party": {
+    "value": "🏰 【{name}】是组队副本区域，这里的敌人按队伍强度设计！\n💡 组好队伍后输入『副本 {name2}』开本挑战——按顺序轮流出手，Boss 血量随人数上涨！\n（『副本』查看全部副本列表）",
+    "params": [
+      "name",
+      "name2"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.nothing": {
+    "value": "你四处搜寻，什么也没发现……",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.shrine_bless": {
+    "value": "🛕 神龛祝福生效：{text}+{pct}%！\n",
+    "params": [
+      "text",
+      "pct"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.town_quiet": {
+    "value": "🏘️ 城镇里此刻风平浪静，没什么新鲜事，过一会儿再来逛逛吧。",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.town_walk": {
+    "value": "🏘️ 你在{map}里闲逛，这里是安全的城镇。\n👥 输入『对话 <NPC名>』与这里的 NPC 交谈，『商店』购买补给。\n🧭 前往『地图』查看周边可去的地方。",
+    "params": [
+      "map"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.turn": {
+    "value": "你的行动：{tail}",
+    "params": [
+      "tail"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.wildking": {
+    "value": "🔥 遭遇【{name}】！{killer} 野王看守宝箱中！\n👑 Lv.{lv} ❤️ {hp:,}\n{panel}\n",
+    "params": [
+      "name",
+      "killer",
+      "lv",
+      "hp",
+      "panel"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
+  "ex.wildnpc": {
+    "value": "🍃 你在{where}偶遇了【{name}{desc}】！\n　　{line}\n“{npc}”\n━━━━━━━━━━━━\n💡 『对话 {who}』与{when}交谈——⏳ {min}只在这里停留 {tail} 分钟，错过要等下次了！",
+    "params": [
+      "where",
+      "name",
+      "desc",
+      "line",
+      "npc",
+      "who",
+      "when",
+      "min",
+      "tail"
+    ],
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
+  },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
     "category": "战斗日志",
@@ -4217,6 +4479,21 @@
     "value": "🔨 铁匠铺(『强化』『附魔』)",
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
+  },
+  "fl.boss_locked": {
+    "value": "👑 Boss 锁定了你，无法逃跑！背水一战吧！",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:flee（B 批 C 档）"
+  },
+  "fl.inst_locked": {
+    "value": "🏰 副本 Boss 锁定了战场，无法逃跑！背水一战吧！",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:flee（B 批 C 档）"
+  },
+  "fl.pvp_out": {
+    "value": "💨 你脱离了 PVP 战斗！双方原地休整，互不追究。",
+    "category": "战斗主循环",
+    "desc": "搬自 content/combat_cmds.py:flee（B 批 C 档）"
   },
   "footprint.empty": {
     "value": "📍 还没去过任何地方……快去『探索』冒险吧！",
@@ -10585,6 +10862,74 @@
     "value": "🔨",
     "category": "来源图标",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
+  },
+  "st.anti": {
+    "value": "🛡️异常抗性{pct}%",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.enemy_buffs": {
+    "value": "👹敌：「{buffs}」",
+    "params": [
+      "buffs"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.enrage": {
+    "value": "😡狂暴",
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.left_ticks": {
+    "value": "剩{n}刻",
+    "params": [
+      "n"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_buff_left_ticks（B 批 C 档）"
+  },
+  "st.minion": {
+    "value": "爪牙",
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.reinforce": {
+    "value": "👥 援军：{name}×{n}（HP ",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.self_buffs": {
+    "value": "🛡️你：「{buffs}」",
+    "params": [
+      "buffs"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.shield": {
+    "value": "✨护盾{tail}",
+    "params": [
+      "tail"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
+  },
+  "st.shield_ticks": {
+    "value": "✨护盾{tail}({ticks}刻)",
+    "params": [
+      "tail",
+      "ticks"
+    ],
+    "category": "战斗面板",
+    "desc": "搬自 content/combat_cmds.py:_status_line（B 批 C 档）"
   },
   "stack_name.bless": {
     "value": "✨神恩",
