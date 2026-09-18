@@ -977,6 +977,345 @@
     "category": "重锻炼成",
     "desc": "搬自 content/economy_cmds.py:calamity_forge（B 批 C 档）"
   },
+  "camp.battle": {
+    "value": "⚔️ 你正在战斗中！先解决眼前的敌人再说。",
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "camp.cooldown": {
+    "value": "⏳ 营地篝火需要添柴({sec}秒后恢复)……",
+    "params": [
+      "sec"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "camp.none": {
+    "value": "这里没有篝火营地！找找野外地图的营地(地图上会显示🔥篝火营地)～",
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "camp.not_needed": {
+    "value": "你精神饱满，不需要休息～",
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "camp.ok": {
+    "value": "🔥 你在{where}的篝火旁歇了歇脚……\n❤️ 恢复 {hp} 点生命({cur}/{cap}){tail}\n💡 营地只能恢复一半伤势，重伤请回旅店『住宿』～",
+    "params": [
+      "where",
+      "hp",
+      "cur",
+      "cap",
+      "tail"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "camp.restore_stamina": {
+    "value": "\n⚡ 恢复 {n} 点体力({cur}/{cap})",
+    "params": [
+      "n",
+      "cur",
+      "cap"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "camp.wrong_spot": {
+    "value": "🔥 {name}在{where}那边，这里够不着火堆！（『前往 {where2}』）",
+    "params": [
+      "name",
+      "where",
+      "where2"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest_camp（B 批 C 档）"
+  },
+  "campjoin.after_tip": {
+    "value": "   加入后解锁每日阵营任务与阵营商店。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.already": {
+    "value": "你已是 {icon} {name} 的成员，无需重复加入。",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.cooldown": {
+    "value": "⏳ 你在 {icon} {name} 的军籍新立，还需 {days} 天才能换阵。\n💡 阵营切换冷却缺省 7 天（FACTION_CAMP_SWITCH_COOLDOWN 可配）。",
+    "params": [
+      "icon",
+      "name",
+      "days"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.current": {
+    "value": "📛 你当前隶属：{icon} {name}",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.head": {
+    "value": "🏛️ 【四大阵营 · 国战阵营选择】",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.line_here": {
+    "value": "✅ 你在此",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:_camp_line（B 批 C 档）"
+  },
+  "campjoin.lv_short": {
+    "value": "⚜️ 你需要达到 Lv.{need} 才能加入阵营！当前 Lv.{lv}。\n💡 继续历练，国战之门终将为你敞开～",
+    "params": [
+      "need",
+      "lv"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.lv_tip": {
+    "value": "💡 Lv.{lv} 起可选择阵营：『加入阵营 <编号>』",
+    "params": [
+      "lv"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.no_idx": {
+    "value": "没有第 {idx} 号阵营！输入『加入阵营』查看列表。",
+    "params": [
+      "idx"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.ok": {
+    "value": "⚔️ 你宣誓效忠【{icon} {name}】！({desc})\n━━━━━━━━━━━━\n📜 现在可以『阵营任务』接取今日重任、『阵营商店』兑换军需物资！\n{tail}",
+    "params": [
+      "icon",
+      "name",
+      "desc",
+      "tail"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.switch_tip": {
+    "value": "💡 想改弦易辙？输入『加入阵营 <其他编号>』（切换有冷却 {days} 天）",
+    "params": [
+      "days"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "campjoin.usage": {
+    "value": "格式：『加入阵营 <编号>』（输入『加入阵营』查看四大阵营列表）",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_join（B 批 C 档）"
+  },
+  "camprank.head": {
+    "value": "🏆 【阵营国战 · 排行】",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_rank（B 批 C 档）"
+  },
+  "camprank.row": {
+    "value": "{idx}. {name} {icon}：成员 {members} 人 · 总贡献 {contrib}",
+    "params": [
+      "idx",
+      "name",
+      "icon",
+      "members",
+      "contrib"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_rank（B 批 C 档）"
+  },
+  "campshop.buy_ok": {
+    "value": "🎁 你用 {name} 阵营贡献兑换了【{item}】！\n📦 已收入背包，剩余贡献：{left}",
+    "params": [
+      "name",
+      "item",
+      "left"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.contrib_short": {
+    "value": "🏛️ 贡献不足！需 {need} 贡献，当前 {cur}。\n{tail}。",
+    "params": [
+      "need",
+      "cur",
+      "tail"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.head": {
+    "value": "🏛️ 【阵营商店 · 军需物资】",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.item_cost": {
+    "value": "—— 花 {contrib} 贡献",
+    "params": [
+      "contrib"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.item_locked": {
+    "value": "—— 需 {contrib} 贡献",
+    "params": [
+      "contrib"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.no_faction": {
+    "value": "你还未加入任何阵营！先『加入阵营 <编号>』再兑换军需。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.no_idx": {
+    "value": "没有第 {idx} 号商品！『阵营商店』查看列表。",
+    "params": [
+      "idx"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.panel_head": {
+    "value": "🏛️ 【{icon} {name} · 阵营商店】你的贡献：{contrib}",
+    "params": [
+      "icon",
+      "name",
+      "contrib"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "campshop.usage": {
+    "value": "格式：『阵营商店 <序号>』购买；『阵营商店』查看列表。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_shop（B 批 C 档）"
+  },
+  "camptask.already": {
+    "value": "『{name}』今日已完成！试试其他任务或『阵营任务』查看。",
+    "params": [
+      "name"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.deliver_ok": {
+    "value": "📜 你交付了『{name}』（{item} ×{qty}）！\n🏅 阵营贡献 +{contrib}（当前 {cur}）\n🎖️ 本日完成 {done}/{total}",
+    "params": [
+      "name",
+      "item",
+      "qty",
+      "contrib",
+      "cur",
+      "done",
+      "total"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.done_count": {
+    "value": "    本日已完成交付：{done}/{total}",
+    "params": [
+      "done",
+      "total"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.empty": {
+    "value": "今日暂无阵营任务。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.head": {
+    "value": "⚔️ 【{icon} {name} · 今日阵营任务】",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.limit": {
+    "value": "📛 今日阵营任务完成数已达上限（{cap} 个），明天再来为国征战！",
+    "params": [
+      "cap"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.mat_short": {
+    "value": "📦 材料不足！『{name}』需要 {item} ×{qty}，你只有 {own} 个。\n{tail}。",
+    "params": [
+      "name",
+      "item",
+      "qty",
+      "own",
+      "tail"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.no_faction": {
+    "value": "你还未加入任何阵营！先『加入阵营 <编号>』选择归宿，方能领受国战任务。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.no_idx": {
+    "value": "没有第 {idx} 号任务！『阵营任务』查看今日任务。",
+    "params": [
+      "idx"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.row": {
+    "value": "{idx:>2}. {mark} {name}：交付 {item} ×{qty} → 贡献 +{contrib}（背包 {own}）",
+    "params": [
+      "idx",
+      "mark",
+      "name",
+      "item",
+      "qty",
+      "contrib",
+      "own"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.stat": {
+    "value": "ℹ️ 当前贡献：{contrib}　累计完成任务：{n} 次",
+    "params": [
+      "contrib",
+      "n"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
+  "camptask.usage": {
+    "value": "格式：『阵营任务 <序号>』交付；『阵营任务』查看今日任务。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
+  },
   "common.bag_no_idx": {
     "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看全部～",
     "params": [
@@ -4937,6 +5276,48 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:hurry_view（B 批 C 档）"
   },
+  "inn.gold_short": {
+    "value": "住宿需要 {gold} 金币，你只有 {have} 金币。先去『探索』赚点钱吧～",
+    "params": [
+      "gold",
+      "have"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
+  },
+  "inn.hint_town": {
+    "value": "到城镇旅店输入『住宿』恢复状态～",
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
+  },
+  "inn.hint_where": {
+    "value": "到有旅店的地方(如 {where})输入『住宿』～",
+    "params": [
+      "where"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
+  },
+  "inn.none": {
+    "value": "这里没有旅店。",
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
+  },
+  "inn.ok": {
+    "value": "🏨 你在旅店美美地睡了一觉……\n❤️ 生命全满！💙 魔力全满！{stamina}！\n花费 {gold} 金币，当前余额：{left}",
+    "params": [
+      "stamina",
+      "gold",
+      "left"
+    ],
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
+  },
+  "inn.redname": {
+    "value": "☠️ 你是红名！旅店老板不敢收留你……(等红名消退再来)",
+    "category": "营地休息",
+    "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
+  },
   "instance.already_in": {
     "value": "你已在战斗中！『攻击』『技能 <名称>』『防御』行动～",
     "category": "副本准入",
@@ -8608,6 +8989,134 @@
     ],
     "category": "注册",
     "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "rep.head": {
+    "value": "🏛️ 【七大势力 · 声望】",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:reputation（B 批 C 档）"
+  },
+  "rep.tip": {
+    "value": "💡 击杀各地怪物、完成当地任务可获得对应势力声望",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:reputation（B 批 C 档）"
+  },
+  "repshop.buy_ok": {
+    "value": "✅ 你用 {faction} 声望买到了【{name}】！（花费 {gold} 金币）",
+    "params": [
+      "faction",
+      "name",
+      "gold"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.empty": {
+    "value": "{name} {tail} 暂时没有专属商品。",
+    "params": [
+      "name",
+      "tail"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.faction_row": {
+    "value": "{idx:>2}. {name} {title}：{icon}({owned}) 可购 {total}/{tail}",
+    "params": [
+      "idx",
+      "name",
+      "title",
+      "icon",
+      "owned",
+      "total",
+      "tail"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.gold_short": {
+    "value": "金币不足！需要 {gold} 金币。",
+    "params": [
+      "gold"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.head": {
+    "value": "🏛️ 【势力声望商店】",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.item_gold": {
+    "value": "—— {gold} 金币",
+    "params": [
+      "gold"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.item_locked": {
+    "value": "—— 需『{tier_name}』({tier})",
+    "params": [
+      "tier_name",
+      "tier"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.no_faction": {
+    "value": "没有这个势力！输入『声望商店』查看七个势力。",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.no_item": {
+    "value": "没有第 {idx} 号商品！『声望商店 {faction}』查看商品。",
+    "params": [
+      "idx",
+      "faction"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.panel_head": {
+    "value": "🏛️ 【{faction} {title} · 声望商店】你的声望：{cur}({tier})",
+    "params": [
+      "faction",
+      "title",
+      "cur",
+      "tier"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.panel_tip": {
+    "value": "💡 『声望商店 {faction} 购买 <序号>』购买商品（金币支付）",
+    "params": [
+      "faction"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.rep_short": {
+    "value": "🏛️ 声望不足！需要 {need} 声望达到『{faction}』({tier})，当前 {cur}({cur2})。\n💡 击杀当地怪物、完成当地任务可提升声望。",
+    "params": [
+      "need",
+      "faction",
+      "tier",
+      "cur",
+      "cur2"
+    ],
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.usage": {
+    "value": "格式：声望商店 <势力名/序号> 购买 <商品序号>（先『声望商店 <势力>』查看商品）",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
+  },
+  "repshop.usage2": {
+    "value": "格式：声望商店 <势力名> 购买 <商品序号>",
+    "category": "声望阵营",
+    "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
   },
   "reroll.full": {
     "value": "【{name}】的词条槽已满({have}/{cap})，无法重铸！先换一件装备吧～",

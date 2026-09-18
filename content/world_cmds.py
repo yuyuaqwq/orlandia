@@ -3815,7 +3815,7 @@ async def rest_camp(self, event: AstrMessageEvent, group_id, qq_id, player):
     cur_map = _cat_space.MAP_BY_ID.get(player["cur_map"], {})
     mid = cur_map.get("id", "")
     if mid not in _cat_life.CAMP_SPOTS:
-        yield event.plain_result("这里没有篝火营地！找找野外地图的营地(地图上会显示🔥篝火营地)～")
+        yield event.plain_result(_T.static("camp.none"))
         return
     # v87.17 子区域绑定：营地在指定子区域，不在那边够不着火堆
     _camp = _cat_life.CAMP_SPOTS[mid]
@@ -3828,21 +3828,22 @@ async def rest_camp(self, event: AstrMessageEvent, group_id, qq_id, player):
                 break
         _camp_name = _camp.get("name", "营地") if isinstance(_camp, dict) else str(_camp)
         yield event.plain_result(
-            f"🔥 {_camp_name}在{_sa_name or _camp_sa}那边，这里够不着火堆！（『前往 {_sa_name or _camp_sa}』）"
+            _T.text("camp.wrong_spot", name=_camp_name, where=_sa_name or _camp_sa,
+                where2=_sa_name or _camp_sa)
         )
         return
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("⚔️ 你正在战斗中！先解决眼前的敌人再说。")
+        yield event.plain_result(_T.static("camp.battle"))
         return
     # 30 秒冷却
     last = db.get_event_state(f"camp_{group_id}_{qq_id}")
     if last and int(time.time()) - int(last) < 30:
         left = 30 - (int(time.time()) - int(last))
-        yield event.plain_result(f"⏳ 营地篝火需要添柴({left}秒后恢复)……")
+        yield event.plain_result(_T.text("camp.cooldown", sec=left))
         return
     # v94 体力：营地篝火恢复 50 体力（+ 原有半伤恢复）
     if player["hp"] >= player["max_hp"] and self._stamina(player) >= self._stamina_max(player):
-        yield event.plain_result("你精神饱满，不需要休息～")
+        yield event.plain_result(_T.static("camp.not_needed"))
         return
     db.set_event_state(f"camp_{group_id}_{qq_id}", str(int(time.time())))
     heal = max(1, int((player["max_hp"] - player["hp"]) * 0.5))
@@ -3850,17 +3851,16 @@ async def rest_camp(self, event: AstrMessageEvent, group_id, qq_id, player):
     _st_gain = self._add_stamina(group_id, qq_id, 50, player)
     db.update_player(group_id, qq_id, hp=new_hp)
     _p2 = self._player(group_id, qq_id)
-    _st_line = f"\n⚡ 恢复 {_st_gain} 点体力({self._stamina(_p2)}/{self._stamina_max(_p2)})" if _st_gain > 0 else ""
+    _st_line = _T.text("camp.restore_stamina", n=_st_gain, cur=self._stamina(_p2), cap=self._stamina_max(_p2)) if _st_gain > 0 else ""
     yield event.plain_result(
-        f"🔥 你在{_cat_life.CAMP_SPOTS[mid]}的篝火旁歇了歇脚……\n"
-        f"❤️ 恢复 {heal} 点生命({new_hp}/{player['max_hp']}){_st_line}\n"
-        f"💡 营地只能恢复一半伤势，重伤请回旅店『住宿』～"
+        _T.text("camp.ok", where=_cat_life.CAMP_SPOTS[mid], hp=heal, cur=new_hp, cap=player['max_hp'],
+            tail=_st_line)
     )
 
 
 async def rest(self, event: AstrMessageEvent, group_id, qq_id, player):
     if self._is_redname(qq_id):
-        yield event.plain_result("☠️ 你是红名！旅店老板不敢收留你……(等红名消退再来)")
+        yield event.plain_result(_T.static("inn.redname"))
         return
     # v87.17 子区域化旅店：_at_healer 检查当前子区域，不在旅店给设施提示
     if not self._at_healer(player):
@@ -3874,8 +3874,8 @@ async def rest(self, event: AstrMessageEvent, group_id, qq_id, player):
                     _near.append(f"{_cur_m.get('name', '')}·{_s.get('name', '')}")
             hint = "、".join(_near[:3]) if _near else ""
         yield event.plain_result(
-            "这里没有旅店。"
-            + (f"到有旅店的地方(如 {hint})输入『住宿』～" if hint else "到城镇旅店输入『住宿』恢复状态～")
+            _T.static("inn.none")
+            + (_T.text("inn.hint_where", where=hint) if hint else _T.static("inn.hint_town"))
         )
         return
     # v101.25i4 住宿费：Lv.≤15 保持 max(30, lv×5)（新手友好不动）；
@@ -3892,29 +3892,28 @@ async def rest(self, event: AstrMessageEvent, group_id, qq_id, player):
                    int(lv * _ec["inn_cost_per_lv"] * _ec["inn_cost_high_mult"])
                    // _ec["inn_cost_round"] * _ec["inn_cost_round"])
     if player["gold"] < cost:
-        yield event.plain_result(f"住宿需要 {cost} 金币，你只有 {player['gold']} 金币。先去『探索』赚点钱吧～")
+        yield event.plain_result(_T.text("inn.gold_short", gold=cost, have=player['gold']))
         return
     # v94 体力：住宿恢复满体力（+ 生命魔力）
     _st = self._stamina_max(player)
     db.update_player(group_id, qq_id, gold=player["gold"] - cost, hp=player["max_hp"], mp=player["max_mp"],
                      stamina=_st, stamina_ts=int(time.time()))
     yield event.plain_result(
-        f"🏨 你在旅店美美地睡了一觉……\n"
-        f"❤️ 生命全满！💙 魔力全满！{self._stamina_bar({**player, 'stamina': _st})}！\n"
-        f"花费 {cost} 金币，当前余额：{player['gold'] - cost}"
+        _T.text("inn.ok", stamina=self._stamina_bar({**player, 'stamina': _st}), gold=cost,
+            left=player['gold'] - cost)
     )
 
 
 async def reputation(self, event: AstrMessageEvent, group_id, qq_id, player):
     rep = db.get_reputation(group_id, qq_id)
-    lines = ["🏛️ 【七大势力 · 声望】", "━━━━━━━━━━━━"]
+    lines = [_T.static("rep.head"), "━━━━━━━━━━━━"]
     for i, fid in enumerate(_cat_b143.FACTION_ORDER, 1):
         f = _cat_b143.FACTIONS[fid]
         pts = rep.get(fid, 0)
         tier = _fac.faction_reputation_tier(pts)
         lines.append(f"{i:>2}. {f['icon']} {f['name']}：{tier}({pts})")
     lines.append("")
-    lines.append("💡 击杀各地怪物、完成当地任务可获得对应势力声望")
+    lines.append(_T.static("rep.tip"))
     # v105 M18 P2-7：声望消费侧入口（声望商店按等级解锁专属商品）
     lines.append(self._tip("rep_shop"))
     yield event.plain_result("\n".join(lines))
@@ -3955,14 +3954,15 @@ async def rep_shop(self, event: AstrMessageEvent):
 
     # 无参数：总览
     if not raw:
-        lines = ["🏛️ 【势力声望商店】", "━━━━━━━━━━━━"]
+        lines = [_T.static("repshop.head"), "━━━━━━━━━━━━"]
         for i, fid in enumerate(_cat_b143.FACTION_ORDER, 1):
             f = _cat_b143.FACTIONS[fid]
             pts = rep.get(fid, 0)
             tier = _fac.faction_reputation_tier(pts)
             goods = FACTION_SHOP.get(fid, [])
             unlocked = sum(1 for g in goods if pts >= g["tier"])
-            lines.append(f"{i:>2}. {f['icon']} {f['name']}：{tier}({pts}) 可购 {unlocked}/{len(goods)}")
+            lines.append(_T.text("repshop.faction_row", idx=i, name=f['icon'], title=f['name'], icon=tier, owned=pts,
+                             total=unlocked, tail=len(goods)))
         lines.append("")
         lines.append(self._tip("rep_shop"))
         yield event.plain_result("\n".join(lines))
@@ -3970,61 +3970,61 @@ async def rep_shop(self, event: AstrMessageEvent):
 
     parts = raw.split()
     if parts[0] == "购买":
-        yield event.plain_result("格式：声望商店 <势力名/序号> 购买 <商品序号>（先『声望商店 <势力>』查看商品）")
+        yield event.plain_result(_T.static("repshop.usage"))
         return
     fid = _resolve_faction(parts[0])
     if not fid:
-        yield event.plain_result("没有这个势力！输入『声望商店』查看七个势力。")
+        yield event.plain_result(_T.static("repshop.no_faction"))
         return
     f = _cat_b143.FACTIONS[fid]
     pts = rep.get(fid, 0)
     tier = _fac.faction_reputation_tier(pts)
     goods = FACTION_SHOP.get(fid, [])
     if not goods:
-        yield event.plain_result(f"{f['icon']} {f['name']} 暂时没有专属商品。")
+        yield event.plain_result(_T.text("repshop.empty", name=f['icon'], tail=f['name']))
         return
     # 购买分支：声望商店 <势力> 购买 <序号>
     if len(parts) >= 3 and parts[1] == "购买":
         if not parts[2].isdigit():
-            yield event.plain_result("格式：声望商店 <势力名> 购买 <商品序号>")
+            yield event.plain_result(_T.static("repshop.usage2"))
             return
         idx = int(parts[2])
         if idx < 1 or idx > len(goods):
-            yield event.plain_result(f"没有第 {idx} 号商品！『声望商店 {f['name']}』查看商品。")
+            yield event.plain_result(_T.text("repshop.no_item", idx=idx, faction=f['name']))
             return
         g = goods[idx - 1]
         # 声望门槛拦截：不足 → 提示所需等级
         if pts < g["tier"]:
             need_name = _tier_name(g["tier"])
             yield event.plain_result(
-                f"🏛️ 声望不足！需要 {f['name']} 声望达到『{need_name}』({g['tier']})，当前 {tier}({pts})。\n"
-                f"💡 击杀当地怪物、完成当地任务可提升声望。"
+                _T.text("repshop.rep_short", need=f['name'], faction=need_name, tier=g['tier'], cur=tier,
+                    cur2=pts)
             )
             return
         it = _cat_items.ITEMS[g["item"]]
         price = int(g.get("price", it["price"]))
         if player["gold"] < price:
-            yield event.plain_result(f"金币不足！需要 {price} 金币。")
+            yield event.plain_result(_T.text("repshop.gold_short", gold=price))
             return
         db.update_player(group_id, qq_id, gold=player["gold"] - price)
         itype = "材料" if g["item"] in _cat_items.MATERIALS else "消耗品"
         # v104 M09-P0 教训：全量拷贝定义字段（hot/effect 等），防丢字段
         db.add_item(group_id, qq_id, g["item"], {**it, "type": itype, "stackable": True, "price": price})
-        yield event.plain_result(f"✅ 你用 {f['name']} 声望买到了【{it['name']}】！（花费 {price} 金币）")
+        yield event.plain_result(_T.text("repshop.buy_ok", faction=f['name'], name=it['name'], gold=price))
         return
     # 商品列表
-    lines = [f"🏛️ 【{f['icon']} {f['name']} · 声望商店】你的声望：{tier}({pts})", "━━━━━━━━━━━━"]
+    lines = [_T.text("repshop.panel_head", faction=f['icon'], title=f['name'], cur=tier, tier=pts), "━━━━━━━━━━━━"]
     for i, g in enumerate(goods, 1):
         it = _cat_items.ITEMS[g["item"]]
         need_name = _tier_name(g["tier"])
         price = int(g.get("price", it["price"]))
         if pts >= g["tier"]:
-            mark, extra = "✅", f"—— {price} 金币"
+            mark, extra = "✅", _T.text("repshop.item_gold", gold=price)
         else:
-            mark, extra = "🔒", f"—— 需『{need_name}』({g['tier']})"
+            mark, extra = "🔒", _T.text("repshop.item_locked", tier_name=need_name, tier=g['tier'])
         lines.append(f"{i:>2}. {mark} {it['name']}（{it['desc']}）{extra}")
     lines.append("")
-    lines.append(f"💡 『声望商店 {f['name']} 购买 <序号>』购买商品（金币支付）")
+    lines.append(_T.text("repshop.panel_tip", faction=f['name']))
     yield event.plain_result("\n".join(lines))
 
 
@@ -4065,45 +4065,44 @@ async def camp_join(self, event: AstrMessageEvent):
 
     def _camp_line(i, cid):
         c = FACTION_CAMPS[cid]
-        mark = "✅ 你在此" if cur == cid else ""
+        mark = _T.static("campjoin.line_here") if cur == cid else ""
         return f"{i:>2}. {c['icon']} {c['name']}：{c['desc']}{mark and '　' + mark or ''}"
 
     # 列表/查看当前
     if not raw or raw == "查看":
-        lines = ["🏛️ 【四大阵营 · 国战阵营选择】", "━━━━━━━━━━━━"]
+        lines = [_T.static("campjoin.head"), "━━━━━━━━━━━━"]
         for i, cid in enumerate(camp_order, 1):
             lines.append(_camp_line(i, cid))
         lines.append("")
         if cur:
             ccur = FACTION_CAMPS[cur]
-            lines.append(f"📛 你当前隶属：{ccur['icon']} {ccur['name']}")
-            lines.append(f"💡 想改弦易辙？输入『加入阵营 <其他编号>』（切换有冷却 {FACTION_CAMP_SWITCH_COOLDOWN // 86400} 天）")
+            lines.append(_T.text("campjoin.current", icon=ccur['icon'], name=ccur['name']))
+            lines.append(_T.text("campjoin.switch_tip", days=FACTION_CAMP_SWITCH_COOLDOWN // 86400))
         else:
-            lines.append(f"💡 Lv.{FACTION_CAMP_OPEN_LV} 起可选择阵营：『加入阵营 <编号>』")
-            lines.append("   加入后解锁每日阵营任务与阵营商店。")
+            lines.append(_T.text("campjoin.lv_tip", lv=FACTION_CAMP_OPEN_LV))
+            lines.append(_T.static("campjoin.after_tip"))
         yield event.plain_result("\n".join(lines))
         return
 
     # 加入指定阵营
     if not raw.isdigit():
-        yield event.plain_result("格式：『加入阵营 <编号>』（输入『加入阵营』查看四大阵营列表）")
+        yield event.plain_result(_T.static("campjoin.usage"))
         return
     idx = int(raw)
     if idx < 1 or idx > len(camp_order):
-        yield event.plain_result(f"没有第 {idx} 号阵营！输入『加入阵营』查看列表。")
+        yield event.plain_result(_T.text("campjoin.no_idx", idx=idx))
         return
     target = camp_order[idx - 1]
     # 等级门槛
     lv = player.get("level") or 1
     if lv < FACTION_CAMP_OPEN_LV:
         yield event.plain_result(
-            f"⚜️ 你需要达到 Lv.{FACTION_CAMP_OPEN_LV} 才能加入阵营！当前 Lv.{lv}。\n"
-            f"💡 继续历练，国战之门终将为你敞开～")
+            _T.text("campjoin.lv_short", need=FACTION_CAMP_OPEN_LV, lv=lv))
         return
     # 已加入判定
     if cur == target:
         c = FACTION_CAMPS[target]
-        yield event.plain_result(f"你已是 {c['icon']} {c['name']} 的成员，无需重复加入。")
+        yield event.plain_result(_T.text("campjoin.already", icon=c['icon'], name=c['name']))
         return
     # 切换冷却判定（有当前阵营时）
     if cur:
@@ -4113,8 +4112,7 @@ async def camp_join(self, event: AstrMessageEvent):
             left = FACTION_CAMP_SWITCH_COOLDOWN - spent
             ccur = FACTION_CAMPS[cur]
             yield event.plain_result(
-                f"⏳ 你在 {ccur['icon']} {ccur['name']} 的军籍新立，还需 {left // 86400} 天才能换阵。\n"
-                f"💡 阵营切换冷却缺省 7 天（FACTION_CAMP_SWITCH_COOLDOWN 可配）。")
+                _T.text("campjoin.cooldown", icon=ccur['icon'], name=ccur['name'], days=left // 86400))
             return
     # 写入阵营
     db.update_player(group_id, qq_id, faction=target)
@@ -4125,10 +4123,7 @@ async def camp_join(self, event: AstrMessageEvent):
     # 成就判定：选择阵营（faction 非空）等
     _ach.check_achievements(group_id, qq_id)
     yield event.plain_result(
-        f"⚔️ 你宣誓效忠【{c['icon']} {c['name']}】！({c['desc']})\n"
-        f"━━━━━━━━━━━━\n"
-        f"📜 现在可以『阵营任务』接取今日重任、『阵营商店』兑换军需物资！\n"
-        f"{c['buff_text']}"
+        _T.text("campjoin.ok", icon=c['icon'], name=c['name'], desc=c['desc'], tail=c['buff_text'])
     )
 
 
@@ -4144,7 +4139,7 @@ async def camp_task(self, event: AstrMessageEvent):
     player = self._player(group_id, qq_id)
     cur = (player.get("faction") or "").strip()
     if not cur:
-        yield event.plain_result("你还未加入任何阵营！先『加入阵营 <编号>』选择归宿，方能领受国战任务。")
+        yield event.plain_result(_T.static("camptask.no_faction"))
         return
     c = FACTION_CAMPS[cur]
     raw = self._strip_cmd(event, "阵营任务").strip()
@@ -4165,45 +4160,46 @@ async def camp_task(self, event: AstrMessageEvent):
     tasks = data.get("tasks", [])
     # 查看
     if not raw:
-        lines = [f"⚔️ 【{c['icon']} {c['name']} · 今日阵营任务】", "━━━━━━━━━━━━"]
+        lines = [_T.text("camptask.head", icon=c['icon'], name=c['name']), "━━━━━━━━━━━━"]
         if not tasks:
-            lines.append("今日暂无阵营任务。")
+            lines.append(_T.static("camptask.empty"))
         else:
             for i, t in enumerate(tasks, 1):
                 have = db.count_item(group_id, qq_id, t["item"])
                 mark = "✅" if t["delivered"] >= t["count"] else "⏳"
                 need = t["count"]
-                lines.append(f"{i:>2}. {mark} {t['name']}：交付 {t['item']} ×{need} → 贡献 +{t['reward']}（背包 {have}）")
-            lines.append(f"    本日已完成交付：{data.get('done_today', 0)}/{FACTION_CAMP_DAILY_LIMIT}")
+                lines.append(_T.text("camptask.row", idx=i, mark=mark, name=t['name'], item=t['item'], qty=need,
+                                 contrib=t['reward'], own=have))
+            lines.append(_T.text("camptask.done_count", done=data.get('done_today', 0), total=FACTION_CAMP_DAILY_LIMIT))
         lines.append("")
-        lines.append(f"ℹ️ 当前贡献：{data.get('contrib', 0)}　累计完成任务：{data.get('done_total', 0)} 次")
+        lines.append(_T.text("camptask.stat", contrib=data.get('contrib', 0), n=data.get('done_total', 0)))
         lines.append(self._tip("faction_task"))
         yield event.plain_result("\n".join(lines))
         return
 
     # 交付
     if not raw.isdigit():
-        yield event.plain_result("格式：『阵营任务 <序号>』交付；『阵营任务』查看今日任务。")
+        yield event.plain_result(_T.static("camptask.usage"))
         return
     idx = int(raw)
     if idx < 1 or idx > len(tasks):
-        yield event.plain_result(f"没有第 {idx} 号任务！『阵营任务』查看今日任务。")
+        yield event.plain_result(_T.text("camptask.no_idx", idx=idx))
         return
     t = tasks[idx - 1]
     if t["delivered"] >= t["count"]:
-        yield event.plain_result(f"『{t['name']}』今日已完成！试试其他任务或『阵营任务』查看。")
+        yield event.plain_result(_T.text("camptask.already", name=t['name']))
         return
     # 每日完成上限
     if data.get("done_today", 0) >= FACTION_CAMP_DAILY_LIMIT:
         yield event.plain_result(
-            f"📛 今日阵营任务完成数已达上限（{FACTION_CAMP_DAILY_LIMIT} 个），明天再来为国征战！")
+            _T.text("camptask.limit", cap=FACTION_CAMP_DAILY_LIMIT))
         return
     # 扣背包材料（按收集型交付模式）
     have = db.count_item(group_id, qq_id, t["item"])
     if have < t["count"]:
         yield event.plain_result(
-            f"📦 材料不足！『{t['name']}』需要 {t['item']} ×{t['count']}，你只有 {have} 个。\n"
-            f"{self._tip('faction_task')}。")
+            _T.text("camptask.mat_short", name=t['name'], item=t['item'], qty=t['count'], own=have,
+                tail=self._tip('faction_task')))
         return
     db.remove_item(group_id, qq_id, t["item"], t["count"])
     t["delivered"] = t["count"]
@@ -4214,9 +4210,9 @@ async def camp_task(self, event: AstrMessageEvent):
     # 成就判定：阵营贡献≥100/500（阵营先锋/大陆之柱）在此推进
     _ach.check_achievements(group_id, qq_id)
     yield event.plain_result(
-        f"📜 你交付了『{t['name']}』（{t['item']} ×{t['count']}）！\n"
-        f"🏅 阵营贡献 +{t['reward']}（当前 {data['contrib']}）\n"
-        f"🎖️ 本日完成 {data['done_today']}/{FACTION_CAMP_DAILY_LIMIT}"
+        _T.text("camptask.deliver_ok", name=t['name'], item=t['item'], qty=t['count'],
+            contrib=t['reward'], cur=data['contrib'], done=data['done_today'],
+            total=FACTION_CAMP_DAILY_LIMIT)
     )
 
 
@@ -4233,10 +4229,10 @@ async def camp_shop(self, event: AstrMessageEvent):
     raw = self._strip_cmd(event, "阵营商店").strip()
     data = self._camp_ctx(group_id, qq_id)
     contrib = int(data.get("contrib", 0))
-    head = "🏛️ 【阵营商店 · 军需物资】"
+    head = _T.static("campshop.head")
     if cur:
         c = FACTION_CAMPS[cur]
-        head = f"🏛️ 【{c['icon']} {c['name']} · 阵营商店】你的贡献：{contrib}"
+        head = _T.text("campshop.panel_head", icon=c['icon'], name=c['name'], contrib=contrib)
     curf = FACTION_CAMPS.get(cur) if cur else None
     if not cur:
         curf = None
@@ -4246,9 +4242,9 @@ async def camp_shop(self, event: AstrMessageEvent):
         lines = [head, "━━━━━━━━━━━━"]
         for i, g in enumerate(FACTION_CAMP_SHOP, 1):
             if contrib >= g["cost"]:
-                mark, extra = "✅", f"—— 花 {g['cost']} 贡献"
+                mark, extra = "✅", _T.text("campshop.item_cost", contrib=g['cost'])
             else:
-                mark, extra = "🔒", f"—— 需 {g['cost']} 贡献"
+                mark, extra = "🔒", _T.text("campshop.item_locked", contrib=g['cost'])
             lines.append(f"{i:>2}. {mark} {g['name']} {extra}")
         lines.append("")
         if not cur:
@@ -4260,20 +4256,19 @@ async def camp_shop(self, event: AstrMessageEvent):
 
     # 购买
     if not cur:
-        yield event.plain_result("你还未加入任何阵营！先『加入阵营 <编号>』再兑换军需。")
+        yield event.plain_result(_T.static("campshop.no_faction"))
         return
     if not raw.isdigit():
-        yield event.plain_result("格式：『阵营商店 <序号>』购买；『阵营商店』查看列表。")
+        yield event.plain_result(_T.static("campshop.usage"))
         return
     idx = int(raw)
     if idx < 1 or idx > len(FACTION_CAMP_SHOP):
-        yield event.plain_result(f"没有第 {idx} 号商品！『阵营商店』查看列表。")
+        yield event.plain_result(_T.text("campshop.no_idx", idx=idx))
         return
     g = FACTION_CAMP_SHOP[idx - 1]
     if contrib < g["cost"]:
         yield event.plain_result(
-            f"🏛️ 贡献不足！需 {g['cost']} 贡献，当前 {contrib}。\n"
-            f"{self._tip('faction_task')}。")
+            _T.text("campshop.contrib_short", need=g['cost'], cur=contrib, tail=self._tip('faction_task')))
         return
     # 扣贡献 + 发物品
     data["contrib"] = contrib - g["cost"]
@@ -4282,8 +4277,7 @@ async def camp_shop(self, event: AstrMessageEvent):
     itype = "材料" if g["item"] in _cat_items.MATERIALS else "消耗品"
     db.add_item(group_id, qq_id, g["item"], {**it, "type": itype, "stackable": True, "price": it.get("price", 0)})
     yield event.plain_result(
-        f"🎁 你用 {g['cost']} 阵营贡献兑换了【{it.get('name', g['name'])}】！\n"
-        f"📦 已收入背包，剩余贡献：{data['contrib']}"
+        _T.text("campshop.buy_ok", name=g['cost'], item=it.get('name', g['name']), left=data['contrib'])
     )
 
 
@@ -4312,11 +4306,12 @@ async def camp_rank(self, event: AstrMessageEvent):
     ranked = sorted(FACTION_CAMPS.keys(),
                     key=lambda cid: (camp_count.get(cid, 0), camp_contrib.get(cid, 0)),
                     reverse=True)
-    lines = ["🏆 【阵营国战 · 排行】", "━━━━━━━━━━━━"]
+    lines = [_T.static("camprank.head"), "━━━━━━━━━━━━"]
     for i, cid in enumerate(ranked, 1):
         c = FACTION_CAMPS[cid]
         lines.append(
-            f"{i}. {c['icon']} {c['name']}：成员 {camp_count.get(cid, 0)} 人 · 总贡献 {camp_contrib.get(cid, 0)}")
+            _T.text("camprank.row", idx=i, name=c['icon'], icon=c['name'], members=camp_count.get(cid, 0),
+                contrib=camp_contrib.get(cid, 0)))
     lines.append("")
     lines.append(self._tip("faction"))
     yield event.plain_result("\n".join(lines))

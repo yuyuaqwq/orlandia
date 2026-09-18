@@ -110,7 +110,11 @@ FROZEN_COUNTS = {
     #     home_storage / home_storage_take / _home_view
     #     52 处替换 / 48 新键（storage_full×2、storage_not_home×2 幂等复用；
     #     prof.fish_battle×2 跨片复用既有键）⇒ 1608 → 1656。
-    "texts": 1656,
+    #   ★ 2026-09-18 C 档 18d-2（B-2 第 4 片第 4 小片）：world 散落「营地·休息·声望·阵营」——
+    #     rest_camp / rest / reputation / rep_shop / camp_join / _camp_line / camp_task /
+    #     camp_shop / camp_rank
+    #     64 处替换 / 64 新键（无复用）⇒ 1656 → 1720。
+    "texts": 1720,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
