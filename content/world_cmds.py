@@ -420,25 +420,26 @@ async def deed_view(self, event: AstrMessageEvent, group_id, qq_id, player):
             yield _r
         return
     deed = player.get("deed", "") or ""
-    lines = ["🏠 【地契大厅】", "━━━━━━━━━━━━"]
+    lines = [_T.static("house.head"), "━━━━━━━━━━━━"]
     if deed and deed in _cat_life.PROPERTIES:
         prop = _cat_life.PROPERTIES[deed]
         dlv = int(player.get("deed_lv", 1) or 1)
         hl = _cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])
-        lines.append(f"✅ 我的地契：{prop['name']}({_cat_space.MAP_BY_ID.get(prop['map'], {}).get('name', '？')})")
-        lines.append(f"   🏗️ {hl['name']} Lv.{dlv} ｜ 仓库 {hl['storage']} 格 ｜ 回家恢复 {int(hl['heal_pct'] * 100)}%")
+        lines.append(_T.text("house.mine", name=prop['name'],
+                         map=_cat_space.MAP_BY_ID.get(prop['map'], {}).get('name', '？')))
+        lines.append(_T.text("house.row", name=hl['name'], lv=dlv, cap=hl['storage'], heal=int(hl['heal_pct'] * 100)))
         if dlv < _cat_life.HOUSE_MAX_LEVEL:
             nxt = _cat_life.HOUSE_LEVELS[dlv + 1]
-            cost = f"{nxt['upgrade_cost']['gold']} 金币 + " + " + ".join(f"{_idx.display('materials', m)}×{c}" for m, c in nxt['upgrade_cost']['mats'].items())
-            lines.append(f"   ⬆️ 升级 Lv.{dlv + 1}【{nxt['name']}】：{cost}(『地契 升级』)")
+            cost = _T.text("house.upgrade_cost", gold=nxt['upgrade_cost']['gold']) + " + ".join(f"{_idx.display('materials', m)}×{c}" for m, c in nxt['upgrade_cost']['mats'].items())
+            lines.append(_T.text("house.upgrade_row", lv=dlv + 1, name=nxt['name'], need=cost))
         else:
-            lines.append("   ⭐ 已满级宅邸！")
-        lines.append(f"   『回家』进入，『卖房』退契(返还 {int(_cat_life.HOUSE_REFUND.get(dlv, 0.5) * 100)}%)")
+            lines.append(_T.static("house.max"))
+        lines.append(_T.text("house.sell_hint", pct=int(_cat_life.HOUSE_REFUND.get(dlv, 0.5) * 100)))
     else:
-        lines.append("你还没有房产。以下地皮在出售：")
+        lines.append(_T.static("house.none_head"))
         for i, (pid, prop) in enumerate(_cat_life.PROPERTIES.items(), 1):
             mname = _cat_space.MAP_BY_ID.get(prop["map"], {}).get("name", "？")
-            lines.append(f"{i:>2}. {prop['name']} ｜ {prop['price']} 金币 ｜ {mname}")
+            lines.append(_T.text("house.for_sale_row", idx=i, name=prop['name'], price=prop['price'], map=mname))
             lines.append(f"     {prop['desc']}")
         lines.append(self._tip("house"))
     yield event.plain_result("\n".join(lines))
@@ -446,39 +447,38 @@ async def deed_view(self, event: AstrMessageEvent, group_id, qq_id, player):
 
 async def deed_buy(self, event: AstrMessageEvent, group_id, qq_id, player):
     if player.get("deed"):
-        yield event.plain_result("你已经有一张地契了！『地契』查看，『卖房』可以退契～")
+        yield event.plain_result(_T.static("house.already"))
         return
     raw = self._strip_cmd(event, "买房").strip()
     if not raw.isdigit():
-        yield event.plain_result("格式：买房 <编号>！『地契』查看在售地皮～")
+        yield event.plain_result(_T.static("house.buy_usage"))
         return
     idx = int(raw)
     props = list(_cat_life.PROPERTIES.items())
     if idx < 1 or idx > len(props):
-        yield event.plain_result(f"没有第 {idx} 块地皮(共 {len(props)} 块)！『地契』查看～")
+        yield event.plain_result(_T.text("house.buy_no_idx", idx=idx, total=len(props)))
         return
     pid, prop = props[idx - 1]
     price = prop["price"]
     if player["gold"] < price:
-        yield event.plain_result(f"买【{prop['name']}】需要 {price} 金币，你只有 {player['gold']}。攒够钱再来吧！")
+        yield event.plain_result(_T.text("house.buy_gold_short", name=prop['name'], price=price, have=player['gold']))
         return
     # v104 M09 P1 修复：房产全服唯一·先到先得（25 章承诺）——买时登记房主，他人已持有则拦截
     _owner = db.get_event_state(f"deed_owner_{pid}")
     if _owner and str(_owner) != str(qq_id):
-        yield event.plain_result(f"🏠 【{prop['name']}】已经被其他冒险者买下了！先到先得，看看其他地皮吧～")
+        yield event.plain_result(_T.text("house.buy_taken", name=prop['name']))
         return
     db.update_player(group_id, qq_id, gold=player["gold"] - price, deed=pid)
     db.set_event_state(f"deed_owner_{pid}", str(qq_id))  # v104 M09 P1：登记房主（卖房时释放）
     yield event.plain_result(
-        f"🏠 恭喜置业！你买下了【{prop['name']}】(花费 {price} 金币)\n"
-        f"『回家』入住，『地契』查看详情，『仓库』管理家当～"
+        _T.text("house.buy_ok", name=prop['name'], price=price)
     )
 
 
 async def deed_sell(self, event: AstrMessageEvent, group_id, qq_id, player):
     deed = player.get("deed", "") or ""
     if not deed or deed not in _cat_life.PROPERTIES:
-        yield event.plain_result("你没有房产，卖不了～『地契』看看在售地皮！")
+        yield event.plain_result(_T.static("house.sell_none"))
         return
     prop = _cat_life.PROPERTIES[deed]
     dlv = int(player.get("deed_lv", 1) or 1)
@@ -486,25 +486,28 @@ async def deed_sell(self, event: AstrMessageEvent, group_id, qq_id, player):
     refund = int(prop["price"] * refund_pct)
     db.update_player(group_id, qq_id, gold=player["gold"] + refund, deed="", deed_lv=1)
     db.set_event_state(f"deed_owner_{deed}", "")  # v104 M09 P1：卖房释放产权（先到先得）
-    yield event.plain_result(f"🏠 你卖掉了【{prop['name']}】({_cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])['name']} Lv.{dlv})，退还 {refund} 金币({int(refund_pct * 100)}%)。")
+    yield event.plain_result(_T.text("house.sell_ok", name=prop['name'],
+                                 lv_name=_cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])['name'],
+                                 lv=dlv, gold=refund, pct=int(refund_pct * 100)))
 
 
 async def _deed_upgrade(self, event, group_id, qq_id, player):
     """v84 房屋升级(25 章三)：『地契 升级』消耗金币+材料升房屋等级"""
     deed = player.get("deed", "") or ""
     if not deed or deed not in _cat_life.PROPERTIES:
-        yield event.plain_result("你没有房产，升级不了～『地契』看看在售地皮！")
+        yield event.plain_result(_T.static("house.up_none"))
         return
     dlv = int(player.get("deed_lv", 1) or 1)
     if dlv >= _cat_life.HOUSE_MAX_LEVEL:
-        yield event.plain_result("你的房屋已经是满级宅邸啦！")
+        yield event.plain_result(_T.static("house.up_max"))
         return
     nxt = _cat_life.HOUSE_LEVELS[dlv + 1]
     cost = nxt["upgrade_cost"]
     # 金币检查
     if player["gold"] < cost["gold"]:
         yield event.plain_result(
-            f"升级 Lv.{dlv + 1}【{nxt['name']}】需要 {cost['gold']} 金币，你只有 {player['gold']}。")
+            _T.text("house.up_gold_short", lv=dlv + 1, name=nxt['name'], gold=cost['gold'],
+                have=player['gold']))
         return
     # 材料检查
     inv = db.get_inventory(group_id, qq_id)
@@ -516,7 +519,8 @@ async def _deed_upgrade(self, event, group_id, qq_id, player):
         mname = _idx.display("materials", mid)
         if inv_map.get(mname, 0) < need:
             yield event.plain_result(
-                f"升级 Lv.{dlv + 1}【{nxt['name']}】需要 {mname}×{need}，你只有 {inv_map.get(mname, 0)}。去『挖掘』吧～")
+                _T.text("house.up_mat_short", lv=dlv + 1, name=nxt['name'], mat=mname, qty=need,
+                    have=inv_map.get(mname, 0)))
             return
     # 扣材料 + 扣金币 + 升级
     for mid, need in cost["mats"].items():
@@ -529,18 +533,18 @@ async def _deed_upgrade(self, event, group_id, qq_id, player):
     db.update_player(group_id, qq_id, gold=player["gold"] - cost["gold"], deed_lv=dlv + 1)
     hl = _cat_life.HOUSE_LEVELS[dlv + 1]
     yield event.plain_result(
-        f"🔨 叮叮当当一阵敲打——房屋升级为【{hl['name']}】Lv.{dlv + 1}！\n"
-        f"📦 仓库扩容至 {hl['storage']} 格 ｜ 回家恢复 {int(hl['heal_pct'] * 100)}%"
-        + (f" ｜ 铺面挂机位 +{hl['stall_slots']}" if hl["stall_slots"] else "")
-        + (f"\n💡 满级宅邸解锁专属传送点(『回家』可直达)" if dlv + 1 >= _cat_life.HOUSE_MAX_LEVEL else ""))
+        _T.text("house.up_ok", name=hl['name'], lv=dlv + 1, cap=hl['storage'],
+            heal=int(hl['heal_pct'] * 100))
+        + (_T.text("house.up_shop_slot", n=hl['stall_slots']) if hl["stall_slots"] else "")
+        + (_T.text("house.up_max_tip", ) if dlv + 1 >= _cat_life.HOUSE_MAX_LEVEL else ""))
 
 
 async def go_home(self, event: AstrMessageEvent, group_id, qq_id, player):
     if not (player.get("deed") or ""):
-        yield event.plain_result("你没有房产！『地契』看看在售地皮，『买房 <编号>』置业～")
+        yield event.plain_result(_T.static("house.home_none"))
         return
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("你正在战斗中！先解决眼前的敌人(攻击/逃跑)")
+        yield event.plain_result(_T.static("prof.fish_battle"))
         return
     # v84 回家恢复（按房屋等级 heal_pct）
     dlv = int(player.get("deed_lv", 1) or 1)
@@ -550,14 +554,14 @@ async def go_home(self, event: AstrMessageEvent, group_id, qq_id, player):
     new_mp = max(player.get("mp", 0), int(player.get("max_mp", 1) * heal_pct))
     db.update_player(group_id, qq_id, cur_map=self._home_map_id(qq_id), cur_subarea="", hp=new_hp, mp=new_mp)
     yield event.plain_result(
-        f"🏠 你回到了自己的家({hl['name']})，炭火噼啪作响，安心～\n"
-        f"💚 恢复至 {new_hp}/{player.get('max_hp', 1)} HP ｜ 💙 {new_mp}/{player.get('max_mp', 1)} MP")
+        _T.text("house.home_ok", name=hl['name'], hp=new_hp, hp_max=player.get('max_hp', 1), mp=new_mp,
+            mp_max=player.get('max_mp', 1)))
 
 
 async def go_out(self, event: AstrMessageEvent, group_id, qq_id, player):
     cur = player.get("cur_map", "")
     if not cur.startswith("home_"):
-        yield event.plain_result("你不在家里，不需要出门～")
+        yield event.plain_result(_T.static("house.out_none"))
         return
     deed = player.get("deed", "") or ""
     prop = _cat_life.PROPERTIES.get(deed)
@@ -566,28 +570,28 @@ async def go_out(self, event: AstrMessageEvent, group_id, qq_id, player):
     first_sa = tgt_sas[0] if tgt_sas else None
     db.update_player(group_id, qq_id, cur_map=target,
                      cur_subarea=first_sa["id"] if first_sa else "")
-    yield event.plain_result(f"🚪 你走出家门，回到了{_cat_space.MAP_BY_ID.get(target, {}).get('name', '城镇')}。")
+    yield event.plain_result(_T.text("house.out_ok", where=_cat_space.MAP_BY_ID.get(target, {}).get('name', '城镇')))
 
 
 async def visit_home(self, event: AstrMessageEvent, group_id, qq_id, player):
     raw = self._strip_cmd(event, "拜访").strip()
     if not raw:
-        yield event.plain_result("格式：拜访 <玩家名>，去他家逛逛～(对方需要有房产)")
+        yield event.plain_result(_T.static("house.visit_usage"))
         return
     target = db.find_player_by_name(raw)
     if not target:
-        yield event.plain_result(f"没找到玩家『{raw}』！")
+        yield event.plain_result(_T.text("house.visit_no_player", name=raw))
         return
     tid = target["qq_id"]
     tp = db.get_player(group_id, tid)
     if not tp or not (tp.get("deed") or ""):
-        yield event.plain_result(f"{target['name']} 还没有房产，去不了他家～")
+        yield event.plain_result(_T.text("house.visit_no_house", name=target['name']))
         return
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("你正在战斗中！先解决眼前的敌人(攻击/逃跑)")
+        yield event.plain_result(_T.static("prof.fish_battle"))
         return
     db.update_player(group_id, qq_id, cur_map=self._home_map_id(tid), cur_subarea="")
-    yield event.plain_result(f"🚪 你敲了敲门，走进了 {target['name']} 的家。『地图』看看他家有什么～")
+    yield event.plain_result(_T.text("house.visit_ok", name=target['name']))
 
 
 def _home_storage_key(self, group_id, qq_id):
@@ -611,7 +615,7 @@ def _home_storage_save(self, group_id, qq_id, lst):
 
 async def home_storage(self, event: AstrMessageEvent, group_id, qq_id, player):
     if not player.get("cur_map", "").startswith("home_"):
-        yield event.plain_result("仓库在家里！先『回家』吧～")
+        yield event.plain_result(_T.static("house.storage_not_home"))
         return
     raw = self._strip_cmd(event, "仓库").strip()
     # 存：仓库 <物品名>
@@ -622,12 +626,12 @@ async def home_storage(self, event: AstrMessageEvent, group_id, qq_id, player):
         lst = self._home_storage_load(group_id, qq_id)
         if len(lst) >= hl["storage"]:
             yield event.plain_result(
-                f"📦 仓库满了({len(lst)}/{hl['storage']} 格)！升级房屋扩容(『地契 升级』)")
+                _T.text("house.storage_full", cur=len(lst), cap=hl['storage']))
             return
         inv = db.get_inventory(group_id, qq_id)
         found = next((it for it in inv if it["data"].get("name") == raw), None)
         if not found:
-            yield event.plain_result(f"背包里没有『{raw}』！")
+            yield event.plain_result(_T.text("house.storage_no_item", name=raw))
             return
         # F1 P0-2：原子存仓（同事务：读-判容量→append→写回→扣背包），
         # 并发双请求只有首个成功（另一请求事务内重读 storage 已满 → 提示仓库满）
@@ -637,16 +641,16 @@ async def home_storage(self, event: AstrMessageEvent, group_id, qq_id, player):
         )
         if not _ok:
             yield event.plain_result(
-                f"📦 仓库满了({_n}/{hl['storage']} 格)！升级房屋扩容(『地契 升级』)")
+                _T.text("house.storage_full", cur=_n, cap=hl['storage']))
             return
-        yield event.plain_result(f"📦 已存入仓库：【{found['data'].get('name', raw)}】({_n}/{hl['storage']})")
+        yield event.plain_result(_T.text("house.storage_ok", name=found['data'].get('name', raw), cur=_n, cap=hl['storage']))
         return
     # 查看
     lst = self._home_storage_load(group_id, qq_id)
     if not lst:
-        yield event.plain_result("仓库空空如也。『仓库 <物品名>』把背包里的宝贝存进来～")
+        yield event.plain_result(_T.static("house.storage_empty"))
         return
-    lines = ["📦 【家中仓库】", "━━━━━━━━━━━━"]
+    lines = [_T.static("house.storage_head"), "━━━━━━━━━━━━"]
     for i, it in enumerate(lst, 1):
         lines.append(f"{i:>2}. {it['data'].get('name', '?')} ×{it.get('count', 1)}")
     lines.append(self._tip("storage"))
@@ -655,11 +659,11 @@ async def home_storage(self, event: AstrMessageEvent, group_id, qq_id, player):
 
 async def home_storage_take(self, event: AstrMessageEvent, group_id, qq_id, player):
     if not player.get("cur_map", "").startswith("home_"):
-        yield event.plain_result("仓库在家里！先『回家』吧～")
+        yield event.plain_result(_T.static("house.storage_not_home"))
         return
     raw = self._strip_cmd(event, "取出").strip()
     if not raw.isdigit():
-        yield event.plain_result("格式：取出 <编号>！『仓库』查看～")
+        yield event.plain_result(_T.static("house.take_usage"))
         return
     idx = int(raw)
     # F1 P0-2：原子取出（单事务：读→pop→写回→加背包），并发双请求只有首个取出
@@ -668,9 +672,9 @@ async def home_storage_take(self, event: AstrMessageEvent, group_id, qq_id, play
     )
     if not _ok:
         lst = self._home_storage_load(group_id, qq_id)
-        yield event.plain_result(f"仓库里没有第 {idx} 件(共 {len(lst)} 件)！")
+        yield event.plain_result(_T.text("house.take_no_idx", idx=idx, total=len(lst)))
         return
-    yield event.plain_result(f"📦 取出【{it['data'].get('name', '?')}】，放入背包！")
+    yield event.plain_result(_T.text("house.take_ok", name=it['data'].get('name', '?')))
 
 
 async def map_view(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -2286,7 +2290,7 @@ def _home_view(self, group_id, qq_id, cur_map_id):
     owner_qid = cur_map_id[len("home_"):]
     owner = db.get_player(group_id, owner_qid)
     if not owner:
-        return "这个家的主人已经离开了……(『出门』离开)"
+        return _T.static("home.owner_left")
     is_mine = str(owner_qid) == str(qq_id)
     deed = owner.get("deed", "") or ""
     prop = _cat_life.PROPERTIES.get(deed, {})
@@ -2300,13 +2304,13 @@ def _home_view(self, group_id, qq_id, cur_map_id):
     # 此地玩家
     here = [p for p in db.get_group_players(group_id).values() if p.get("cur_map") == cur_map_id]
     if here:
-        lines.append("👤 屋里的人：")
+        lines.append(_T.static("home.people"))
         for p in here:
             lines.append(f"  {p['name']} Lv.{p['level']}")
     # 铺面摊位
     stalls = db.market_list(group_id, cur_map_id)
     if stalls:
-        lines.append("🏪 铺面摊位上摆着：")
+        lines.append(_T.static("home.stall_items"))
         for s in stalls:
             sname = "你" if str(s["seller"]) == str(qq_id) else (owner["name"] if str(s["seller"]) == str(owner_qid) else s["seller"])
             lines.append(f"  #{s['id']} {s['item_data'].get('name', '?')} ｜ {self._stall_label(s)} ｜ {sname}")
@@ -2316,17 +2320,17 @@ def _home_view(self, group_id, qq_id, cur_map_id):
         _odlv = int(owner.get("deed_lv", 1) or 1)
         _oslots = _cat_life.HOUSE_LEVELS.get(_odlv, _cat_life.HOUSE_LEVELS[1]).get("stall_slots", 0)
         if _oslots > 0:
-            lines.append("🏪 铺面空着——房主可以『摆摊 <物品> [价格]』开张(不带价格 = 换摊)！")
+            lines.append(_T.static("home.stall_owner_hint"))
         else:
-            lines.append("🏪 铺面空着——房主升级房屋(『地契 升级』)可解锁铺面挂机位。")
+            lines.append(_T.static("home.stall_locked_hint"))
     # 仓库（自己的家）
     if is_mine:
         storage = self._home_storage_load(group_id, qq_id)
         dlv = int(owner.get("deed_lv", 1) or 1)
         hl = _cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])
-        lines.append(f"📦 家中仓库：{len(storage)}/{hl['storage']} 件(『仓库』管理)")
+        lines.append(_T.text("home.storage_line", cur=len(storage), cap=hl['storage']))
         if hl.get("stall_slots"):
-            lines.append(f"🏪 铺面挂机位：{hl['stall_slots']} 个(『摆摊 <物品> [价格]』开张)")
+            lines.append(_T.text("home.stall_slots", n=hl['stall_slots']))
     lines.append("━━━━━━━━━━━━")
     lines.append(self._tip("home"))
     return "\n".join(lines)

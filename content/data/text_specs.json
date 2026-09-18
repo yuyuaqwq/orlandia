@@ -4575,6 +4575,363 @@
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_WORLD（B 批 B-1 B 档）"
   },
+  "home.owner_left": {
+    "value": "这个家的主人已经离开了……(『出门』离开)",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.people": {
+    "value": "👤 屋里的人：",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.stall_items": {
+    "value": "🏪 铺面摊位上摆着：",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.stall_locked_hint": {
+    "value": "🏪 铺面空着——房主升级房屋(『地契 升级』)可解锁铺面挂机位。",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.stall_owner_hint": {
+    "value": "🏪 铺面空着——房主可以『摆摊 <物品> [价格]』开张(不带价格 = 换摊)！",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.stall_slots": {
+    "value": "🏪 铺面挂机位：{n} 个(『摆摊 <物品> [价格]』开张)",
+    "params": [
+      "n"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.storage_line": {
+    "value": "📦 家中仓库：{cur}/{cap} 件(『仓库』管理)",
+    "params": [
+      "cur",
+      "cap"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "house.already": {
+    "value": "你已经有一张地契了！『地契』查看，『卖房』可以退契～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_buy（B 批 C 档）"
+  },
+  "house.buy_gold_short": {
+    "value": "买【{name}】需要 {price} 金币，你只有 {have}。攒够钱再来吧！",
+    "params": [
+      "name",
+      "price",
+      "have"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_buy（B 批 C 档）"
+  },
+  "house.buy_no_idx": {
+    "value": "没有第 {idx} 块地皮(共 {total} 块)！『地契』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_buy（B 批 C 档）"
+  },
+  "house.buy_ok": {
+    "value": "🏠 恭喜置业！你买下了【{name}】(花费 {price} 金币)\n『回家』入住，『地契』查看详情，『仓库』管理家当～",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_buy（B 批 C 档）"
+  },
+  "house.buy_taken": {
+    "value": "🏠 【{name}】已经被其他冒险者买下了！先到先得，看看其他地皮吧～",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_buy（B 批 C 档）"
+  },
+  "house.buy_usage": {
+    "value": "格式：买房 <编号>！『地契』查看在售地皮～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_buy（B 批 C 档）"
+  },
+  "house.for_sale_row": {
+    "value": "{idx:>2}. {name} ｜ {price} 金币 ｜ {map}",
+    "params": [
+      "idx",
+      "name",
+      "price",
+      "map"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.head": {
+    "value": "🏠 【地契大厅】",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.home_none": {
+    "value": "你没有房产！『地契』看看在售地皮，『买房 <编号>』置业～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:go_home（B 批 C 档）"
+  },
+  "house.home_ok": {
+    "value": "🏠 你回到了自己的家({name})，炭火噼啪作响，安心～\n💚 恢复至 {hp}/{hp_max} HP ｜ 💙 {mp}/{mp_max} MP",
+    "params": [
+      "name",
+      "hp",
+      "hp_max",
+      "mp",
+      "mp_max"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:go_home（B 批 C 档）"
+  },
+  "house.max": {
+    "value": "   ⭐ 已满级宅邸！",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.mine": {
+    "value": "✅ 我的地契：{name}({map})",
+    "params": [
+      "name",
+      "map"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.none_head": {
+    "value": "你还没有房产。以下地皮在出售：",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.out_none": {
+    "value": "你不在家里，不需要出门～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:go_out（B 批 C 档）"
+  },
+  "house.out_ok": {
+    "value": "🚪 你走出家门，回到了{where}。",
+    "params": [
+      "where"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:go_out（B 批 C 档）"
+  },
+  "house.row": {
+    "value": "   🏗️ {name} Lv.{lv} ｜ 仓库 {cap} 格 ｜ 回家恢复 {heal}%",
+    "params": [
+      "name",
+      "lv",
+      "cap",
+      "heal"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.sell_hint": {
+    "value": "   『回家』进入，『卖房』退契(返还 {pct}%)",
+    "params": [
+      "pct"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.sell_none": {
+    "value": "你没有房产，卖不了～『地契』看看在售地皮！",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_sell（B 批 C 档）"
+  },
+  "house.sell_ok": {
+    "value": "🏠 你卖掉了【{name}】({lv_name} Lv.{lv})，退还 {gold} 金币({pct}%)。",
+    "params": [
+      "name",
+      "lv_name",
+      "lv",
+      "gold",
+      "pct"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_sell（B 批 C 档）"
+  },
+  "house.storage_empty": {
+    "value": "仓库空空如也。『仓库 <物品名>』把背包里的宝贝存进来～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage（B 批 C 档）"
+  },
+  "house.storage_full": {
+    "value": "📦 仓库满了({cur}/{cap} 格)！升级房屋扩容(『地契 升级』)",
+    "params": [
+      "cur",
+      "cap"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage（B 批 C 档）"
+  },
+  "house.storage_head": {
+    "value": "📦 【家中仓库】",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage（B 批 C 档）"
+  },
+  "house.storage_no_item": {
+    "value": "背包里没有『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage（B 批 C 档）"
+  },
+  "house.storage_not_home": {
+    "value": "仓库在家里！先『回家』吧～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage（B 批 C 档）"
+  },
+  "house.storage_ok": {
+    "value": "📦 已存入仓库：【{name}】({cur}/{cap})",
+    "params": [
+      "name",
+      "cur",
+      "cap"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage（B 批 C 档）"
+  },
+  "house.take_no_idx": {
+    "value": "仓库里没有第 {idx} 件(共 {total} 件)！",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage_take（B 批 C 档）"
+  },
+  "house.take_ok": {
+    "value": "📦 取出【{name}】，放入背包！",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage_take（B 批 C 档）"
+  },
+  "house.take_usage": {
+    "value": "格式：取出 <编号>！『仓库』查看～",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:home_storage_take（B 批 C 档）"
+  },
+  "house.up_gold_short": {
+    "value": "升级 Lv.{lv}【{name}】需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "lv",
+      "name",
+      "gold",
+      "have"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.up_mat_short": {
+    "value": "升级 Lv.{lv}【{name}】需要 {mat}×{qty}，你只有 {have}。去『挖掘』吧～",
+    "params": [
+      "lv",
+      "name",
+      "mat",
+      "qty",
+      "have"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.up_max": {
+    "value": "你的房屋已经是满级宅邸啦！",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.up_max_tip": {
+    "value": "\n💡 满级宅邸解锁专属传送点(『回家』可直达)",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.up_none": {
+    "value": "你没有房产，升级不了～『地契』看看在售地皮！",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.up_ok": {
+    "value": "🔨 叮叮当当一阵敲打——房屋升级为【{name}】Lv.{lv}！\n📦 仓库扩容至 {cap} 格 ｜ 回家恢复 {heal}%",
+    "params": [
+      "name",
+      "lv",
+      "cap",
+      "heal"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.up_shop_slot": {
+    "value": " ｜ 铺面挂机位 +{n}",
+    "params": [
+      "n"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_deed_upgrade（B 批 C 档）"
+  },
+  "house.upgrade_cost": {
+    "value": "{gold} 金币 + ",
+    "params": [
+      "gold"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.upgrade_row": {
+    "value": "   ⬆️ 升级 Lv.{lv}【{name}】：{need}(『地契 升级』)",
+    "params": [
+      "lv",
+      "name",
+      "need"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:deed_view（B 批 C 档）"
+  },
+  "house.visit_no_house": {
+    "value": "{name} 还没有房产，去不了他家～",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:visit_home（B 批 C 档）"
+  },
+  "house.visit_no_player": {
+    "value": "没找到玩家『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:visit_home（B 批 C 档）"
+  },
+  "house.visit_ok": {
+    "value": "🚪 你敲了敲门，走进了 {name} 的家。『地图』看看他家有什么～",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:visit_home（B 批 C 档）"
+  },
+  "house.visit_usage": {
+    "value": "格式：拜访 <玩家名>，去他家逛逛～(对方需要有房产)",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:visit_home（B 批 C 档）"
+  },
   "hurry.usage": {
     "value": "『赶路』可选参数：NPC / 怪物 / 场景 / 设施（例：『赶路 NPC』；无参=看当前全部可前往）～",
     "category": "地图导航",

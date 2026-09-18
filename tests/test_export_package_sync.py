@@ -105,7 +105,12 @@ FROZEN_COUNTS = {
     #   ★ 2026-09-18 C 档 18c（B-2 第 4 片第 2 小片）：world 散落「任务委托族」——
     #     quest_accept（接取）· quest_abandon（放弃）· daily（悬赏板红名）
     #     30 处替换 / 25 新键（main_ready×2、side_head×2、reward×2、objective×2、abandon.done×2 幂等复用）⇒ 1583 → 1608。
-    "texts": 1608,
+    #   ★ 2026-09-18 C 档 18d-1（B-2 第 4 片第 3 小片）：world 散落「家园·地契」——
+    #     deed_view / deed_buy / deed_sell / _deed_upgrade / go_home / go_out / visit_home /
+    #     home_storage / home_storage_take / _home_view
+    #     52 处替换 / 48 新键（storage_full×2、storage_not_home×2 幂等复用；
+    #     prof.fish_battle×2 跨片复用既有键）⇒ 1608 → 1656。
+    "texts": 1656,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
