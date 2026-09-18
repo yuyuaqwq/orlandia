@@ -13,6 +13,8 @@ re-export」（`CONDITIONS` / `register` / `TitleCtx` / `check_pro_title` / 各 
    `db = _HostMod("db")`（`_db()` 仍返回该句柄，调用点 `ctx._db().xxx()` 一行未改）；
    函数内 `from .. import content as C`（rep_honor / rep_legend / hidden 三处）删除；
    `_has_flag` 的 `from .. import content as _C` → ★ W4 切包内读口 `content/wild.py`（原 `_C = C`）。
+   ★ 2026-09-19（审计尾巴 #34）：本表描述的 `_HostMod` / `_host_module` / `_host_attr` 手写替身口
+   随 `_pkgref` 接入已**全仓零调用点**，本次删净（只留 `bind_host` 形参位）。
 2. 读点（B14-2，L7 线已切三名包内门面）：`C.MAPS` → `content/catalog_space.py:MAPS` ·
    `C.NPCS` / `C.HIDDEN_NPCS` → `content/catalog_quests.py`（门禁逐名 OK · 不等 0，含键序；
    MAPS 实测保留 `hidden`/`type`，NPCS=362 / HIDDEN_NPCS=22 与宿主同值同序 —— B13-L4 时期
@@ -36,69 +38,22 @@ re-export」（`CONDITIONS` / `register` / `TitleCtx` / `check_pro_title` / 各 
 
 from __future__ import annotations
 
-import importlib
-import sys
 
 
 # ============================================================
-# 宿主替身口（**惰性**：属性访问时才解析宿主模块；绝不 import 宿主模块树、绝不静默空跑）
-# 真源写法 → 包内替身：`from .. import content as C` → `C = _HostMod("content")`；
-# `from .. import db` → `db = _HostMod("db")`。函数内那几行 import 已按原位置删除，
-# 所有调用点 `C.xxx` / `db.xxx` **一行未改**（与 `content/world_cmds.py` / `talk_actions.py` 同款）。
+# 宿主注入位（历史接口）—— ★ 2026-09-19 审计尾巴 #34
+# ------------------------------------------------------------
+# 本模块已**零宿主取件**：原文那套手写替身口（`_HOST_PKG` / `_HOST_PKG_FALLBACK` /
+# `_INJECTED` / `_host_module` / `_host_attr` / `_HostMod`）在 `_pkgref`（包内惰性句柄）
+# 接入后**全仓零调用点**（AST 复核：除注释外零引用），按「零调用点即删」删净；
+# 只留 `bind_host` 这个扇出表（`content/facade.py::_BIND_SLOTS`）要求的形参位 ——
+# 形状与前例 `content/events.py:59` 一致。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名（`content` / `db`）。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
-
-
-def _host_attr(mod: str, attr: str):
-    """宿主模块属性 —— 真源「函数内 `from ..<mod> import <attr>`」的同义替身（调用时解析）。"""
-    m = _host_module(mod)
-    try:
-        return getattr(m, attr)
-    except AttributeError:
-        for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-            try:
-                return importlib.import_module("%s.%s" % (
-                    prefix if not mod else "%s.%s" % (prefix, mod), attr))
-            except Exception:                   # noqa: BLE001
-                continue
-        raise
-
-
-class _HostMod:
-    """宿主模块替身（`C` / `db`）——`C.xxx` / `db.xxx` 正文一字未改，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主注入位（历史接口）：本模块已**零宿主取件**，形参保留只为扇出表照旧调用。"""
+    return None
 
 
 from ._pkgref import DB as db, PkgModule

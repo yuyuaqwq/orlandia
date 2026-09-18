@@ -6,8 +6,11 @@
 | 真源写法 | 包内 | 依据 |
 |---|---|---|
 | `from ..data.shop_limit import SHOP_LIMIT`（`get_limit` 函数内） | 模块级 `SHOP_LIMIT` = 包内域读口 `shop_stock`（`content/data/shop_stock.json`） | 域 = 商品限购配置 35 条；对拍与宿主 `data.shop_limit.SHOP_LIMIT` **逐键相等**，`overnight/w1213_l5_probe.py` P2 |
-| `from .. import db`（三个函数内，惰性） | 模块级 `db = _HostMod("db")` | 正文里 `db.get_event_state(...)` 一字未改（抄 `content/world_cmds.py` 的替身形状）；**真源本来就把 db 放在函数体内**，本模块改成模块级惰性代理 = 同一个时机（属性访问时取） |
+| `from .. import db`（三个函数内，惰性） | 模块级 `db`（`content/_pkgref.py::DB`） | 正文里 `db.get_event_state(...)` 一字未改（抄 `content/world_cmds.py` 的替身形状）；**真源本来就把 db 放在函数体内**，本模块改成模块级惰性代理 = 同一个时机（属性访问时取） |
 | —（模块无其它宿主依赖） | — | 时间/随机全部走 stdlib（`time`/`datetime`/`json`），无 DB 之外的双源风险 |
+
+★ 2026-09-19（审计尾巴 #34）：上表原写 `db = _HostMod("db")` —— 那套手写替身口随 `_pkgref` 接入
+已**全仓零调用点**，本次删净（只留 `bind_host` 形参位）。
 
 库存份数 / 补货周期 / 售罄扣减这套机制走引擎 `saintess_engine.shelf.Shelf`：本模块只给
 「单格摆的是哪个商品、满额几份、两类周期多长」，引擎算到点与扣减；引擎簿记投影回原存档行
@@ -22,57 +25,27 @@
 宿主侧：`game/core/shop_stock.py` 现在只剩「加载包 + 模块别名」薄壳，见那边头注。
 """
 import datetime
-import importlib
 import json
 import os
-import sys
 import time
 from datetime import date
 
 from saintess_engine.shelf import Shelf
 
 # ============================================================
-# ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
-#    抄 `content/world_cmds.py` 的同款写法（B9 线2 定的包内标准形状）
+# 宿主注入位（历史接口）—— ★ 2026-09-19 审计尾巴 #34
+# ------------------------------------------------------------
+# 本模块已**零宿主取件**：原文那套手写替身口（`_HOST_PKG` / `_HOST_PKG_FALLBACK` /
+# `_INJECTED` / `_host_module` / `_host_attr` / `_HostMod`）在 `_pkgref`（包内惰性句柄）
+# 接入后**全仓零调用点**（AST 复核：除注释外零引用），按「零调用点即删」删净；
+# 只留 `bind_host` 这个扇出表（`content/facade.py::_BIND_SLOTS`）要求的形参位 ——
+# 形状与前例 `content/events.py:59` 一致。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
-_INJECTED = {}
-_MOD = "shop_stock"
 
 
 def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = `_HostMod` 的模块名。"""
-    for k, v in (objs or {}).items():
-        if v is not None:
-            _INJECTED[k] = v
-
-
-def _host_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _INJECTED:
-        return _INJECTED[name]
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        m = sys.modules.get(prefix if not name else "%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (_MOD, name, last))
-
-
-class _HostMod:
-    """宿主模块替身（`db`）——正文里 `db.xxx` 照原样写，属性访问时解析。"""
-
-    def __init__(self, name):
-        self._name = name
-
-    def __getattr__(self, attr):
-        return getattr(_host_module(self._name), attr)
+    """宿主注入位（历史接口）：本模块已**零宿主取件**，形参保留只为扇出表照旧调用。"""
+    return None
 
 
 from ._pkgref import DB as db
