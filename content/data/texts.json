@@ -11531,6 +11531,231 @@
     "category": "季节名",
     "desc": "搬自 time_weather.py:SEASON_CN（B 批 B-1）"
   },
+  "sell.bag_no_idx": {
+    "value": "背包里没有第 {idx} 件物品（共 {n} 件）！『背包』查看～",
+    "params": [
+      "idx",
+      "n"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.batch_more": {
+    "value": "  · ……等 {n} 种",
+    "params": [
+      "n"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.batch_ok": {
+    "value": "💰 批量出售{head}完成，共 {n} 种物品，获得 {gold} 金币！",
+    "params": [
+      "head",
+      "n",
+      "gold"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.batch_qty": {
+    "value": "『出售 全部/材料/装备』是批量模式，不支持数量；指定数量请用『出售 <物品> <数量>』～",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.batch_row": {
+    "value": "{name} ×{count}（{gold} 金）",
+    "params": [
+      "name",
+      "count",
+      "gold"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.blocked": {
+    "value": "💡 有 {n} 种物品要对应店铺出售（装备要去铁匠铺；{hint}）～",
+    "params": [
+      "n",
+      "hint"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.blocked_hint": {
+    "value": "（装备要去铁匠铺；{hint}）",
+    "params": [
+      "hint"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.cant": {
+    "value": "『{name}』不能出售。",
+    "params": [
+      "name"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.dup_no_idx": {
+    "value": "『{name}』只有 {n} 件，没有第 {idx} 件！『背包』查看序号～",
+    "params": [
+      "name",
+      "n",
+      "idx"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.equip_shop": {
+    "value": "『{name}』是装备，要到铁匠铺（锻造台）才能回收成金币～",
+    "params": [
+      "name"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.fuzzy_head": {
+    "value": "❓ 找到 {n} 件名字含『{name}』的物品，用全名指定卖哪件：",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.fuzzy_row": {
+    "value": "  {i}. {name} ×{count}（出售价 {price}）",
+    "params": [
+      "i",
+      "name",
+      "count",
+      "price"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.kept_appr": {
+    "value": "；{items} 是拜师考验材料，已帮你留着",
+    "params": [
+      "items"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.kept_quest": {
+    "value": "；{items} 是任务道具，已帮你留着",
+    "params": [
+      "items"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.mat_shop": {
+    "value": "『{name}』是材料，要到{fac}才能回收成金币～\n💡 {hint}。",
+    "params": [
+      "name",
+      "fac",
+      "hint"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.no_item": {
+    "value": "背包里没有『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.none": {
+    "value": "没有可出售的物品！{tip}",
+    "params": [
+      "tip"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.ok": {
+    "value": "💰 你出售了 {name} ×{n}，获得 {gold} 金币！{tip}",
+    "params": [
+      "name",
+      "n",
+      "gold",
+      "tip"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.ok_qty": {
+    "value": "💰 你出售了 {name} ×{n}，获得 {gold} 金币！（回收价 {rate}%）",
+    "params": [
+      "name",
+      "n",
+      "gold",
+      "rate"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.over_qty": {
+    "value": "你只有 {n} 个『{name}』，卖不了这么多～",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.qty_bad": {
+    "value": "数量不合法！请输入正整数，如『出售 狼皮 5』～",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.qty_fmt": {
+    "value": "数量格式不对！例：『出售 狼皮*5』或『出售 狼皮 5』；『背包』查看物品～",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.qty_min": {
+    "value": "数量至少 1 个！大批量出售用『出售 <物品> 数量』或『出售 <物品>*数量』～",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.quest_item": {
+    "value": "『{name}』是任务道具，主线/隐藏任务要用，不能出售！",
+    "params": [
+      "name"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.rate_tip": {
+    "value": "（回收价 {rate}%）",
+    "params": [
+      "rate"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.skip_appr": {
+    "value": "🛡️ 已跳过 {items}（拜师考验材料，导师要验收）",
+    "params": [
+      "items"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.skip_quest": {
+    "value": "🛡️ 已跳过 {items}（任务道具，主线/隐藏任务要用）",
+    "params": [
+      "items"
+    ],
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
   "setview.activated": {
     "value": "(已激活)",
     "category": "经济面板",
@@ -11672,6 +11897,11 @@
     "category": "商店购买",
     "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
   },
+  "shop.buy_format": {
+    "value": "格式：购买 <商品名/序号> [数量]，如『购买 治疗药水(小) 5』；『商店』查看商品列表～",
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
+  },
   "shop.buy_ok": {
     "value": "✅ 你购买了【{name}】{qty}！{tip}",
     "params": [
@@ -11681,6 +11911,11 @@
     ],
     "category": "商店购买",
     "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.buy_redname": {
+    "value": "☠️ 你是红名！商店老板不敢卖你东西……（等红名消退再来）",
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
   },
   "shop.discount_tip": {
     "value": "（{name} {off} 折！）",
@@ -11821,6 +12056,22 @@
     "category": "商店购买",
     "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
   },
+  "shop.mount_place": {
+    "value": "橡木镇的商人才能买到{name}！去橡木镇『商店』看看～",
+    "params": [
+      "name"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
+  },
+  "shop.no_idx": {
+    "value": "没有第 {idx} 号商品！『商店』查看商品列表。",
+    "params": [
+      "idx"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
+  },
   "shop.no_shop": {
     "value": "这里没有商店！去城镇里找找商铺吧～",
     "category": "商店面板",
@@ -11861,6 +12112,29 @@
     ],
     "category": "商店面板",
     "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.qty_bad_buy": {
+    "value": "数量不合法！请输入正整数，如『购买 治疗药水 5』～",
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
+  },
+  "shop.qty_fmt_buy": {
+    "value": "数量格式不对！例：『购买 治疗药水*5』或『购买 治疗药水 5』；『商店』查看商品列表～",
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
+  },
+  "shop.qty_max": {
+    "value": "单次最多购买 {max} 个！需要更多请分批购买～",
+    "params": [
+      "max"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
+  },
+  "shop.qty_min_buy": {
+    "value": "数量至少 1 个！大批量购买用『购买 <商品> 数量』或『购买 <商品>*数量』～",
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
   },
   "shop.redname": {
     "value": "☠️ 你是红名！商店老板把你轰了出来……（等红名消退再来）",

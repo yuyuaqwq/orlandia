@@ -159,7 +159,7 @@ _PIN = {
         'content/shop.py::apprentice_protect_mats': '12f8e4751608242aa5d9de2daccaf3271edc5b710102db78fa718161216d7141',
         'content/cmds_world.py::quest_view': '7f482f99fa6605b6cca162aa3ad62bd798c270a1e066e0082b5e11669a9e0887',
         'content/economy_cmds.py::shop': '33ae09d1eb24631183eb89122cf4831960f85f80ab26fe53076f0d9e3815b79b',
-        'content/economy_cmds.py::buy': 'c58470fbc31e416d343aa363727372259e65af0bb8d3e21cdf9f43ad4345ae33',
+        'content/economy_cmds.py::buy': '0a184db7ae814cb261037db4a9bc52cdc76de65241cfb4f2e4e4a6ac14be2eec',
         'content/talk_actions.py::action_apprentice_check': '3079da595d629cb8a83530cbfdaf221a85ee971804ae29895c47577748585edc',
         'content/item_templates.py::tpl_teleport_portal': 'ebaf5f6548be45341c14570ae73c73398261f46a12aa703d619e9779d74d7503',
         'content/combat_cmds.py::roll_wild_encounter': '2c66022b9137474a748b8bfb1135c88e09e7fa6cbcab9214016e95ae786709a1',

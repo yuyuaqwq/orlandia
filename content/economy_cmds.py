@@ -6454,22 +6454,22 @@ class EconomyImpl(CommandBase):
                     item_name = _head.strip()
                 else:
                     yield event.plain_result(
-                        "数量格式不对！例：『出售 狼皮*5』或『出售 狼皮 5』；『背包』查看物品～"
+                        _T.static("sell.qty_fmt")
                     )
                     return
         if _qty_raw is not None:
             try:
                 qty = int(_qty_raw)
             except ValueError:
-                yield event.plain_result("数量不合法！请输入正整数，如『出售 狼皮 5』～")
+                yield event.plain_result(_T.static("sell.qty_bad"))
                 return
             if qty < 1:
-                yield event.plain_result("数量至少 1 个！大批量出售用『出售 <物品> 数量』或『出售 <物品>*数量』～")
+                yield event.plain_result(_T.static("sell.qty_min"))
                 return
         if mode:
             # v134.1 意见#40：『出售 全部 N』/『出售 材料 N』等批量模式不支持数量参数（批量=全清语义）
             if qty > 1:
-                yield event.plain_result("『出售 全部/材料/装备』是批量模式，不支持数量；指定数量请用『出售 <物品> <数量>』～")
+                yield event.plain_result(_T.static("sell.batch_qty"))
                 return
             blocked = 0
             total = 0
@@ -6500,31 +6500,31 @@ class EconomyImpl(CommandBase):
                     continue
                 r = self._sell_one(group_id, qq_id, player, it, rate)
                 if r:
-                    sold.append(f"{r[0]} ×{r[1]}（{r[2]} 金）")
+                    sold.append(_T.text("sell.batch_row", name=r[0], count=r[1], gold=r[2]))
                     total += r[2]
                     player = self._player(group_id, qq_id)
             if not sold:
                 # q7-8：完整品类分店提示（装备→铁匠铺；材料见 _MAT_FACILITY_HINT）
-                tip = f"（装备要去铁匠铺；{_MAT_FACILITY_HINT}）" if blocked else ""
+                tip = _T.text("sell.blocked_hint", hint=_MAT_FACILITY_HINT) if blocked else ""
                 if quest_protected:
-                    tip += f"；{'、'.join(quest_protected)} 是任务道具，已帮你留着"
+                    tip += _T.text("sell.kept_quest", items='、'.join(quest_protected))
                 if protected:
-                    tip += f"；{ '、'.join(protected) } 是拜师考验材料，已帮你留着"
-                yield event.plain_result(f"没有可出售的物品！{tip}")
+                    tip += _T.text("sell.kept_appr", items='、'.join(protected))
+                yield event.plain_result(_T.text("sell.none", tip=tip))
                 return
             head = "全部" if mode == "all" else ("材料" if mode == "mat" else "装备")
-            lines = [f"💰 批量出售{head}完成，共 {len(sold)} 种物品，获得 {total} 金币！"]
+            lines = [_T.text("sell.batch_ok", head=head, n=len(sold), gold=total)]
             for s in sold[:8]:
                 lines.append(f"  · {s}")
             if len(sold) > 8:
-                lines.append(f"  · ……等 {len(sold)} 种")
+                lines.append(_T.text("sell.batch_more", n=len(sold)))
             if blocked:
                 # q7-8：完整品类分店提示（装备→铁匠铺；材料见 _MAT_FACILITY_HINT）
-                lines.append(f"💡 有 {blocked} 种物品要对应店铺出售（装备要去铁匠铺；{_MAT_FACILITY_HINT}）～")
+                lines.append(_T.text("sell.blocked", n=blocked, hint=_MAT_FACILITY_HINT))
             if quest_protected:
-                lines.append(f"🛡️ 已跳过 { '、'.join(quest_protected) }（任务道具，主线/隐藏任务要用）")
+                lines.append(_T.text("sell.skip_quest", items='、'.join(quest_protected)))
             if protected:
-                lines.append(f"🛡️ 已跳过 { '、'.join(protected) }（拜师考验材料，导师要验收）")
+                lines.append(_T.text("sell.skip_appr", items='、'.join(protected)))
             yield event.plain_result("\n".join(lines))
             return
         target = None
@@ -6534,7 +6534,7 @@ class EconomyImpl(CommandBase):
             # 序号出售：『出售 1』→ 背包第 1 件物品（与『背包』序号一致）
             idx = int(item_name)
             if idx < 1 or idx > len(items):
-                yield event.plain_result(f"背包里没有第 {idx} 件物品（共 {len(items)} 件）！『背包』查看～")
+                yield event.plain_result(_T.text("sell.bag_no_idx", idx=idx, n=len(items)))
                 return
             target = items[idx - 1]
         else:
@@ -6561,7 +6561,7 @@ class EconomyImpl(CommandBase):
                         if qty > 1:
                             idx_part = None
                     else:
-                        yield event.plain_result(f"『{name_part}』只有 {len(exact)} 件，没有第 {idx_part} 件！『背包』查看序号～")
+                        yield event.plain_result(_T.text("sell.dup_no_idx", name=name_part, n=len(exact), idx=idx_part))
                         return
                 else:
                     target = exact[0]
@@ -6570,36 +6570,37 @@ class EconomyImpl(CommandBase):
                 if len(fuzzy) > 1 and idx_part is not None and 1 <= idx_part <= len(fuzzy):
                     target = fuzzy[idx_part - 1]
                 elif len(fuzzy) > 1:
-                    flines = [f"❓ 找到 {len(fuzzy)} 件名字含『{name_part}』的物品，用全名指定卖哪件："]
+                    flines = [_T.text("sell.fuzzy_head", n=len(fuzzy), name=name_part)]
                     for i, it in enumerate(fuzzy, 1):
                         fd = it["data"]
                         fq = _b143.QUALITY[fd["quality"]] if fd.get("quality") and fd.get("slot") else None
                         fname_s = f"{fq['color']}【{fd['name']}】" if fq else fd["name"]
-                        flines.append(f"  {i}. {fname_s} ×{it['count']}（出售价 {self._pawn_rate(player, fd) or '需对应店铺'}）")
+                        flines.append(_T.text("sell.fuzzy_row", i=i, name=fname_s, count=it['count'],
+                                          price=self._pawn_rate(player, fd) or '需对应店铺'))
                     flines.append(self._tip("sell"))
                     yield event.plain_result("\n".join(flines))
                     return
                 if len(fuzzy) == 1:
                     target = fuzzy[0]
         if not target:
-            yield event.plain_result(f"背包里没有『{item_name}』！")
+            yield event.plain_result(_T.text("sell.no_item", name=item_name))
             return
         d = target["data"]
         # v104 M08 P2-2：单件出售同样拦截任务道具（『出售 烬火信标』此前走
         # MATERIALS_BY_NAME type=任务道具 → _MAT_FACILITY=shop → 0.8 折卖掉卡 H7）
         if self._is_quest_item(d):
-            yield event.plain_result(f"『{d['name']}』是任务道具，主线/隐藏任务要用，不能出售！")
+            yield event.plain_result(_T.text("sell.quest_item", name=d['name']))
             return
         # v134.1 意见#40：指定数量超持有 → 显式报错（对齐『使用』批量语义，不静默钳制）
         if qty > 1 and qty > target.get("count", 1):
-            yield event.plain_result(f"你只有 {target.get('count', 1)} 个『{d['name']}』，卖不了这么多～")
+            yield event.plain_result(_T.text("sell.over_qty", n=target.get('count', 1), name=d['name']))
             return
         rate = self._pawn_rate(player, d)
         if rate is None:
             if d.get("slot"):
                 hint = self._facility_hint(player, "craft")
                 yield event.plain_result(
-                    f"『{d['name']}』是装备，要到铁匠铺（锻造台）才能回收成金币～"
+                    _T.text("sell.equip_shop", name=d['name'])
                     + (f"({hint})" if hint else "")
                 )
             else:
@@ -6608,8 +6609,8 @@ class EconomyImpl(CommandBase):
                 _hint_map = {"smith": "铁匠铺（矿石/兽材/木材/宝石）", "alchemy": "草药铺/炼金工坊（草药/精华）", "shop": "商店（食材/织物/杂物）"}
                 # q7-8：单件提示到具体柜台，并附完整分店品类说明帮新手不跑错柜台（纯文案）
                 yield event.plain_result(
-                    f"『{d['name']}』是材料，要到{_hint_map.get(_need, '对应店铺')}才能回收成金币～\n"
-                    f"💡 {_MAT_FACILITY_HINT}。"
+                    _T.text("sell.mat_shop", name=d['name'], fac=_hint_map.get(_need, '对应店铺'),
+                        hint=_MAT_FACILITY_HINT)
                 )
             return
         # v134.1 意见#40：指定数量出售——复用 _sell_one 全部计价逻辑（品质折价/锻造回本/鱼重/坐骑加成），
@@ -6620,19 +6621,19 @@ class EconomyImpl(CommandBase):
             it2["count"] = qty
             r2 = self._sell_one(group_id, qq_id, player, it2, rate)
             if not r2:
-                yield event.plain_result(f"『{d['name']}』不能出售。")
+                yield event.plain_result(_T.text("sell.cant", name=d['name']))
                 return
             name, cnt, gold = r2
-            yield event.plain_result(f"💰 你出售了 {name} ×{cnt}，获得 {gold} 金币！（回收价 {int(rate * 100)}%）")
+            yield event.plain_result(_T.text("sell.ok_qty", name=name, n=cnt, gold=gold, rate=int(rate * 100)))
             return
         r = self._sell_one(group_id, qq_id, player, target, rate)
         if not r:
-            yield event.plain_result(f"『{d['name']}』不能出售。")
+            yield event.plain_result(_T.text("sell.cant", name=d['name']))
             return
         name, cnt, gold = r
         # v105 M09 P3-10：100% 原价回收也提示（此前 rate>=1.0 静默，玩家不知药水零损耗规则）
-        tip = f"（回收价 {int(rate * 100)}%）"
-        yield event.plain_result(f"💰 你出售了 {name} ×{cnt}，获得 {gold} 金币！{tip}")
+        tip = _T.text("sell.rate_tip", rate=int(rate * 100))
+        yield event.plain_result(_T.text("sell.ok", name=name, n=cnt, gold=gold, tip=tip))
 
     @declared("shop")
     @require_player()
@@ -6833,14 +6834,14 @@ class EconomyImpl(CommandBase):
         player = self._player(group_id, qq_id)
         _ec = _clife.ECON_CONFIG
         if self._is_redname(qq_id):
-            yield event.plain_result("☠️ 你是红名！商店老板不敢卖你东西……（等红名消退再来）")
+            yield event.plain_result(_T.static("shop.buy_redname"))
             return
         cur = player["cur_map"]
         cur_map = _cspace.MAP_BY_ID.get(cur, {})
         if not self._at_shop(player, group_id, qq_id):
             hint = self._facility_hint(player, "shop")
             yield event.plain_result(
-                f"这里没有商店！到有商店的地方（如 {hint}）再输入『商店』吧～" if hint else "这里没有商店！去城镇里找找商铺吧～"
+                _T.text("shop.no_shop_hint", hint=hint) if hint else _T.static("shop.no_shop")
             )
             return
         area_id = cur_map.get("area", cur)
@@ -6867,7 +6868,7 @@ class EconomyImpl(CommandBase):
         #   ——显式格式提示（与『加点 』空参提示风格一致），不执行购买
         if not item_name:
             yield event.plain_result(
-                "格式：购买 <商品名/序号> [数量]，如『购买 治疗药水(小) 5』；『商店』查看商品列表～"
+                _T.static("shop.buy_format")
             )
             return
 # v95.25 #127 + 玩家意见#2（zerc）：支持『购买 <名称/序号> <数量>』（空格）与
@@ -6893,25 +6894,25 @@ class EconomyImpl(CommandBase):
                 item_name = _head.strip()
             else:
                 yield event.plain_result(
-                    "数量格式不对！例：『购买 治疗药水*5』或『购买 治疗药水 5』；『商店』查看商品列表～"
+                    _T.static("shop.qty_fmt_buy")
                 )
                 return
         if _qty_raw is not None:
             try:
                 qty = int(_qty_raw)
             except ValueError:
-                yield event.plain_result("数量不合法！请输入正整数，如『购买 治疗药水 5』～")
+                yield event.plain_result(_T.static("shop.qty_bad_buy"))
                 return
             if qty < 1:
-                yield event.plain_result("数量至少 1 个！大批量购买用『购买 <商品> 数量』或『购买 <商品>*数量』～")
+                yield event.plain_result(_T.static("shop.qty_min_buy"))
                 return
             if qty > _ec["buy_qty_max"]:
-                yield event.plain_result(f"单次最多购买 {_ec['buy_qty_max']} 个！需要更多请分批购买～")
+                yield event.plain_result(_T.text("shop.qty_max", max=_ec['buy_qty_max']))
                 return
         # 星号/数量剥离后无商品名（如『购买 *5』）→ 显式格式提示，防空名称静默买第一件（F2-2 同款兜底）
         if not item_name:
             yield event.plain_result(
-                "格式：购买 <商品名/序号> [数量]，如『购买 治疗药水(小) 5』；『商店』查看商品列表～"
+                _T.static("shop.buy_format")
             )
             return
         # 全角括号容错：『购买 治疗药水（中）』→ 半角『治疗药水(中)』
@@ -6925,7 +6926,7 @@ class EconomyImpl(CommandBase):
             _sd = (_evt_def.get("effects") or {}).get("shop_discount") if _evt_def else None
             if _sd:
                 discount = float(_sd)
-                _evt_tip = f"（{_evt_def['name']} {int(round(_sd * 10))} 折！）"
+                _evt_tip = _T.text("shop.discount_tip", name=_evt_def['name'], off=int(round(_sd * 10)))
         weapons = _clife.SHOP_WEAPONS.get(cur) or _clife.SHOP_WEAPONS.get(area_id, [])
         # v101.25h：武器/名册装备只在 smith/general 卖（草药铺/酒馆不卖）
         # v101.28o：is_smith 也放行——craft+alchemy 双职能店（如晨曦药剂坊 dawn_city_5）
@@ -6952,7 +6953,7 @@ class EconomyImpl(CommandBase):
                 entries += [f"mount:{m['key']}" for m in _clife.MOUNT_POOL if (m.get("price") or 0) > 0]
             idx = int(item_name)
             if idx < 1 or idx > len(entries):
-                yield event.plain_result(f"没有第 {idx} 号商品！『商店』查看商品列表。")
+                yield event.plain_result(_T.text("shop.no_idx", idx=idx))
                 return
             key = entries[idx - 1]
             # ============ v181.P4-3：序号购买 key 分派（bp/m/w/mount/e/s/消耗品）业务下沉 services.shop ============
@@ -6978,17 +6979,17 @@ class EconomyImpl(CommandBase):
                             + _ec["bp_price_base"]) * _ec["bp_smith_mult"] * discount)
             # v105 M09 P3-9：图纸单件商品
             if qty > 1:
-                yield event.plain_result("神秘锻造图纸只能买 1 张！想再买一张就再输一次～")
+                yield event.plain_result(_T.static("shop.bp_one"))
                 return
             if player["gold"] < bp_price:
-                yield event.plain_result(f"金币不足！需要 {bp_price} 金币。")
+                yield event.plain_result(_T.text("shop.gold_short", price=bp_price))
                 return
             db.update_player(group_id, qq_id, gold=player["gold"] - bp_price)
             bp = C.roll_blueprint(max(1, player["level"]))
             import uuid
             db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", bp)
             tip = _evt_tip
-            yield event.plain_result(f"✅ 你买到一张【{bp['name']}】！{tip}")
+            yield event.plain_result(_T.text("shop.bp_ok", name=bp['name'], tip=tip))
             return
         # 找补给品（按名称）
         for iid in shop_items:
@@ -6997,7 +6998,7 @@ class EconomyImpl(CommandBase):
                 price = int(it["price"] * discount)
                 total = price * qty
                 if player["gold"] < total:
-                    yield event.plain_result(f"金币不足！需要 {total} 金币。")
+                    yield event.plain_result(_T.text("shop.gold_short", price=total))
                     return
                 # v166 商店限购：消耗品（店内共享库存+每日个人限购）
                 _l_ok, _l_msg = self._shop_limit_buy_guard(group_id, qq_id, sa_id, f"item:{iid}", qty)
@@ -7011,7 +7012,7 @@ class EconomyImpl(CommandBase):
                 db.add_item(group_id, qq_id, iid, {**it, "type": "消耗品", "stackable": True, "price": price}, count=qty)
                 tip = _evt_tip
                 qty_str = f" ×{qty}"  # #254: 单件购买也回显数量（此前 qty=1 无回显）
-                yield event.plain_result(f"✅ 你购买了【{it['name']}】{qty_str}！{tip}")
+                yield event.plain_result(_T.text("shop.buy_ok", name=it['name'], qty=qty_str, tip=tip))
                 return
         # 找材料（按名称）
         for mid in materials:
@@ -7020,7 +7021,7 @@ class EconomyImpl(CommandBase):
                 price = int(mt["price"] * discount)
                 total = price * qty
                 if player["gold"] < total:
-                    yield event.plain_result(f"金币不足！需要 {total} 金币。")
+                    yield event.plain_result(_T.text("shop.gold_short", price=total))
                     return
                 # v166 商店限购：材料（店内共享库存+每日个人限购）
                 _l_ok, _l_msg = self._shop_limit_buy_guard(group_id, qq_id, sa_id, f"mat:{mid}", qty)
@@ -7032,7 +7033,7 @@ class EconomyImpl(CommandBase):
                 db.add_item(group_id, qq_id, mid, {**mt, "type": "材料", "stackable": True, "price": price}, count=qty)
                 tip = _evt_tip
                 qty_str = f" ×{qty}"  # #254: 单件购买也回显数量（此前 qty=1 无回显）
-                yield event.plain_result(f"✅ 你购买了【{mt['name']}】{qty_str}！{tip}")
+                yield event.plain_result(_T.text("shop.buy_ok", name=mt['name'], qty=qty_str, tip=tip))
                 return
         # 找武器（按名称）
         for wname, wtype, wlv, wq in weapons:
@@ -7041,10 +7042,10 @@ class EconomyImpl(CommandBase):
                 price = int(self._shop_equip_price("weapon", wlv, wq, wtype) * discount)
                 # v105 M09 P3-9：武器单件商品（此前『购买 铁剑 3』静默只买 1 把）
                 if qty > 1:
-                    yield event.plain_result(f"『{wname}』是武器，只能单件购买！需要几把就再买几次～")
+                    yield event.plain_result(_T.text("shop.weapon_one", name=wname))
                     return
                 if player["gold"] < price:
-                    yield event.plain_result(f"金币不足！需要 {price} 金币。")
+                    yield event.plain_result(_T.text("shop.gold_short", price=price))
                     return
                 # v166 商店限购：商店武器（店内共享库存+每日个人限购）
                 _l_ok, _l_msg = self._shop_limit_buy_guard(group_id, qq_id, sa_id, f"weapon:{wname}", 1)
@@ -7058,7 +7059,7 @@ class EconomyImpl(CommandBase):
                 equip_item["price"] = int(price * _ec["equip_resale_rate"])
                 import uuid
                 db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", equip_item)
-                yield event.plain_result(f"✅ 你购买了【{wname}】！放到背包了，输入『装备 {wname}』使用。")
+                yield event.plain_result(_T.text("shop.buy_equip_ok", name=wname, name2=wname))
                 return
         # 找装备（按名称）
         for rid in equip_items:
@@ -7068,10 +7069,10 @@ class EconomyImpl(CommandBase):
                 price = int(self._shop_equip_price(r["slot"], r["lv"], r["quality"], r.get("weapon_type"), rid) * discount)
                 # v105 M09 P3-9：装备单件商品（数量参数不适用）
                 if qty > 1:
-                    yield event.plain_result(f"『{r['name']}』是装备，只能单件购买！需要几件就再买几次～")
+                    yield event.plain_result(_T.text("shop.equip_one", name=r['name']))
                     return
                 if player["gold"] < price:
-                    yield event.plain_result(f"金币不足！需要 {price} 金币。")
+                    yield event.plain_result(_T.text("shop.gold_short", price=price))
                     return
                 # v166 商店限购：名册装备（店内共享库存+每日个人限购）
                 _l_ok, _l_msg = self._shop_limit_buy_guard(group_id, qq_id, sa_id, f"equip:{rid}", 1)
@@ -7083,7 +7084,7 @@ class EconomyImpl(CommandBase):
                 equip_item["price"] = int(price * _ec["equip_resale_rate"])
                 import uuid
                 db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", equip_item)
-                yield event.plain_result(f"✅ 你购买了【{r['name']}】！放到背包了，输入『装备 {r['name']}』使用。")
+                yield event.plain_result(_T.text("shop.buy_equip_ok", name=r['name'], name2=r['name']))
                 return
         # v135 铁匠铺货架（全服共享）按名称购买（NPC 作品，如『购买 汉斯的精铁长剑』）
         # 前置判定：带「作品」字样或命中本城铁匠名 → 只查货架（防误吞普通装备名）
@@ -7098,24 +7099,24 @@ class EconomyImpl(CommandBase):
                     # 被扣走、全服蒸发（只能等 6h 补货/次日换货）。价格预校验 = 货架同源定价
                     # smith_stock_price（与面板/结算同一公式），失败一律在扣货前拦截。
                     if (_sit.get("qty") or 0) <= 0:
-                        yield event.plain_result("😢 这件作品已被别的冒险者买走了，售罄等补货吧～")
+                        yield event.plain_result(_T.static("shop.shelf_soldout"))
                         return
                     if qty > 1:
                         yield event.plain_result("铁匠的作品是孤品，只能单件购买！")
                         return
                     _price_chk = int(_ss.smith_stock_price(_sit["rid"], _sit["price_mult"]))
                     if player["gold"] < _price_chk:
-                        yield event.plain_result(f"金币不足！需要 {_price_chk} 金币。")
+                        yield event.plain_result(_T.text("shop.gold_short", price=_price_chk))
                         return
                     ok, item_data, price = _ss.buy_stock_item(cur, _ss.town_level(cur), _sit["rid"])
                     if not ok:
-                        yield event.plain_result("😢 这件作品已被别的冒险者买走了，售罄等补货吧～")
+                        yield event.plain_result(_T.static("shop.shelf_soldout"))
                         return
                     db.update_player(group_id, qq_id, gold=player["gold"] - price)
                     item_data["price"] = int(price * _ec["equip_resale_rate"])
                     import uuid
                     db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", item_data)
-                    yield event.plain_result(f"✅ 你买下了【{item_data['name']}】！铁匠的手艺交到你手里，输入『装备』查看。")
+                    yield event.plain_result(_T.text("shop.shelf_buy_ok", name=item_data['name']))
                     return
         # v39/v101.15 坐骑：橡木镇马厩购买（老马/小毛驴等 price>0 的坐骑）
         shop_mounts = [m for m in _clife.MOUNT_POOL if (m.get("price") or 0) > 0]
@@ -7123,19 +7124,19 @@ class EconomyImpl(CommandBase):
             if item_name in mdef["name"] or item_name.strip() == mdef["key"]:
                 # v130.7 意见#23：名称购买同口径（草药铺/酒馆『购买 老马』同样拦截）
                 if area_id != "oak" or cur != _ccore.START_MAP or sa_kind not in ("smith", "general"):
-                    yield event.plain_result(f"橡木镇的商人才能买到{mdef['name']}！去橡木镇『商店』看看～")
+                    yield event.plain_result(_T.text("shop.mount_place", name=mdef['name']))
                     return
                 mounts = player.get("mounts") or {}
                 if mdef["key"] in (mounts.get("owned") or []):
-                    yield event.plain_result(f"你已经拥有{mdef['name']}了！")
+                    yield event.plain_result(_T.text("shop.mount_owned", name=mdef['name']))
                     return
                 # v104 M17 P2-1：名称购买坐骑同样校验骑乘等级（与序号购买同口径）
                 if player["level"] < mdef["lv"]:
-                    yield event.plain_result(f"『{mdef['name']}』需要 Lv.{mdef['lv']} 才能骑乘，你才 Lv.{player['level']}！先升级再来买吧～")
+                    yield event.plain_result(_T.text("shop.mount_lv", name=mdef['name'], lv=mdef['lv'], plv=player['level']))
                     return
                 price = int(mdef["price"] * discount)
                 if player["gold"] < price:
-                    yield event.plain_result(f"金币不足！{mdef['name']}要 {price} 金币。")
+                    yield event.plain_result(_T.text("shop.mount_gold_short", name=mdef['name'], price=price))
                     return
                 db.update_player(group_id, qq_id, gold=player["gold"] - price)
                 mounts = dict(player.get("mounts") or {})
@@ -7144,10 +7145,9 @@ class EconomyImpl(CommandBase):
                 mounts["owned"] = owned
                 db.update_player(group_id, qq_id, mounts=mounts)
                 yield event.plain_result(
-                    f"{mdef['icon']} 你买了{mdef['name']}！缰绳交到你手里，它打了个响鼻。\n"
-                    f"💡 『骑乘 {mdef['name']}』骑上它，『坐骑』查看全部！")
+                    _T.text("shop.mount_buy_ok", icon=mdef['icon'], name=mdef['name'], name2=mdef['name']))
                 return
-        yield event.plain_result(f"商店里没有『{item_name}』！输入『商店』查看商品。")
+        yield event.plain_result(_T.text("shop.no_such", name=item_name))
 
     # ============ v166 商店限购（店内共享库存 + 每日个人限购，数据驱动） ============
     def _shop_limit_buy_guard(self, group_id: str, qq_id: str, sa_id: str, key: str, qty: int):
