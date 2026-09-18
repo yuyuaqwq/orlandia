@@ -2,3 +2,11 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+
+# 测试私有库 / 全量跑器产出（2026-09-19 审计尾巴 #30）
+# 这些库每次回归字节都变 ⇒ 不是确定性 fixture，入库只会让父仓常脏；真源= tests/*.py 里的 GWEN_GAME_DB
+*.db
+*.db-journal
+tests/.private_dbs/
+tests/.run_all_workers_*/
+tests/_battle_settlement_snapshot.json
