@@ -8574,6 +8574,16 @@
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:item_detail（B 批 C 档）"
   },
+  "itemview.off": {
+    "value": "🔍 物品查看模式已关闭，回复数字不再自动查物品～",
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:item_view_mode_cmd（B 批 C 档）"
+  },
+  "itemview.on": {
+    "value": "🔍 物品查看模式已开启！直接回复背包序号即可查看物品详情；\n『物品详情结束』退出，『物品详情 <名称>』照常使用。",
+    "category": "背包面板",
+    "desc": "搬自 content/economy_cmds.py:item_view_mode_cmd（B 批 C 档）"
+  },
   "learn.already": {
     "value": "『{name}』你已经学会了，不需要重复学习～",
     "params": [
@@ -14454,6 +14464,53 @@
     "value": "嘲讽",
     "category": "团队特效名",
     "desc": "搬自 player_cmds.py（B 批 B-1）"
+  },
+  "title.empty": {
+    "value": "🏅 【称号】\n━━━━━━━━━━━━\n还没有称号……提升等级、击杀怪物、解锁成就可以获得！",
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:titles（B 批 C 档）"
+  },
+  "title.equip_ok": {
+    "value": "👑 你佩戴上了称号【{hit}】！现在别人会称你为 [{hit2}] 冒险者～",
+    "params": [
+      "hit",
+      "hit2"
+    ],
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:_equip_title（B 批 C 档）"
+  },
+  "title.none_equipped": {
+    "value": "💡 当前未佩戴称号",
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:titles（B 批 C 档）"
+  },
+  "title.not_owned": {
+    "value": "还没获得称号『{name}』！『称号』查看已获得列表～",
+    "params": [
+      "name"
+    ],
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:_equip_title（B 批 C 档）"
+  },
+  "title.page_head": {
+    "value": "🏅 【称号】已获得 {n} 个(第 {page}/{pages} 页)",
+    "params": [
+      "n",
+      "page",
+      "pages"
+    ],
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:titles（B 批 C 档）"
+  },
+  "title.unequip": {
+    "value": "🏅 已卸下称号。",
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:titles（B 批 C 档）"
+  },
+  "title.usage": {
+    "value": "格式：『称号 装备 <称号名>』～",
+    "category": "称号面板",
+    "desc": "搬自 content/economy_cmds.py:_equip_title（B 批 C 档）"
   },
   "tower.actions": {
     "value": "你的行动：『攻击』『技能 <名称>』『防御』『逃跑』",

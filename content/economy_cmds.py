@@ -5382,7 +5382,7 @@ class EconomyImpl(CommandBase):
             return
         if raw in ("卸下", "取消"):
             db.update_player(group_id, qq_id, equipped_title="")
-            yield event.plain_result("🏅 已卸下称号。")
+            yield event.plain_result(_T.static("title.unequip"))
             return
         earned = self._earned_titles(group_id, qq_id, player)
         got = [_cquest.TITLES[i]["name"] for i in range(len(_cquest.TITLES)) if earned[i]]
@@ -5393,14 +5393,14 @@ class EconomyImpl(CommandBase):
         got = list(dict.fromkeys(got))  # 去重保序
         cur = player.get("equipped_title") or ""
         if not got:
-            yield event.plain_result("🏅 【称号】\n━━━━━━━━━━━━\n还没有称号……提升等级、击杀怪物、解锁成就可以获得！")
+            yield event.plain_result(_T.static("title.empty"))
             return
         if raw and raw.isdigit():
             page = int(raw)
         else:
             page = 1
         page_items, pages, page = self._page_items(got, page, per_page=8)
-        lines = [f"🏅 【称号】已获得 {len(got)} 个(第 {page}/{pages} 页)", "━━━━━━━━━━━━"]
+        lines = [_T.text("title.page_head", n=len(got), page=page, pages=pages), "━━━━━━━━━━━━"]
         for i, n in enumerate(page_items, (page - 1) * 8 + 1):
             mark = "👑" if n == cur else "  "
             lines.append(f"{mark}{i:>2}. {n}")
@@ -5408,13 +5408,13 @@ class EconomyImpl(CommandBase):
         self._record_list_state(qq_id, "称号", page, pages)
         lines.append(self._tip("title"))
         if not cur:
-            lines.append("💡 当前未佩戴称号")
+            lines.append(_T.static("title.none_equipped"))
         yield event.plain_result("\n".join(lines))
 
     async def _equip_title(self, event, group_id, qq_id, player, tname):
         """装备称号(必须是已获得称号)"""
         if not tname:
-            yield event.plain_result("格式：『称号 装备 <称号名>』～")
+            yield event.plain_result(_T.static("title.usage"))
             return
         earned = self._earned_titles(group_id, qq_id, player)
         got = [_cquest.TITLES[i]["name"] for i in range(len(_cquest.TITLES)) if earned[i]]
@@ -5423,10 +5423,10 @@ class EconomyImpl(CommandBase):
         got = list(dict.fromkeys(got))
         hit = next((n for n in got if tname in n), None)
         if not hit:
-            yield event.plain_result(f"还没获得称号『{tname}』！『称号』查看已获得列表～")
+            yield event.plain_result(_T.text("title.not_owned", name=tname))
             return
         db.update_player(group_id, qq_id, equipped_title=hit)
-        yield event.plain_result(f"👑 你佩戴上了称号【{hit}】！现在别人会称你为 [{hit}] 冒险者～")
+        yield event.plain_result(_T.text("title.equip_ok", hit=hit, hit2=hit))
 
     @staticmethod
     def _item_category(d: dict) -> str:
@@ -5580,13 +5580,12 @@ class EconomyImpl(CommandBase):
         msg = re.sub(r"^\[At:[^\]]*\]\s*", "", msg)
         if "结束" in msg:
             db.set_event_state(f"item_view_mode:{qq_id}", "")
-            yield event.plain_result("🔍 物品查看模式已关闭，回复数字不再自动查物品～")
+            yield event.plain_result(_T.static("itemview.off"))
             self._stop_event_safe(event)
             return
         db.set_event_state(f"item_view_mode:{qq_id}", "1")
         yield event.plain_result(
-            "🔍 物品查看模式已开启！直接回复背包序号即可查看物品详情；\n"
-            "『物品详情结束』退出，『物品详情 <名称>』照常使用。"
+            _T.static("itemview.on")
         )
         self._stop_event_safe(event)
 

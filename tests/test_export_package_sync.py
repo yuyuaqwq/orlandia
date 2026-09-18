@@ -146,7 +146,11 @@ FROZEN_COUNTS = {
     #   ★ 2026-09-19 C 档 20c（B-2 第 6 片第 3 小片）：社交「世界事件 · 拍卖竞拍」——
     #     content/social_cmds.py 全 4 函数（maybe_roll_event / world_event_run / auction_run / bid_run）
     #     23 处替换 / 19 新键（新分类 世界事件 / 社交拍卖）⇒ 2073 → 2092。
-    "texts": 2261,   # ★ C 档 22a（物品详情·我的装备·卸下，14 新键 / 22 处替换，8 处同值幂等复用）⇒ 2247 → 2261
+    "texts": 2270,   # ★ C 档 22b（称号·物品查看模式，9 新键 / 9 处替换，零复用）⇒ 2261 → 2270
+    #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
+    #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
+    #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）
+    # ★ C 档 22a（物品详情·我的装备·卸下，14 新键 / 22 处替换，8 处同值幂等复用）⇒ 2247 → 2261
     #     · item_detail 『物品详情/查看』7 新键（经济面板；百科装备序号详情块与
     #       _render_encyclopedia_equip 同值复用 item.series_line / req_line / src_line /
     #       set_line / special_line 5 键）
