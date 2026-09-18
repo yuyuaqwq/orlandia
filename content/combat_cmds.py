@@ -140,8 +140,6 @@ from . import wild_king as _WK                # core.wild_king（宿主 core.wil
 from .index import resolve as _resolve, display as _display
 from .achievements import check_achievements as _check_achievements
 from .mounts import mount_effects as _mount_effects
-from .events import roll_explore_event as _roll_explore_event, roll_explore_egg as _roll_explore_egg
-from .pois import roll_poi as _roll_poi
 from .stats import exp_to_next as _exp_to_next
 from .panel import race_stats                          # 结算句柄用（真源 content_rules.panel）
 from .gameplay_rules import resolve_drop as _resolve_drop

@@ -26,7 +26,7 @@ import time
 from saintess_engine.store import Column, DeclaredRepository, TableSpec
 from saintess_engine.store.snapshots import SnapshotSpec, declare_snapshot
 
-from .handles import _connect, _lock, clock, _wire_attr, get_db
+from .handles import _connect, _lock, clock, get_db
 
 """奥兰迪亚·余烬纪年存储层 - battle_state"""
 # v104 M02 P2：普通战斗 24h 无活动自动回收（battle_state 永久残留泄漏；PVP 另有 5 分钟超时在 combat.py）

@@ -16,7 +16,7 @@
 """
 import json
 import time
-from .handles import _connect, _lock, clock, _wire_attr, _wire_attrs
+from .handles import _connect, _lock, clock, _wire_attrs
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
 

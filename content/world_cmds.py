@@ -3303,7 +3303,6 @@ def _weapon_pick_active(self, group_id, qq_id) -> bool:
 def _weapon_pick_choose(self, group_id, qq_id, num) -> str:
     """v173.3 意见#103：回复数字领取自选武器；0=收起下次再选。"""
     import json as _j
-    import uuid as _uuid
     key = f"weapon_pick_{qq_id}"
     try:
         st = _j.loads(db.get_event_state(key) or "{}")

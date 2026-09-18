@@ -42,7 +42,7 @@
 from __future__ import annotations
 
 import random
-from typing import Callable, Iterable, Optional
+from typing import Iterable, Optional
 
 from saintess_engine.tlog import Record
 

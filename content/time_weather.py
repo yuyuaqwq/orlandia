@@ -13,7 +13,6 @@
 - 天气：日期哈希伪随机（每天固定、全服一致，可查）；雪只在冬季、雾只在特定地图
 """
 import datetime
-import random
 
 from . import texts as _T                       # 文案表（B 批 B-1：天气/季节名）
 

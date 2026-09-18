@@ -69,8 +69,6 @@
 
 from __future__ import annotations
 
-import sys
-
 from saintess_engine.events import EventBus
 
 # ★ W4（2026-09-14）：`C.HIDDEN_MONSTERS` → 包内门面（真源 `game/data/hidden_monsters.py:18`）

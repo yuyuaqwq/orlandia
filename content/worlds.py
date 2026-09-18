@@ -28,7 +28,7 @@ import json
 import time
 import uuid
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from saintess_engine.store import Column, DeclaredRepository, TableSpec
 from saintess_engine.store.snapshots import SnapshotSpec, declare_snapshot

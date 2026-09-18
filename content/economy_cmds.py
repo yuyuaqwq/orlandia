@@ -16,8 +16,6 @@
 逐字节等价（证据：`overnight/B9-L1-economy.md`，288 例快照 before ≡ after）。
 """
 import asyncio
-import functools
-import inspect
 import json
 import os
 import random

@@ -2918,7 +2918,6 @@ class InstanceImpl:
         蓝符 = 蓝色品质 RUNES 符文（`_rune_item` 构造，与 _instance_secret_chest 同款），
         按副本等级就近出符：Lv.60-74 → lvl 1-2，Lv.82+ → lvl 2-3。
         """
-        from . import runes as _runes_core
         inst_lv = int(inst.get("lv", 0) or 0)
         bp_chance = float(poi.get("bp_chance", INVESTIGATE_BP_CHANCE))
         rune_chance = float(poi.get("rune_chance", INVESTIGATE_RUNE_CHANCE)) if inst_lv >= 60 else 0.0
