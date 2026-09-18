@@ -11,55 +11,25 @@ B13-L7（2026-09-14）。宿主 `game/core/maps.py` 已改成薄壳（本模块�
 | `SUBAREAS[map_id]`（`hidden`/`reveal` 读） | 包内 `subareas` 域（`content/data/subareas.json`，键 = 子区域 id） | 628 条**逐字段**与宿主装配后 `SUBAREAS` 相同、逐图列表序相同（对拍 0 差异） |
 | `from .. import db`（`db.xxx`） | 模块级 `db`（`bind_host` 注入 / `sys.modules` 兜底） | 存储层留宿主（平台适配） |
 | `MAPS` / `SUBAREAS`（两个装配钩子的**输入**） | 包内 `worlds` / `subareas` + 序真源 `exploration.order`（`content/catalog_space.py`） | 逐条对拍 0 差异（见下「等价证据」） |
-| `ENCY_*` / `MONSTER_LOCS`（两个装配钩子的**产出**） | **包内本模块的 4 只模块级 dict**（宿主只留兼容镜像） | B15-W9，见下 |
+| `ENCY_*` / `MONSTER_LOCS`（两个装配钩子的**产出**） | **`content/catalog_space.py`**（本模块 B15-W9 那份副本已删，审计 #26） | 见下「派生表落点」 |
 
-派生表落点（B15-W9，2026-09-14）
+派生表落点（审计 #26 收口，2026-09-19）
 --------------------------------------------------
-`build_ency()` / `build_monster_locs()` 产出的 4 张表（`ENCY_MAP_MONSTERS` / `ENCY_MONSTER_MAP` /
-`ENCY_MATERIAL_SOURCE` / `MONSTER_LOCS`）**落点已搬进本模块**（模块级 dict，`__all__` 里可见）：
+`ENCY_MAP_MONSTERS` / `ENCY_MONSTER_MAP` / `ENCY_MATERIAL_SOURCE` / `MONSTER_LOCS` 4 张装配期
+派生表的**唯一真源 = `content/catalog_space.py`**：那里的 `build_ency()` / `build_monster_locs()`
+在模块 import 期各跑一次（口径 = 该文件头「装配时机」：3 张 `ENCY_*` 用并入后 628 条，
+`MONSTER_LOCS` 用并入前基础 430 条）。
 
-* **改前**：写/读宿主 `game.data` 上那 4 只空 dict —— 宿主 `game/data/maps.py:4364` 只是给它们一个
-  落点；删掉宿主 `game/data`，落点消失 → `AttributeError: no attribute 'MONSTER_LOCS'`（沙盒探针
-  `overnight/w2_sandbox_delete_data.py` 实测「通过 3 · 失败 11」，11 条全归因本模块）。
-  改后同口径复跑：**通过 5 · 失败 9，本模块致因 0 条**；剩下 9 条全在 `content/pets.py`
-  （B13-L7 薄壳，真源仍在宿主 `game/data/pets.py`，属别线/B14 —— 改前被本模块的失败挡在后面看不见）。
-  取证：`overnight/_w9_sandbox_layers.py`（层归因 + `--maps-old` 换回改前版反证）。
-* **改后**：产出只写**包内 4 只 dict**；宿主那 4 只 dict 只做**兼容镜像**（能取到就 `clear()+update()`
-  进**同一只对象**，取不到就跳过）—— 与 `content/index.py::_mirror_to_host` 的「同一只子 dict」同义：
-  宿主侧读者（`from .data import *` / `C.MONSTER_LOCS`）拿到的引用不变、内容逐条相同。
-* **输入**：改用包内域行（`content/catalog_space.py` 的 `MAP_ORDER` / `SUBAREAS`）。
-  `base_only=True` = 域里**不带 `hidden` 键**的 430 条「并入前」基础房间；`False` = 全量 628 条。
-  两条口径与宿主 `d.MAPS` / `d.SUBAREAS` 在对应时机**读取的同一份内容逐条相等**（实测 4 表
-  键集 / 键序 / 逐条值 0 差异，见下「等价证据」）。
-* **时机不变**：仍照旧由宿主壳 `game/core/maps.py:47` 在 import 期调一次（那一行未改）。
-  「并入前 430 条」现在由 `base_only` 判据表达，不再靠 import 时机兑现 —— 但**结果逐条不变**：
-  `MONSTER_LOCS` 仍是 **343 条**（用全量 628 条现算会变 345 条：多 `噬根藤精` / `腐牙萨满·嚎骨`，
-  且 174 个怪的地点列表不同）。⚠️ 判据 `"hidden" not in row` 是域里唯一可用的「并入前」标记；
-  将来若某个**基础**房间也带 `hidden`，这条等价会破 —— 正解见 `content/catalog_space.py` 头注
-  （建议域里补 `mesh: true`）。
-
-等价证据（`overnight/w1213_l7_probe.py`，只读对拍，2026-09-14 实测）
-------------------------------------------------------------------
-* `maps.json` 键集合 = 宿主 `MAPS` id；`subareas` 域 `map` 集合 = 宿主 `MAPS` id；
-* 628 条子区域：宿主 `SUBAREAS[map]`（**列表序**）↔ 包内「`maps.nodes` 序取 `subareas` 行」
-  **逐字段 0 差异**（含 `monsters/elite/boss` 六元组）；
-* 97 张网状连通表：宿主 `SUBAREA_LINKS_INDEX` ↔ `maps.links` **0 差异**；
-* 121 图 `map_space()` 的 邻接 / 深度 / gate / root / topology / audit / route / center /
-  `role_of` 标签 **0 差异**（对拍脚本用与宿主同一套构造参数：`nodes` 角色 = `roles` 域值的逆映射、
-  `roles=_ROLES`、`gate` 兜底重算）。
-
-等价证据（B15-W9：4 张派生表跨源对拍，2026-09-14 实测）
---------------------------------------------------------
-脚本 `overnight/_w9_dump_tables.py`（导出宿主 `C.<名>` 与包内 `catalog_space.<名>` 各一份）+
-`overnight/_w9_cmp_tables.py`（键集 + 键序 + 逐条值）：
-**4 表全部 0 差异** —— `MONSTER_LOCS` 343 键（= 430 基础房间）/ `ENCY_MAP_MONSTERS` 242 /
-`ENCY_MONSTER_MAP` 345 / `ENCY_MATERIAL_SOURCE` 374，键序同、逐条值同
-（改后同一脚本再对拍：换源后逐条仍 0 差异；末行见报告）。
+本模块 B15-W9 曾把 4 张表的落点搬进来（`build_*` + 4 只模块级 dict + `_mirror_to_host` 兼容镜像）。
+宿主 `game/data` 删除后，宿主壳 `game/core/maps.py` 的调用点一并消失 ⇒ 那条构建链**无人调用、
+无人读取**：全仓 grep 的读点全在 `content/catalog_space.py`，且门面聚合序里 `content.catalog_space`
+排在 `content.maps` 之前 ⇒ `C.ENCY_*` / `C.MONSTER_LOCS` 只会命中 catalog_space。
+即：本模块那 4 张表成了第二份死副本，本次按「单源」删净（审计 #26）。
+跨源对拍 0 差异的证据仍在：`overnight/_w9_dump_tables.py` / `_w9_cmp_tables.py`。
 """
 from __future__ import annotations
 
 import os
-import sys
 
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
@@ -76,35 +46,13 @@ _MAPS = placeholder("_MAPS")
 _SUBS = placeholder("_SUBS")
 _DOM_ROLES = placeholder("_DOM_ROLES")
 
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
 
 def bind_host(**objs):
-    """宿主替身注入（幂等）——键 = 模块名（`db` / `data`）。宿主薄壳 import 期调用。"""
+    """宿主替身注入（幂等）——键 = 模块名（`db`；`data` 镜像口随宿主 `game/data` 删除已撤）。"""
     _WIRE.bind(**objs)
-
-
-def _data_mod():
-    """宿主 `data` 模块句柄（决策项 U1；接口表第 9 行冻结机制 = 注入名 `data`）。
-
-    注入优先（宿主薄壳 `game/core/maps.py:29`）→ `sys.modules` 已加载的宿主 `data`
-    （**不 import 宿主模块树**）→ 抛；调用处吞掉（镜像跳过），不影响包内真源。
-    """
-    if "data" in _WIRE.handles():
-        return _WIRE.handle("data")
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.data" % prefix)
-        if m is not None:
-            return m
-    raise RuntimeError("maps：宿主 `data` 句柄未注入（宿主薄壳 bind_host(data=…) 负责）——拒绝静默空跑")
-
-
-def _data():
-    """兼容别名（`_mirror_to_host` 用）：= `_data_mod()`。"""
-    return _data_mod()
 
 
 from ._pkgref import DB as db            # B1：包内存储层（引擎 wire 形状的惰性句柄）
@@ -180,128 +128,6 @@ def map_route(map_id: str, src: str, dst: str) -> list:
     （v183 之前该判断在 travel / world 各抄了一份星形链首逻辑）。
     """
     return map_space(map_id).route(src, dst)
-
-
-# ============================================================
-# 装配期派生表（落点 = 包内；B15-W9）
-# ============================================================
-# 4 只模块级 dict = 真源；宿主 `game.data` 上那 4 只（`game/data/maps.py:4364`）只做兼容镜像。
-MONSTER_LOCS: dict = {}
-ENCY_MAP_MONSTERS: dict = {}
-ENCY_MONSTER_MAP: dict = {}
-ENCY_MATERIAL_SOURCE: dict = {}
-
-
-def _assembly_input(base_only: bool):
-    """装配期派生表的输入 → `(maps 序列, {图 id: 行列表})`。
-
-    真源 = 包内域：`content/catalog_space.py` 的 `MAP_ORDER`（序真源 = `exploration.order`，实测与
-    宿主 `MAPS` 声明序逐项相同）+ `SUBAREAS`（行 = `subareas` 域行去掉导出注入的 `map` 键）。
-    `base_only=True` 取**并入前**的 430 条基础房间（域里不带 `hidden` 键；网状房间 198 条一律带），
-    `False` 取全量 628 条 —— 分别对应宿主两个钩子的**读取时机**（`core/maps.py:47` 并入前 /
-    `_assembly.py:126` 并入后）。
-
-    `maps` 序列每项形如 `{"id", "name"}`（与宿主 `MAPS` 行被取用的字段同名），所以下面两个 build
-    的正文**逐字未改**。与宿主 `d.MAPS` / `d.SUBAREAS` 的对应版本逐条相等，见文件头「派生表落点」
-    与报告 `overnight/_w9_maps_derived_to_pkg.md`。
-    """
-    from . import catalog_space as _cs
-    order = list(_cs.MAP_ORDER)
-    rows = {}
-    for mid in order:
-        r = _cs.SUBAREAS.get(mid) or []
-        rows[mid] = _cs._base_only(r) if base_only else list(r)
-    return [{"id": mid, "name": (_cs._WORLDS_DOM.get(mid) or {}).get("name")} for mid in order], rows
-
-
-def _mirror_to_host(name: str, table: dict) -> None:
-    """宿主兼容镜像（写入方向；宿主不在就跳过）—— 为什么必须**同一只对象**：
-
-    宿主 `game/data/__init__.py:12` 把 `game/data/maps.py:4364` 的 4 只空 dict 绑进 `game.data`，
-    再被 `game.content` 的 `from .data import *` / 测试的 `C.<名>` 读；**改前派生表就写在这些对象上**。
-    所以这里写入的是**同一只 dict**（先 `clear()` 再 `update()`，对象身份不变 → 宿主侧读者手头的
-    引用照旧有效、内容逐条相同），而不是把宿主名重绑成包内对象（那会让 `game.data` 与
-    `game.content` 已绑定的名字分叉）。
-
-    取不到宿主（`game/data` 已删 / 未注入 / 该表不在）→ 静默跳过：包内那份 = 真源，读者不再依赖它。
-    """
-    try:
-        dst = getattr(_data(), name, None)
-    except Exception:                                        # noqa: BLE001
-        return
-    if isinstance(dst, dict):
-        dst.clear()
-        dst.update(table)
-
-
-def build_ency():
-    """派生表构建（`ENCY_MAP_MONSTERS` / `ENCY_MONSTER_MAP` / `ENCY_MATERIAL_SOURCE`）。
-
-    落点 = 包内 3 只 dict；输入 = 包内域行**全量 628 条**（= 宿主 `_assembly.py:126` 时机，
-    网状房间并入之后）。`clear()` 只为重复调用幂等（单次调用的结果与改前逐条相同）。
-    """
-    maps, subs = _assembly_input(base_only=False)
-    ency_map_monsters = ENCY_MAP_MONSTERS
-    ency_monster_map = ENCY_MONSTER_MAP
-    ency_material_source = ENCY_MATERIAL_SOURCE
-    ency_map_monsters.clear()
-    ency_monster_map.clear()
-    ency_material_source.clear()
-    for m in maps:
-        mid = m["id"]
-        mname_cn = m["name"]  # 地图中文名（显示用）
-        entries = []
-        sas = subs.get(mid, [])
-        for sa in sas:
-            for (mid_m, mname, role, lv, skills, drops) in (sa.get("monsters") or []):
-                # v101.29：key/显示统一用中文名——v48 ID 重构后百科查询端
-                # 用中文名查 ID-keyed 表恒失效（材料/怪物/地图查询全坏），
-                # 且掉落来源显示会泄漏 m_*/map_id 内部 ID
-                ency_monster_map.setdefault(mname, []).append((mname_cn, "普通"))
-                for dd in drops:
-                    ency_material_source.setdefault(dd, []).append((mname_cn, mname))
-                entries.append((mname, lv, "普通"))
-            if sa.get("elite"):
-                (eid, estr, erole, elv, eskl, edrops) = sa["elite"]
-                ency_monster_map.setdefault(estr, []).append((mname_cn, "精英"))
-                for dd in edrops:
-                    ency_material_source.setdefault(dd, []).append((mname_cn, estr))
-                entries.append((estr, elv, "精英"))
-            if sa.get("boss"):
-                (bid, bstr, brole, blv, bskl, bdrops) = sa["boss"]
-                ency_monster_map.setdefault(bstr, []).append((mname_cn, "首领"))
-                for dd in bdrops:
-                    ency_material_source.setdefault(dd, []).append((mname_cn, bstr))
-                entries.append((bstr, blv, "首领"))
-        ency_map_monsters[mid] = entries
-        ency_map_monsters[mname_cn] = entries  # v101.29 双 key：玩家输中文地图名也能查
-    _mirror_to_host("ENCY_MAP_MONSTERS", ency_map_monsters)
-    _mirror_to_host("ENCY_MONSTER_MAP", ency_monster_map)
-    _mirror_to_host("ENCY_MATERIAL_SOURCE", ency_material_source)
-
-
-def build_monster_locs():
-    """v130.3 意见#3：怪名 → [(子区域显示名, 地图名, 等级, 类型)] 详细分布（含等级/子区域粒度）。
-
-    落点 = 包内 `MONSTER_LOCS`；输入 = 包内域行**并入前的基础 430 条**（`base_only=True`，
-    = 宿主 `core/maps.py:47` 的 import 期时机）。`clear()` 只为重复调用幂等。
-    """
-    maps, subs = _assembly_input(base_only=True)
-    monster_locs = MONSTER_LOCS
-    monster_locs.clear()
-    for m in maps:
-        mid, mname_cn = m["id"], m["name"]
-        for sa in (subs.get(mid) or []):
-            sa_name = sa.get("name") or sa.get("id", "")
-            for (_, mname, _, lv, _, _) in (sa.get("monsters") or []):
-                monster_locs.setdefault(mname, []).append((sa_name, mname_cn, lv, "普通"))
-            if sa.get("elite"):
-                (_, estr, _, elv, _, _) = sa["elite"]
-                monster_locs.setdefault(estr, []).append((sa_name, mname_cn, elv, "精英"))
-            if sa.get("boss"):
-                (_, bstr, _, blv, _, _) = sa["boss"]
-                monster_locs.setdefault(bstr, []).append((sa_name, mname_cn, blv, "首领"))
-    _mirror_to_host("MONSTER_LOCS", monster_locs)
 
 
 def subarea_links(map_id: str, subarea_id: str) -> list:
@@ -407,12 +233,10 @@ def bump_explore_count(group_id: str, qq_id: str, map_id: str):
 
 
 __all__ = [
-    "map_space", "map_center", "map_route", "build_ency", "build_monster_locs",
+    "map_space", "map_center", "map_route",
     "subarea_links", "map_exit_subarea", "map_entry_subarea", "subarea_depth",
     "is_hidden_room", "reveal_met", "reveal_progress", "bump_explore_count",
     "bind_host",
-    # B15-W9：4 张装配期派生表（落点 = 包内本模块；宿主同名对象只做兼容镜像）
-    "MONSTER_LOCS", "ENCY_MAP_MONSTERS", "ENCY_MONSTER_MAP", "ENCY_MATERIAL_SOURCE",
 ]
 
 
