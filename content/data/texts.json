@@ -700,6 +700,32 @@
     "category": "身份绑定",
     "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
   },
+  "bp.dead": {
+    "value": "📜【{name}】（已失效/旧版本残留，可出售）",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
+  "bp.head": {
+    "value": "📜 【已学图纸】共 {n} 张",
+    "params": [
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
+  "bp.none": {
+    "value": "📜 你还没有学会任何图纸！\n💡 图纸由 Boss 掉落/宝箱/垂钓/商店获得，背包里有图纸时发『学习 <图纸名>』永久解锁～",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
+  "bp.tip": {
+    "value": "💡 已学图纸锻造/烹饪/炼金不再消耗图纸 ｜ 背包里新图纸发『学习 <图纸名>』解锁",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_learned_blueprint_list（B 批 C 档）"
+  },
   "build.missing_item": {
     "value": "『{name}』(Lv.{lv})",
     "params": [
@@ -1268,6 +1294,474 @@
     "value": "发『烹饪列表』查看全部料理配方～(如：烹饪 蛇羹)",
     "category": "烹饪",
     "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "craft.affinity": {
+    "value": "({affinity}倾向)",
+    "params": [
+      "affinity"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.affix_line": {
+    "value": "\n    ✨ 词条：{affixes}",
+    "params": [
+      "affixes"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.bad_class": {
+    "value": "未识别的职业『{cls}』！『锻造列表』或『锻造列表 <页码>』查看～",
+    "params": [
+      "cls"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.comm_gold_short": {
+    "value": "金币不足！铁匠代工【{name}】要 {gold} 金币(锻造价×3)，你只有 {have}。",
+    "params": [
+      "name",
+      "gold",
+      "have"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_lv_short": {
+    "value": "【{name}】是 Lv.{need_lv} 的装备，你才 Lv.{lv}，等级再高些才能驾驭！",
+    "params": [
+      "name",
+      "need_lv",
+      "lv"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_mat_short": {
+    "value": "材料不足！代工【{name}】还缺：{lack}。材料可通过打怪/垂钓/挖掘/商店获得！",
+    "params": [
+      "name",
+      "lack"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能找铁匠代工！(先『地图』移动到铁匠铺)",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_no_idx": {
+    "value": "没有第 {idx} 个可代工配方(当前可代工 {total} 件)！『锻造 全部』查看全部配方～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_not_found": {
+    "value": "没有找到『{name}』的锻造配方！『锻造 配方 <装备名>』查看详情～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_ok": {
+    "value": "🔨 铁匠接过材料，替你挥锤……\n✅ 代工完成！{color}【{name}】({slot}) Lv.{lv}\n💰 代工费 {fee} 金币(锻造价×3)，装备已放入背包！",
+    "params": [
+      "color",
+      "name",
+      "slot",
+      "lv",
+      "fee"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.comm_usage": {
+    "value": "格式：代工 <装备名>，如『代工 铁皮长剑』\n铁匠代工 = 材料＋3倍金币，不受锻造等级/图纸限制(单人玩家也能拿高级装备)",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft_commission（B 批 C 档）"
+  },
+  "craft.cost_line": {
+    "value": "💰 消耗 {gold} 金币，装备已放入背包！(副业经验 +{exp}){lv_msg}",
+    "params": [
+      "gold",
+      "exp",
+      "lv_msg"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.craft_ok": {
+    "value": "🔨 铁匠挥锤敲打，火星四溅……\n✅ 锻造成功！{color}【{name}】({slot}) Lv.{lv} {affinity}{affixes}{sets}\n",
+    "params": [
+      "color",
+      "name",
+      "slot",
+      "lv",
+      "affinity",
+      "affixes",
+      "sets"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.gold_short": {
+    "value": "金币不足！锻造【{name}】需要 {gold} 金币，你只有 {have}。",
+    "params": [
+      "name",
+      "gold",
+      "have"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.have_bp": {
+    "value": "你背包里有『{name}』！输入『学习 {item}』解锁配方后就能永久锻造了～",
+    "params": [
+      "name",
+      "item"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.lack_detail": {
+    "value": "{item}×{qty}(你有{have})",
+    "params": [
+      "item",
+      "qty",
+      "have"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.legendary_line": {
+    "value": "\n    ✨ 专属：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.line": {
+    "value": "{idx}. {color}【{name}】Lv.{lv} {slot} 锻造Lv.{prof}{bp}\n    {mats}｜{gold}金",
+    "params": [
+      "idx",
+      "color",
+      "name",
+      "lv",
+      "slot",
+      "prof",
+      "bp",
+      "mats",
+      "gold"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_line（B 批 C 档）"
+  },
+  "craft.list_all_head": {
+    "value": "🔨 铁匠铺·全部配方(共 {n} 件){tail}",
+    "params": [
+      "n",
+      "tail"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.list_all_next": {
+    "value": "｜『锻造 全部 {page}』下一页",
+    "params": [
+      "page"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.list_all_row": {
+    "value": "    {left}｜{gold}金",
+    "params": [
+      "left",
+      "gold"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.list_all_tip": {
+    "value": "💡 未达标的配方：🔒等级不够 ｜ 🛠️锻造副业等级不够 ｜ 📜图纸未学习 ｜ 🔒城镇需到对应等级城镇的铁匠铺",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.list_avail_head": {
+    "value": "🔨 铁匠铺·当前可锻造(共 {n} 件){tail}",
+    "params": [
+      "n",
+      "tail"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_available（B 批 C 档）"
+  },
+  "craft.list_avail_limited": {
+    "value": "此城镇可锻造的配方有限，去更高等级城镇的铁匠铺看看～",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_available（B 批 C 档）"
+  },
+  "craft.list_avail_next": {
+    "value": "｜『锻造列表 {page}』下一页",
+    "params": [
+      "page"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_available（B 批 C 档）"
+  },
+  "craft.list_class_head": {
+    "value": "{icon} 【{cls}】当前可锻造({n} 件)",
+    "params": [
+      "icon",
+      "cls",
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_class（B 批 C 档）"
+  },
+  "craft.list_class_next": {
+    "value": "｜『锻造 {cls} {page}』下一页",
+    "params": [
+      "cls",
+      "page"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_class（B 批 C 档）"
+  },
+  "craft.lv_short": {
+    "value": "【{name}】是 Lv.{need_lv} 的装备，你才 Lv.{lv}，等级再高些才能驾驭！",
+    "params": [
+      "name",
+      "need_lv",
+      "lv"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.lv_up": {
+    "value": "\n🌟 锻造等级提升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.mark_bp": {
+    "value": "📜未学",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.mark_lv": {
+    "value": "🔒等级",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.mark_prof": {
+    "value": "🛠️锻造Lv.{lv}",
+    "params": [
+      "lv"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.mark_town": {
+    "value": "🔒城镇",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_list_all（B 批 C 档）"
+  },
+  "craft.masterpiece_msg": {
+    "value": "🌟 精良作品！属性大幅提升！",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.masterpiece_prefix": {
+    "value": "精良·{name}",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.mat_short": {
+    "value": "材料不足！锻造【{name}】还缺：{lack}。材料可通过打怪/垂钓/挖掘/商店获得！",
+    "params": [
+      "name",
+      "lack"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.need_bp": {
+    "value": "【{name}】需要先学习图纸『{bp}』(Boss 掉落/宝箱/垂钓/商店获得)！『学习 <图纸名>』永久解锁。",
+    "params": [
+      "name",
+      "bp"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.need_smith": {
+    "value": "需要到铁匠铺/锻造坊才能锻造装备！(先『地图』移动到铁匠铺)",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.no_idx": {
+    "value": "没有第 {idx} 个可锻造配方(当前可锻造 {total} 件)！『锻造列表』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.not_found": {
+    "value": "没有找到『{name}』的锻造配方！『锻造』看职业分组，『锻造 配方 <装备名>』看详情～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.prof_short": {
+    "value": "【{name}】需要锻造副业 Lv.{need}，你才 Lv.{lv}！多锻造装备升级副业吧～\n",
+    "params": [
+      "name",
+      "need",
+      "lv"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.quality_up_orange": {
+    "value": "✨ 品质升华！紫装锻出了橙装！",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.quality_up_purple": {
+    "value": "✨ 品质升华！蓝装锻出了紫装！",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.recipe_bp": {
+    "value": "📜 需要图纸：{name}(Boss 掉落/宝箱/垂钓/商店获得)",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_classes": {
+    "value": "🎭 适用职业：{classes}",
+    "params": [
+      "classes"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_cost": {
+    "value": "💰 费用：{gold} 金币",
+    "params": [
+      "gold"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_head": {
+    "value": "📜 配方：{color}【{name}】",
+    "params": [
+      "color",
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_mats": {
+    "value": "🧰 材料：{mats}",
+    "params": [
+      "mats"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_set": {
+    "value": "🎴 套装：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_type": {
+    "value": "🏷️ 类型：{slot}  Lv.{lv}  {quality}",
+    "params": [
+      "slot",
+      "lv",
+      "quality"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_recipe_detail（B 批 C 档）"
+  },
+  "craft.recipe_usage": {
+    "value": "格式：『锻造 配方 <装备名>』看配方详情，如『锻造 配方 铁剑』～",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.removed": {
+    "value": "『{name}』是旧版本已移除的配方！『锻造』查看当前可锻造配方～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.row": {
+    "value": "{color}【{name}】Lv.{lv} {slot}{bp}｜{mats}｜{gold}金",
+    "params": [
+      "color",
+      "name",
+      "lv",
+      "slot",
+      "bp",
+      "mats",
+      "gold"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.set_line": {
+    "value": "\n    🎴 套装：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.suggest": {
+    "value": "🔍 没找到『{name}』配方，但按材料联想到了 {n} 个：",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:craft（B 批 C 档）"
+  },
+  "craft.town_hint": {
+    "value": "｜{town}锻造 Lv.{lo}-{hi}",
+    "params": [
+      "town",
+      "lo",
+      "hi"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:_craft_town_hint（B 批 C 档）"
   },
   "daily.done_full": {
     "value": "【每日】今日已完成 {done}/{limit} 个每日任务，明天再来！",
@@ -5360,6 +5854,71 @@
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:_possessed_view（B 批 C 档）"
   },
+  "learn.already": {
+    "value": "『{name}』你已经学会了，不需要重复学习～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.dead_bp": {
+    "value": "『{name}』没有对应的锻造/烹饪/炼金配方(旧版本残留图纸)，图纸未消耗，可自行出售～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.inline_recipe": {
+    "value": "💡 『{bp}』对应装备【{name}】可以直接在铁匠铺『锻造 {name2}』制作，不需要学习图纸！\n这张图纸已不再掉落（旧版本遗留），可『出售 {bp2}』换成金币～",
+    "params": [
+      "bp",
+      "name",
+      "name2",
+      "bp2"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.learned": {
+    "value": "📜 你研读了【{name}】，图纸化作点点光芒融入记忆！",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.no_bp": {
+    "value": "背包里没有『{name}』图纸！Boss 掉落/宝箱/垂钓/商店获得，『背包 图纸』查看～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.no_idx": {
+    "value": "背包里没有第 {idx} 张图纸(共 {total} 张)！『背包 图纸』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.unlocked_n": {
+    "value": "🧠 永久解锁 {n} 个配方(制作时不再消耗图纸)！",
+    "params": [
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
+  "learn.usage": {
+    "value": "格式：『学习 <图纸名>』，如『学习 铁皮图纸』！图纸由 Boss 掉落或宝箱/垂钓/商店获得。",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:learn（B 批 C 档）"
+  },
   "mech_name.arcane": {
     "value": "奥术",
     "category": "机制名",
@@ -6673,6 +7232,27 @@
     "value": "🏆 【奥兰迪亚战力榜】 🏆",
     "category": "排行榜",
     "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
+  },
+  "recipe.head": {
+    "value": "📜 铁匠锻造配方(『锻造 <职业>』看该职业，『锻造 配方 <装备名>』看详情)：",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:recipe_list（B 批 C 档）"
+  },
+  "recipe.not_found": {
+    "value": "没有找到『{name}』的配方！",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:recipe_list（B 批 C 档）"
+  },
+  "recipe.removed": {
+    "value": "『{name}』是旧版本已移除的配方！『配方』查看当前全部配方～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:recipe_list（B 批 C 档）"
   },
   "register.already": {
     "value": "你已经注册过角色啦！输入『角色』查看～",

@@ -1831,7 +1831,7 @@ class EconomyImpl(CommandBase):
             yield event.plain_result(act_msg)
             return
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能锻造装备！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("craft.need_smith"))
             return
         text = raw.strip()
         # 『锻造列表 [N]』：列表指令（翻页），与『锻造 N』锻造序号分离
@@ -1848,14 +1848,14 @@ class EconomyImpl(CommandBase):
             if cls in _ccore.CLASSES:
                 yield event.plain_result(self._craft_list_class(player, cls, 1))
                 return
-            yield event.plain_result(f"未识别的职业『{t2}』！『锻造列表』或『锻造列表 <页码>』查看～")
+            yield event.plain_result(_T.text("craft.bad_class", cls=t2))
             return
         # 『锻造 N』：锻造可锻造列表第 N 个配方（序号与列表显示一致，1-based）
         if text.isdigit():
             idx = int(text)
             recs = self._craft_recs_filtered(player)
             if idx < 1 or idx > len(recs):
-                yield event.plain_result(f"没有第 {idx} 个可锻造配方(当前可锻造 {len(recs)} 件)！『锻造列表』查看～")
+                yield event.plain_result(_T.text("craft.no_idx", idx=idx, total=len(recs)))
                 return
             text = recs[idx - 1][0]
         # 无参数：只列当前可锻造的配方（无需图纸 + 已学习图纸），翻页用『锻造列表 N』
@@ -1902,9 +1902,9 @@ class EconomyImpl(CommandBase):
             # 旧别名指向已删除配方：直接提示未找到（防 CRAFT_RECIPES[rec_name] KeyError 崩溃）
             # M10 P2 死别名引导：旧版本已移除的配方给出明确提示
             if any(text in al for als in _clife.CRAFT_RECIPE_ALIASES.values() for al in als):
-                yield event.plain_result(f"『{text}』是旧版本已移除的配方！『锻造』查看当前可锻造配方～")
+                yield event.plain_result(_T.text("craft.removed", name=text))
             else:
-                yield event.plain_result(f"没有找到『{text}』的锻造配方！『锻造』看职业分组，『锻造 配方 <装备名>』看详情～")
+                yield event.plain_result(_T.text("craft.not_found", name=text))
             return
         if not rec_name:
             # 可能是查看配方详情
@@ -1912,7 +1912,7 @@ class EconomyImpl(CommandBase):
                 t2 = text[2:].strip()
                 # M10 P2 空参拦截：『锻造 配方』无参不再误中首个配方（空串包含匹配恒 True）
                 if not t2:
-                    yield event.plain_result("格式：『锻造 配方 <装备名>』看配方详情，如『锻造 配方 铁剑』～")
+                    yield event.plain_result(_T.static("craft.recipe_usage"))
                     return
                 rn = C.craft_recipe_search(t2)
                 if rn and rn in _clife.CRAFT_RECIPES:  # 旧别名指向已删除配方 → 不展示详情
@@ -1920,37 +1920,39 @@ class EconomyImpl(CommandBase):
                     return
                 # M10 P2：『锻造 配方 <旧名>』死别名引导（与锻造/代工/配方主入口一致）
                 if any(t2 in al for als in _clife.CRAFT_RECIPE_ALIASES.values() for al in als):
-                    yield event.plain_result(f"『{t2}』是旧版本已移除的配方！『锻造』查看当前可锻造配方～")
+                    yield event.plain_result(_T.text("craft.removed", name=t2))
                     return
             # #24 材料关键词联想：没找到配方名 → 按材料名联想
             mat_recs = C.craft_recipes_by_material(text)
             if mat_recs:
-                lines = [f"🔍 没找到『{text}』配方，但按材料联想到了 {len(mat_recs)} 个：", ""]
+                lines = [_T.text("craft.suggest", name=text, n=len(mat_recs)), ""]
                 for name, rec in mat_recs:
                     q = _b143.QUALITY[rec["quality"]]
                     bp = " 📜" if rec.get("blueprint") else ""
                     mats_show = " + ".join("%s×%s" % (C.display("materials", m), n) for m, n in rec["mats"].items())
                     if rec.get("blueprint"):
                         mats_show += " + %s×1" % rec["blueprint"]
-                    lines.append(f"{q['color']}【{C.display('recipes', name)}】Lv.{rec['lv']} {_b143.EQUIP_SLOTS[rec['slot']]}{bp}｜{mats_show}｜{rec['gold']}金")
+                    lines.append(_T.text("craft.row", color=q['color'], name=C.display('recipes', name), lv=rec['lv'],
+                                     slot=_b143.EQUIP_SLOTS[rec['slot']], bp=bp, mats=mats_show,
+                                     gold=rec['gold']))
                 lines.append("")
                 lines.append(self._tip("forge"))
                 yield event.plain_result("\n".join(lines))
                 return
-            yield event.plain_result(f"没有找到『{text}』的锻造配方！『锻造』看职业分组，『锻造 配方 <装备名>』看详情～")
+            yield event.plain_result(_T.text("craft.not_found", name=text))
             return
         rec = _clife.CRAFT_RECIPES[rec_name]
         rec_disp = C.display("recipes", rec_name)
         # 检查等级门槛（装备等级比玩家高太多不能锻造）
         if rec["lv"] > player["level"] + 6:
-            yield event.plain_result(f"【{rec_disp}】是 Lv.{rec['lv']} 的装备，你才 Lv.{player['level']}，等级再高些才能驾驭！")
+            yield event.plain_result(_T.text("craft.lv_short", name=rec_disp, need_lv=rec['lv'], lv=player['level']))
             return
         # v54 副业等级限制
         prof_lv = db.get_prof_level(group_id, qq_id, "craft")
         need_prof = self._craft_prof_need(rec["lv"])
         if prof_lv < need_prof:
             yield event.plain_result(
-                f"【{rec_disp}】需要锻造副业 Lv.{need_prof}，你才 Lv.{prof_lv}！多锻造装备升级副业吧～\n"
+                _T.text("craft.prof_short", name=rec_disp, need=need_prof, lv=prof_lv)
                 + self._tip("forge")
             )
             return
@@ -1962,11 +1964,11 @@ class EconomyImpl(CommandBase):
                 have_bp = db.count_item(group_id, qq_id, bp_name)
                 if have_bp >= 1:
                     yield event.plain_result(
-                        f"你背包里有『{bp_name}』！输入『学习 {bp_name}』解锁配方后就能永久锻造了～"
+                        _T.text("craft.have_bp", name=bp_name, item=bp_name)
                     )
                 else:
                     yield event.plain_result(
-                        f"【{rec_disp}】需要先学习图纸『{bp_name}』(Boss 掉落/宝箱/垂钓/商店获得)！『学习 <图纸名>』永久解锁。"
+                        _T.text("craft.need_bp", name=rec_disp, bp=bp_name)
                     )
                 return
         # 检查材料（毕业套图纸已学习，无需再检查图纸）
@@ -1974,9 +1976,9 @@ class EconomyImpl(CommandBase):
         for m, n in rec["mats"].items():
             have = db.count_item(group_id, qq_id, m)
             if have < n:
-                lack.append(f"{C.display('materials', m)}×{n}(你有{have})")
+                lack.append(_T.text("craft.lack_detail", item=C.display('materials', m), qty=n, have=have))
         if lack:
-            yield event.plain_result(f"材料不足！锻造【{rec_disp}】还缺：{'、'.join(lack)}。材料可通过打怪/垂钓/挖掘/商店获得！")
+            yield event.plain_result(_T.text("craft.mat_short", name=rec_disp, lack='、'.join(lack)))
             return
         # 20 章 4.3：词条倾向额外消耗（+50% 金币）
         gold_need = rec["gold"]
@@ -1986,7 +1988,7 @@ class EconomyImpl(CommandBase):
         if prof_lv >= 10:
             gold_need = int(gold_need * 0.9)
         if player["gold"] < gold_need:
-            yield event.plain_result(f"金币不足！锻造【{rec_disp}】需要 {gold_need} 金币，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("craft.gold_short", name=rec_disp, gold=gold_need, have=player['gold']))
             return
         # v94 体力：锻造消耗 10 体力（所有前置校验通过后再扣，材料/金币不足不白扣）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["craft"], player, "锻造")
@@ -2040,14 +2042,14 @@ class EconomyImpl(CommandBase):
                         if k in _new_stats:
                             equip["stats"][k] = _new_stats[k]
                     equip["name"] = f"{_b143.QUALITY[_new_q]['color']}·{equip['name']}"
-                    quality_msg = "✨ 品质升华！蓝装锻出了紫装！" if _new_q == "purple" else "✨ 品质升华！紫装锻出了橙装！"
+                    quality_msg = _T.static("craft.quality_up_purple") if _new_q == "purple" else _T.static("craft.quality_up_orange")
         # v135 橙装 2% 精良前缀（属性 ×1.15）
         if equip.get("quality") == "orange" and random.random() < _ccore.MASTERPIECE_CHANCE:
             equip["masterpiece"] = True
             for _k in equip.get("stats", {}):
                 equip["stats"][_k] = int(equip["stats"][_k] * 1.15)
-            equip["name"] = f"精良·{equip['name']}"
-            quality_msg = "🌟 精良作品！属性大幅提升！"
+            equip["name"] = _T.text("craft.masterpiece_prefix", name=equip['name'])
+            quality_msg = _T.static("craft.masterpiece_msg")
         import uuid
         key = f"eq_{uuid.uuid4().hex[:8]}"
         db.add_item(group_id, qq_id, key, equip)
@@ -2057,13 +2059,13 @@ class EconomyImpl(CommandBase):
         if afs:
             parts = [C.affix_label(a) for a in afs if isinstance(a, str)]
             if parts:
-                af_str = f"\n    ✨ 词条：{'  '.join(parts)}"
+                af_str = _T.text("craft.affix_line", affixes='  '.join(parts))
         if equip.get("legendary"):
             lg = _cit.LEGENDARY_EFFECTS[equip["legendary"]]
-            af_str += f"\n    ✨ 专属：{lg['name']}"
+            af_str += _T.text("craft.legendary_line", name=lg['name'])
         set_str = ""
         if equip.get("set"):
-            set_str = f"\n    🎴 套装：{equip['set']}"
+            set_str = _T.text("craft.set_line", name=equip['set'])
         # 副业经验（锻造成功 +1；阶段九：矮人熔炉之心——锻造经验 +10%，向上取整
         # （与全知全能加成同款整数算法；基础 1 点 → ceil(1.1)=2 点，保证加成可见）。
         # v105 M01#5：策划案文字为"成功率+10%"但锻造流程无失败机制，统一为经验语义
@@ -2074,7 +2076,7 @@ class EconomyImpl(CommandBase):
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "craft", prof_gain)
         lv_msg = ""
         if leveled:
-            lv_msg = f"\n🌟 锻造等级提升到 Lv.{new_lv}！"
+            lv_msg = _T.text("craft.lv_up", lv=new_lv)
         # 每日任务推进
         _done, _msg = self._daily_prof_bump(group_id, qq_id, "craft")
         lv_msg += _msg
@@ -2084,15 +2086,15 @@ class EconomyImpl(CommandBase):
         # v97.5 行为彩蛋规则：锻造成功后
         _rule_txt = self._rule_fire("craft_done", group_id, qq_id, player,
                                     _cspace.MAP_BY_ID.get(player["cur_map"], {}))
-        affinity_str = f"({affinity}倾向)" if affinity else ""
-        _msg_parts = [act_msg + f"🔨 铁匠挥锤敲打，火星四溅……\n"
-            f"✅ 锻造成功！{q['color']}【{equip['name']}】({_b143.EQUIP_SLOTS[equip['slot']]}) Lv.{equip['lv']} {affinity_str}"
-            f"{af_str}{set_str}\n"]
+        affinity_str = _T.text("craft.affinity", affinity=affinity) if affinity else ""
+        _msg_parts = [act_msg + _T.text("craft.craft_ok", color=q['color'], name=equip['name'],
+                                    slot=_b143.EQUIP_SLOTS[equip['slot']], lv=equip['lv'],
+                                    affinity=affinity_str, affixes=af_str, sets=set_str)]
         if quality_msg:
             _msg_parts.append(f"{quality_msg}\n")
         _msg_parts.append(
             # v113.5 O120：成功提示补副业经验反馈（原只报装备入包，玩家看不到经验增长）
-            f"💰 消耗 {gold_need} 金币，装备已放入背包！(副业经验 +{prof_gain}){lv_msg}"
+            _T.text("craft.cost_line", gold=gold_need, exp=prof_gain, lv_msg=lv_msg)
             + (f"\n{_rule_txt}" if _rule_txt else "")
         )
         yield event.plain_result("".join(_msg_parts))
@@ -2104,13 +2106,12 @@ class EconomyImpl(CommandBase):
         group_id, qq_id = self._uid(event)
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
-            yield event.plain_result("需要到铁匠铺/锻造坊才能找铁匠代工！(先『地图』移动到铁匠铺)")
+            yield event.plain_result(_T.static("craft.comm_need_smith"))
             return
         text = self._strip_cmd(event, "代工").strip()
         if not text:
             yield event.plain_result(
-                "格式：代工 <装备名>，如『代工 铁皮长剑』\n"
-                "铁匠代工 = 材料＋3倍金币，不受锻造等级/图纸限制(单人玩家也能拿高级装备)"
+                _T.static("craft.comm_usage")
             )
             return
         # v130.7 意见#30：『代工 <序号>』= 『代工』面板第 N 个可代工配方
@@ -2119,21 +2120,21 @@ class EconomyImpl(CommandBase):
             idx = int(text)
             _recs = self._commission_recs(player)
             if idx < 1 or idx > len(_recs):
-                yield event.plain_result(f"没有第 {idx} 个可代工配方(当前可代工 {len(_recs)} 件)！『锻造 全部』查看全部配方～")
+                yield event.plain_result(_T.text("craft.comm_no_idx", idx=idx, total=len(_recs)))
                 return
             text = _recs[idx - 1][0]
         rec_name = C.craft_recipe_search(text)
         if not rec_name or rec_name not in _clife.CRAFT_RECIPES:  # 旧别名指向已删除配方 → 视作未找到
             # M10 P2 死别名引导：旧版本已移除的配方给出明确提示
             if any(text in al for als in _clife.CRAFT_RECIPE_ALIASES.values() for al in als):
-                yield event.plain_result(f"『{text}』是旧版本已移除的配方！『锻造』查看当前可锻造配方～")
+                yield event.plain_result(_T.text("craft.removed", name=text))
             else:
-                yield event.plain_result(f"没有找到『{text}』的锻造配方！『锻造 配方 <装备名>』查看详情～")
+                yield event.plain_result(_T.text("craft.comm_not_found", name=text))
             return
         rec = _clife.CRAFT_RECIPES[rec_name]
         rec_disp = C.display("recipes", rec_name)
         if rec["lv"] > player["level"] + 6:
-            yield event.plain_result(f"【{rec_disp}】是 Lv.{rec['lv']} 的装备，你才 Lv.{player['level']}，等级再高些才能驾驭！")
+            yield event.plain_result(_T.text("craft.comm_lv_short", name=rec_disp, need_lv=rec['lv'], lv=player['level']))
             return
         # v166 代工去图纸：不再校验 learned_blueprints/背包图纸——材料+3倍金币直出
         # （锻造 craft 命令仍保留图纸学习制，图纸线/掉率不变）
@@ -2142,13 +2143,13 @@ class EconomyImpl(CommandBase):
         for m, n in rec["mats"].items():
             have = db.count_item(group_id, qq_id, m)
             if have < n:
-                lack.append(f"{C.display('materials', m)}×{n}(你有{have})")
+                lack.append(_T.text("craft.lack_detail", item=C.display('materials', m), qty=n, have=have))
         if lack:
-            yield event.plain_result(f"材料不足！代工【{rec_disp}】还缺：{'、'.join(lack)}。材料可通过打怪/垂钓/挖掘/商店获得！")
+            yield event.plain_result(_T.text("craft.comm_mat_short", name=rec_disp, lack='、'.join(lack)))
             return
         cost = rec["gold"] * 3
         if player["gold"] < cost:
-            yield event.plain_result(f"金币不足！铁匠代工【{rec_disp}】要 {cost} 金币(锻造价×3)，你只有 {player['gold']}。")
+            yield event.plain_result(_T.text("craft.comm_gold_short", name=rec_disp, gold=cost, have=player['gold']))
             return
         # 扣材料 + 扣金币 + 发装备
         # v104R3 P1-2：先按 key 精确扣取再按名兜底 + remain 循环（与锻造同构修复）
@@ -2177,9 +2178,8 @@ class EconomyImpl(CommandBase):
         db.add_item(group_id, qq_id, key, equip)
         q = _b143.QUALITY[equip["quality"]]
         yield event.plain_result(
-            f"🔨 铁匠接过材料，替你挥锤……\n"
-            f"✅ 代工完成！{q['color']}【{equip['name']}】({_b143.EQUIP_SLOTS[equip['slot']]}) Lv.{equip['lv']}\n"
-            f"💰 代工费 {cost} 金币(锻造价×3)，装备已放入背包！"
+            _T.text("craft.comm_ok", color=q['color'], name=equip['name'],
+                slot=_b143.EQUIP_SLOTS[equip['slot']], lv=equip['lv'], fee=cost)
         )
 
     @declared("learn")
@@ -2194,7 +2194,7 @@ class EconomyImpl(CommandBase):
         if bp_name.startswith("图纸"):
             bp_name = bp_name[2:].strip()
         if not bp_name:
-            yield event.plain_result("格式：『学习 <图纸名>』，如『学习 铁皮图纸』！图纸由 Boss 掉落或宝箱/垂钓/商店获得。")
+            yield event.plain_result(_T.static("learn.usage"))
             return
         # 背包找图纸（type=图纸）
         items = db.get_inventory(group_id, qq_id)
@@ -2203,17 +2203,17 @@ class EconomyImpl(CommandBase):
             idx = int(bp_name)
             _bps = [it for it in items if self._item_category(it["data"]) == "图纸"]
             if idx < 1 or idx > len(_bps):
-                yield event.plain_result(f"背包里没有第 {idx} 张图纸(共 {len(_bps)} 张)！『背包 图纸』查看～")
+                yield event.plain_result(_T.text("learn.no_idx", idx=idx, total=len(_bps)))
                 return
             bp_name = _bps[idx - 1]["data"].get("name", "")
         target = next((it for it in items if self._item_category(it["data"]) == "图纸" and bp_name in it["data"].get("name", "")), None)
         if not target:
-            yield event.plain_result(f"背包里没有『{bp_name}』图纸！Boss 掉落/宝箱/垂钓/商店获得，『背包 图纸』查看～")
+            yield event.plain_result(_T.text("learn.no_bp", name=bp_name))
             return
         bp_disp = target["data"].get("name")
         learned = list(player.get("learned_blueprints") or [])
         if bp_disp in learned:
-            yield event.plain_result(f"『{bp_disp}』你已经学会了，不需要重复学习～")
+            yield event.plain_result(_T.text("learn.already", name=bp_disp))
             return
         # M10 P2 学习废图纸白扣修复：先统计解锁配方数，0 个则不消耗图纸也不记录
         # v124：烹饪/炼金配方同样走图纸学习制（rec.blueprint=图纸名，与锻造一致）
@@ -2229,19 +2229,18 @@ class EconomyImpl(CommandBase):
                                 if r.get("name") == _eq_name and not r.get("blueprint")), None)
             if _direct_rec:
                 yield event.plain_result(
-                    f"💡 『{bp_disp}』对应装备【{_eq_name}】可以直接在铁匠铺『锻造 {_eq_name}』制作，不需要学习图纸！\n"
-                    f"这张图纸已不再掉落（旧版本遗留），可『出售 {bp_disp}』换成金币～"
+                    _T.text("learn.inline_recipe", bp=bp_disp, name=_eq_name, name2=_eq_name, bp2=bp_disp)
                 )
             else:
-                yield event.plain_result(f"『{bp_disp}』没有对应的锻造/烹饪/炼金配方(旧版本残留图纸)，图纸未消耗，可自行出售～")
+                yield event.plain_result(_T.text("learn.dead_bp", name=bp_disp))
             return
         # 消耗图纸 + 记录
         db.remove_item(group_id, qq_id, target["key"], 1)
         learned.append(bp_disp)
         db.update_player(group_id, qq_id, learned_blueprints=learned)
         lines = [
-            f"📜 你研读了【{bp_disp}】，图纸化作点点光芒融入记忆！",
-            f"🧠 永久解锁 {len(unlocked)} 个配方(制作时不再消耗图纸)！",
+            _T.text("learn.learned", name=bp_disp),
+            _T.text("learn.unlocked_n", n=len(unlocked)),
             "━━━━━━━━━━━━",
         ]
         _craft_recs = {rk: _clife.CRAFT_RECIPES[rk] for rk in unlocked if rk in _clife.CRAFT_RECIPES}
@@ -2279,8 +2278,7 @@ class EconomyImpl(CommandBase):
         也列出（标注"已失效"提示可出售）。"""
         learned = list(player.get("learned_blueprints") or [])
         if not learned:
-            return ("📜 你还没有学会任何图纸！\n"
-                    "💡 图纸由 Boss 掉落/宝箱/垂钓/商店获得，背包里有图纸时发『学习 <图纸名>』永久解锁～")
+            return (_T.static("bp.none"))
         rows = []
         for bp in learned:
             rec = None
@@ -2302,7 +2300,7 @@ class EconomyImpl(CommandBase):
                         kind = "炼金"
                         break
             if not rec:
-                rows.append(f"📜【{bp}】（已失效/旧版本残留，可出售）")
+                rows.append(_T.text("bp.dead", name=bp))
                 continue
             name = rec.get("name", bp)
             q = _b143.QUALITY.get(rec.get("quality", ""), {})
@@ -2318,8 +2316,8 @@ class EconomyImpl(CommandBase):
                 if _names:
                     cls_part = f" {'、'.join(_names)}"
             rows.append(f"{q.get('color', '')}【{name}】{kind}·Lv.{lv}{cls_part}")
-        head = f"📜 【已学图纸】共 {len(learned)} 张"
-        lines = [head, "━━━━━━━━━━━━"] + rows + ["", "💡 已学图纸锻造/烹饪/炼金不再消耗图纸 ｜ 背包里新图纸发『学习 <图纸名>』解锁"]
+        head = _T.text("bp.head", n=len(learned))
+        lines = [head, "━━━━━━━━━━━━"] + rows + ["", _T.static("bp.tip")]
         return "\n".join(lines)
 
     def _craft_mats_str(self, rec) -> str:
@@ -2380,9 +2378,9 @@ class EconomyImpl(CommandBase):
     def _craft_line(self, rec, idx: int) -> str:
         q = _b143.QUALITY[rec["quality"]]
         bp = " 📜" if rec.get("blueprint") else ""
-        return (f"{idx}. {q['color']}【{rec['name']}】Lv.{rec['lv']} {_b143.EQUIP_SLOTS[rec['slot']]}"
-                f" 锻造Lv.{self._craft_prof_need(rec['lv'])}{bp}\n"
-                f"    {self._craft_mats_str(rec)}｜{rec['gold']}金")
+        return (_T.text("craft.line", idx=idx, color=q['color'], name=rec['name'], lv=rec['lv'],
+                    slot=_b143.EQUIP_SLOTS[rec['slot']], prof=self._craft_prof_need(rec['lv']),
+                    bp=bp, mats=self._craft_mats_str(rec), gold=rec['gold']))
 
     def _craft_town_hint(self, player) -> str:
         """v168 锻造分阶段：当前城镇窗口提示文本（如『橡木镇锻造 Lv.1-12』）。
@@ -2395,21 +2393,21 @@ class EconomyImpl(CommandBase):
             return ""
         cur_map = player.get("cur_map", "") or ""
         tname = (_cspace.MAP_BY_ID.get(cur_map, {}).get("name")) or cur_map
-        return f"｜{tname}锻造 Lv.{max(1, town_lv - 8)}-{town_lv + 8}"
+        return _T.text("craft.town_hint", town=tname, lo=max(1, town_lv - 8), hi=town_lv + 8)
 
     def _craft_list_available(self, player, page: int = 1) -> str:
         """『锻造』：只列当前可锻造的配方(翻页 5/页，v168 按城镇窗口分阶段)"""
         recs = self._craft_recs_filtered(player)
         town_hint = self._craft_town_hint(player)
         page_items, pages, page = self._page_items(recs, page, per_page=5)
-        lines = [f"🔨 铁匠铺·当前可锻造(共 {len(recs)} 件){town_hint}", "━━━━━━━━━━━━"]
+        lines = [_T.text("craft.list_avail_head", n=len(recs), tail=town_hint), "━━━━━━━━━━━━"]
         base = (page - 1) * 5
         if not page_items:
-            lines.append("此城镇可锻造的配方有限，去更高等级城镇的铁匠铺看看～")
+            lines.append(_T.static("craft.list_avail_limited"))
         for i, (rk, rec) in enumerate(page_items, 1):
             lines.append(self._craft_line(rec, base + i))
         lines.append("━━━━━━━━━━━━")
-        lines.append(f"📄 第 {page}/{pages} 页" + (f"｜『锻造列表 {page + 1}』下一页" if page < pages else ""))
+        lines.append(_T.text("common.page_no", page=page, total=pages) + (_T.text("craft.list_avail_next", page=page + 1) if page < pages else ""))
         lines.append(self._tip("forge"))
         lines.append(self._tip("blueprint"))
         self._record_list_state(player.get("qq_id"), "锻造列表", page, pages)
@@ -2424,26 +2422,26 @@ class EconomyImpl(CommandBase):
         for rk, rec in _clife.CRAFT_RECIPES.items():
             marks = []
             if rec["lv"] > player["level"] + 6:
-                marks.append("🔒等级")
+                marks.append(_T.static("craft.mark_lv"))
             if town_lv is not None and abs(rec["lv"] - town_lv) > 8:
-                marks.append("🔒城镇")
+                marks.append(_T.static("craft.mark_town"))
             if self._craft_prof_need(rec["lv"]) > prof_lv:
-                marks.append(f"🛠️锻造Lv.{self._craft_prof_need(rec['lv'])}")  # v101.28l #425：补缺的数字
+                marks.append(_T.text("craft.mark_prof", lv=self._craft_prof_need(rec['lv'])))  # v101.28l #425：补缺的数字
             if not self._rec_learned(player, rec):
-                marks.append("📜未学")
+                marks.append(_T.static("craft.mark_bp"))
             recs.append((rk, rec, marks))
         recs.sort(key=lambda x: (x[1]["lv"], x[1]["slot"]))
         page_items, pages, page = self._page_items(recs, page, per_page=5)
-        lines = [f"🔨 铁匠铺·全部配方(共 {len(recs)} 件){town_hint}", "━━━━━━━━━━━━"]
+        lines = [_T.text("craft.list_all_head", n=len(recs), tail=town_hint), "━━━━━━━━━━━━"]
         base = (page - 1) * 5
         for i, (rk, rec, marks) in enumerate(page_items, 1):
             q = _b143.QUALITY[rec["quality"]]
             mark_str = " ".join(marks) if marks else "✅"
             lines.append(f"{base + i}. {q['color']}【{rec['name']}】Lv.{rec['lv']} {_b143.EQUIP_SLOTS[rec['slot']]} {mark_str}")
-            lines.append(f"    {self._craft_mats_str(rec)}｜{rec['gold']}金")
+            lines.append(_T.text("craft.list_all_row", left=self._craft_mats_str(rec), gold=rec['gold']))
         lines.append("━━━━━━━━━━━━")
-        lines.append(f"📄 第 {page}/{pages} 页" + (f"｜『锻造 全部 {page + 1}』下一页" if page < pages else ""))
-        lines.append("💡 未达标的配方：🔒等级不够 ｜ 🛠️锻造副业等级不够 ｜ 📜图纸未学习 ｜ 🔒城镇需到对应等级城镇的铁匠铺")
+        lines.append(_T.text("common.page_no", page=page, total=pages) + (_T.text("craft.list_all_next", page=page + 1) if page < pages else ""))
+        lines.append(_T.static("craft.list_all_tip"))
         lines.append(self._tip("forge"))
         self._record_list_state(player.get("qq_id"), "锻造 全部", page, pages)
         return "\n".join(lines)
@@ -2456,12 +2454,13 @@ class EconomyImpl(CommandBase):
         recs = [(rk, rec) for rk, rec in self._craft_recs_filtered(player)
                 if rec.get("class") == cls or rec.get("weapon_type") == wt or rec.get("slot") != "weapon"]
         page_items, pages, page = self._page_items(recs, page, per_page=5)
-        lines = [f"{_ccore.CLASSES[cls].get('icon', '⚔️')} 【{cls_name}】当前可锻造({len(recs)} 件)", "━━━━━━━━━━━━"]
+        lines = [_T.text("craft.list_class_head", icon=_ccore.CLASSES[cls].get('icon', '⚔️'), cls=cls_name,
+                     n=len(recs)), "━━━━━━━━━━━━"]
         base = (page - 1) * 5
         for i, (rk, rec) in enumerate(page_items, 1):
             lines.append(self._craft_line(rec, base + i))
         lines.append("━━━━━━━━━━━━")
-        lines.append(f"📄 第 {page}/{pages} 页" + (f"｜『锻造 {cls_name} {page + 1}』下一页" if page < pages else ""))
+        lines.append(_T.text("common.page_no", page=page, total=pages) + (_T.text("craft.list_class_next", cls=cls_name, page=page + 1) if page < pages else ""))
         lines.append(self._tip("forge"))
         self._record_list_state(player.get("qq_id"), f"锻造 {cls_name}", page, pages)
         return "\n".join(lines)
@@ -2475,10 +2474,11 @@ class EconomyImpl(CommandBase):
         if rec.get("blueprint"):
             mats_str += f"、{rec['blueprint']}×1"
         lines = [
-            f"📜 配方：{q['color']}【{rec_disp}】",
-            f"🏷️ 类型：{_b143.EQUIP_SLOTS[rec['slot']]}  Lv.{rec['lv']}  {q['name']}",
-            f"🧰 材料：{mats_str}",
-            f"💰 费用：{rec['gold']} 金币",
+            _T.text("craft.recipe_head", color=q['color'], name=rec_disp),
+            _T.text("craft.recipe_type", slot=_b143.EQUIP_SLOTS[rec['slot']], lv=rec['lv'],
+                quality=q['name']),
+            _T.text("craft.recipe_mats", mats=mats_str),
+            _T.text("craft.recipe_cost", gold=rec['gold']),
         ]
         # M10 P3-4：114 配方全无 class 字段，原『职业/套装』行死代码永不显示；
         # 改为按 weapon_type 反查适用职业（与『锻造 <职业>』过滤口径一致），套装独立展示
@@ -2487,11 +2487,11 @@ class EconomyImpl(CommandBase):
             _cls_names = [C.display("classes", ck) for ck, cv in _ccore.CLASSES.items()
                           if cv.get("weapon_type") == _wt and ck != "cls_novice"]
             if _cls_names:
-                lines.append(f"🎭 适用职业：{'、'.join(_cls_names)}")
+                lines.append(_T.text("craft.recipe_classes", classes='、'.join(_cls_names)))
         if rec.get("set"):
-            lines.append(f"🎴 套装：{rec['set']}")
+            lines.append(_T.text("craft.recipe_set", name=rec['set']))
         if rec.get("blueprint"):
-            lines.append(f"📜 需要图纸：{rec['blueprint']}(Boss 掉落/宝箱/垂钓/商店获得)")
+            lines.append(_T.text("craft.recipe_bp", name=rec['blueprint']))
         if rec.get("desc"):
             lines.append(f"📖 {rec['desc']}")
         lines.append("")
@@ -2516,7 +2516,7 @@ class EconomyImpl(CommandBase):
             return
         # 无参数：按职业分组列出全部配方
         if not text or text == "列表":
-            lines = ["📜 铁匠锻造配方(『锻造 <职业>』看该职业，『锻造 配方 <装备名>』看详情)：", ""]
+            lines = [_T.static("recipe.head"), ""]
             for cls in _ccore.CLASSES:
                 icon = _ccore.CLASSES[cls].get("icon", "⚔️")
                 cls_recs = [(n, r) for n, r in _clife.CRAFT_RECIPES.items()
@@ -2532,9 +2532,9 @@ class EconomyImpl(CommandBase):
         if not rec_name or rec_name not in _clife.CRAFT_RECIPES:  # 旧别名指向已删除配方 → 视作未找到
             # M10 P2 死别名引导：旧版本已移除的配方给出明确提示
             if any(text in al for als in _clife.CRAFT_RECIPE_ALIASES.values() for al in als):
-                yield event.plain_result(f"『{text}』是旧版本已移除的配方！『配方』查看当前全部配方～")
+                yield event.plain_result(_T.text("recipe.removed", name=text))
             else:
-                yield event.plain_result(f"没有找到『{text}』的配方！")
+                yield event.plain_result(_T.text("recipe.not_found", name=text))
             return
         yield event.plain_result(self._recipe_detail(rec_name))
 
