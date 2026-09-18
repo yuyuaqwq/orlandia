@@ -42,7 +42,19 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-TEST_TIMEOUT = 300  # P2：单测超时秒数（默认 None 即不限）
+# P2：单测超时。★ 2026-09-18 修复「并行假红」——阈值必须随**并发度**放宽：
+#   实测（24 核机、默认 16 路并发）最慢文件墙钟被 CPU/IO/内存争用放大 1.5–2×：
+#     test_texts_table 单跑 164s → 并发 >300s · u1i2 205s → >300s · u1i4 247s → >300s
+#   ⇒ 三个门禁恒报 TIMEOUT（单跑全绿），真回归被假红淹掉、还逼人手工单跑复核。
+#   现在：基线 × 「每 4 路并发一档」，并设上限（防真 hang 无限拖全量）。
+_BASE_TIMEOUT = 300   # 独占单跑基线（秒）
+_TIMEOUT_CAP = 900    # 上限（最慢文件 247s 单跑 ×2.5 并发放大 ≈ 620s，留足余量）
+
+
+def _test_timeout(jobs: int) -> int:
+    """单文件超时秒数：基线 × 并发档位（每 4 路一档），不超过上限。"""
+    slots = max(1, (int(jobs) + 3) // 4)
+    return min(_TIMEOUT_CAP, _BASE_TIMEOUT * slots)
 
 PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # 包仓根
 TESTS_DIR = os.path.join(PKG_ROOT, "tests")
@@ -184,7 +196,7 @@ def _collect_files(only, skips):
     return serial, parallel
 
 
-def _run_one(f, env, seed_db=None):
+def _run_one(f, env, seed_db=None, timeout=None):
     if seed_db is not None:
         # 给本文件复制一份空白 schema 模板库（复制远快于重新建表 + 重新 import）
         shutil.copy2(seed_db, env["GWEN_GAME_DB"])
@@ -192,7 +204,8 @@ def _run_one(f, env, seed_db=None):
     try:
         proc = subprocess.run(
             [PYTHON, f], capture_output=True, text=True, encoding="utf-8",
-            errors="replace", env=env, timeout=TEST_TIMEOUT,
+            errors="replace", env=env,
+            timeout=timeout if timeout is not None else _BASE_TIMEOUT,
         )
         timed_out, ok = False, proc.returncode == 0
     except subprocess.TimeoutExpired as te:  # P2：超时记录
@@ -204,6 +217,11 @@ def _report(name, ok, proc, dt, timed_out):
     flag = "✅" if ok else ("⏱️" if timed_out else "❌")
     print(f"{flag} {name} ({dt:.1f}s, exit={'TIMEOUT' if timed_out else proc.returncode})", flush=True)
     if not ok:
+        if timed_out:
+            # ★ 2026-09-18：超时优先怀疑「并发争用」而非真回归 —— 先单跑该文件复核
+            #   （若单跑绿 ⇒ 并发假红，别急着改代码）。
+            print("   ↳ 疑似并发争用（墙钟被争用放大）：请先 `python tests/%s` 单跑复核" % name,
+                  flush=True)
         # P1-2：失败分支同时补打 stdout + stderr 尾（各 30 行），便于定位子进程崩溃/报错
         out_lines = (proc.stdout or "").strip().splitlines() if hasattr(proc, "stdout") else []
         err_lines = (proc.stderr or "").strip().splitlines() if hasattr(proc, "stderr") else []
@@ -243,7 +261,7 @@ def _run_framework_tests(base_env):
     try:
         proc = subprocess.run([PYTHON, runner], capture_output=True, text=True,
                               encoding="utf-8", errors="replace", env=base_env,
-                              timeout=TEST_TIMEOUT)
+                              timeout=_BASE_TIMEOUT)
         ok = proc.returncode == 0
     except subprocess.TimeoutExpired:
         ok = False
@@ -306,6 +324,11 @@ def main():
 
     results = []
     t0 = time.time()
+    # 并行主体按并发档放宽超时；串行槽/引擎前置是独占跑 ⇒ 用基线（更严格）
+    par_timeout = _test_timeout(jobs)
+    if parallel_files and par_timeout != _BASE_TIMEOUT:
+        print(f"单文件超时：串行 {_BASE_TIMEOUT}s ｜ 并行 {par_timeout}s（{jobs} 路并发）",
+              flush=True)
     base_env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
     if not real_astrbot and os.path.isdir(SHIM_DIR):
         # shim astrbot 注入：放 PYTHONPATH 最前（优先于 site-packages 的真实 astrbot）
@@ -317,7 +340,7 @@ def main():
 
     # 1) 串行槽（硬编码共享库的文件，保持旧行为：共享 test_game_data.db）
     for f in serial_files:
-        name, ok, proc, dt, timed_out = _run_one(f, base_env)
+        name, ok, proc, dt, timed_out = _run_one(f, base_env, timeout=_BASE_TIMEOUT)
         results.append((name, ok))
         _report(name, ok, proc, dt, timed_out)
         if fail_fast and not ok:
@@ -342,7 +365,7 @@ def main():
                 i, f = next(queue)
             except StopIteration:
                 return False
-            pending[executor.submit(_run_one, f, make_env(i), tpl_db)] = f
+            pending[executor.submit(_run_one, f, make_env(i), tpl_db, par_timeout)] = f
             return True
 
         for _ in range(jobs):
