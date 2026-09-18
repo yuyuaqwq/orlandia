@@ -6588,6 +6588,97 @@
     "category": "副本面板",
     "desc": "『副本』：通关停留超 30 分钟自动传出"
   },
+  "ip.board_done": {
+    "value": "(你已处理完这里的委托，告示板又恢复了平静。)",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.board_head": {
+    "value": "🧾 【告示委托】",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.found": {
+    "value": "🎒 {text}【{name}】×1！",
+    "params": [
+      "text",
+      "name"
+    ],
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.heal_full": {
+    "value": "🔥 暖意融融，但你精神饱满，用不上这份治愈～(明天再来也一样暖)",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.heal_ok": {
+    "value": "🔥 {text}——恢复 ❤️ {hp} 点生命({cur}/{cap})！",
+    "params": [
+      "text",
+      "hp",
+      "cur",
+      "cap"
+    ],
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.list_head": {
+    "value": "✨ 这里的场景元素：",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.no_idx": {
+    "value": "这里没有第 {idx} 个场景元素(共 {tot} 个)！『交互』查看列表～",
+    "params": [
+      "idx",
+      "tot"
+    ],
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.none": {
+    "value": "这里没什么可交互的，风倒是挺大。",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.not_found": {
+    "value": "这里没有『{name}』可以交互～(这里有：{have})",
+    "params": [
+      "name",
+      "have"
+    ],
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.redname": {
+    "value": "☠️ 你是红名！城里的元素都绕着你走……(等红名消退再来)",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.spring": {
+    "value": "💧 泉水入喉，神清气爽。旅途的疲惫仿佛也被这淙淙水声冲淡了一些。",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.used_today": {
+    "value": "⏳ 今天已经在这里翻找过了……明天再来碰碰运气吧。",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.well_gift": {
+    "value": "💰 井底传来一声轻响——你低头一看，水面上漂着 {n} 枚铜币，像是井的谢礼。",
+    "params": [
+      "n"
+    ],
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
+  "ip.well_used": {
+    "value": "⏳ 井水今天已经应过一次愿了……明日再来试试吧。",
+    "category": "场景交互",
+    "desc": "搬自 content/world_cmds.py:interact_prop（B 批 C 档）"
+  },
   "item.bp_hint": {
     "value": "💡 到铁匠铺『锻造 {bp}』系列装备 ｜ 出售价 {price} 金币",
     "params": [
@@ -7902,6 +7993,106 @@
     "category": "加点洗点",
     "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
   },
+  "portal.act_done": {
+    "value": "🌌 {icon}{name} 已经激活过了！『方碑』查看传送列表～",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_activate（B 批 C 档）"
+  },
+  "portal.act_far": {
+    "value": "🌌 {icon}{name}矗立在{sa}，你离得太远够不着！（『前往 {sa2}』）",
+    "params": [
+      "icon",
+      "name",
+      "sa",
+      "sa2"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_activate（B 批 C 档）"
+  },
+  "portal.act_none": {
+    "value": "这里没有方碑……寻找大陆上古道上刻着符文的古老路标吧！",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_activate（B 批 C 档）"
+  },
+  "portal.act_ok": {
+    "value": "✨ 星辉流转，{icon}{name} 与你建立了链接！\n📍 传送点已激活：{map}(✨ 经验 +{exp})\n💡 输入『方碑』查看全部已激活方碑，『传送 {name2}』即可直达！",
+    "params": [
+      "icon",
+      "name",
+      "map",
+      "exp",
+      "name2"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_activate（B 批 C 档）"
+  },
+  "portal.head": {
+    "value": "🌌 【旅者方碑】(已激活 {n}/{tot})",
+    "params": [
+      "n",
+      "tot"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.here_none": {
+    "value": "📍 此地没有方碑",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.here_off": {
+    "value": "📍 此地：{icon}{name}(未激活，『激活』解锁！)",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.here_on": {
+    "value": "📍 此地：{icon}{name}(已激活)",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.list_head": {
+    "value": "✨ 已激活方碑(『传送 <序号>』直达)：",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.mount_disc": {
+    "value": "（骑乘坐骑 {pct}% 折扣）",
+    "params": [
+      "pct"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.none_yet": {
+    "value": "你还没激活任何方碑……去大陆各处寻找方碑，『激活』解锁传送点吧！",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "portal.row": {
+    "value": " {idx}. {icon}{name}({map} · {cost} 金币{tag})",
+    "params": [
+      "idx",
+      "icon",
+      "name",
+      "map",
+      "cost",
+      "tag"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
   "prof.activated": {
     "value": "\n🔓 你选择了「{prof_name}」作为副业(当前已激活 {n} 条)！",
     "params": [
@@ -8397,6 +8588,74 @@
     ],
     "category": "角色面板",
     "desc": "搬自 content/player_cmds.py:profile（B 批 C 档）"
+  },
+  "ptravel.battle": {
+    "value": "⚔️ 你正在战斗中！输入『攻击』/『技能 <名称>』继续战斗，『防御』『逃跑』『用药』可选——先解决眼前的敌人再说传送。",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.gold_short": {
+    "value": "传送需要 {cost} 金币(你只有 {have})！打怪攒点金币吧～",
+    "params": [
+      "cost",
+      "have"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.here": {
+    "value": "你已经在这座方碑所在的地图了！",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.no_idx": {
+    "value": "序号无效！你有 {n} 座已激活方碑，『方碑』查看～",
+    "params": [
+      "n"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.none": {
+    "value": "你还没激活任何方碑！输入『方碑』查看，去大陆上找找方碑吧～",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.not_act": {
+    "value": "🌌 {icon}{name} 还没激活！先亲自前往该地图『激活』吧～",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.not_found": {
+    "value": "找不到方碑『{name}』！『方碑』查看已激活列表～",
+    "params": [
+      "name"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.ok": {
+    "value": "🌌 星辉流转，你踏入了传送通道……\n✨ 你抵达了【{map}】({picon}{pname}，花费 {cost} 金币)\n{desc}{extra}{rec}",
+    "params": [
+      "map",
+      "picon",
+      "pname",
+      "cost",
+      "desc",
+      "extra",
+      "rec"
+    ],
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
+  },
+  "ptravel.usage": {
+    "value": "传送到哪？『方碑』查看已激活方碑，『传送 <名称/序号>』直达～",
+    "category": "传送方碑",
+    "desc": "搬自 content/world_cmds.py:portal_travel（B 批 C 档）"
   },
   "quest.accepted": {
     "value": "『{name}』已接取！输入『任务』查看进度～",

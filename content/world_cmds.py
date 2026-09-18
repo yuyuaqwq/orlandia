@@ -1877,21 +1877,21 @@ def _travel_ambush(self, player: dict, target_map: dict, group_id=None, qq_id=No
 async def portal_view(self, event: AstrMessageEvent, group_id, qq_id, player):
     portals = db.get_portals(qq_id)
     cur = player["cur_map"]
-    lines = [f"🌌 【旅者方碑】(已激活 {len(portals)}/{len(PORTALS)})", "━━━━━━━━━━━━"]
+    lines = [_T.text("portal.head", n=len(portals), tot=len(PORTALS)), "━━━━━━━━━━━━"]
     # 当前地图
     if cur in PORTALS:
         p = PORTALS[cur]
         if cur in portals:
-            lines.append(f"📍 此地：{p['icon']}{p['name']}(已激活)")
+            lines.append(_T.text("portal.here_on", icon=p['icon'], name=p['name']))
         else:
-            lines.append(f"📍 此地：{p['icon']}{p['name']}(未激活，『激活』解锁！)")
+            lines.append(_T.text("portal.here_off", icon=p['icon'], name=p['name']))
     else:
-        lines.append("📍 此地没有方碑")
+        lines.append(_T.static("portal.here_none"))
     lines.append("━━━━━━━━━━━━")
     if not portals:
-        lines.append("你还没激活任何方碑……去大陆各处寻找方碑，『激活』解锁传送点吧！")
+        lines.append(_T.static("portal.none_yet"))
     else:
-        lines.append("✨ 已激活方碑(『传送 <序号>』直达)：")
+        lines.append(_T.static("portal.list_head"))
         # v101.30d #O26：坐骑折扣在列表标注（playtest 格温：显示 175 实际扣 140）
         mounts = player.get("mounts") or {}
         active_mk = mounts.get("active")
@@ -1906,10 +1906,10 @@ async def portal_view(self, event: AstrMessageEvent, group_id, qq_id, player):
             tag = ""
             if disc > 0:
                 shown = max(_cat_life.ECON_CONFIG["portal_min_cost"], int(cost * (1 - disc)))
-                tag = f"（骑乘坐骑 {int(disc*100)}% 折扣）"
+                tag = _T.text("portal.mount_disc", pct=int(disc*100))
             name = p.get("name", mid) if p else mid
             icon = p.get("icon", "🌌") if p else "🌌"
-            lines.append(f" {i}. {icon}{name}({m.get('name', '?')} · {shown} 金币{tag})")
+            lines.append(_T.text("portal.row", idx=i, icon=icon, name=name, map=m.get('name', '?'), cost=shown, tag=tag))
     lines.append("━━━━━━━━━━━━")
     lines.append(self._tip("portal"))
     yield event.plain_result("\n".join(lines))
@@ -1918,29 +1918,29 @@ async def portal_view(self, event: AstrMessageEvent, group_id, qq_id, player):
 async def portal_activate(self, event: AstrMessageEvent, group_id, qq_id, player):
     cur = player["cur_map"]
     if cur not in PORTALS:
-        yield event.plain_result("这里没有方碑……寻找大陆上古道上刻着符文的古老路标吧！")
+        yield event.plain_result(_T.static("portal.act_none"))
         return
     # v87.17 子区域绑定：方碑矗立在首个子区域（广场），必须走到跟前才能激活
     _pm = _cat_space.MAP_BY_ID.get(cur, {})
     _first_sa = (_pm.get("subareas") or [None])[0]
     if _first_sa and player.get("cur_subarea") != _first_sa.get("id"):
         yield event.plain_result(
-            f"🌌 {PORTALS[cur].get('icon', '')}{PORTALS[cur].get('name', '方碑')}矗立在"
-            f"{_first_sa.get('name', '广场')}，你离得太远够不着！（『前往 {_first_sa.get('name', '广场')}』）"
+            _T.text("portal.act_far", icon=PORTALS[cur].get('icon', ''),
+                name=PORTALS[cur].get('name', '方碑'), sa=_first_sa.get('name', '广场'),
+                sa2=_first_sa.get('name', '广场'))
         )
         return
     p = PORTALS[cur]
     if cur in db.get_portals(qq_id):
-        yield event.plain_result(f"🌌 {p['icon']}{p['name']} 已经激活过了！『方碑』查看传送列表～")
+        yield event.plain_result(_T.text("portal.act_done", icon=p['icon'], name=p['name']))
         return
     db.add_portal(qq_id, cur)
     m = _cat_space.MAP_BY_ID.get(cur, {})
     exp = max(20, int(m.get("lv", 1)) * 20)
     db.update_player(group_id, qq_id, exp=player["exp"] + exp)
     yield event.plain_result(
-        f"✨ 星辉流转，{p['icon']}{p['name']} 与你建立了链接！\n"
-        f"📍 传送点已激活：{m.get('name', '?')}(✨ 经验 +{exp})\n"
-        f"💡 输入『方碑』查看全部已激活方碑，『传送 {p['name']}』即可直达！"
+        _T.text("portal.act_ok", icon=p['icon'], name=p['name'], map=m.get('name', '?'), exp=exp,
+            name2=p['name'])
     )
 
 
@@ -1948,14 +1948,14 @@ async def portal_travel(self, event: AstrMessageEvent, group_id, qq_id):
     dest = self._strip_cmd(event, "传送").strip()
     player = self._player(group_id, qq_id)
     if not dest:
-        yield event.plain_result("传送到哪？『方碑』查看已激活方碑，『传送 <名称/序号>』直达～")
+        yield event.plain_result(_T.static("ptravel.usage"))
         return
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("⚔️ 你正在战斗中！输入『攻击』/『技能 <名称>』继续战斗，『防御』『逃跑』『用药』可选——先解决眼前的敌人再说传送。")
+        yield event.plain_result(_T.static("ptravel.battle"))
         return
     portals = db.get_portals(qq_id)
     if not portals:
-        yield event.plain_result("你还没激活任何方碑！输入『方碑』查看，去大陆上找找方碑吧～")
+        yield event.plain_result(_T.static("ptravel.none"))
         return
     target = None
     if dest.isdigit():
@@ -1963,7 +1963,7 @@ async def portal_travel(self, event: AstrMessageEvent, group_id, qq_id):
         if 1 <= idx <= len(portals):
             target = _cat_space.MAP_BY_ID.get(portals[idx - 1])
         else:
-            yield event.plain_result(f"序号无效！你有 {len(portals)} 座已激活方碑，『方碑』查看～")
+            yield event.plain_result(_T.text("ptravel.no_idx", n=len(portals)))
             return
     else:
         for mid in portals:
@@ -1976,12 +1976,12 @@ async def portal_travel(self, event: AstrMessageEvent, group_id, qq_id):
             # 未激活的祭坛名 → 提示未激活
             for mid, p in PORTALS.items():
                 if dest in p.get("name", ""):
-                    yield event.plain_result(f"🌌 {p['icon']}{p['name']} 还没激活！先亲自前往该地图『激活』吧～")
+                    yield event.plain_result(_T.text("ptravel.not_act", icon=p['icon'], name=p['name']))
                     return
-            yield event.plain_result(f"找不到方碑『{dest}』！『方碑』查看已激活列表～")
+            yield event.plain_result(_T.text("ptravel.not_found", name=dest))
             return
     if target["id"] == player["cur_map"]:
-        yield event.plain_result("你已经在这座方碑所在的地图了！")
+        yield event.plain_result(_T.static("ptravel.here"))
         return
     cost = _portals.portal_cost(target)
     # v39 坐骑：骑乘中传送折扣
@@ -1991,7 +1991,7 @@ async def portal_travel(self, event: AstrMessageEvent, group_id, qq_id):
         disc = _cat_life.MOUNT_BY_KEY[active_mk].get("discount", 0)
         cost = max(_cat_life.ECON_CONFIG["portal_min_cost"], int(cost * (1 - disc)))
     if player["gold"] < cost:
-        yield event.plain_result(f"传送需要 {cost} 金币(你只有 {player['gold']})！打怪攒点金币吧～")
+        yield event.plain_result(_T.text("ptravel.gold_short", cost=cost, have=player['gold']))
         return
     # v86 子区域：传送落地目标图首个子区域
     tgt_sas = target.get("subareas") or []
@@ -2021,9 +2021,8 @@ async def portal_travel(self, event: AstrMessageEvent, group_id, qq_id):
     pname = p.get("name", "方碑") if p else "方碑"
     picon = p.get("icon", "🌌") if p else "🌌"
     yield event.plain_result(
-        f"🌌 星辉流转，你踏入了传送通道……\n"
-        f"✨ 你抵达了【{target['name']}】({picon}{pname}，花费 {cost} 金币)\n"
-        f"{target['desc']}{extra}{_rec_txt}"
+        _T.text("ptravel.ok", map=target['name'], picon=picon, pname=pname, cost=cost,
+            desc=target['desc'], extra=extra, rec=_rec_txt)
     )
 
 
@@ -3033,7 +3032,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
     name_key = self._strip_cmd(event, "交互").strip()
     player = self._player(group_id, qq_id)
     if self._is_redname(qq_id):
-        yield event.plain_result("☠️ 你是红名！城里的元素都绕着你走……(等红名消退再来)")
+        yield event.plain_result(_T.static("ip.redname"))
         return
     cur = player["cur_map"]
     cur_map = _cat_space.MAP_BY_ID.get(cur, {})
@@ -3046,9 +3045,9 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
     if not name_key:
         # 无参：列出当前子区域的场景元素
         if not prop_ids:
-            yield event.plain_result("这里没什么可交互的，风倒是挺大。")
+            yield event.plain_result(_T.static("ip.none"))
             return
-        lines = ["✨ 这里的场景元素："]
+        lines = [_T.static("ip.list_head")]
         for i, entry in enumerate(prop_ids, 1):
             pid, label = _pois.prop_entry(entry)
             pp = _cat_items.PROPS.get(pid, {})
@@ -3062,7 +3061,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
     if name_key.isdigit():
         idx = int(name_key)
         if idx < 1 or idx > len(prop_ids):
-            yield event.plain_result(f"这里没有第 {idx} 个场景元素(共 {len(prop_ids)} 个)！『交互』查看列表～")
+            yield event.plain_result(_T.text("ip.no_idx", idx=idx, tot=len(prop_ids)))
             return
         entry = prop_ids[idx - 1]
         pid, label = _pois.prop_entry(entry)
@@ -3087,7 +3086,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
                     if _nm not in _cand:
                         _cand.append(_nm)
             names = "、".join(_cand) or "没有"
-            yield event.plain_result(f"这里没有『{name_key}』可以交互～(这里有：{names})")
+            yield event.plain_result(_T.text("ip.not_found", name=name_key, have=names))
             return
     pid, pp, label = found
     name = label or pp['name']
@@ -3119,7 +3118,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
             board_lines.append(f"  📜 {sq['name']}：{sq['desc']}")
         if board_lines:
             lines.append("━━━━━━━━━━━━")
-            lines.append("🧾 【告示委托】")
+            lines.append(_T.static("ip.board_head"))
             lines += board_lines
             lines.append(self._tip("notice_board"))
         else:
@@ -3128,7 +3127,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
                 for sq in here_board
             )
             if done:
-                lines.append("(你已处理完这里的委托，告示板又恢复了平静。)")
+                lines.append(_T.static("ip.board_done"))
     # 极小彩蛋（纯趣味，不破坏平衡）
     # v87.12 专属元素带小效果：dict effect = {"type": "material"/"heal", "daily": True}
     import datetime as _dt
@@ -3140,24 +3139,24 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
         use_key = f"{cur}:{sa_id}:{pid}"
         used = db.get_props_use(qq_id)
         if used.get(use_key) == today:
-            lines.append("⏳ 井水今天已经应过一次愿了……明日再来试试吧。")
+            lines.append(_T.static("ip.well_used"))
         elif random.random() < WISH_WELL_EGG_CHANCE:
             gold = random.randint(1, 5)
             # F1 P1-4：原子认领——并发双请求只有首个真正占下并发放（后手见"已应过一次愿"）
             if db.props_use_claim_atomic(qq_id, use_key, today):
                 db.update_player(group_id, qq_id, gold=player["gold"] + gold)
-                lines.append(f"💰 井底传来一声轻响——你低头一看，水面上漂着 {gold} 枚铜币，像是井的谢礼。")
+                lines.append(_T.text("ip.well_gift", n=gold))
             else:
-                lines.append("⏳ 井水今天已经应过一次愿了……明日再来试试吧。")
+                lines.append(_T.static("ip.well_used"))
     elif eff == "refresh":
-        lines.append("💧 泉水入喉，神清气爽。旅途的疲惫仿佛也被这淙淙水声冲淡了一些。")
+        lines.append(_T.static("ip.spring"))
     elif isinstance(eff, dict) and eff.get("daily"):
         # 每日 1 次（按元素实例：地图:子区域:prop_id 独立计数，防刷）
         today = _dt.date.today().isoformat()
         use_key = f"{cur}:{sa_id}:{pid}"
         used = db.get_props_use(qq_id)
         if used.get(use_key) == today:
-            lines.append("⏳ 今天已经在这里翻找过了……明天再来碰碰运气吧。")
+            lines.append(_T.static("ip.used_today"))
         else:
             etype = eff.get("type")
             if etype == "material":
@@ -3165,7 +3164,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
                 if pool:
                     # F1 P1-4：原子认领——并发双请求只有首个发放（后手提示已翻找过）
                     if not db.props_use_claim_atomic(qq_id, use_key, today):
-                        lines.append("⏳ 今天已经在这里翻找过了……明天再来碰碰运气吧。")
+                        lines.append(_T.static("ip.used_today"))
                     else:
                         mid = random.choice(pool)
                         mname = _idx.display("materials", mid)
@@ -3173,7 +3172,7 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
                             "name": mname, "type": "材料", "stackable": True,
                             "price": _cat_items.MATERIALS[mid]["price"],
                         }, 1)
-                        lines.append(f"🎒 {eff.get('found_text', '你发现')}【{mname}】×1！")
+                        lines.append(_T.text("ip.found", text=eff.get('found_text', '你发现'), name=mname))
                         # v104 M20：采集任务每日（collect_any）——场景元素获得材料 +1（主采集动作在 economy.py）
                         self._bump_daily_progress(group_id, qq_id, "collect_any", lines)
             elif etype == "heal":
@@ -3183,14 +3182,15 @@ async def interact_prop(self, event: AstrMessageEvent, group_id, qq_id):
                 # 白吞每日次数；改为满血只出氛围文案，不 mark_props_use
                 heal = max(1, int(missing * pct)) if missing > 0 else 0
                 if heal <= 0:
-                    lines.append("🔥 暖意融融，但你精神饱满，用不上这份治愈～(明天再来也一样暖)")
+                    lines.append(_T.static("ip.heal_full"))
                 else:
                     # F1 P1-4：原子认领——并发双请求只有首个恢复（后手提示今日已翻找过）
                     if not db.props_use_claim_atomic(qq_id, use_key, today):
-                        lines.append("⏳ 今天已经在这里翻找过了……明天再来碰碰运气吧。")
+                        lines.append(_T.static("ip.used_today"))
                     else:
                         db.update_player(group_id, qq_id, hp=player["hp"] + heal)
-                        lines.append(f"🔥 {eff.get('found_text', '暖意袭来')}——恢复 ❤️ {heal} 点生命({player['hp'] + heal}/{player.get('max_hp', 1)})！")
+                        lines.append(_T.text("ip.heal_ok", text=eff.get('found_text', '暖意袭来'), hp=heal, cur=player['hp'] + heal,
+                                         cap=player.get('max_hp', 1)))
     yield event.plain_result("\n".join(lines))
 
 
