@@ -411,14 +411,6 @@ def _apply_bonus_domains(actor: dict) -> None:
     b["cost"] = _apply_cost_bonus(actor)
 
 
-def _tier_value(eff: dict, quality: str):
-    """effect.tiers[quality] 取档覆盖（旧 _affix_effs 语义）；无 tiers → None。"""
-    tiers = eff.get("tiers")
-    if not isinstance(tiers, dict):
-        return None
-    return tiers.get(quality or "")
-
-
 # tier 档位作用键（缺省 = effect 首个数值键）。crit_return 的 effect 首数值键是
 # gain=1，但 tiers {blue:0.15, purple:0.25, orange:0.40} 是 chance 档位（desc：
 # 暴击 15% 概率得点，史诗 25%/传说 40%）→ 显式声明 tier 作用到 chance 防错档。
@@ -477,12 +469,6 @@ def _register_affix(aid: str):
 def _affix_chance_of(aid: str) -> float:
     """词条触发概率（AFFIXES 表 chance；缺省 None = 恒触发——旧语义）。"""
     return (_affix_data() or {}).get(aid, {}).get("chance")
-
-
-def _affix_hit_ev(eff: dict) -> str:
-    """词条命中挂点：数据表自定义事件（如 soul_devourer skill_hit）缺省 hit
-    （装配层 map_event 展开 attack_hit+skill_hit）。"""
-    return eff.get("event") or "hit"
 
 
 @_register_affix("shield")

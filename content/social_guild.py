@@ -156,12 +156,6 @@ def _domain() -> dict:
     return _DOMAIN
 
 
-def _reload_domain():
-    """清空域缓存（换盘/测试用）。"""
-    global _DOMAIN
-    _DOMAIN = None
-
-
 def _int_keys(tbl) -> dict:
     """字符串键 → int 键（JSON 只有 str 键；非整数键**原样保留**，不静默丢）。"""
     out: dict = {}
@@ -176,11 +170,6 @@ def _int_keys(tbl) -> dict:
 def guild_roles() -> dict:
     """`{role: [职位名, 图标]}`（真源 `GUILD_ROLES`；真源是 tuple，JSON 落 list —— 解包语义同）。"""
     return dict((_domain().get("roles") or {}).get("map") or {})
-
-
-def guild_appointable() -> tuple:
-    """会长可任命的 role 元组（真源 `GUILD_APPOINTABLE`）。"""
-    return tuple((_domain().get("roles") or {}).get("appointable") or ())
 
 
 def guild_shop_items() -> dict:

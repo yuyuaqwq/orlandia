@@ -100,8 +100,6 @@ def get_limit(key: str) -> dict:
     未配置 → 返回空 dict（不限购）。"""
     return dict(SHOP_LIMIT.get(key) or {})
 
-def _limit_of(prefix: str, ident: str) -> dict:
-    return get_limit(f"{prefix}:{ident}")
 
 # ================= 限量货架（店内共享） =================
 

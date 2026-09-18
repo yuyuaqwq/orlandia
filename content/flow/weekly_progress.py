@@ -159,7 +159,7 @@ WEEKLY_MIN_LV: int = _CFG.const("weekly_quests", "WEEKLY_MIN_LV")
 
 _DOMAIN_JSON = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "data", "weekly_quests.json")
-_POOL = None               # 悬赏池缓存（包内域文件是静态数据；`_reload_pool` 供测试/工具换盘）
+_POOL = None               # 悬赏池缓存（包内域文件是静态数据，进程内不失效）
 
 
 def _read_domain():
@@ -190,12 +190,6 @@ def weekly_pool() -> list:
         rows.sort(key=lambda r: r["seq"])
         _POOL = rows
     return list(_POOL)
-
-
-def _reload_pool():
-    """清空悬赏池缓存（换盘/测试用）。"""
-    global _POOL
-    _POOL = None
 
 
 # ============================================================

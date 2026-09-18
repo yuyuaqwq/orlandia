@@ -68,16 +68,6 @@ def bind(openid: str, qq_id: str, platform: str = "qq_official") -> None:
             conn.close()
 
 
-def unbind_openid(openid: str) -> None:
-    with _conn._lock:
-        conn = _conn._connect()
-        try:
-            conn.execute("DELETE FROM identity_map WHERE openid=?", (str(openid).strip(),))
-            conn.commit()
-        finally:
-            conn.close()
-
-
 def openid_to_qq(openid: str) -> str | None:
     """openid → QQ 号；未绑定返回 None。"""
     if not is_openid(openid):

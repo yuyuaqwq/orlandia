@@ -59,16 +59,6 @@ class SkillKind(str, Enum):
         """伤害段类型：phys/magi/true（engine.calc_damage dmg_type 用）。"""
         return _KIND_META[self]["seg"]
 
-    @property
-    def is_damage(self) -> bool:
-        return _KIND_META[self]["damage"]
-
-    @property
-    def lifesteal_channel(self) -> str:
-        """吸血通道：phys/magi/true（battle._settle_lifesteal 用）。"""
-        return _KIND_META[self]["lifesteal"]
-
-
 # 便捷常量（字符串值，与数据/旧代码天然兼容）
 K_PHYS = SkillKind.PHYS.value
 K_MAGI = SkillKind.MAGI.value

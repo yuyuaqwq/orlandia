@@ -1476,10 +1476,6 @@ class EconomyImpl(CommandBase):
         """v181.P4-7：转发 services.profession.fishing_surprise_fn"""
         return _prof_svc.fishing_surprise_fn(group_id, qq_id, player, fish, force_legend)
 
-    def _collect_bonus_line(self, group_id, qq_id, player, cf):
-        """v181.P4-7：转发 services.profession.collect_bonus_line"""
-        return _prof_svc.collect_bonus_line(group_id, qq_id, player, cf)
-
     def _settle_gather(self, group_id, qq_id, st):
         """v181.P4-7：转发 services.profession.settle_gather（collect_any/tip/daily 注入）"""
         _ps = _h('_prof_svc')  # ← from ..services import profession as _ps
@@ -1497,10 +1493,6 @@ class EconomyImpl(CommandBase):
     def _mining_fatigue_tick(self, group_id, qq_id):
         """v181.P4-7：转发 services.profession.mining_fatigue_tick"""
         return _prof_svc.mining_fatigue_tick(group_id, qq_id)
-
-    def _mining_fatigued(self, group_id, qq_id):
-        """v181.P4-7：转发 services.profession.mining_fatigued"""
-        return _prof_svc.mining_fatigued(group_id, qq_id)
 
     def _settle_mining(self, group_id, qq_id, st):
         """v181.P4-7：转发 services.profession.settle_mining（daily 注入）"""
@@ -6398,10 +6390,6 @@ class EconomyImpl(CommandBase):
     def _is_quest_item(self, d: dict) -> bool:
         """v181.P4-3：转发 services.shop.is_quest_item（economy 本地定义已随迁）"""
         return _shop_svc.is_quest_item(d)
-
-    def _fish_weight_max(self, d: dict):
-        """v181.P4-3：转发 services.shop.fish_weight_max（economy 本地定义已随迁）"""
-        return _shop_svc.fish_weight_max(d)
 
     def _sell_one(self, group_id, qq_id, player, it, rate):
         """v181.P4-3：转发 services.shop.sell_one（economy 本地定义已随迁，F1 P0-2 原子出售）"""

@@ -8,7 +8,7 @@
 --------------------------------------------------------
 | 真源 | 行数 | 本文件搬什么 |
 |---|---:|---|
-| `game/services/quests.py` | 231 | **全文件**：每日任务常量（重复衰减档 / 元数据键 / 单日上限）+ `daily_repeat_pct` + `daily_need` + `settle_daily_quest`（达标结算单点）+ `bump_daily_progress`（非击杀推进）+ `daily_pool`（等级过滤）+ `draw_daily`（抽取/衰减/发布）+ 六个下划线兼容别名 |
+| `game/services/quests.py` | 231 | **全文件**：每日任务常量（重复衰减档 / 元数据键 / 单日上限）+ `daily_repeat_pct` + `daily_need` + `settle_daily_quest`（达标结算单点）+ `bump_daily_progress`（非击杀推进）+ `daily_pool`（等级过滤）+ `draw_daily`（抽取/衰减/发布）+ 三个下划线兼容别名（★ 2026-09-19 审计尾巴 #37：原六个，删净 `_daily_repeat_pct` / `_daily_need` / `_settle_daily_quest` 三个零调用点别名）|
 
 宿主耦合替身（**只改一类东西**：宿主 import 口）
 ------------------------------------------------
@@ -158,11 +158,6 @@ def daily_repeat_pct(repeat):
     return int(round(f * 100))
 
 
-def _daily_repeat_pct(repeat):
-    """（P4-1 兼容别名，见 DAILY_REPEAT_FACTORS 注释）"""
-    return daily_repeat_pct(repeat)
-
-
 def daily_need(dq):
     """每日任务需求数（面板显示用）。objective 单键值即达标数（kill_any:10 等）。
 
@@ -182,11 +177,6 @@ def daily_need(dq):
             if _n > 0:
                 return _n
     return None
-
-
-def _daily_need(dq):
-    """（P4-1 兼容别名，见 DAILY_REPEAT_FACTORS 注释）"""
-    return daily_need(dq)
 
 
 def settle_daily_quest(group_id, qq_id, daily, dq, lines=None):
@@ -216,12 +206,6 @@ def settle_daily_quest(group_id, qq_id, daily, dq, lines=None):
     if lines is not None and lv_logs:
         lines.append("")
         lines += lv_logs
-
-
-def _settle_daily_quest(inst, group_id, qq_id, daily, dq, lines=None):
-    """（P4-1 兼容别名：旧 inst 签名壳 → services 无 inst 版。仅外部存档/工具兜底，
-    world/combat 内部调用点已全部改走 services 直调。）"""
-    settle_daily_quest(group_id, qq_id, daily, dq, lines)
 
 
 def bump_daily_progress(group_id, qq_id, obj_key, lines=None):

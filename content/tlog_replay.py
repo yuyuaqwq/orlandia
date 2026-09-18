@@ -54,12 +54,6 @@ def _bridge():
 
 
 # ================================================================ 回放
-def find_battle(records: Iterable[Record], tag: Optional[str] = None) -> list:
-    """从一段流水里挑出一场战斗的全部记录（按写入顺序）。"""
-    out = [r for r in records if str(r.kind).startswith("battle.")]
-    if tag is not None:
-        out = [r for r in out if r.has_tag(tag)]
-    return out
 
 
 def replay(records: Iterable[Record], *, seed: Optional[int] = None,

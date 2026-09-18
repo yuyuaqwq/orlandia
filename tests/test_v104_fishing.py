@@ -201,7 +201,7 @@ async def main():
     check("迷雾沼泽可实际钓出夜光鲛", b0 > 0, f"采样 {b0} 条")
 
     print("【6 垂钓图鉴（收藏鱼计数展示出口）】")
-    # catch_collect 统计已由第 2 节真实钓获路径（_collect_bonus_line）累计 1 次
+    # catch_collect 统计已由第 2 节真实钓获路径（content/profession.py::collect_bonus_line）累计 1 次
     db.add_item("g1", "w1", "mat_moon_jelly", {"name": "月华水母", "type": "收藏",
                                                "stackable": True, "price": 1})
     out = await cmd(m, "bestiary", "g1", "w1", "图鉴")

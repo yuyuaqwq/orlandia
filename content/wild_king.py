@@ -52,8 +52,7 @@ from . import catalog_space as _cs      # noqa: E402  MAP_BY_ID
 # ★ B16-W11b（2026-09-14）：`WILD_KING*` 常数 → 包内门面直取（原 `_WK` 宿主句柄已退场）
 from .catalog_rules import (WILD_KING_CHEST_TIERS, WILD_KING_GLOBAL_LIMIT, WILD_KING_LIFETIME_SEC,
                             WILD_KING_LOOT_PRIORITY_SEC, WILD_KING_MAPS, WILD_KING_NO_KILL_EXTRA,
-                            WILD_KING_PERIODS, WILD_KING_PER_DAY_LIMIT, WILD_KING_PER_PERIOD_LIMIT,
-                            WILD_KING_PITY_PERIODS)
+                            WILD_KING_PER_DAY_LIMIT, WILD_KING_PER_PERIOD_LIMIT, WILD_KING_PITY_PERIODS)
 
 
 # ============================================================
@@ -107,16 +106,6 @@ def period_hour(now: datetime.datetime | None = None) -> int:
     if 14 <= h < 20:
         return 14
     return 20
-
-
-def period_label(now: datetime.datetime | None = None) -> str:
-    """当前时段中文名。"""
-    now = now or datetime.datetime.now()
-    ph = period_hour(now)
-    for p in WILD_KING_PERIODS:
-        if p["hour"] == ph:
-            return p["label"]
-    return "夜晚"
 
 
 def period_key(now: datetime.datetime | None = None) -> str:
@@ -658,14 +647,3 @@ def wild_king_summary(map_id: str) -> str:
     mins = left // 60
     return (f"{king.get('icon', '👑')}【{king.get('name')}】Lv.{king.get('lv')} 在此图看守宝箱"
             f"（约 {mins} 分钟后离开）——击败它解锁宝箱！")
-
-
-def personal_meta(qq_id: str) -> dict:
-    """个人野王元数据（保底券/时段计数展示）。"""
-    return _personal_meta(qq_id)
-
-
-def list_active_kings() -> list:
-    """全服当前在场野王列表（GM/状态展示用）。"""
-    st = _load_global()
-    return [k for k in st.get("kings", {}).values() if not k.get("killed")]

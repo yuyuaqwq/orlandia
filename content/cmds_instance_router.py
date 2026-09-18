@@ -270,22 +270,6 @@ class InstanceRouterImpl:
     # ------------------------------------------------------------------
     # 4.4 结算辅助（薄壳；账务 5b 完善）
     # ------------------------------------------------------------------
-    def _router_collect_killed(self, st: dict, since_prev: bool = False) -> list:
-        """battle killed（uid 累计）→ 死亡敌人单位 dict 列表。
-
-        v3 §4.4 死亡账：saintess_engine 击杀记录（state.killed uid）转玩法壳消费的
-        单位快照（st[\"_last_killed\"]/击杀任务）。死亡 actor 不从 sides 移除
-        （只进 killed），因此从 enemy side 按 uid 取 hp<=0 的 actor 快照。
-        副本内 state.killed 为整场累计；玩家行动一段只消费新增段（上一段
-        已入账的过滤由调用方控制——见 _router_advance_killed）。
-        """
-        _b = st.get("battle") or {}
-        uids = set(_b.get("killed") or [])
-        out = []
-        for a in (IB._enemies_of(st) or []):
-            if a.get("uid") in uids and int(a.get("hp", 1) or 0) <= 0:
-                out.append(dict(a))
-        return out
 
     def _router_snapshot_killed(self, st: dict) -> set:
         """记录当前 battle killed uid 集合（用于 diff 本刻新增死亡）。"""

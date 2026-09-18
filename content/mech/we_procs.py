@@ -422,16 +422,6 @@ def we_shield_cond(battle, caster, target, params, logs):
         logs.append(_SHIELD_COND_LOG.get(key, "").format(shield=shield))
 
 
-def _crit_flag(ctx: dict) -> bool:
-    """crit 事件判定兜底：crit 事件 ctx 无 is_crit 键（事件本身即暴击）——
-    由装配层区分：endless_radiance 挂 crit 事件时恒为暴击 → ctx 带 is_crit=True 由
-    fire 暂存补充不了，这里约定 crit 事件挂载的 effect 直接视为暴击。
-    """
-    # fire crit 事件 ctx 不设 is_crit；on_hit 类也不该挂 endless_radiance——
-    # 装配层把 endless_radiance 挂 crit 事件 → 到达执行器即暴击。
-    return True
-
-
 # ============================================================
 # proc_buff abyss_barrier（battle_start 永久最大生命加成）
 # ============================================================

@@ -95,16 +95,6 @@ def _snap():
     return _SNAP
 
 
-def _expire_instance_world(owner, payload):
-    """引擎过期回调：把 `instance_world_<wid>` 对应的内存大陆一并回收（幂等）。"""
-    try:
-        key = str(owner)
-        wid = key[len(EVENT_STATE_PREFIX):] if key.startswith(EVENT_STATE_PREFIX) else key
-        destroy_instance_world(wid)
-    except Exception:
-        pass
-
-
 # ============================================================
 # 内存态访问
 # ============================================================
