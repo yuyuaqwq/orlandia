@@ -21,6 +21,7 @@ from . import catalog_items as _ci    # 物品/材料/符文/装备名册
 from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（QUALITY/WEAPON_FLAVOR）
+from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
 from saintess_engine.records import records_from_domain
 from saintess_engine.trade import apply_rate
 
@@ -410,13 +411,13 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
                         + _ec["bp_price_base"]) * _ec["bp_smith_mult"] * discount)
         # v105 M09 P3-9：图纸单件商品，数量参数不适用（此前 qty 被静默忽略）
         if qty > 1:
-            return None, "神秘锻造图纸只能买 1 张！想再买一张就再输一次～"
+            return None, _T.static("shop.bp_one")
         if _gold < bp_price:
-            return None, f"金币不足！需要 {bp_price} 金币。"
+            return None, _T.text("shop.gold_short", price=bp_price)
         _upd_player(group_id, qq_id, gold=_gold - bp_price)
         bp = _roll_bp(max(1, player["level"]))
         _add_item(group_id, qq_id, f"eq_{_uuid.uuid4().hex[:8]}", bp)
-        return None, f"✅ 你买到一张【{bp['name']}】！{evt_tip}"
+        return None, _T.text("shop.bp_ok", name=bp['name'], tip=evt_tip)
     if str(key).startswith("m:"):
         # 锻造材料购买
         mid = str(key)[2:]
@@ -424,7 +425,7 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         price = int(mt["price"] * discount)
         total = price * qty
         if _gold < total:
-            return None, f"金币不足！需要 {total} 金币。"
+            return None, _T.text("shop.gold_short", price=total)
         # v166 商店限购：材料限购（店内共享库存+每日个人限购）
         _l_ok, _l_msg = _limit_guard(group_id, qq_id, sa_id, f"mat:{mid}", qty)
         if not _l_ok:
@@ -433,19 +434,19 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         # v104 修 M09-P3：材料购买全量拷贝定义字段（补 quality 等），不再丢字段
         _add_item(group_id, qq_id, mid, {**mt, "type": "材料", "stackable": True, "price": price}, count=qty)
         qty_str = f" ×{qty}"  # #254: 单件购买也回显数量（此前 qty=1 无回显）
-        return None, f"✅ 你购买了【{mt['name']}】{qty_str}！{evt_tip}"
+        return None, _T.text("shop.buy_ok", name=mt['name'], qty=qty_str, tip=evt_tip)
     if str(key).startswith("w:"):
         wname = str(key)[2:]
         wt = next((w for w in weapons if w[0] == wname), None)
         if not wt:
-            return None, f"商店里没有『{wname}』！输入『商店』查看商品。"
+            return None, _T.text("shop.no_such", name=wname)
         wname, wtype, wlv, wq = wt
         price = int(equip_price("weapon", wlv, wq, wtype) * discount)
         # v105 M09 P3-9：武器单件商品（此前『购买 铁剑 3』静默只买 1 把）
         if qty > 1:
-            return None, f"『{wname}』是武器，只能单件购买！需要几把就再买几次～"
+            return None, _T.text("shop.weapon_one", name=wname)
         if _gold < price:
-            return None, f"金币不足！需要 {price} 金币。"
+            return None, _T.text("shop.gold_short", price=price)
         # v166 商店限购：商店武器（店内共享库存+每日个人限购）
         _l_ok, _l_msg = _limit_guard(group_id, qq_id, sa_id, f"weapon:{wname}", 1)
         if not _l_ok:
@@ -456,27 +457,27 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         # v21 防刷钱：商店装备卖出价 = 买入价一半（否则属性推导价远高于买入价，可无限倒卖刷钱）
         equip_item["price"] = int(price * _ec["equip_resale_rate"])
         _add_item(group_id, qq_id, f"eq_{_uuid.uuid4().hex[:8]}", equip_item)
-        return None, f"✅ 你购买了【{wname}】！放到背包了，输入『装备 {wname}』使用。"
+        return None, _T.text("shop.buy_equip_ok", name=wname, name2=wname)
     if str(key).startswith("mount:"):
         # v104 修 M17-P2：序号购买坐骑（老马/小毛驴，与面板序号一致，仅橡木镇可买）
         mdef = _cl.MOUNT_BY_KEY[str(key)[6:]]
         mounts = player.get("mounts") or {}
         if mdef["key"] in (mounts.get("owned") or []):
-            return None, f"你已经拥有{mdef['name']}了！"
+            return None, _T.text("shop.mount_owned", name=mdef['name'])
         # v104 M17 P2-1：购买时同步校验骑乘等级（此前买完骑不了才发现）
         if player["level"] < mdef["lv"]:
-            return None, f"『{mdef['name']}』需要 Lv.{mdef['lv']} 才能骑乘，你才 Lv.{player['level']}！先升级再来买吧～"
+            return None, _T.text("shop.mount_lv", name=mdef['name'], lv=mdef['lv'], plv=player['level'])
         price = int(mdef["price"] * discount)
         if _gold < price:
-            return None, f"金币不足！{mdef['name']}要 {price} 金币。"
+            return None, _T.text("shop.mount_gold_short", name=mdef['name'], price=price)
         _upd_player(group_id, qq_id, gold=_gold - price)
         mounts = dict(player.get("mounts") or {})
         owned = list(mounts.get("owned") or [])
         owned.append(mdef["key"])
         mounts["owned"] = owned
         _upd_player(group_id, qq_id, mounts=mounts)
-        return None, (f"{mdef['icon']} 你买了{mdef['name']}！缰绳交到你手里，它打了个响鼻。\n"
-                      f"💡 『骑乘 {mdef['name']}』骑上它，『坐骑』查看全部！")
+        return None, _T.text("shop.mount_buy_ok", icon=mdef['icon'], name=mdef['name'],
+                             name2=mdef['name'])
     if str(key).startswith("e:"):
         # 名册装备购买（铁匠铺全套装备）
         rid = str(key)[2:]
@@ -484,9 +485,9 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         price = int(equip_price(r["slot"], r["lv"], r["quality"], r.get("weapon_type"), rid) * discount)
         # v105 M09 P3-9：装备单件商品（数量参数不适用）
         if qty > 1:
-            return None, f"『{r['name']}』是装备，只能单件购买！需要几件就再买几次～"
+            return None, _T.text("shop.equip_one", name=r['name'])
         if _gold < price:
-            return None, f"金币不足！需要 {price} 金币。"
+            return None, _T.text("shop.gold_short", price=price)
         # v166 商店限购：名册装备（店内共享库存+每日个人限购）
         _l_ok, _l_msg = _limit_guard(group_id, qq_id, sa_id, f"equip:{rid}", 1)
         if not _l_ok:
@@ -496,7 +497,7 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         # v21 防刷钱：商店装备卖出价 = 买入价一半
         equip_item["price"] = int(price * _ec["equip_resale_rate"])
         _add_item(group_id, qq_id, f"eq_{_uuid.uuid4().hex[:8]}", equip_item)
-        return None, f"✅ 你购买了【{r['name']}】！放到背包了，输入『装备 {r['name']}』使用。"
+        return None, _T.text("shop.buy_equip_ok", name=r['name'], name2=r['name'])
     if str(key).startswith("s:"):
         # v135 铁匠铺货架（全服共享）：先到先得，原子扣减库存
         rid = str(key)[2:]
@@ -507,25 +508,25 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
         # 按售罄处理，绝不先扣货。
         _sit = next((it for it in (smith_items or []) if it.get("rid") == rid), None)
         if _sit is None or (_sit.get("qty") or 0) <= 0:
-            return None, "😢 这件作品已被别的冒险者买走了，售罄等补货吧～"
+            return None, _T.static("shop.shelf_soldout")
         _price_chk = int(_ss.smith_stock_price(rid, _sit["price_mult"]))
         if _gold < _price_chk:
-            return None, f"金币不足！需要 {_price_chk} 金币。"
+            return None, _T.text("shop.gold_short", price=_price_chk)
         ok, item_data, price = _ss.buy_stock_item(cur, town_lv, rid)
         if not ok:
-            return None, "😢 这件作品已被别的冒险者买走了，售罄等补货吧～"
+            return None, _T.static("shop.shelf_soldout")
         _upd_player(group_id, qq_id, gold=_gold - price)
         # v21 防刷钱：货架装备卖出价 = 买入价一半（含浮动）
         item_data["price"] = int(price * _ec["equip_resale_rate"])
         _add_item(group_id, qq_id, f"eq_{_uuid.uuid4().hex[:8]}", item_data)
-        return None, f"✅ 你买下了【{item_data['name']}】！铁匠的手艺交到你手里，输入『装备』查看。"
+        return None, _T.text("shop.shelf_buy_ok", name=item_data['name'])
     # else：普通消耗品（iid = key，非冒号前缀 key）
     iid = key
     it = _ci.ITEMS[iid]
     price = int(it["price"] * discount)
     total = price * qty
     if _gold < total:
-        return None, f"金币不足！需要 {total} 金币。"
+        return None, _T.text("shop.gold_short", price=total)
     # v166 商店限购：消耗品（店内共享库存+每日个人限购）
     _l_ok, _l_msg = _limit_guard(group_id, qq_id, sa_id, f"item:{iid}", qty)
     if not _l_ok:
@@ -536,7 +537,7 @@ def buy_index_dispatch(key, group_id, qq_id, player, qty, discount, *,
     #   否则 9 种店售食物丢 hot 字段 → infer_template 判为药水，战斗内持续恢复失效
     _add_item(group_id, qq_id, iid, {**it, "type": "消耗品", "stackable": True, "price": price}, count=qty)
     qty_str = f" ×{qty}"  # #254: 单件购买也回显数量（此前 qty=1 无回显）
-    return None, f"✅ 你购买了【{it['name']}】{qty_str}！{evt_tip}"
+    return None, _T.text("shop.buy_ok", name=it['name'], qty=qty_str, tip=evt_tip)
 
 
 def buy_weapon_fn(wname: str, wtype: str, wlv: int, wq: str) -> dict:

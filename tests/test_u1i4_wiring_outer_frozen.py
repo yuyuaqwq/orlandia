@@ -158,7 +158,7 @@ _PIN = {
         'content/instance_cmds.py::_stage_npcs': 'cf6ae326b0300abdd6ef55605c688811807800d4ebc9684755c56b96ed433f20',
         'content/shop.py::apprentice_protect_mats': '12f8e4751608242aa5d9de2daccaf3271edc5b710102db78fa718161216d7141',
         'content/cmds_world.py::quest_view': '7f482f99fa6605b6cca162aa3ad62bd798c270a1e066e0082b5e11669a9e0887',
-        'content/economy_cmds.py::shop': '26116239eefc8181717b6d8f520a2a1e5c5ff37cdd1365872b3a8feab870233f',
+        'content/economy_cmds.py::shop': '33ae09d1eb24631183eb89122cf4831960f85f80ab26fe53076f0d9e3815b79b',
         'content/economy_cmds.py::buy': 'c58470fbc31e416d343aa363727372259e65af0bb8d3e21cdf9f43ad4345ae33',
         'content/talk_actions.py::action_apprentice_check': '3079da595d629cb8a83530cbfdaf221a85ee971804ae29895c47577748585edc',
         'content/item_templates.py::tpl_teleport_portal': 'ebaf5f6548be45341c14570ae73c73398261f46a12aa703d619e9779d74d7503',

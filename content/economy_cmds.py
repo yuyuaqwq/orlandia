@@ -6641,14 +6641,14 @@ class EconomyImpl(CommandBase):
         group_id, qq_id = self._uid(event)
         player = self._player(group_id, qq_id)
         if self._is_redname(qq_id):
-            yield event.plain_result("☠️ 你是红名！商店老板把你轰了出来……（等红名消退再来）")
+            yield event.plain_result(_T.static("shop.redname"))
             return
         cur = player["cur_map"]
         cur_map = _cspace.MAP_BY_ID.get(cur, {})
         if not self._at_shop(player, group_id, qq_id):
             hint = self._facility_hint(player, "shop")
             yield event.plain_result(
-                f"这里没有商店！到有商店的地方（如 {hint}）再输入『商店』吧～" if hint else "这里没有商店！去城镇里找找商铺吧～"
+                _T.text("shop.no_shop_hint", hint=hint) if hint else _T.static("shop.no_shop")
             )
             return
         area_id = cur_map.get("area", cur)
@@ -6674,7 +6674,7 @@ class EconomyImpl(CommandBase):
                         n += _it.get("count", 1)
             except (ValueError, TypeError):
                 pass
-            return f"（已拥有 ×{n}）" if n else ""
+            return _T.text("shop.owned_tag", n=n) if n else ""
 
         if is_smith:
             # 铁匠类商店：武器 + 锻造材料 + 全套装备 + 图纸（v101.25h 追加子区域军需补给如强化石）
@@ -6683,22 +6683,32 @@ class EconomyImpl(CommandBase):
             for iid in sa_items or []:
                 it = _cit.ITEMS[iid]
                 _lim = self._shop_limit_label(sa_id, f"item:{iid}")  # v166 限购标注
-                entries.append((iid, f"{it['name']}{_owned(it['name'])} —— {it['price']} 金币（{it['desc']}）{_lim}"))
+                entries.append((iid, _T.text(
+                    "shop.row_item", name=it['name'], owned=_owned(it['name']),
+                    price=it['price'], desc=it['desc'], lim=_lim)))
             materials = _clife.SHOP_SMITH_MATERIALS.get(cur) or _clife.SHOP_SMITH_MATERIALS.get(area_id, [])
             for mid in materials:
                 mt = _cit.MATERIALS[mid]
                 _lim = self._shop_limit_label(sa_id, f"mat:{mid}")  # v166 限购标注
-                entries.append((mid, f"{mt['name']}{_owned(mt['name'])} —— {mt['price']} 金币（锻造材料）{_lim}"))
+                entries.append((mid, _T.text(
+                    "shop.row_material", name=mt['name'], owned=_owned(mt['name']),
+                    price=mt['price'], lim=_lim)))
             # v94 图纸经济：铁匠铺兜底卖图纸（随机一张，价格 = 图纸价×3 = (lv×3+20)×3）
             bp_price = int((max(1, player["level"]) * _clife.ECON_CONFIG["bp_price_per_lv"]
                             + _clife.ECON_CONFIG["bp_price_base"]) * _clife.ECON_CONFIG["bp_smith_mult"])
-            entries.append(("bp:rand", f"📜 神秘锻造图纸（随机一张）—— {bp_price} 金币"))
+            entries.append(("bp:rand", _T.text("shop.row_bp", price=bp_price)))
             equip_items = self._shop_equip_roster(player, _clife.SHOP_EQUIP.get(cur) or _clife.SHOP_EQUIP.get(area_id, []))
             for rid in equip_items:
                 r = _cit.EQUIP_ROSTER[rid]
                 q = _b143.QUALITY[r["quality"]]
                 _lim = self._shop_limit_label(sa_id, f"equip:{rid}")  # v166 限购标注
-                entries.append((f"e:{rid}", f"{q['color']}{r['name']}{_owned(r['name'])}（{_b143.EQUIP_SLOTS[r['slot']]}）Lv.{r['lv']}{' · ' + self._req_label(r) if self._req_label(r) else ''} —— {self._shop_equip_price(r['slot'], r['lv'], r['quality'], r.get('weapon_type'), rid)} 金币{_lim}"))
+                entries.append((f"e:{rid}", _T.text(
+                    "shop.row_equip", color=q['color'], name=r['name'], owned=_owned(r['name']),
+                    slot=_b143.EQUIP_SLOTS[r['slot']], lv=r['lv'],
+                    req=' · ' + self._req_label(r) if self._req_label(r) else '',
+                    price=self._shop_equip_price(
+                        r['slot'], r['lv'], r['quality'], r.get('weapon_type'), rid),
+                    lim=_lim)))
             weapons = _clife.SHOP_WEAPONS.get(cur) or _clife.SHOP_WEAPONS.get(area_id, [])
             for wname, wtype, wlv, wq in weapons:
                 q = _b143.QUALITY[wq]
@@ -6708,7 +6718,12 @@ class EconomyImpl(CommandBase):
                 if not _r:
                     _r = {"req": C.random_req("weapon", wlv, wtype)}
                 _lim = self._shop_limit_label(sa_id, f"weapon:{wname}")  # v166 限购标注
-                entries.append((f"w:{wname}", f"{q['color']}{wname}{_owned(wname)}（{C.display('weapon_types', wtype)}）Lv.{wlv}{' · ' + self._req_label(_r) if self._req_label(_r) else ''} —— {self._shop_equip_price('weapon', wlv, wq, wtype)} 金币{_lim}"))
+                entries.append((f"w:{wname}", _T.text(
+                    "shop.row_equip", color=q['color'], name=wname, owned=_owned(wname),
+                    slot=C.display('weapon_types', wtype), lv=wlv,
+                    req=' · ' + self._req_label(_r) if self._req_label(_r) else '',
+                    price=self._shop_equip_price('weapon', wlv, wq, wtype),
+                    lim=_lim)))
             # v135 铁匠铺货架（全服共享，NPC 作品）：2 武器 + 1 防具 + 1 饰品，每日 0 点换货 + 6h 补货
             town_lv = _ss.town_level(cur)
             smith_items = _ss.get_smith_stock(cur, town_lv)
@@ -6719,7 +6734,7 @@ class EconomyImpl(CommandBase):
                 _q = _b143.QUALITY[_r["quality"]]
                 _sl = _r["slot"]
                 _slot_cn = _b143.EQUIP_SLOTS[_sl] if _sl in _b143.EQUIP_SLOTS else (C.display('weapon_types', _r.get('weapon_type')) or _sl)
-                _n = f"{_r['name']}（{_npc}的作品）"
+                _n = _T.text("shop.work_name", name=_r['name'], npc=_npc)
                 _price = int(_ss.smith_stock_price(_rid, _sit["price_mult"]))
                 entries.append((f"s:{_rid}", f"{_q['color']}{_n}{_owned(_r['name'])}（{_slot_cn}）Lv.{_r['lv']}{' · ' + self._req_label(_r) if self._req_label(_r) else ''} ×{_sit['qty']} —— {_price} 金币"))
         else:
@@ -6732,7 +6747,7 @@ class EconomyImpl(CommandBase):
             if not shop_items and trader:
                 shop_items = _clife.SHOP_WILD_TRADE  # v95.4：野外行商货物
                 tname = (_WILD_NPCS_LOOKUP.first(trader)[0] or {}).get("name", "行商")
-                shop_title = f"🧭 {tname}的货摊"  # #151：标题跟随实际在场的交易 NPC
+                shop_title = _T.text("shop.trader_title", tname=tname)  # #151：标题跟随实际在场的交易 NPC
             # 意见#130（2026-09-03 白云白云狸雾理云/鱼神）：铁港码头栈桥(harbor_docks_1)挂着
             # 行商(NPC 夜钓翁·老竿 map=harbor_docks 整图 roam)，本子区域没有商店也没有货摊，
             # 却在『地图』里被 _wild_trader_here 判定为可交易 → 显示错配的「行商货摊」。
@@ -6749,11 +6764,13 @@ class EconomyImpl(CommandBase):
             if not shop_items and _here_trader_ok:
                 shop_items = _clife.SHOP_WILD_TRADE  # v95.4：野外行商货物
                 tname = (_WILD_NPCS_LOOKUP.first(trader)[0] or {}).get("name", "行商")
-                shop_title = f"🧭 {tname}的货摊"  # #151：标题跟随实际在场的交易 NPC
+                shop_title = _T.text("shop.trader_title", tname=tname)  # #151：标题跟随实际在场的交易 NPC
             for iid in shop_items:
                 it = _cit.ITEMS[iid]
                 _lim = self._shop_limit_label(sa_id, f"item:{iid}")  # v166 限购标注
-                entries.append((iid, f"{it['name']}{_owned(it['name'])} —— {it['price']} 金币（{it['desc']}）{_lim}"))
+                entries.append((iid, _T.text(
+                    "shop.row_item", name=it['name'], owned=_owned(it['name']),
+                    price=it['price'], desc=it['desc'], lim=_lim)))
             # 武器：铁匠/锻造类 + 普通商店（集市/商行/码头）可卖；草药铺/酒馆不卖
             if sa_kind in ("smith", "general"):
                 weapons = _clife.SHOP_WEAPONS.get(cur) or _clife.SHOP_WEAPONS.get(area_id, [])
@@ -6765,7 +6782,12 @@ class EconomyImpl(CommandBase):
                     if not _r:
                         _r = {"req": C.random_req("weapon", wlv, wtype)}
                     _lim = self._shop_limit_label(sa_id, f"weapon:{wname}")  # v166 限购标注
-                    entries.append((f"w:{wname}", f"{q['color']}{wname}{_owned(wname)}（{C.display('weapon_types', wtype)}）Lv.{wlv}{' · ' + self._req_label(_r) if self._req_label(_r) else ''} —— {self._shop_equip_price('weapon', wlv, wq, wtype)} 金币{_lim}"))
+                    entries.append((f"w:{wname}", _T.text(
+                        "shop.row_equip", color=q['color'], name=wname, owned=_owned(wname),
+                        slot=C.display('weapon_types', wtype), lv=wlv,
+                        req=' · ' + self._req_label(_r) if self._req_label(_r) else '',
+                        price=self._shop_equip_price('weapon', wlv, wq, wtype),
+                        lim=_lim)))
         # v104 修 M17-P2：橡木镇（新手村）商店面板列出可购坐骑（price>0 的老马/小毛驴），并入序号购买
         # v130.7 意见#23：坐骑只挂 smith/general 贸易场所（草药铺 herb/酒馆 tavern 不再隔空卖坐骑，口径同武器块）
         if area_id == "oak" and cur == _ccore.START_MAP and sa_kind in ("smith", "general"):
@@ -6773,8 +6795,9 @@ class EconomyImpl(CommandBase):
             for mdef in _clife.MOUNT_POOL:
                 if (mdef.get("price") or 0) > 0:
                     _mo = "（已拥有）" if mdef["key"] in _mount_owned else ""
-                    entries.append((f"mount:{mdef['key']}",
-                                    f"{mdef['icon']}{mdef['name']}{_mo}（坐骑 Lv.{mdef['lv']} 商店直购）—— {mdef['price']} 金币"))
+                    entries.append((f"mount:{mdef['key']}", _T.text(
+                        "shop.row_mount", icon=mdef['icon'], name=mdef['name'], mo=_mo,
+                        lv=mdef['lv'], price=mdef['price'])))
         # v104 M09 P2 修复：世界事件商店折扣期面板标注（effects 数据驱动：shop_discount，0.8 = 8 折）
         cur_evt = db.get_world_event()
         _discount_tip = ""
@@ -6782,19 +6805,22 @@ class EconomyImpl(CommandBase):
             _evt_def = next((e for e in _b143.WORLD_EVENT_POOL if e["type"] == cur_evt["etype"]), None)
             _sd = (_evt_def.get("effects") or {}).get("shop_discount") if _evt_def else None
             if _sd:
-                _discount_tip = f"（{_evt_def['name']} {int(round(_sd * 10))} 折！）"
+                _discount_tip = _T.text(
+                    "shop.discount_tip", name=_evt_def['name'], off=int(round(_sd * 10)))
         raw = self._strip_cmd(event, "商店")
         page = self._parse_page(raw)
         page_items, pages, page = self._page_items(entries, page, per_page=5)
-        lines = [f"🏪 【{shop_title} 商店】{_discount_tip}（第 {page}/{pages} 页 · 共 {len(entries)} 件）", "━━━━━━━━━━━━"]
+        lines = [_T.text(
+            "shop.panel_title", title=shop_title, tip=_discount_tip, page=page,
+            pages=pages, total=len(entries)), "━━━━━━━━━━━━"]
         for i, (key, row) in enumerate(page_items, (page - 1) * 5 + 1):
             lines.append(f"{i:>2}. {row}")
         if is_smith:
             # v135 铁匠铺货架提示（不占序号，显示在商品列表后）
-            lines.append("💡 全服共享货架，售罄等补货；每日 0 点换新")
+            lines.append(_T.static("shop.shelf_tip"))
         lines.append("")
         self._record_list_state(qq_id, "商店", page, pages)
-        lines.append(f"💰 你的金币：{player['gold']}")
+        lines.append(_T.text("shop.gold_line", gold=player['gold']))
         lines.append(self._tip("shop"))
         yield event.plain_result("\n".join(lines))
 

@@ -58,6 +58,7 @@ ECON_CONFIG = _clife.ECON_CONFIG
 # ★ B2-C2：`core.stats` / `core.quality_tiers` 也切包内直取（宿主那两个文件是薄壳 → 同一批对象）
 from .stats import equip_stats, equip_value
 from .quality_tiers import QUALITY_TIERS
+from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
 
 # ============================================================
 # ② 包内域读口（域 `smith_stock` + `shop`；导出器 = 游戏仓
@@ -523,6 +524,6 @@ def buy_stock_item(map_id: str, town_lv: int | None, rid: str):
     from .drops import generate_roster_equip   # B2-C2 包内直取（同位置，调用时解析）
     item = generate_roster_equip(rid)
     npc = SMITH_NPC_NAMES.get(map_id, "铁匠")
-    item["name"] = f"{item['name']}（{npc}的作品）"
+    item["name"] = _T.text("shop.work_name", name=item['name'], npc=npc)
     price = int(_smith_equip_price(rid) * slot["payload"]["price_mult"])
     return True, item, price

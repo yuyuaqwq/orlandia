@@ -11649,6 +11649,325 @@
     "category": "战斗日志",
     "desc": "搬自 we_procs.py:_SHIELD_COND_LOG（B 批 B-1）"
   },
+  "shop.bp_ok": {
+    "value": "✅ 你买到一张【{name}】！{tip}",
+    "params": [
+      "name",
+      "tip"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.bp_one": {
+    "value": "神秘锻造图纸只能买 1 张！想再买一张就再输一次～",
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.buy_equip_ok": {
+    "value": "✅ 你购买了【{name}】！放到背包了，输入『装备 {name2}』使用。",
+    "params": [
+      "name",
+      "name2"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.buy_ok": {
+    "value": "✅ 你购买了【{name}】{qty}！{tip}",
+    "params": [
+      "name",
+      "qty",
+      "tip"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.discount_tip": {
+    "value": "（{name} {off} 折！）",
+    "params": [
+      "name",
+      "off"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.equip_one": {
+    "value": "『{name}』是装备，只能单件购买！需要几件就再买几次～",
+    "params": [
+      "name"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.gold_line": {
+    "value": "💰 你的金币：{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.gold_short": {
+    "value": "金币不足！需要 {price} 金币。",
+    "params": [
+      "price"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.limit_day_hit": {
+    "value": "今日限购已达上限（每人每日 {per_day} 件）",
+    "params": [
+      "per_day"
+    ],
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.limit_day_left": {
+    "value": "今日限购还剩 {day_left} 件额度，明日再来吧～",
+    "params": [
+      "day_left"
+    ],
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.limit_day_tag": {
+    "value": "今日限 {per_day}",
+    "params": [
+      "per_day"
+    ],
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:limit_label（B 批 C 档）"
+  },
+  "shop.limit_qty_cap": {
+    "value": "数量超出可购上限，请分批购买～",
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.limit_race": {
+    "value": "手慢了！该商品已被别的冒险者买走，等补货吧～",
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.limit_stock": {
+    "value": "库存 {tot}",
+    "params": [
+      "tot"
+    ],
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:limit_label（B 批 C 档）"
+  },
+  "shop.limit_stock_ab": {
+    "value": "库存 {left}/{tot}",
+    "params": [
+      "left",
+      "tot"
+    ],
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:limit_label（B 批 C 档）"
+  },
+  "shop.limit_stock_left": {
+    "value": "该店库存只剩 {stock_left} 件，等补货后再来多买吧～",
+    "params": [
+      "stock_left"
+    ],
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.limit_stock_out": {
+    "value": "该商品今日已售罄，等补货再来吧～",
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.limit_temp": {
+    "value": "该商品暂时买不了，稍后再试～",
+    "category": "商店限购",
+    "desc": "搬自 content/shop_stock.py:check_and_consume（B 批 C 档）"
+  },
+  "shop.mount_buy_ok": {
+    "value": "{icon} 你买了{name}！缰绳交到你手里，它打了个响鼻。\n💡 『骑乘 {name2}』骑上它，『坐骑』查看全部！",
+    "params": [
+      "icon",
+      "name",
+      "name2"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.mount_gold_short": {
+    "value": "金币不足！{name}要 {price} 金币。",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.mount_lv": {
+    "value": "『{name}』需要 Lv.{lv} 才能骑乘，你才 Lv.{plv}！先升级再来买吧～",
+    "params": [
+      "name",
+      "lv",
+      "plv"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.mount_owned": {
+    "value": "你已经拥有{name}了！",
+    "params": [
+      "name"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.no_shop": {
+    "value": "这里没有商店！去城镇里找找商铺吧～",
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.no_shop_hint": {
+    "value": "这里没有商店！到有商店的地方（如 {hint}）再输入『商店』吧～",
+    "params": [
+      "hint"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.no_such": {
+    "value": "商店里没有『{name}』！输入『商店』查看商品。",
+    "params": [
+      "name"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.owned_tag": {
+    "value": "（已拥有 ×{n}）",
+    "params": [
+      "n"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.panel_title": {
+    "value": "🏪 【{title} 商店】{tip}（第 {page}/{pages} 页 · 共 {total} 件）",
+    "params": [
+      "title",
+      "tip",
+      "page",
+      "pages",
+      "total"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.redname": {
+    "value": "☠️ 你是红名！商店老板把你轰了出来……（等红名消退再来）",
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.row_bp": {
+    "value": "📜 神秘锻造图纸（随机一张）—— {price} 金币",
+    "params": [
+      "price"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.row_equip": {
+    "value": "{color}{name}{owned}（{slot}）Lv.{lv}{req} —— {price} 金币{lim}",
+    "params": [
+      "color",
+      "name",
+      "owned",
+      "slot",
+      "lv",
+      "req",
+      "price",
+      "lim"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.row_item": {
+    "value": "{name}{owned} —— {price} 金币（{desc}）{lim}",
+    "params": [
+      "name",
+      "owned",
+      "price",
+      "desc",
+      "lim"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.row_material": {
+    "value": "{name}{owned} —— {price} 金币（锻造材料）{lim}",
+    "params": [
+      "name",
+      "owned",
+      "price",
+      "lim"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.row_mount": {
+    "value": "{icon}{name}{mo}（坐骑 Lv.{lv} 商店直购）—— {price} 金币",
+    "params": [
+      "icon",
+      "name",
+      "mo",
+      "lv",
+      "price"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.shelf_buy_ok": {
+    "value": "✅ 你买下了【{name}】！铁匠的手艺交到你手里，输入『装备』查看。",
+    "params": [
+      "name"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.shelf_soldout": {
+    "value": "😢 这件作品已被别的冒险者买走了，售罄等补货吧～",
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.shelf_tip": {
+    "value": "💡 全服共享货架，售罄等补货；每日 0 点换新",
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.trader_title": {
+    "value": "🧭 {tname}的货摊",
+    "params": [
+      "tname"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.weapon_one": {
+    "value": "『{name}』是武器，只能单件购买！需要几把就再买几次～",
+    "params": [
+      "name"
+    ],
+    "category": "商店购买",
+    "desc": "搬自 content/shop.py:buy_index_dispatch（B 批 C 档）"
+  },
+  "shop.work_name": {
+    "value": "{name}（{npc}的作品）",
+    "params": [
+      "name",
+      "npc"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
   "shortcut.err_bad_cmd": {
     "value": "❌ 『{cmd}』不是有效指令，先看看『帮助』确认指令名～",
     "params": [

@@ -76,6 +76,7 @@ class _HostMod:
 
 
 from ._pkgref import DB as db
+from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
 
 # ============================================================
 # ② 包内域读口 —— 商店限购配置（域 `shop_stock`；真源 = `game/data/shop_limit.py:39 SHOP_LIMIT`，
@@ -284,7 +285,7 @@ def check_and_consume(group_id: str, qq_id: str, sa_id: str, key: str, qty: int)
         bought = _day_bought(db, group_id, qq_id, sa_id, key)
         day_left = max(0, int(per_day) - bought)
         if day_left <= 0:
-            return False, f"今日限购已达上限（每人每日 {per_day} 件）", 0
+            return False, _T.text("shop.limit_day_hit", per_day=per_day), 0
     stock_left = None
     if stock is not None:
         st = stock_state(sa_id, key, cfg)
@@ -292,7 +293,7 @@ def check_and_consume(group_id: str, qq_id: str, sa_id: str, key: str, qty: int)
         if stock_left is None:
             stock_left = qty
         if stock_left <= 0:
-            return False, "该商品今日已售罄，等补货再来吧～", 0
+            return False, _T.static("shop.limit_stock_out"), 0
 
     # 可买量 = min(day_left, stock_left, qty)
     can = qty
@@ -301,19 +302,19 @@ def check_and_consume(group_id: str, qq_id: str, sa_id: str, key: str, qty: int)
     if stock_left is not None:
         can = min(can, stock_left)
     if can <= 0:
-        return False, "该商品暂时买不了，稍后再试～", 0
+        return False, _T.static("shop.limit_temp"), 0
     if can < qty:
         # 整批购买语义：不足则不部分成交，给明确提示（与『购买 X 数量』显式报错风格一致）
         if day_left is not None and day_left < qty and (stock_left is None or stock_left >= qty):
-            return False, f"今日限购还剩 {day_left} 件额度，明日再来吧～", day_left
+            return False, _T.text("shop.limit_day_left", day_left=day_left), day_left
         if stock_left is not None and stock_left < qty:
-            return False, f"该店库存只剩 {stock_left} 件，等补货后再来多买吧～", stock_left
-        return False, "数量超出可购上限，请分批购买～", can
+            return False, _T.text("shop.limit_stock_left", stock_left=stock_left), stock_left
+        return False, _T.static("shop.limit_qty_cap"), can
 
     # 扣共享库存
     if stock is not None:
         if not _consume_shared(db, sa_id, key, cfg, can):
-            return False, "手慢了！该商品已被别的冒险者买走，等补货吧～", 0
+            return False, _T.static("shop.limit_race"), 0
     # 记个人日限
     if per_day is not None:
         _bump_day(db, group_id, qq_id, sa_id, key, can)
@@ -331,9 +332,9 @@ def limit_label(sa_id: str, key: str) -> str:
         try:
             st = stock_state(sa_id, key, cfg)
             left = st["left"] if st["left"] is not None else cfg["stock"]
-            parts.append(f"库存 {left}/{cfg['stock']}")
+            parts.append(_T.text("shop.limit_stock_ab", left=left, tot=cfg['stock']))
         except Exception:
-            parts.append(f"库存 {cfg['stock']}")
+            parts.append(_T.text("shop.limit_stock", tot=cfg['stock']))
     if cfg.get("per_day") is not None:
-        parts.append(f"今日限 {cfg['per_day']}")
+        parts.append(_T.text("shop.limit_day_tag", per_day=cfg['per_day']))
     return " · ".join(parts) if parts else ""
