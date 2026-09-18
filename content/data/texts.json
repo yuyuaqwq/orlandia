@@ -12874,6 +12874,132 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:ask_way（B 批 C 档）"
   },
+  "wb.contrib_row": {
+    "value": "  {name} 贡献 {pct:,}({gold}%)→ 金币 +{exp} 经验 +{x}{y}",
+    "params": [
+      "name",
+      "pct",
+      "gold",
+      "exp",
+      "x",
+      "y"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:_worldboss_act（B 批 C 档）"
+  },
+  "wb.enemy_left": {
+    "value": "👹【{name}】敌方剩 {left} 只(总 {total:,}/{n:,}, {pct}%)",
+    "params": [
+      "name",
+      "left",
+      "total",
+      "n",
+      "pct"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:_worldboss_act（B 批 C 档）"
+  },
+  "wb.first": {
+    "value": "👑 首功：{name}！",
+    "params": [
+      "name"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:_worldboss_act（B 批 C 档）"
+  },
+  "wb.gone": {
+    "value": "👹 世界 Boss 已经撤离……下次再战！",
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
+  "wb.joined_arr": {
+    "value": "⚔️ 你已加入讨伐！\n👹【{name}】敌方还有 {left} 只(总 {total:,}/{killed:,}, {pct}%)\n  ",
+    "params": [
+      "name",
+      "left",
+      "total",
+      "killed",
+      "pct"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
+  "wb.joined_solo": {
+    "value": "⚔️ 你已加入讨伐！\n👹【{name}】❤️ {hp:,} / {hpmax:,}({pct}%)\n你：❤️ {hp2}/{hpmax2} 💙 {mp}/{mpmax}\n━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』",
+    "params": [
+      "name",
+      "hp",
+      "hpmax",
+      "pct",
+      "hp2",
+      "hpmax2",
+      "mp",
+      "mpmax"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
+  "wb.killed": {
+    "value": "🎉 【{name}】被击败了！",
+    "params": [
+      "name"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:_worldboss_act（B 批 C 档）"
+  },
+  "wb.none": {
+    "value": "👹 没有世界 Boss 入侵！等『世界Boss入侵』事件出现时再来吧！",
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
+  "wb.other_map": {
+    "value": "👹 世界 Boss【{name}】出现在【{map}】！\n📍 你当前在【{cur}】，不在 Boss 出没地！\n🧭 用『前往 <地图名>』前往指定地点才能讨伐！",
+    "params": [
+      "name",
+      "map",
+      "cur"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
+  "wb.start": {
+    "value": "⚔️ 你冲向【{name}】，讨伐开始！\n👹 Lv.{lv} ❤️ {hp:,} / {hpmax:,}({pct}%)\n{panel}\n━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』\n💡 造成伤害计入讨伐贡献，Boss 倒下后按贡献分奖励！",
+    "params": [
+      "name",
+      "lv",
+      "hp",
+      "hpmax",
+      "pct",
+      "panel"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
+  "wb.turn_panel": {
+    "value": "{name}\n━━━━━━━━━━━━\n{contrib}｜你的贡献 {hp:,}\n你：❤️ {hpmax}/{mp} 💙 {mpmax}/{tail}",
+    "params": [
+      "name",
+      "contrib",
+      "hp",
+      "hpmax",
+      "mp",
+      "mpmax",
+      "tail"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:_worldboss_act（B 批 C 档）"
+  },
+  "wb.you_hp": {
+    "value": "\n你：❤️ {hp}/{hpmax} 💙 {mp}/{mpmax}\n━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』",
+    "params": [
+      "hp",
+      "hpmax",
+      "mp",
+      "mpmax"
+    ],
+    "category": "世界Boss",
+    "desc": "搬自 content/combat_cmds.py:hunt_boss（B 批 C 档）"
+  },
   "we.abyss_barrier.log": {
     "value": "🌑 深渊屏障：最大生命 +{bonus}！（持续整场）",
     "category": "武器特效",

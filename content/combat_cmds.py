@@ -2684,12 +2684,12 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
         expired = db.get_world_event(include_expired=True)
         if expired and expired["etype"] == "boss" and now >= expired["ends_at"]:
             db.clear_world_event()
-            yield event.plain_result("👹 世界 Boss 已经撤离……下次再战！")
+            yield event.plain_result(_T.static("wb.gone"))
             return
-        yield event.plain_result("👹 没有世界 Boss 入侵！等『世界Boss入侵』事件出现时再来吧！")
+        yield event.plain_result(_T.static("wb.none"))
         return
     if cur["etype"] != "boss":
-        yield event.plain_result("👹 没有世界 Boss 入侵！等『世界Boss入侵』事件出现时再来吧！")
+        yield event.plain_result(_T.static("wb.none"))
         return
     b = cur["data"].get("boss", {})
     # v49 意见#5：世界 Boss 指定地点，必须到达该地图才能讨伐
@@ -2697,9 +2697,8 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     if boss_map and player["cur_map"] != boss_map:
         cur_map_name = _cs.MAP_BY_ID.get(player["cur_map"], {}).get("name", player["cur_map"])
         yield event.plain_result(
-            f"👹 世界 Boss【{b.get('name', '?')}】出现在【{b.get('map_name', '未知之地')}】！\n"
-            f"📍 你当前在【{cur_map_name}】，不在 Boss 出没地！\n"
-            f"🧭 用『前往 <地图名>』前往指定地点才能讨伐！"
+            _T.text("wb.other_map", name=b.get('name', '?'), map=b.get('map_name', '未知之地'),
+                cur=cur_map_name)
         )
         return
     # 已有世界BOSS战斗状态 → 显示当前状态（N5b4-3：saintess_engine state 存 sides）
@@ -2713,11 +2712,9 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
             _sum_max = sum(max(0, u.get("max_hp", u.get("hp", 1))) for u in _enemies)
             _pct = max(0, int(_sum_hp / max(1, _sum_max) * 100))
             yield event.plain_result(
-                f"⚔️ 你已加入讨伐！\n"
-                f"👹【{_enemies[0].get('name', '?') if _enemies else b.get('name', '?')}】敌方还有 {len(_enemies)} 只(总 {_sum_hp:,}/{_sum_max:,}, {_pct}%)\n"
-                f"  " + "\n  ".join([f"{u.get('name','?')} ❤️{max(0,u.get('hp',0))}" for u in _enemies]) + "\n"
-                f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}\n"
-                f"━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』"
+                _T.text("wb.joined_arr", name=_enemies[0].get('name', '?') if _enemies else b.get('name', '?'),
+                    left=len(_enemies), total=_sum_hp, killed=_sum_max, pct=_pct) + "\n  ".join([f"{u.get('name','?')} ❤️{max(0,u.get('hp',0))}" for u in _enemies]) + _T.text("wb.you_hp", hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
+                                                                                                                   mpmax=player['max_mp'])
             )
         elif _st.get("enemies"):
             _enemies = [u for u in _st.get("enemies") if (u.get("hp") or 0) > 0]
@@ -2725,20 +2722,17 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
             _sum_max = sum(max(0, u.get("max_hp", u.get("hp", 1))) for u in _enemies)
             _pct = max(0, int(_sum_hp / max(1, _sum_max) * 100))
             yield event.plain_result(
-                f"⚔️ 你已加入讨伐！\n"
-                f"👹【{b.get('name', '?')}】敌方还有 {len(_enemies)} 只(总 {_sum_hp:,}/{_sum_max:,}, {_pct}%)\n"
-                f"  " + "\n  ".join([f"{u.get('name','?')} ❤️{max(0,u.get('hp',0))}" for u in _enemies]) + "\n"
-                f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}\n"
-                f"━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』"
+                _T.text("wb.joined_arr", name=b.get('name', '?'), left=len(_enemies), total=_sum_hp,
+                    killed=_sum_max, pct=_pct) + "\n  ".join([f"{u.get('name','?')} ❤️{max(0,u.get('hp',0))}" for u in _enemies]) + _T.text("wb.you_hp", hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
+                                                                                                                   mpmax=player['max_mp'])
             )
         else:
             b2 = battle["state"].get("enemy", {})
             pct = max(0, int(b2.get("hp", 0) / max(1, b2.get("max_hp", 1)) * 100))
             yield event.plain_result(
-                f"⚔️ 你已加入讨伐！\n"
-                f"👹【{b2.get('name', '?')}】❤️ {max(0, b2.get('hp', 0)):,} / {b2.get('max_hp', 0):,}({pct}%)\n"
-                f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}\n"
-                f"━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』"
+                _T.text("wb.joined_solo", name=b2.get('name', '?'), hp=max(0, b2.get('hp', 0)),
+                    hpmax=b2.get('max_hp', 0), pct=pct, hp2=player['hp'],
+                    hpmax2=player['max_hp'], mp=player['mp'], mpmax=player['max_mp'])
             )
         return
     # 第一次进入：创建世界BOSS战斗（Boss 没技能则按等级配 2 个攻击技能）
@@ -2837,11 +2831,9 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     self._lock_battle(group_id, qq_id)
     pct = max(0, int(_main.get("hp", 0) / max(1, _main.get("max_hp", 1)) * 100))
     yield event.plain_result(
-        f"⚔️ 你冲向【{_main['name']}】，讨伐开始！\n"
-        f"👹 Lv.{_main.get('lv', 30)} ❤️ {_main.get('hp', 0):,} / {_main.get('max_hp', 1):,}({pct}%)\n"
-        f"{self._battle_formation_panel(player, nb)}\n"
-        f"━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称/序号>』『防御』\n"
-        f"💡 造成伤害计入讨伐贡献，Boss 倒下后按贡献分奖励！"
+        _T.text("wb.start", name=_main['name'], lv=_main.get('lv', 30), hp=_main.get('hp', 0),
+            hpmax=_main.get('max_hp', 1), pct=pct,
+            panel=self._battle_formation_panel(player, nb))
     )
 
 def _grant_worldboss_drop(self, group_id, qq_id, key):
@@ -2864,7 +2856,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     if not cur_evt or cur_evt["etype"] != "boss":
         self._unlock_battle(group_id, qq_id)
         db.clear_battle(group_id, qq_id)
-        yield event.plain_result("👹 世界 Boss 已经撤离……下次再战！")
+        yield event.plain_result(_T.static("wb.gone"))
         return
     gboss = cur_evt["data"]["boss"]
     genemies = gboss.get("enemies")
@@ -2914,7 +2906,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     if ended and b.result == "victory":
         # Boss 死亡结算（全阵列无存活；先于玩家死亡判断）
         lines.append("")
-        lines.append(f"🎉 【{gboss['name']}】被击败了！")
+        lines.append(_T.text("wb.killed", name=gboss['name']))
         total = sum(contrib.values())
         top_qq = max(contrib, key=contrib.get) if contrib else None
         boss_pool = WORLD_BOSS_DROPS.get(gboss.get("name"), [])
@@ -2934,7 +2926,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
                     _it = self._grant_worldboss_drop(group_id, qq2, random.choice(boss_pool))
                     if _it:
                         item_txt += f" 🎁{_it}"
-            lines.append(f"  {p2['name']} 贡献 {d:,}({int(ratio*100)}%)→ 金币 +{g} 经验 +{e}{item_txt}")
+            lines.append(_T.text("wb.contrib_row", name=p2['name'], pct=d, gold=int(ratio*100), exp=g, x=e, y=item_txt))
             # L3-P3：玩家级反应总线——任何击杀都算数（鱼鱼 09-09 语义决策）。
             # 世界Boss 死亡对每个 contrib>0 玩家 fire：quests 按 boss 名/属性推进
             # （主线/每日/支线/周常，现状不推=漏接）、公会每场胜利+1、成就
@@ -2957,7 +2949,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
             lines += _pe_fire("battle_victory", _wbctx)
         tp = self._player(group_id, top_qq) if top_qq else None
         if tp:
-            lines.append(f"👑 首功：{tp['name']}！")
+            lines.append(_T.text("wb.first", name=tp['name']))
         db.clear_world_event()
         self._unlock_battle(group_id, qq_id)
         db.clear_battle(group_id, qq_id)
@@ -3001,13 +2993,13 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     body = "\n".join(lines)
     status = self._status_line(player, b)
     rl_wb = self._resource_line(player, b)
-    _enemy_line = (f"👹【{gboss['name']}】敌方剩 {len(_enemies_alive)} 只(总 {_sum_hp:,}/{_sum_max:,}, {pct}%)"
+    _enemy_line = (_T.text("wb.enemy_left", name=gboss['name'], left=len(_enemies_alive), total=_sum_hp,
+                       n=_sum_max, pct=pct)
                    if len(_enemies_alive) > 1 else
                    f"👹【{gboss['name']}】❤️ {gboss['hp']:,} / {gboss['max_hp']:,}({pct}%)")
     yield event.plain_result(
-        f"{body}\n━━━━━━━━━━━━\n"
-        f"{_enemy_line}｜你的贡献 {contrib[str(qq_id)]:,}\n"
-        f"你：❤️ {player['hp']}/{player['max_hp']} 💙 {player['mp']}/{player['max_mp']}"
+        _T.text("wb.turn_panel", name=body, contrib=_enemy_line, hp=contrib[str(qq_id)],
+            hpmax=player['hp'], mp=player['max_hp'], mpmax=player['mp'], tail=player['max_mp'])
         + (f"\n{rl_wb}" if rl_wb else "")
         + (f"\n{status}" if status else "")
     )
