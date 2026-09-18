@@ -143,7 +143,10 @@ FROZEN_COUNTS = {
     #   ★ 2026-09-19 C 档 20b（B-2 第 6 片第 2 小片）：社交「组队·公会」——
     #     cmds_social 组队/公会段（15 函数）+ content/party.py（5 函数）+ content/social_guild.py（14 函数）
     #     81 处替换 / 77 新键（新分类 社交队伍 / 社交公会）⇒ 1996 → 2073。
-    "texts": 2073,
+    #   ★ 2026-09-19 C 档 20c（B-2 第 6 片第 3 小片）：社交「世界事件 · 拍卖竞拍」——
+    #     content/social_cmds.py 全 4 函数（maybe_roll_event / world_event_run / auction_run / bid_run）
+    #     23 处替换 / 19 新键（新分类 世界事件 / 社交拍卖）⇒ 2073 → 2092。
+    "texts": 2092,
     "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,

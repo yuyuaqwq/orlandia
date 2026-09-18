@@ -674,6 +674,51 @@
     "category": "属性名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
   },
+  "auction.item_bid_hint": {
+    "value": "   『竞拍 {id} <金币>』出价",
+    "params": [
+      "id"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:auction_run（B 批 C 档）"
+  },
+  "auction.item_price_line": {
+    "value": "   底价 {base} ｜ 最高：{top_name} ｜ 一口价 {buyout}",
+    "params": [
+      "base",
+      "top_name",
+      "buyout"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:auction_run（B 批 C 档）"
+  },
+  "auction.not_open": {
+    "value": "🏪 拍卖行暂未开张。",
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "auction.not_open_hint": {
+    "value": "🏪 拍卖行暂未开张。世界事件出现『神秘拍卖行』时再来吧！(『事件』查看)",
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:auction_run（B 批 C 档）"
+  },
+  "auction.panel_title": {
+    "value": "🏪 【神秘拍卖行】(剩余 {mm}分{ss}秒)",
+    "params": [
+      "mm",
+      "ss"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:auction_run（B 批 C 档）"
+  },
+  "auction.settle_header": {
+    "value": "🏪 【拍卖行 · 落槌结算】\n{lines}",
+    "params": [
+      "lines"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:maybe_roll_event（B 批 C 档）"
+  },
   "back.deprecated": {
     "value": "🧭 『返回』指令已停用，请使用『前往 <地名>』赶路～",
     "category": "地图导航",
@@ -710,6 +755,79 @@
     "value": "── 我方 ──\n",
     "category": "战斗面板",
     "desc": "搬自 content/combat_cmds.py:_battle_formation_panel（B 批 C 档）"
+  },
+  "bid.below_base": {
+    "value": "出价不能低于底价 {base} 金币！",
+    "params": [
+      "base"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.below_own": {
+    "value": "不能低于自己当前出价 {own} 金币！",
+    "params": [
+      "own"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.below_top": {
+    "value": "当前最高出价是 {top_name} 的 {top} 金币——出价必须超过最高价！",
+    "params": [
+      "top_name",
+      "top"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.buyout_ok": {
+    "value": "💰 一口价成交！你以 {amount} 金币拍得【{name}】！\n📦 装备已放入背包(『背包』查看)",
+    "params": [
+      "amount",
+      "name"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.fmt": {
+    "value": "格式：竞拍 <编号> <金币>，如『竞拍 1 5000』(『拍卖』查看编号)",
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.no_gold": {
+    "value": "你只有 {gold} 金币，出不起 {amount}！",
+    "params": [
+      "gold",
+      "amount"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.no_item": {
+    "value": "没有这个拍卖品！『拍卖』查看当前物品～",
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.ok_still": {
+    "value": "💰 出价成功！你在【{name}】上出价 {amount} 金币，当前最高仍是 {top_name}({top})。\n(若被超越将自动退还)",
+    "params": [
+      "name",
+      "amount",
+      "top_name",
+      "top"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
+  },
+  "bid.ok_top": {
+    "value": "💰 出价成功！你在【{name}】上出价 {amount} 金币，当前最高！\n(若被超越将自动退还)",
+    "params": [
+      "name",
+      "amount"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/social_cmds.py:bid_run（B 批 C 档）"
   },
   "bind.already_qq": {
     "value": "✅ 你当前的平台身份 {qq} 已是 QQ 号，无需绑定～",
@@ -14757,6 +14875,37 @@
     ],
     "category": "周常",
     "desc": "进度面板标题"
+  },
+  "wevent.calm": {
+    "value": "🌍 大陆风平浪静……\n",
+    "category": "世界事件",
+    "desc": "搬自 content/social_cmds.py:world_event_run（B 批 C 档）"
+  },
+  "wevent.panel_title": {
+    "value": "🌍 【世界事件】{icon} {name}(剩余 {mm}分{ss}秒)",
+    "params": [
+      "icon",
+      "name",
+      "mm",
+      "ss"
+    ],
+    "category": "世界事件",
+    "desc": "搬自 content/social_cmds.py:world_event_run（B 批 C 档）"
+  },
+  "wevent.panel_title_plain": {
+    "value": "🌍 世界事件",
+    "category": "世界事件",
+    "desc": "搬自 content/social_cmds.py:world_event_run（B 批 C 档）"
+  },
+  "wevent.roll_notice": {
+    "value": "\n🌍 【世界事件】{icon} {name}！\n{desc}",
+    "params": [
+      "icon",
+      "name",
+      "desc"
+    ],
+    "category": "世界事件",
+    "desc": "搬自 content/social_cmds.py:maybe_roll_event（B 批 C 档）"
   },
   "world.hidden": {
     "value": " (🔒隐藏)",

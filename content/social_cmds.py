@@ -50,6 +50,7 @@ import time
 
 # ★ W4（2026-09-14）：`C.WORLD_EVENT_POOL` → 包内门面（真源 `game/data/world.py:8`）
 from . import catalog_b143 as _cat_b143
+from . import texts as _T          # C 档 20c（2026-09-19）：文案表读口（本文件首次接入）
 
 
 # ============================================================
@@ -91,7 +92,7 @@ async def maybe_roll_event(group_id: str, broadcast) -> str:
                 from .auction import settle_auction as _settle_auction
                 _lines = _settle_auction(cur, group_id)
                 if _lines:
-                    await broadcast(f"🏪 【拍卖行 · 落槌结算】\n{_lines}")
+                    await broadcast(_T.text("auction.settle_header", lines=_lines))
             except Exception as _e:                 # noqa: BLE001
                 pass
         db.clear_world_event()
@@ -115,7 +116,7 @@ async def maybe_roll_event(group_id: str, broadcast) -> str:
     data = init_fn(_rnd) if init_fn else {}
     db.save_world_event(evt["type"], ends, data)
     db.set_event_state("last_event_end", str(ends))
-    return f"\n🌍 【世界事件】{evt['icon']} {evt['name']}！\n{evt['desc']}"
+    return _T.text("wevent.roll_notice", icon=evt['icon'], name=evt['name'], desc=evt['desc'])
 
 
 # ============================================================
@@ -137,11 +138,12 @@ async def world_event_run(group_id: str, notice: str, broadcast, host_self):
     cur = db.get_world_event()
     now = int(time.time())
     if not cur:
-        return ["🌍 大陆风平浪静……\n" + notice]
+        return [_T.static("wevent.calm") + notice]
     evt = next((e for e in _cat_b143.WORLD_EVENT_POOL if e["type"] == cur["etype"]), None)
     left = max(0, cur["ends_at"] - now)
     mm, ss = divmod(left, 60)
-    lines = [f"🌍 【世界事件】{evt['icon']} {evt['name']}(剩余 {mm}分{ss}秒)" if evt else "🌍 世界事件",
+    lines = [_T.text("wevent.panel_title", icon=evt['icon'], name=evt['name'], mm=mm, ss=ss)
+             if evt else _T.static("wevent.panel_title_plain"),
              f"━━━━━━━━━━━━"]
     if evt:
         lines.append(evt["desc"])
@@ -174,19 +176,19 @@ async def auction_run(group_id: str, player_lookup, tip_fn, broadcast):
         from .auction import settle_expired_auction as _settle_expired_auction
         lines = _settle_expired_auction(group_id)
         if lines:
-            broadcast_text = f"🏪 【拍卖行 · 落槌结算】\n{lines}"
+            broadcast_text = _T.text("auction.settle_header", lines=lines)
             try:
                 await broadcast(broadcast_text)
             except Exception:                       # noqa: BLE001
                 pass
             return [broadcast_text]
-        return ["🏪 拍卖行暂未开张。世界事件出现『神秘拍卖行』时再来吧！(『事件』查看)"]
+        return [_T.static("auction.not_open_hint")]
     if cur["etype"] != "auction":
-        return ["🏪 拍卖行暂未开张。世界事件出现『神秘拍卖行』时再来吧！(『事件』查看)"]
+        return [_T.static("auction.not_open_hint")]
     items = cur["data"].get("items", [])
     left = cur["ends_at"] - now
     mm, ss = divmod(left, 60)
-    lines = [f"🏪 【神秘拍卖行】(剩余 {mm}分{ss}秒)", "━━━━━━━━━━━━"]
+    lines = [_T.text("auction.panel_title", mm=mm, ss=ss), "━━━━━━━━━━━━"]
     for it in items:
         top = max(it["bids"].values()) if it["bids"] else 0
         top_name = "无人出价"
@@ -195,8 +197,8 @@ async def auction_run(group_id: str, player_lookup, tip_fn, broadcast):
             tp = player_lookup(group_id, top_qq)
             top_name = f"{tp['name'] if tp else top_qq}({top})"
         lines.append(f"📦 {it['id']}. {it['name']}")
-        lines.append(f"   底价 {it['base']} ｜ 最高：{top_name} ｜ 一口价 {it['buyout']}")
-        lines.append(f"   『竞拍 {it['id']} <金币>』出价")
+        lines.append(_T.text("auction.item_price_line", base=it['base'], top_name=top_name, buyout=it['buyout']))
+        lines.append(_T.text("auction.item_bid_hint", id=it['id']))
     lines.append("")
     lines.append(tip_fn())
     return ["\n".join(lines)]
@@ -219,30 +221,30 @@ async def bid_run(group_id: str, qq_id: str, player, args, player_lookup, broadc
         from .auction import settle_expired_auction as _settle_expired_auction
         lines = _settle_expired_auction(group_id)
         if lines:
-            broadcast_text = f"🏪 【拍卖行 · 落槌结算】\n{lines}"
+            broadcast_text = _T.text("auction.settle_header", lines=lines)
             try:
                 await broadcast(broadcast_text)
             except Exception:                       # noqa: BLE001
                 pass
             return [broadcast_text]
-        return ["🏪 拍卖行暂未开张。"]
+        return [_T.static("auction.not_open")]
     if cur["etype"] != "auction":
-        return ["🏪 拍卖行暂未开张。"]
+        return [_T.static("auction.not_open")]
     if len(args) < 2 or not args[0].isdigit() or not args[1].isdigit():
-        return ["格式：竞拍 <编号> <金币>，如『竞拍 1 5000』(『拍卖』查看编号)"]
+        return [_T.static("bid.fmt")]
     item_id = int(args[0])
     amount = int(args[1])
     items = cur["data"].get("items", [])
     it = next((x for x in items if x["id"] == item_id), None)
     if not it:
-        return ["没有这个拍卖品！『拍卖』查看当前物品～"]
+        return [_T.static("bid.no_item")]
     if amount < it["base"]:
-        return [f"出价不能低于底价 {it['base']} 金币！"]
+        return [_T.text("bid.below_base", base=it['base'])]
     if player["gold"] < amount:
-        return [f"你只有 {player['gold']} 金币，出不起 {amount}！"]
+        return [_T.text("bid.no_gold", gold=player['gold'], amount=amount)]
     # 自己重复出价：新价不能低于自己当前出价（防刷金币：先退旧价再扣新价 = 净赚差价）
     if str(qq_id) in it["bids"] and amount < it["bids"][str(qq_id)]:
-        return [f"不能低于自己当前出价 {it['bids'][str(qq_id)]} 金币！"]
+        return [_T.text("bid.below_own", own=it['bids'][str(qq_id)])]
     # v104R3 P2：新出价必须严格超过当前最高价（同价出价无意义且锁金币到结算——先到者胜，
     # 后到者金币被冻结直到结算/被超越；直接拒绝，复验点5）
     if it["bids"] and str(qq_id) not in it["bids"]:
@@ -250,7 +252,7 @@ async def bid_run(group_id: str, qq_id: str, player, args, player_lookup, broadc
         if it["bids"][_top_qq] >= amount:
             _tp = player_lookup(group_id, _top_qq)
             _top_name = _tp["name"] if _tp else _top_qq
-            return [f"当前最高出价是 {_top_name} 的 {it['bids'][_top_qq]} 金币——出价必须超过最高价！"]
+            return [_T.text("bid.below_top", top_name=_top_name, top=it['bids'][_top_qq])]
     # 被超越 → 退还当前最高出价者（并移除其出价记录）
     if it["bids"]:
         top_qq = max(it["bids"], key=it["bids"].get)
@@ -283,12 +285,13 @@ async def bid_run(group_id: str, qq_id: str, player, args, player_lookup, broadc
         it["bids"] = {str(qq_id): amount}
         cur["data"]["items"] = [x for x in items if x["id"] != item_id]
         db.save_world_event(cur["etype"], cur["ends_at"], cur["data"])
-        return [f"💰 一口价成交！你以 {amount} 金币拍得【{it['name']}】！\n📦 装备已放入背包(『背包』查看)"]
+        return [_T.text("bid.buyout_ok", amount=amount, name=it['name'])]
     # v104 P1：出价后如实提示——未超过当前最高(含同价被先到者压)则提示"当前最高仍是 X"，
     # 不再无条件谎报"当前最高"
     _top_qq = max(it["bids"], key=it["bids"].get)
     if _top_qq == str(qq_id):
-        return [f"💰 出价成功！你在【{it['name']}】上出价 {amount} 金币，当前最高！\n(若被超越将自动退还)"]
+        return [_T.text("bid.ok_top", name=it['name'], amount=amount)]
     _tp = player_lookup(group_id, _top_qq)
     _top_name = _tp["name"] if _tp else _top_qq
-    return [f"💰 出价成功！你在【{it['name']}】上出价 {amount} 金币，当前最高仍是 {_top_name}({it['bids'][_top_qq]})。\n(若被超越将自动退还)"]
+    return [_T.text("bid.ok_still", name=it['name'], amount=amount, top_name=_top_name,
+                top=it['bids'][_top_qq])]
