@@ -5200,6 +5200,98 @@
     "category": "GM面板",
     "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
   },
+  "guild.already": {
+    "value": "你已经在一个公会里啦！",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_join_cmd（B 批 C 档）"
+  },
+  "guild.already_tip": {
+    "value": "你已经在一个公会里啦！先『退出公会』再加入新的～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_create_cmd（B 批 C 档）"
+  },
+  "guild.appoint_already": {
+    "value": "『{name}』已经是{role}了～",
+    "params": [
+      "name",
+      "role"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_appoint（B 批 C 档）"
+  },
+  "guild.appoint_fmt": {
+    "value": "格式：公会任命 <成员名> <职位>，职位=副会长/精英",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_appoint（B 批 C 档）"
+  },
+  "guild.appoint_leader_only": {
+    "value": "只有会长才能任命职位！",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_appoint（B 批 C 档）"
+  },
+  "guild.appoint_ok": {
+    "value": "{icon} 任命成功！『{name}』已晋升为公会【{label}】！",
+    "params": [
+      "icon",
+      "name",
+      "label"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_appoint（B 批 C 档）"
+  },
+  "guild.appoint_role_bad": {
+    "value": "可任命职位：副会长、精英。成员是默认职，不需任命～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_appoint（B 批 C 档）"
+  },
+  "guild.appoint_self": {
+    "value": "会长不需要任命自己～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_appoint（B 批 C 档）"
+  },
+  "guild.create_ok": {
+    "value": "🏰 【公会创建成功】『{name}』！\n你成为了公会会长！\n{tip}",
+    "params": [
+      "name",
+      "tip"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_create_cmd（B 批 C 档）"
+  },
+  "guild.default_desc": {
+    "value": "{name} 创立的公会",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_create（B 批 C 档）"
+  },
+  "guild.demote_fmt": {
+    "value": "格式：公会免职 <成员名>",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_demote（B 批 C 档）"
+  },
+  "guild.demote_leader_only": {
+    "value": "只有会长才能免职！",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_demote（B 批 C 档）"
+  },
+  "guild.demote_member": {
+    "value": "『{name}』是成员，无需免职～",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_demote（B 批 C 档）"
+  },
+  "guild.demote_ok": {
+    "value": "📉 已免去『{name}』的职位，降回普通成员～",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_demote（B 批 C 档）"
+  },
   "guild.desc": {
     "value": "📜 {desc}",
     "params": [
@@ -5208,6 +5300,63 @@
     "category": "公会面板",
     "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
   },
+  "guild.disband_leader_only": {
+    "value": "只有会长才能解散公会！",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_disband_cmd（B 批 C 档）"
+  },
+  "guild.disband_ok": {
+    "value": "🏚️ 公会【{name}】已解散……",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_disband_cmd（B 批 C 档）"
+  },
+  "guild.donate_done": {
+    "value": "今天的公会捐献已完成！明天再来～",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_donate（B 批 C 档）"
+  },
+  "guild.donate_need": {
+    "value": "🎯 【公会捐献】需要上交 {need} 份材料(当前 {cur}/{need2})！\n",
+    "params": [
+      "need",
+      "cur",
+      "need2"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_donate（B 批 C 档）"
+  },
+  "guild.donate_ok": {
+    "value": "🎁 【公会捐献完成】上交 {need} 份材料，为公会贡献力量！\n🏰 公会经验 +{exp} ｜ 个人贡献 +{contrib}\n💰 金币 +{gold}",
+    "params": [
+      "need",
+      "exp",
+      "contrib",
+      "gold"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_donate（B 批 C 档）"
+  },
+  "guild.err_gold": {
+    "value": "创建公会需要 {need} 金币！你只有 {have} 金币。",
+    "params": [
+      "need",
+      "have"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_create_check（B 批 C 档）"
+  },
+  "guild.err_level": {
+    "value": "创建公会需要 {need} 级！你才 {cur} 级，先去冒险吧～",
+    "params": [
+      "need",
+      "cur"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_create_check（B 批 C 档）"
+  },
   "guild.exp_bonus": {
     "value": "💡 公会加成：打怪经验 +{pct}%",
     "params": [
@@ -5215,6 +5364,63 @@
     ],
     "category": "公会面板",
     "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.fmt_create": {
+    "value": "格式：创建公会 <名字>，如『创建公会 屠龙勇士』",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_create_cmd（B 批 C 档）"
+  },
+  "guild.fmt_join": {
+    "value": "格式：加入公会 <公会名>，如『加入公会 屠龙勇士』",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_join_cmd（B 批 C 档）"
+  },
+  "guild.join_first": {
+    "value": "你还没有公会！先『加入公会 <名字>』吧～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_sign（B 批 C 档）"
+  },
+  "guild.join_ok": {
+    "value": "🏰 欢迎加入公会【{name}】！\n{tip}",
+    "params": [
+      "name",
+      "tip"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_join_cmd（B 批 C 档）"
+  },
+  "guild.kill_done": {
+    "value": "🎯 【公会任务完成】击杀 {need} 只达成！公会经验 +{exp} 贡献 +{contrib} 金币 +{gold}",
+    "params": [
+      "need",
+      "exp",
+      "contrib",
+      "gold"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_kill_progress（B 批 C 档）"
+  },
+  "guild.kill_progress": {
+    "value": "🎯 公会任务进度 {cur}/{need}",
+    "params": [
+      "cur",
+      "need"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_kill_progress（B 批 C 档）"
+  },
+  "guild.leader_leave": {
+    "value": "你是会长！会长不能直接退会，请『解散公会』（公会随之解散）～",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_leave_check（B 批 C 档）"
+  },
+  "guild.leave_ok": {
+    "value": "👋 你已退出公会【{name}】。江湖再见！",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_leave_cmd（B 批 C 档）"
   },
   "guild.member_head": {
     "value": "成员(第 {page}/{pages} 页)：",
@@ -5248,6 +5454,14 @@
     "category": "公会面板",
     "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
   },
+  "guild.name_taken": {
+    "value": "公会『{name}』已存在！换个名字吧～",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_create（B 批 C 档）"
+  },
   "guild.next_tip": {
     "value": "💡 『公会 {next}』看下一页(共 {pages} 页)",
     "params": [
@@ -5256,6 +5470,219 @@
     ],
     "category": "公会面板",
     "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.no_guild": {
+    "value": "你不在任何公会里～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_leave_cmd（B 批 C 档）"
+  },
+  "guild.no_guild_hint": {
+    "value": "你还没有公会！『创建公会 <名字>』(30级＋1000金币)或『加入公会 <名字>』",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_info（B 批 C 档）"
+  },
+  "guild.no_player": {
+    "value": "没找到玩家『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_find_member（B 批 C 档）"
+  },
+  "guild.not_found": {
+    "value": "找不到公会『{name}』！输入『公会排行』看看有哪些公会～",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_join（B 批 C 档）"
+  },
+  "guild.not_in_guild": {
+    "value": "『{name}』不在本公会里～",
+    "params": [
+      "name"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_find_member（B 批 C 档）"
+  },
+  "guild.not_member": {
+    "value": "你不是公会正式成员～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_shop（B 批 C 档）"
+  },
+  "guild.rank_empty": {
+    "value": "还没有公会成立！『创建公会 <名字>』建立第一个公会吧～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_rank（B 批 C 档）"
+  },
+  "guild.rank_row": {
+    "value": "{i}. {icon} {name} Lv.{lv}({members}人)",
+    "params": [
+      "i",
+      "icon",
+      "name",
+      "lv",
+      "members"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_rank_lines（B 批 C 档）"
+  },
+  "guild.rank_title": {
+    "value": "🏆 【公会排行榜】",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_rank_lines（B 批 C 档）"
+  },
+  "guild.shop_buy_ok": {
+    "value": "🛒 购买成功！【{name}】(花费 {cost} 公会积分)\n{msg}",
+    "params": [
+      "name",
+      "cost",
+      "msg"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_limit_daily": {
+    "value": "每日限购 {n}",
+    "params": [
+      "n"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_lines（B 批 C 档）"
+  },
+  "guild.shop_limit_hit": {
+    "value": "今天【{name}】已买满(每日限购 {limit})！明天再来～",
+    "params": [
+      "name",
+      "limit"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_lv_low": {
+    "value": "【{name}】需要公会 Lv.{need}！本公会才 Lv.{cur}～",
+    "params": [
+      "name",
+      "need",
+      "cur"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_no_item": {
+    "value": "没有第 {num} 件商品！『公会商店』查看～",
+    "params": [
+      "num"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_points_low": {
+    "value": "公会积分不足！购买【{name}】需要 {need} 积分，你只有 {have}。",
+    "params": [
+      "name",
+      "need",
+      "have"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_row": {
+    "value": "{i}. {name} ｜ {tag}",
+    "params": [
+      "i",
+      "name",
+      "tag"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_lines（B 批 C 档）"
+  },
+  "guild.shop_row2": {
+    "value": "   {desc} ｜ 需公会 Lv.{lv} ｜ {limit}",
+    "params": [
+      "desc",
+      "lv",
+      "limit"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_lines（B 批 C 档）"
+  },
+  "guild.shop_spend_fail": {
+    "value": "积分扣除失败！可能积分变动，请重试～",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_title": {
+    "value": "🛒 【公会商店】Lv.{lv} ｜ 公会积分：{points}",
+    "params": [
+      "lv",
+      "points"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_lines（B 批 C 档）"
+  },
+  "guild.sign_done": {
+    "value": "今天已经公会签过到啦！明天再来～",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_sign（B 批 C 档）"
+  },
+  "guild.sign_ok": {
+    "value": "📅 【公会签到】在【{name}】报到！\n🏰 公会经验 +{exp} ｜ 个人贡献 +{contrib}\n💰 金币 +{gold}",
+    "params": [
+      "name",
+      "exp",
+      "contrib",
+      "gold"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_sign（B 批 C 档）"
+  },
+  "guild.skill_dev_tip": {
+    "value": "💡 技能经会长安排后逐步开放；战斗加成的挂接正在开发中～",
+    "category": "社交公会",
+    "desc": "搬自 content/cmds_social.py:guild_skill_view（B 批 C 档）"
+  },
+  "guild.skill_req": {
+    "value": "   积分需求：{costs} ｜ 公会等级：{requires}",
+    "params": [
+      "costs",
+      "requires"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_skill_lines（B 批 C 档）"
+  },
+  "guild.skill_row": {
+    "value": "💡 {name}：{desc}/级(最高 {max} 级)",
+    "params": [
+      "name",
+      "desc",
+      "max"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_skill_lines（B 批 C 档）"
+  },
+  "guild.skill_title": {
+    "value": "📖 【公会技能】Lv.{lv}",
+    "params": [
+      "lv"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_skill_lines（B 批 C 档）"
+  },
+  "guild.task_done": {
+    "value": "今天的公会任务已完成！明天再来～",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_task_view（B 批 C 档）"
+  },
+  "guild.task_panel": {
+    "value": "🎯 【公会任务】击杀 {need} 只怪物(当前 {cur}/{need2})\n💡 击杀会自动结算奖励！",
+    "params": [
+      "need",
+      "cur",
+      "need2"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_task_view（B 批 C 档）"
   },
   "guild.title": {
     "value": "{icon} 【{name}】Lv.{level}",
@@ -5266,6 +5693,15 @@
     ],
     "category": "公会面板",
     "desc": "搬自 content/social_guild.py:guild_info_lines（B 批 C 档）"
+  },
+  "guild.vice_lv": {
+    "value": "任命副会长需要公会 Lv.{need}！本公会才 Lv.{cur}～",
+    "params": [
+      "need",
+      "cur"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_appoint_level_ok（B 批 C 档）"
   },
   "help_panel.CMD_HELP": {
     "value": "⚔️《奥兰迪亚：余烬纪年》指令大全\n📌 【常用指令】\n━━━━━━━━━━━━\n『探索』 去附近转转（遇怪/偶遇） ｜ 『攻击』 战斗入口\n『地图』 看周围 ｜ 『位置』 精简导航\n『属性』 看属性 ｜ 『背包』 看物品\n『物品详情 <名称>』 看详情 ｜ 『技能列表』 看技能\n『采集』 『挖掘』 『垂钓』 收集材料 ｜ 『商店』 买东西\n『锻造』 做装备 ｜ 『副本』 组队闯关 ｜ 『帮助 <分类>』 分类指令大全\n━━━━━━━━━━━━\n以下是全部指令：\n📚『帮助 <分类>』看该分类全部指令\n👥角色系统  🤝 冒险系统\n⚔️战斗系统  ✨技能系统\n🔨副业系统  🎒物品系统\n👫社交系统  🗺️世界系统\n❓其他",
@@ -8137,6 +8573,141 @@
     "value": "📄 跳页用法：『=页数』，如『=3』跳第 3 页～",
     "category": "快捷指令",
     "desc": "搬自 content/player_cmds.py:page_flip（B 批 C 档）"
+  },
+  "party.busy_self": {
+    "value": "⚔️ 你正在战斗中！先打完再组队吧～",
+    "category": "社交队伍",
+    "desc": "搬自 content/cmds_social.py:party（B 批 C 档）"
+  },
+  "party.busy_tgt": {
+    "value": "⚔️ {name} 正在战斗中！等 TA 打完再组队吧～",
+    "params": [
+      "name"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/cmds_social.py:party（B 批 C 档）"
+  },
+  "party.busy_tgt_inst": {
+    "value": "⚔️ {name} 正在副本战斗中！等 TA 打完再组队吧～",
+    "params": [
+      "name"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/cmds_social.py:party（B 批 C 档）"
+  },
+  "party.create_ok": {
+    "value": "🤝 组队成功！你和 {name} 成为队友\n💡 组队打怪经验＋10%！『组队 <名字>』可再拉人(上限 4 人)",
+    "params": [
+      "name"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_join（B 批 C 档）"
+  },
+  "party.in_party": {
+    "value": "你已在队伍中，让队长『组队 <名字>』拉人吧～",
+    "category": "社交队伍",
+    "desc": "搬自 content/cmds_social.py:party（B 批 C 档）"
+  },
+  "party.inst_block": {
+    "value": "⚔️ 副本进行中不能退队！先『撤退』保留进度，或通关/『离开副本』后再退队～",
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_leave_check（B 批 C 档）"
+  },
+  "party.join_fail": {
+    "value": "无法拉入 {name}：TA 已在队伍中(含其他队伍)，或队伍已满(4 人)～",
+    "params": [
+      "name"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_join（B 批 C 档）"
+  },
+  "party.join_fail2": {
+    "value": "无法与 {name} 组队：TA 已有队伍，或正在战斗中～",
+    "params": [
+      "name"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_join（B 批 C 档）"
+  },
+  "party.join_lead": {
+    "value": "🤝 {name} 加入了你的队伍！(当前 {n} 人，上限 4 人)\n💡 组队打怪经验＋10%！\n🔔 {name2}：{leader} 将你拉入了队伍！",
+    "params": [
+      "name",
+      "n",
+      "name2",
+      "leader"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_join（B 批 C 档）"
+  },
+  "party.leave_none": {
+    "value": "你还没有队伍～",
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_leave_execute（B 批 C 档）"
+  },
+  "party.leave_ok": {
+    "value": "👋 你已退出队伍！(队长退队将解散队伍)",
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_leave_execute（B 批 C 档）"
+  },
+  "party.none": {
+    "value": "你还没有队伍～『组队 <对方名字>』邀请同群玩家组队！\n💡 组队打怪经验＋10%（野外各自为战，仅经验加成，副本内才并肩作战）",
+    "category": "社交队伍",
+    "desc": "搬自 content/cmds_social.py:party（B 批 C 档）"
+  },
+  "party.row": {
+    "value": "{i}. {name}{cls}{pos}",
+    "params": [
+      "i",
+      "name",
+      "cls",
+      "pos"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_view_lines（B 批 C 档）"
+  },
+  "party.row_lv": {
+    "value": " Lv.{lv} {cls}",
+    "params": [
+      "lv",
+      "cls"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_view_lines（B 批 C 档）"
+  },
+  "party.row_spd": {
+    "value": " · 💨速{spd}",
+    "params": [
+      "spd"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_view_lines（B 批 C 档）"
+  },
+  "party.self": {
+    "value": "不能和自己组队！",
+    "category": "社交队伍",
+    "desc": "搬自 content/cmds_social.py:party（B 批 C 档）"
+  },
+  "party.target_missing": {
+    "value": "找不到玩家『{name}』！确保对方已『注册』角色～",
+    "params": [
+      "name"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:resolve_party_target（B 批 C 档）"
+  },
+  "party.tip": {
+    "value": "💡 组队打怪经验＋10%（野外各自为战，仅经验加成；副本内才并肩作战）！队长『组队 <名字>』可再拉人(上限 4 人)；『退队』离开",
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_view_lines（B 批 C 档）"
+  },
+  "party.title": {
+    "value": "🤝 【队伍】({n}人)",
+    "params": [
+      "n"
+    ],
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_view_lines（B 批 C 档）"
   },
   "pbuff_name.atk_down": {
     "value": "😵攻↓",

@@ -123,6 +123,7 @@ import re
 
 # B14-2 L8（2026-09-14）：`C.CLASS_NOVICE`（宿主聚合层）→ 包内读口（`content/tables.py:45`，逐值相等）
 from .tables import CLASS_NOVICE      # noqa: E402
+from . import texts as _T            # C 档 20b（2026-09-19）：文案表读口（本文件首次接入）
 
 # ★ PKG-G：成员集合形状（引擎 `saintess_engine.run.Roster`）——「谁在里面」只有这一个来源
 from saintess_engine.run import Roster   # noqa: E402
@@ -182,7 +183,7 @@ def resolve_party_target(group_id, qq_id, raw_target):
             target_qq = q
             break
     if not target_qq:
-        return None, f"找不到玩家『{target}』！确保对方已『注册』角色～"
+        return None, _T.text("party.target_missing", name=target)
     return target_qq, None
 
 
@@ -231,7 +232,7 @@ def party_view_lines(group_id, members, get_player=None, final_stats=None, displ
     if display is None:
         display = _C_INDEX.display
     roster = _roster(members)
-    lines = [f"🤝 【队伍】({len(roster)}人)", "━━━━━━━━━━━━"]
+    lines = [_T.text("party.title", n=len(roster)), "━━━━━━━━━━━━"]
     _order = []
     for _m in roster.members:
         _p = get_player(group_id, _m)
@@ -247,12 +248,13 @@ def party_view_lines(group_id, members, get_player=None, final_stats=None, displ
     for i, m in enumerate(roster.members, 1):
         p = get_player(group_id, m)
         cls_str = (
-            f" Lv.{p.get('level', '?')} {display('classes', p.get('class_name') or CLASS_NOVICE)}"
+            _T.text("party.row_lv", lv=p.get('level', '?'),
+                cls=display('classes', p.get('class_name') or CLASS_NOVICE))
             if p else ""
         )
-        pos_str = f" · 💨速{_spdmap.get(str(m), '?')}" if len(roster) > 1 else ""
-        lines.append(f"{i}. {p['name'] if p else m}{cls_str}{pos_str}" + ("(队长)" if m == roster.leader else ""))
-    lines.append("💡 组队打怪经验＋10%（野外各自为战，仅经验加成；副本内才并肩作战）！队长『组队 <名字>』可再拉人(上限 4 人)；『退队』离开")
+        pos_str = _T.text("party.row_spd", spd=_spdmap.get(str(m), '?')) if len(roster) > 1 else ""
+        lines.append(_T.text("party.row", i=i, name=p['name'] if p else m, cls=cls_str, pos=pos_str) + ("(队长)" if m == roster.leader else ""))
+    lines.append(_T.static("party.tip"))
     return lines
 
 
@@ -270,7 +272,7 @@ def party_join(group_id, qq_id, target_qq, target_name, members, check_achieveme
     if roster.members:
         # 已有队伍：仅队长可拉人
         if roster.leader != str(qq_id):
-            return False, ["你已在队伍中，让队长『组队 <名字>』拉人吧～"], None
+            return False, [_T.static("party.in_party")], None
         if db.party_add(group_id, qq_id, target_qq):
             db.bump_stats(group_id, qq_id, party_count=1)
             db.bump_stats(group_id, target_qq, party_count=1)
@@ -278,18 +280,17 @@ def party_join(group_id, qq_id, target_qq, target_name, members, check_achieveme
             check_achievements(group_id, target_qq)
             my_name = db.get_player(group_id, qq_id)
             return True, [
-                f"🤝 {target_name} 加入了你的队伍！(当前 {len(db.party_members(group_id, qq_id))} 人，上限 4 人)\n"
-                f"💡 组队打怪经验＋10%！\n"
-                f"🔔 {target_name}：{my_name['name'] if my_name else qq_id} 将你拉入了队伍！"
+                _T.text("party.join_lead", name=target_name, n=len(db.party_members(group_id, qq_id)),
+                    name2=target_name, leader=my_name['name'] if my_name else qq_id)
             ], my_name
-        return False, [f"无法拉入 {target_name}：TA 已在队伍中(含其他队伍)，或队伍已满(4 人)～"], None
+        return False, [_T.text("party.join_fail", name=target_name)], None
     if not db.party_create(group_id, qq_id, target_qq):
-        return False, [f"无法与 {target_name} 组队：TA 已有队伍，或正在战斗中～"], None
+        return False, [_T.text("party.join_fail2", name=target_name)], None
     db.bump_stats(group_id, qq_id, party_count=1)
     db.bump_stats(group_id, target_qq, party_count=1)
     check_achievements(group_id, qq_id)
     check_achievements(group_id, target_qq)
-    return True, [f"🤝 组队成功！你和 {target_name} 成为队友\n💡 组队打怪经验＋10%！『组队 <名字>』可再拉人(上限 4 人)"], None
+    return True, [_T.text("party.create_ok", name=target_name)], None
 
 
 # ---- 退队（『退队』）----
@@ -303,7 +304,7 @@ def party_leave_check(group_id, qq_id):
     b = db.get_battle(group_id, qq_id)
     if b and b["state"].get("type") == "instance" and not b["state"].get("retreated") \
             and str(b["state"].get("leader", qq_id)) == str(qq_id):
-        return True, "⚔️ 副本进行中不能退队！先『撤退』保留进度，或通关/『离开副本』后再退队～"
+        return True, _T.static("party.inst_block")
     return False, None
 
 
@@ -350,5 +351,5 @@ def party_leave_execute(group_id, qq_id, inst_member, unlock_battle_hook=None, p
             _lb = db.get_battle(group_id, qq_id)
             if _lb and _lb["state"].get("type") == "instance" and _lb["state"].get("retreated"):
                 db.clear_battle(group_id, qq_id)
-        return True, ["👋 你已退出队伍！(队长退队将解散队伍)"], None
-    return False, None, ["你还没有队伍～"]
+        return True, [_T.static("party.leave_ok")], None
+    return False, None, [_T.static("party.leave_none")]

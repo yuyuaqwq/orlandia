@@ -231,9 +231,9 @@ def guild_create_check(player):
     """
     cfg = _cfg()
     if player["level"] < cfg["create_level"]:
-        return False, f"创建公会需要 {cfg['create_level']} 级！你才 {player['level']} 级，先去冒险吧～"
+        return False, _T.text("guild.err_level", need=cfg['create_level'], cur=player['level'])
     if player["gold"] < cfg["create_cost"]:
-        return False, f"创建公会需要 {cfg['create_cost']} 金币！你只有 {player['gold']} 金币。"
+        return False, _T.text("guild.err_gold", need=cfg['create_cost'], have=player['gold'])
     return True, None
 
 
@@ -244,9 +244,9 @@ def guild_create(group_id, qq_id, player, name):
     - 成功后扣 create_cost 金币（v105 M18 P2：成就判定由命令层在成功后做）。
     """
     cfg = _cfg()
-    gid = db.guild_create(name, qq_id, desc=f"{player['name']} 创立的公会")
+    gid = db.guild_create(name, qq_id, desc=_T.text("guild.default_desc", name=player['name']))
     if not gid:
-        return False, None, f"公会『{name}』已存在！换个名字吧～"
+        return False, None, _T.text("guild.name_taken", name=name)
     db.update_player(group_id, qq_id, gold=player["gold"] - cfg["create_cost"])
     return True, gid, None
 
@@ -255,7 +255,7 @@ def guild_join(group_id, qq_id, name):
     """加入公会：按名查会 → 入会。返回 (ok, g, err)。成功 g=公会 dict（命令层取 g['name'] 拼文案）。"""
     g = db.guild_get_by_name(name)
     if not g:
-        return False, None, f"找不到公会『{name}』！输入『公会排行』看看有哪些公会～"
+        return False, None, _T.text("guild.not_found", name=name)
     db.guild_join(g["gid"], qq_id)
     return True, g, None
 
@@ -264,7 +264,7 @@ def guild_leave_check(g, qq_id):
     """退出公会前置守卫：会长不能直接退会（须解散）。返回 (blocked, msg)。"""
     if _is_leader(g, qq_id):
         # v105 M18 P2：全仓无『转让会长』命令，提示只指向真实命令，避免误导
-        return True, "你是会长！会长不能直接退会，请『解散公会』（公会随之解散）～"
+        return True, _T.static("guild.leader_leave")
     return False, None
 
 
@@ -287,15 +287,14 @@ def guild_sign(group_id, qq_id, g):
     cfg = _cfg()
     today = _today()
     if db.guild_get_sign(g["gid"], qq_id) == today:
-        return False, None, "今天已经公会签过到啦！明天再来～"
+        return False, None, _T.static("guild.sign_done")
     db.guild_set_sign(g["gid"], qq_id, today)
     db.guild_add_exp(g["gid"], cfg["sign_exp"], member_qq=qq_id, contribute=cfg["sign_contribute"])
     player = db.get_player(group_id, qq_id)
     db.update_player(group_id, qq_id, gold=(player or {}).get("gold", 0) + cfg["sign_gold"])
     return True, [
-        f"📅 【公会签到】在【{g['name']}】报到！\n"
-        f"🏰 公会经验 +{cfg['sign_exp']} ｜ 个人贡献 +{cfg['sign_contribute']}\n"
-        f"💰 金币 +{cfg['sign_gold']}"
+        _T.text("guild.sign_ok", name=g['name'], exp=cfg['sign_exp'], contrib=cfg['sign_contribute'],
+            gold=cfg['sign_gold'])
     ], None
 
 
@@ -308,10 +307,9 @@ def guild_task_view(group_id, qq_id, g):
     need = _cfg()["kill_task"]
     tprog = _task_window(g["gid"], qq_id).of(qq_id, window="day")
     if tprog >= need:
-        return False, None, "今天的公会任务已完成！明天再来～"
+        return False, None, _T.static("guild.task_done")
     return True, [
-        f"🎯 【公会任务】击杀 {need} 只怪物(当前 {tprog}/{need})\n"
-        f"💡 击杀会自动结算奖励！"
+        _T.text("guild.task_panel", need=need, cur=tprog, need2=need)
     ], None
 
 
@@ -335,11 +333,11 @@ def guild_donate(group_id, qq_id, g):
     need = cfg["donate_items"]
     key = f"guild_donate:{g['gid']}:{qq_id}"
     if db.get_event_state(key) == _today():
-        return False, None, "今天的公会捐献已完成！明天再来～", need, None
+        return False, None, _T.static("guild.donate_done"), need, None
     mats = guild_donate_inventory(group_id, qq_id)
     total = guild_donate_total(mats)
     if total < need:
-        return False, None, f"🎯 【公会捐献】需要上交 {need} 份材料(当前 {total}/{need})！\n", need, total
+        return False, None, _T.text("guild.donate_need", need=need, cur=total, need2=need), need, total
     remain = need
     for it in mats:
         if remain <= 0:
@@ -352,9 +350,8 @@ def guild_donate(group_id, qq_id, g):
     db.update_player(group_id, qq_id, gold=(player or {}).get("gold", 0) + cfg["task_gold"])
     db.set_event_state(key, _today())
     return True, [
-        f"🎁 【公会捐献完成】上交 {need} 份材料，为公会贡献力量！\n"
-        f"🏰 公会经验 +{cfg['task_exp']} ｜ 个人贡献 +{cfg['task_contribute']}\n"
-        f"💰 金币 +{cfg['task_gold']}"
+        _T.text("guild.donate_ok", need=need, exp=cfg['task_exp'], contrib=cfg['task_contribute'],
+            gold=cfg['task_gold'])
     ], None, need, total
 
 
@@ -363,9 +360,10 @@ def guild_rank_lines():
     tops = db.guild_top(10)
     if not tops:
         return []
-    lines = ["🏆 【公会排行榜】", "━━━━━━━━━━━━"]
+    lines = [_T.static("guild.rank_title"), "━━━━━━━━━━━━"]
     for i, g in enumerate(tops, 1):
-        lines.append(f"{i}. {g['icon']} {g['name']} Lv.{g['level']}({g['members']}人)")
+        lines.append(_T.text("guild.rank_row", i=i, icon=g['icon'], name=g['name'], lv=g['level'],
+                         members=g['members']))
     return lines
 
 
@@ -381,7 +379,7 @@ def guild_appoint_level_ok(g, role):
     """
     cfg = _cfg()
     if role == "vice_leader" and g["level"] < cfg.get("vice_leader_level", 3):
-        return False, f"任命副会长需要公会 Lv.{cfg.get('vice_leader_level', 3)}！本公会才 Lv.{g['level']}～"
+        return False, _T.text("guild.vice_lv", need=cfg.get('vice_leader_level', 3), cur=g['level'])
     return True, None
 
 
@@ -393,10 +391,10 @@ def guild_find_member(g, target_name):
     """
     target = db.find_player_by_name(target_name)
     if not target:
-        return None, None, f"没找到玩家『{target_name}』！"
+        return None, None, _T.text("guild.no_player", name=target_name)
     tm = guild_get_member(g["gid"], target["qq_id"])
     if not tm:
-        return None, target, f"『{target['name']}』不在本公会里～"
+        return None, target, _T.text("guild.not_in_guild", name=target['name'])
     return tm, target, None
 
 
@@ -434,8 +432,9 @@ def guild_kill_progress(group_id, qq_id, g, lines=None):
             # 直接用旧 dict 值覆盖会丢掉同场彩蛋金币
             player = db.get_player(group_id, qq_id)
             db.update_player(group_id, qq_id, gold=(player or {}).get("gold", 0) + cfg["task_gold"])
-            return [f"🎯 【公会任务完成】击杀 {cfg['kill_task']} 只达成！公会经验 +{cfg['task_exp']} 贡献 +{cfg['task_contribute']} 金币 +{cfg['task_gold']}"], True
-        return [f"🎯 公会任务进度 {tprog}/{cfg['kill_task']}"], False
+            return [_T.text("guild.kill_done", need=cfg['kill_task'], exp=cfg['task_exp'],
+                        contrib=cfg['task_contribute'], gold=cfg['task_gold'])], True
+        return [_T.text("guild.kill_progress", cur=tprog, need=cfg['kill_task'])], False
     return [], False
 
 
@@ -492,13 +491,14 @@ def guild_exp_bonus_pct(g):
 def guild_shop_lines(g, member):
     """公会商店面板行（真源 `social.py:755-763`；`_tip` 由命令层补）。"""
     contribute = member.get("contribute", 0)
-    lines = [f"🛒 【公会商店】Lv.{g['level']} ｜ 公会积分：{contribute}", "━━━━━━━━━━━━"]
+    lines = [_T.text("guild.shop_title", lv=g['level'], points=contribute), "━━━━━━━━━━━━"]
     for i, it in guild_shop_items().items():
         locked = g["level"] < it["min_level"]
         tag = "🔒" if locked else f"{it['cost']} 积分"
-        lines.append(f"{i}. {it['name']} ｜ {tag}")
-        limit = f"每日限购 {it['daily_limit']}" if it.get("daily_limit") else "不限购"
-        lines.append(f"   {it['item_data'].get('desc', '')} ｜ 需公会 Lv.{it['min_level']} ｜ {limit}")
+        lines.append(_T.text("guild.shop_row", i=i, name=it['name'], tag=tag))
+        limit = _T.text("guild.shop_limit_daily", n=it['daily_limit']) if it.get("daily_limit") else "不限购"
+        lines.append(_T.text("guild.shop_row2", desc=it['item_data'].get('desc', ''), lv=it['min_level'],
+                         limit=limit))
     lines.append("━━━━━━━━━━━━")
     return lines
 
@@ -512,23 +512,23 @@ def guild_shop_buy(group_id, qq_id, g, member, num):
     _dt = datetime
     it = guild_shop_items().get(num)
     if not it:
-        return [f"没有第 {num} 件商品！『公会商店』查看～"]
+        return [_T.text("guild.shop_no_item", num=num)]
     if not member:
-        return ["你不是公会正式成员～"]
+        return [_T.static("guild.not_member")]
     if g["level"] < it["min_level"]:
-        return [f"【{it['name']}】需要公会 Lv.{it['min_level']}！本公会才 Lv.{g['level']}～"]
+        return [_T.text("guild.shop_lv_low", name=it['name'], need=it['min_level'], cur=g['level'])]
     contribute = member.get("contribute", 0)
     if contribute < it["cost"]:
-        return [f"公会积分不足！购买【{it['name']}】需要 {it['cost']} 积分，你只有 {contribute}。"]
+        return [_T.text("guild.shop_points_low", name=it['name'], need=it['cost'], have=contribute)]
     # 每日限购（用 event_state 记录 key，非 schema 改动）
     if it.get("daily_limit"):
         today = _dt.date.today().isoformat()
         key = f"guild_shop:{g['gid']}:{qq_id}:{num}"
         if db.get_event_state(key) == today:
-            return [f"今天【{it['name']}】已买满(每日限购 {it['daily_limit']})！明天再来～"]
+            return [_T.text("guild.shop_limit_hit", name=it['name'], limit=it['daily_limit'])]
     # 正式扣积分（贡献充足性在事务内复核）
     if not _store_social().guild_spend_contribute(g["gid"], qq_id, it["cost"]):
-        return ["积分扣除失败！可能积分变动，请重试～"]
+        return [_T.static("guild.shop_spend_fail")]
     # v116 审计修复 A0-A1：直接使用 GUILD_SHOP_ITEMS 的稳定 item_key（gs_*），
     # 去掉随机 uuid 后缀——否则 stackable 商品每次购买生成新 key，永不合并堆叠。
     # 商品 key 全表唯一，此处直接引用即可（add_item 按其 key 堆叠合并）。
@@ -537,18 +537,17 @@ def guild_shop_buy(group_id, qq_id, g, member, num):
     if it.get("daily_limit"):
         db.set_event_state(f"guild_shop:{g['gid']}:{qq_id}:{num}", _dt.date.today().isoformat())
     return [
-        f"🛒 购买成功！【{it['name']}】(花费 {it['cost']} 公会积分)\n"
-        f"{it.get('msg', '')}"
+        _T.text("guild.shop_buy_ok", name=it['name'], cost=it['cost'], msg=it.get('msg', ''))
     ]
 
 
 def guild_skill_lines(g):
     """公会技能面板行（真源 `social.py:819-826`；`_tip`/开发中提示由命令层补）。"""
-    lines = [f"📖 【公会技能】Lv.{g['level']}", "━━━━━━━━━━━━"]
+    lines = [_T.text("guild.skill_title", lv=g['level']), "━━━━━━━━━━━━"]
     for key, sk in guild_skills().items():
-        lines.append(f"💡 {sk['name']}：{sk['desc']}/级(最高 {sk['max_level']} 级)")
+        lines.append(_T.text("guild.skill_row", name=sk['name'], desc=sk['desc'], max=sk['max_level']))
         costs = " → ".join(str(c) for c in sk["level_costs"][1:])
         requires = " → ".join(f"Lv.{l}" for l in sk["level_guild_lv"][1:])
-        lines.append(f"   积分需求：{costs} ｜ 公会等级：{requires}")
+        lines.append(_T.text("guild.skill_req", costs=costs, requires=requires))
     lines.append("━━━━━━━━━━━━")
     return lines

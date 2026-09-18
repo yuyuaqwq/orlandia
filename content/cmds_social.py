@@ -335,26 +335,25 @@ def party(env):
             lines = party_view_lines(group_id, members, get_player=shell._player,
                                      final_stats=_final_stats(), display=_C_INDEX.display)
             return ["\n".join(lines)]
-        return ["你还没有队伍～『组队 <对方名字>』邀请同群玩家组队！\n"
-                "💡 组队打怪经验＋10%（野外各自为战，仅经验加成，副本内才并肩作战）"]
+        return [_T.static("party.none")]
     if str(target_qq) == str(qq_id):
-        return ["不能和自己组队！"]
+        return [_T.static("party.self")]
     tname = shell._player(group_id, target_qq)
     tname_str = tname["name"] if tname else raw_target
     # v104 M04 P1：战斗/副本中禁止组队/拉人——防把副本队长/队员拉走（原队伍解散→副本僵尸化）、
     # 战斗中拉新人（新人未上锁可双线野外战斗）。队员的副本 battle 行存队长名下，
     # 须用 _instance_battle_for 查副本归属；retreated（撤退保留进度）不算战斗中。
     if party_in_battle(group_id, qq_id):
-        return ["⚔️ 你正在战斗中！先打完再组队吧～"]
+        return [_T.static("party.busy_self")]
     _tb_state = target_in_battle(group_id, target_qq, inst_battle_hook=shell._instance_battle_for)
     if _tb_state:
         if _tb_state == "instance":
-            return [f"⚔️ {tname_str} 正在副本战斗中！等 TA 打完再组队吧～"]
-        return [f"⚔️ {tname_str} 正在战斗中！等 TA 打完再组队吧～"]
+            return [_T.text("party.busy_tgt_inst", name=tname_str)]
+        return [_T.text("party.busy_tgt", name=tname_str)]
     # v49：已有队伍时，队长用『组队 <名字>』拉新人（上限 4 人）
     if members:
         if str(members[0]) != str(qq_id):
-            return ["你已在队伍中，让队长『组队 <名字>』拉人吧～"]
+            return [_T.static("party.in_party")]
         ok, lines, _my = party_join(group_id, qq_id, target_qq, tname_str, members,
                                     check_achievements=_C_ACH.check_achievements)
         if ok:
@@ -407,9 +406,9 @@ def guild_create_cmd(env):
     player = env.player
     name = shell._strip_cmd(env.raw, "创建公会").strip()[:8]  # 策划 11 章 3.1：公会名 1-8 字
     if not name:
-        return ["格式：创建公会 <名字>，如『创建公会 屠龙勇士』"]
+        return [_T.static("guild.fmt_create")]
     if db.guild_get_by_member(qq_id):
-        return ["你已经在一个公会里啦！先『退出公会』再加入新的～"]
+        return [_T.static("guild.already_tip")]
     # B9-L3：等级/金币门槛 + 扣款建会在包内（content/social_guild.py）
     ok, err = _gsd("guild_create_check")(player)
     if not ok:
@@ -420,9 +419,7 @@ def guild_create_cmd(env):
     # v105 M18 P2：创建公会立即判定成就（ach_guild1「加入公会」无需等下次事件）
     _C_ACH.check_achievements(group_id, qq_id)
     return [
-        f"🏰 【公会创建成功】『{name}』！\n"
-        f"你成为了公会会长！\n"
-        f"{shell._tip('guild')}"
+        _T.text("guild.create_ok", name=name, tip=shell._tip('guild'))
     ]
 
 
@@ -434,16 +431,16 @@ def guild_join_cmd(env):
     player = env.player
     name = shell._strip_cmd(env.raw, "加入公会").strip()
     if not name:
-        return ["格式：加入公会 <公会名>，如『加入公会 屠龙勇士』"]
+        return [_T.static("guild.fmt_join")]
     if db.guild_get_by_member(qq_id):
-        return ["你已经在一个公会里啦！"]
+        return [_T.static("guild.already")]
     # B9-L3：按名查会 + 入会在包内
     ok, g, err = _gsd("guild_join")(group_id, qq_id, name)
     if not ok:
         return [err]
     # v105 M18 P2：加入公会立即判定成就（ach_guild1「加入公会」无需等下次事件）
     _C_ACH.check_achievements(group_id, qq_id)
-    return [f"🏰 欢迎加入公会【{g['name']}】！\n{shell._tip('guild')}"]
+    return [_T.text("guild.join_ok", name=g['name'], tip=shell._tip('guild'))]
 
 
 @register("guild_leave_cmd", guards=("hook:player",), params=("cmd=退出公会",))
@@ -454,13 +451,13 @@ def guild_leave_cmd(env):
     player = env.player
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你不在任何公会里～"]
+        return [_T.static("guild.no_guild")]
     # B9-L3：会长守卫 + 退会在包内
     blocked, msg = _gsd("guild_leave_check")(g, qq_id)
     if blocked:
         return [msg]
     _gsd("guild_leave")(g, qq_id)
-    return [f"👋 你已退出公会【{g['name']}】。江湖再见！"]
+    return [_T.text("guild.leave_ok", name=g['name'])]
 
 
 @register("guild_disband_cmd", guards=("hook:player",), params=("cmd=解散公会",))
@@ -471,10 +468,10 @@ def guild_disband_cmd(env):
     player = env.player
     g = db.guild_get_by_leader(qq_id)
     if not g:
-        return ["只有会长才能解散公会！"]
+        return [_T.static("guild.disband_leader_only")]
     # B9-L3：解散落库在包内（leader 离开即解散）
     _gsd("guild_disband")(g, qq_id)
-    return [f"🏚️ 公会【{g['name']}】已解散……"]
+    return [_T.text("guild.disband_ok", name=g['name'])]
 
 
 @register("guild_info", guards=("hook:player",), params=("cmd=公会", "page"))
@@ -485,7 +482,7 @@ def guild_info(env):
     player = env.player
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你还没有公会！『创建公会 <名字>』(30级＋1000金币)或『加入公会 <名字>』"]
+        return [_T.static("guild.no_guild_hint")]
     members = db.guild_members(g["gid"])
     page = shell._parse_page(shell._strip_cmd(env.raw, "公会"))
     page_items, pages, page = shell._page_items(members, page, per_page=5)
@@ -505,7 +502,7 @@ def guild_sign(env):
     player = env.player
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你还没有公会！先『加入公会 <名字>』吧～"]
+        return [_T.static("guild.join_first")]
     # B9-L3：签到判定/落库在包内（含每日一次；数值全走 GUILD_CONFIG）
     ok, lines, err = _gsd("guild_sign")(group_id, qq_id, g)
     if ok:
@@ -521,7 +518,7 @@ def guild_task(env):
     player = env.player
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你还没有公会！先『加入公会 <名字>』吧～"]
+        return [_T.static("guild.join_first")]
     # B9-L3：任务进度（跨天重置）在包内
     ok, lines, err = _gsd("guild_task_view")(group_id, qq_id, g)
     if ok:
@@ -541,7 +538,7 @@ def guild_donate_cmd(env):
     player = env.player
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你还没有公会！先『加入公会 <名字>』吧～"]
+        return [_T.static("guild.join_first")]
     # B9-L3：捐献判定/扣料/落库在包内（不足文案里的 _tip('guild_donate') 是命令层随机提示壳）
     ok, lines, err, need, total = _gsd("guild_donate")(group_id, qq_id, g)
     if ok:
@@ -559,7 +556,7 @@ def guild_rank(env):
     # B9-L3：排行行在包内
     lines = _gsd("guild_rank_lines")()
     if not lines:
-        return ["还没有公会成立！『创建公会 <名字>』建立第一个公会吧～"]
+        return [_T.static("guild.rank_empty")]
     return ["\n".join(lines)]
 
 
@@ -575,7 +572,7 @@ def guild_shop(env):
     group_id, qq_id = env.group_id, env.uid
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你还没有公会！先『加入公会 <名字>』吧～"]
+        return [_T.static("guild.join_first")]
     from .persistence.social import guild_get_member as _guild_get_member
     member = _guild_get_member(g["gid"], qq_id)
     raw = shell._strip_cmd(env.raw, "公会商店").strip()
@@ -583,7 +580,7 @@ def guild_shop(env):
     if raw.isdigit():
         return list(_gsd("guild_shop_buy")(group_id, qq_id, g, member, int(raw)))
     if not member:
-        return ["你不是公会正式成员～"]
+        return [_T.static("guild.not_member")]
     lines = _gsd("guild_shop_lines")(g, member)
     lines.append(shell._tip("guild_shop"))
     return ["\n".join(lines)]
@@ -601,9 +598,9 @@ def guild_skill_view(env):
     group_id, qq_id = env.group_id, env.uid
     g = db.guild_get_by_member(qq_id)
     if not g:
-        return ["你还没有公会！先『加入公会 <名字>』吧～"]
+        return [_T.static("guild.join_first")]
     lines = _gsd("guild_skill_lines")(g)
-    lines.append("💡 技能经会长安排后逐步开放；战斗加成的挂接正在开发中～")
+    lines.append(_T.static("guild.skill_dev_tip"))
     return ["\n".join(lines)]
 
 
@@ -618,16 +615,16 @@ def guild_appoint(env):
     group_id, qq_id = env.group_id, env.uid
     g = db.guild_get_by_leader(qq_id)
     if not g:
-        return ["只有会长才能任命职位！"]
+        return [_T.static("guild.appoint_leader_only")]
     raw = shell._strip_cmd(env.raw, "公会任命").strip()
     parts = raw.rsplit(None, 1)
     if len(parts) < 2:
-        return ["格式：公会任命 <成员名> <职位>，职位=副会长/精英"]
+        return [_T.static("guild.appoint_fmt")]
     name_arg, role_arg = parts
     # B9-L3：role 映射/等级门槛/成员校验/任命落库全在包内
     role = _gsd("guild_appoint_check_role")(role_arg)
     if not role:
-        return ["可任命职位：副会长、精英。成员是默认职，不需任命～"]
+        return [_T.static("guild.appoint_role_bad")]
     ok, err = _gsd("guild_appoint_level_ok")(g, role)
     if not ok:
         return [err]
@@ -635,11 +632,11 @@ def guild_appoint(env):
     if err:
         return [err]
     if target["qq_id"] == qq_id:
-        return ["会长不需要任命自己～"]
+        return [_T.static("guild.appoint_self")]
     if tm["role"] == role:
-        return [f"『{target['name']}』已经是{role_arg}了～"]
+        return [_T.text("guild.appoint_already", name=target['name'], role=role_arg)]
     _label, _icon = _gsd("guild_appoint")(g, target, role)
-    return [f"{_icon} 任命成功！『{target['name']}』已晋升为公会【{_label}】！"]
+    return [_T.text("guild.appoint_ok", icon=_icon, name=target['name'], label=_label)]
 
 
 @register("guild_demote", guards=("hook:player",), params=("cmd=公会免职",))
@@ -649,18 +646,18 @@ def guild_demote(env):
     group_id, qq_id = env.group_id, env.uid
     g = db.guild_get_by_leader(qq_id)
     if not g:
-        return ["只有会长才能免职！"]
+        return [_T.static("guild.demote_leader_only")]
     name_arg = shell._strip_cmd(env.raw, "公会免职").strip()
     if not name_arg:
-        return ["格式：公会免职 <成员名>"]
+        return [_T.static("guild.demote_fmt")]
     # B9-L3：成员校验/免职落库在包内
     tm, target, err = _gsd("guild_find_member")(g, name_arg)
     if err:
         return [err]
     if tm["role"] not in ("vice_leader", "elite"):
-        return [f"『{target['name']}』是成员，无需免职～"]
+        return [_T.text("guild.demote_member", name=target['name'])]
     _gsd("guild_demote")(g, target)
-    return [f"📉 已免去『{target['name']}』的职位，降回普通成员～"]
+    return [_T.text("guild.demote_ok", name=target['name'])]
 
 
 # ============================================================
