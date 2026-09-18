@@ -4960,6 +4960,128 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
   },
+  "find.daily_hint": {
+    "value": "📜 输入『每日』领取今日悬赏",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.ency_hint": {
+    "value": "📚 输入『百科 <材料/怪物/地图名>』查询世界知识(镇长藏书)",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.heal_hint": {
+    "value": "🏨 输入『住宿』恢复满血(需要金币)",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.idx_out": {
+    "value": "这里没有第 {idx} 位 NPC(共 {total} 位)！『对话』查看列表～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.lore_block": {
+    "value": "🎻 {ta}给你讲了一个传说：\n“{lore}”",
+    "params": [
+      "ta",
+      "lore"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.lore_empty": {
+    "value": "🎻 {ta}捋了捋胡子，说起一段大陆往事……(传说散落在各地，多去听听老人们的见闻吧)",
+    "params": [
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.main_avail": {
+    "value": "📜 主线『{name}』可接取——和{ta}对话接下任务吧～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.main_ready": {
+    "value": "✅ 主线『{name}』达成！和{ta}对话交付领奖～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.not_found": {
+    "value": "你在这里没找到『{name}』。他可能不在这里，或还没到出现的时候……(『时间』看看此刻谁在附近)",
+    "params": [
+      "name"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.redname": {
+    "value": "☠️ 你是红名！城里的 NPC 都躲着你走……(等红名消退再来)",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.shop_hint": {
+    "value": "🏪 输入『商店』可以买东西",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.side_avail": {
+    "value": "📜 支线『{name}』可接取——和{ta}对话接下吧～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.side_ready": {
+    "value": "✅ 支线『{name}』已完成！和{ta}对话交付～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.teach_hint": {
+    "value": "🗡️ 直接回复序号继续交谈，这位前辈或许能指点你一二",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.trade_hint": {
+    "value": "🧭 输入『商店』看看{ta}的货（行商有独家补给）",
+    "params": [
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.wild_left": {
+    "value": "这位旅人似乎已经离开了……",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.wild_not_met": {
+    "value": "🍃 『{name}』今天还没遇到……多『探索』几圈，{ta}不定什么时候就路过这里啦～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
   "fl.boss_locked": {
     "value": "👑 Boss 锁定了你，无法逃跑！背水一战吧！",
     "category": "战斗主循环",
@@ -9051,6 +9173,58 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
   },
+  "npc.home_empty": {
+    "value": "家里没有 NPC 可以交谈～『出门』去镇上找人吧！",
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_start_talk_list（B 批 C 档）"
+  },
+  "npcabsent.chance": {
+    "value": "🍃 『{name}』今天没来这边，改天再来看看吧～",
+    "params": [
+      "name"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_town_npc_absent_hint（B 批 C 档）"
+  },
+  "npcabsent.period": {
+    "value": "🌙 『{name}』现在({period})不在这里，换个时间再来吧～",
+    "params": [
+      "name",
+      "period"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_town_npc_absent_hint（B 批 C 档）"
+  },
+  "npcabsent.roam": {
+    "value": "🧭 『{name}』今天不在这儿，在「{sa_name}」那边。过去找找看吧～",
+    "params": [
+      "name",
+      "sa_name"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_town_npc_absent_hint（B 批 C 档）"
+  },
+  "npclist.empty": {
+    "value": "这里没有 NPC。输入『地图』看看哪里有 NPC～",
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_start_talk_list（B 批 C 档）"
+  },
+  "npclist.head": {
+    "value": "👥 这里的 NPC：",
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_start_talk_list（B 批 C 档）"
+  },
+  "npclist.wild_row": {
+    "value": "{i:>2}. {icon}{name} ⏳剩{remain_min}分",
+    "params": [
+      "i",
+      "icon",
+      "name",
+      "remain_min"
+    ],
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_start_talk_list（B 批 C 档）"
+  },
   "pageflip.no_list": {
     "value": "📄 先打开一个列表（『背包』『技能列表』『任务』等）再发翻页快捷键～",
     "category": "快捷指令",
@@ -10972,6 +11146,11 @@
     "value": "📜 今日任务已发布！",
     "category": "每日任务",
     "desc": "『每日』发布面板标题"
+  },
+  "quick.hurry_end": {
+    "value": "🚶 赶路模式已结束，回复数字不再自动赶路～",
+    "category": "快捷交互",
+    "desc": "搬自 content/world_cmds.py:npc_quick_dialog（B 批 C 档）"
   },
   "race.row": {
     "value": "{icon} {name}：{desc}",
@@ -14455,6 +14634,89 @@
     ],
     "category": "补给箱",
     "desc": "周限箱已达上限（/2 的 2 与限额口径同源数据）"
+  },
+  "talk.auto_quest_opt": {
+    "value": "📜 有活儿要交给我吗？",
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_render_talk_node（B 批 C 档）"
+  },
+  "talk.bad_option": {
+    "value": "没有这个选项！{hint}，回复 0 结束。",
+    "params": [
+      "hint"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.busy_hint": {
+    "value": "你正在和 {name} 对话——直接回复数字选选项，回复 0 结束对话～\n💡 想找别的 NPC？先回复 0 结束当前对话再说",
+    "params": [
+      "name"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.end_opt": {
+    "value": "0. 结束对话",
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_render_talk_node（B 批 C 档）"
+  },
+  "talk.farewell": {
+    "value": "{name}：那就再会了，冒险者。",
+    "params": [
+      "name"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.gone_here": {
+    "value": "{name}不在这里了，对话只能作罢。去找{ta}再聊聊吧～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.gone_timed": {
+    "value": "{name}已经离开了，对话只能作罢。去找{ta}再聊聊吧～",
+    "params": [
+      "name",
+      "ta"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.no_session": {
+    "value": "你现在没有正在进行的对话。输入『对话 <NPC名>』开始交谈～",
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.npc_left_map": {
+    "value": "这位 NPC 似乎已经离开了……",
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.pick_one": {
+    "value": "回复 1 选择",
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.pick_range": {
+    "value": "回复 1-{n} 选择",
+    "params": [
+      "n"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.silent": {
+    "value": "{name}似乎不想再多说了。",
+    "params": [
+      "name"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
   },
   "team_effect.crit_all": {
     "value": "暴击全队",

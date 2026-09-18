@@ -84,7 +84,9 @@ SEGMENTS = [
 CLASS = {
     # ── E：本批逐字未动（渲染/取值/动作链；无引擎形状可接，见 out/U1-I10_DESIGN.md §不做清单）──
     "content/world_cmds.py::_npc_dialogue": "E",
-    "content/world_cmds.py::_town_npc_absent_hint": "E",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 22c（B-2 第 8 片）把本段的句壳搬进文案表
+    #   （`_T.text("npcabsent.*")`），实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::_town_npc_absent_hint": "C",
     "content/world_cmds.py::_player_map_name": "E",
     "content/world_cmds.py::_subarea_name": "E",
     "content/world_cmds.py::_find_wild_npc": "E",
@@ -94,7 +96,8 @@ CLASS = {
     "content/world_cmds.py::_talk_active": "E",
     "content/world_cmds.py::_talk_ctx": "E",
     "content/world_cmds.py::_side_menu_expand": "E",
-    "content/world_cmds.py::_render_talk_node": "E",
+    # ↓ 2026-09-19 由 E 改判 C：同上（C 档 22c；`talk.auto_quest_opt` / `talk.end_opt` 入表）。
+    "content/world_cmds.py::_render_talk_node": "C",
     "content/world_cmds.py::_apply_talk_action_async": "E",
     "content/world_cmds.py::_apply_talk_action": "E",
     # ↓ 2026-09-18 由 E 改判 C：本次审计修复有意改了这两段的实现（非本线接引擎形状）

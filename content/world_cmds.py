@@ -2374,14 +2374,14 @@ def _start_talk_list(self, group_id, qq_id) -> list:
     """当前地图 NPC 列表（带序号展示；交谈用『对话 <名字>』/『对话 <序号>』，v123a 起裸数字不再直接找 NPC）。『对话』空参共用。"""
     player = self._player(group_id, qq_id)
     if player and player["cur_map"].startswith("home_"):
-        return ["家里没有 NPC 可以交谈～『出门』去镇上找人吧！"]
+        return [_T.static("npc.home_empty")]
     npcs = self._current_npcs(player) if player else []
     # v127.5 限时NPC：在场野外旅人并入裸『对话』列表（排城镇 NPC 之后，带序号可对话）
     wild_evs = _timed.list_timed(group_id, qq_id, type_key="wild_npc",
                             data_match={"map": player["cur_map"]}) if player else []
     if not npcs and not wild_evs:
-        return ["这里没有 NPC。输入『地图』看看哪里有 NPC～"]
-    lines = ["👥 这里的 NPC："]
+        return [_T.static("npclist.empty")]
+    lines = [_T.static("npclist.head")]
     # 编号走引擎 `Presence.slots`：静态 1..N、限时续号 N+1..；查不到表的限时项**跳号**（逐字保留）
     for i, kind, item in _PRESENCE.slots(npcs, wild_evs):
         if kind == "static":
@@ -2394,7 +2394,8 @@ def _start_talk_list(self, group_id, qq_id) -> list:
         if not wnpc:
             continue
         remain_min = minutes_left(ev.get("remain", 0))  # 与 `_present_wild_hints` 同口径
-        lines.append(f"{i:>2}. {wnpc.get('icon', '')}{wnpc.get('name', nid)} ⏳剩{remain_min}分")
+        lines.append(_T.text("npclist.wild_row", i=i, icon=wnpc.get('icon', ''), name=wnpc.get('name', nid),
+                         remain_min=remain_min))
     lines.append(self._tip("npc_list"))
     return lines
 
@@ -2439,14 +2440,14 @@ def _town_npc_absent_hint(self, nid, npc, sa_id):
         m = self._player_map_name(sa_id) or ""
         sa_name = self._subarea_name(today_sa)
         if sa_name:
-            return f"🧭 『{name}』今天不在这儿，在「{sa_name}」那边。过去找找看吧～"
+            return _T.text("npcabsent.roam", name=name, sa_name=sa_name)
     # D 时段
     per = npc.get("period")
     if per:
         period_cn = (PERIOD_CN.get(_tw.current_period(), "") or "").strip()
-        return f"🌙 『{name}』现在({period_cn})不在这里，换个时间再来吧～"
+        return _T.text("npcabsent.period", name=name, period=period_cn)
     # C 概率未出
-    return f"🍃 『{name}』今天没来这边，改天再来看看吧～"
+    return _T.text("npcabsent.chance", name=name)
 
 
 def _player_map_name(self, sa_id):
@@ -2779,7 +2780,7 @@ async def npc_quick_dialog(self, event: AstrMessageEvent, group_id, qq_id):
         if num == "0":
             db.set_event_state(f"move_mode:{qq_id}", "")
             db.set_event_state(f"hurry_type:{qq_id}", "")  # v128.1 结束赶路同时清过滤
-            yield event.plain_result("🚶 赶路模式已结束，回复数字不再自动赶路～")
+            yield event.plain_result(_T.static("quick.hurry_end"))
             self._stop_event_safe(event)
             return
         event.message_str = f"前往 {num}"
@@ -2801,13 +2802,13 @@ async def find_npc(self, event: AstrMessageEvent):
     name_key = self._strip_cmd(event, "找")
     player = self._player(group_id, qq_id)
     if self._is_redname(qq_id):
-        yield event.plain_result("☠️ 你是红名！城里的 NPC 都躲着你走……(等红名消退再来)")
+        yield event.plain_result(_T.static("find.redname"))
         return
     name_key = name_key.strip()
     if not name_key:
         cur_m = player["cur_map"]
         if cur_m.startswith("home_"):
-            yield event.plain_result("家里没有 NPC 可以交谈～『出门』去镇上找人吧！")
+            yield event.plain_result(_T.static("npc.home_empty"))
             return
         # v127.5 限时NPC：与『对话』空参同源——在场野外旅人也并入列表
         yield event.plain_result("\n".join(self._start_talk_list(group_id, qq_id)))
@@ -2815,7 +2816,7 @@ async def find_npc(self, event: AstrMessageEvent):
     # 序号找：『找 1』→ 当前地图第 1 个 NPC（含 v127.5 在场野外旅人续号）
     if name_key.isdigit():
         if player["cur_map"].startswith("home_"):
-            yield event.plain_result("家里没有 NPC 可以交谈～『出门』去镇上找人吧！")
+            yield event.plain_result(_T.static("npc.home_empty"))
             return
         npcs = self._current_npcs(player)
         wild_evs = _timed.list_timed(group_id, qq_id, type_key="wild_npc",
@@ -2825,7 +2826,7 @@ async def find_npc(self, event: AstrMessageEvent):
         total = len(slots)
         idx = int(name_key)
         if idx < 1 or idx > total:
-            yield event.plain_result(f"这里没有第 {idx} 位 NPC(共 {total} 位)！『对话』查看列表～")
+            yield event.plain_result(_T.text("find.idx_out", idx=idx, total=total))
             return
         _slot = _PRESENCE.slot_at(slots, idx)
         if _slot[1] == "static":
@@ -2837,7 +2838,7 @@ async def find_npc(self, event: AstrMessageEvent):
             npc_id = _ev.get("data", {}).get("npc_id") or ""
             _w = _LOOKUP_WILD.first(npc_id)[0]
             if not _w:
-                yield event.plain_result("这位旅人似乎已经离开了……")
+                yield event.plain_result(_T.static("find.wild_left"))
                 return
             npc = dict(_w)
             npc.setdefault("title", "游历于野外的旅人")  # 与 _find_wild_npc 一致
@@ -2865,7 +2866,7 @@ async def find_npc(self, event: AstrMessageEvent):
             if not _timed.get_timed(group_id, qq_id, f"wild:{npc_id}"):
                 _ta = "她" if npc.get("gender") == "女" else "他"
                 yield event.plain_result(
-                    f"🍃 『{name_key}』今天还没遇到……多『探索』几圈，{_ta}不定什么时候就路过这里啦～")
+                    _T.text("find.wild_not_met", name=name_key, ta=_ta))
                 return
     if not npc:
         # v95.15 #71：名字命中但时段/条件不满足（NPC 在本图却找不到）→ 提示出现条件
@@ -2879,7 +2880,7 @@ async def find_npc(self, event: AstrMessageEvent):
             yield event.plain_result(hint)
             return
         yield event.plain_result(
-            f"你在这里没找到『{name_key}』。他可能不在这里，或还没到出现的时候……(『时间』看看此刻谁在附近)")
+            _T.text("find.not_found", name=name_key))
         return
     dlg = _dlg.get_dialogue(npc_id)
     if dlg:
@@ -2903,18 +2904,18 @@ async def find_npc(self, event: AstrMessageEvent):
             if _mq and _mq["giver"] == npc_id:
                 _st = _quests.get("main_status", "pending")
                 if _st == "pending":
-                    lines.append(f"📜 主线『{_mq['name']}』可接取——和{_ta}对话接下任务吧～")
+                    lines.append(_T.text("find.main_avail", name=_mq['name'], ta=_ta))
                 elif _st == "ready":
-                    lines.append(f"✅ 主线『{_mq['name']}』达成！和{_ta}对话交付领奖～")
+                    lines.append(_T.text("find.main_ready", name=_mq['name'], ta=_ta))
             _side = _quests.get("side", {})
             # v127.6 预告全量：复用 _side_available_list（与对话菜单同源过滤）——
             # 把该 NPC 所有可接支线都列出来（此前 break 只显示第一条，与实际可接数对不上）
             for _av in self._side_available_list(group_id, qq_id, npc_id, npc):
-                lines.append(f"📜 支线『{_av['name']}』可接取——和{_ta}对话接下吧～")
+                lines.append(_T.text("find.side_avail", name=_av['name'], ta=_ta))
             for _sid, _sq in list(_side.items()):
                 _sqd = next((q for q in _cat_quests.SIDE_QUESTS if q["id"] == _sid), None)
                 if _sqd and _sqd["giver"] == npc_id and _sq.get("status") == "ready":
-                    lines.append(f"✅ 支线『{_sqd['name']}』已完成！和{_ta}对话交付～")
+                    lines.append(_T.text("find.side_ready", name=_sqd['name'], ta=_ta))
                     break
             # v124 progress_text：该 NPC 名下有进行中的链式支线 → 输出推进台词（有对话树的 NPC 也显示）
             for _sid, _sq in list(_side.items()):
@@ -2929,14 +2930,14 @@ async def find_npc(self, event: AstrMessageEvent):
             lines += self._take_main_quest(group_id, qq_id, npc_id, npc)
             lines += self._offer_side_quests(group_id, qq_id, npc_id, npc)
     if "shop" in funcs and self._at_shop(player, group_id, qq_id):
-        lines.append("🏪 输入『商店』可以买东西")
+        lines.append(_T.static("find.shop_hint"))
     if "trade" in funcs:
         _ta = "她" if npc.get("gender") == "女" else "他"  # v95 #141：代词跟随 NPC 性别
-        lines.append(f"🧭 输入『商店』看看{_ta}的货（行商有独家补给）")
+        lines.append(_T.text("find.trade_hint", ta=_ta))
     if "heal" in funcs and self._at_healer(player):
-        lines.append("🏨 输入『住宿』恢复满血(需要金币)")
+        lines.append(_T.static("find.heal_hint"))
     if "daily" in funcs:
-        lines.append("📜 输入『每日』领取今日悬赏")
+        lines.append(_T.static("find.daily_hint"))
     if "lore" in funcs:
         ta = "她" if npc.get("gender") == "女" else "他"
         # v101.25 #311：lore 空挂修复——提示"讲传说"却没有传说内容（world.py 注释
@@ -2944,19 +2945,19 @@ async def find_npc(self, event: AstrMessageEvent):
         # 不再只给一句空引导。
         _lore_txt = npc.get("lore") or npc.get("dialogue", "")
         if _lore_txt:
-            lines.append(f"🎻 {ta}给你讲了一个传说：\n“{_lore_txt}”")
+            lines.append(_T.text("find.lore_block", ta=ta, lore=_lore_txt))
         else:
-            lines.append(f"🎻 {ta}捋了捋胡子，说起一段大陆往事……(传说散落在各地，多去听听老人们的见闻吧)")
+            lines.append(_T.text("find.lore_empty", ta=ta))
         lines.append(self._tip("encyclopedia"))
     if "teach" in funcs:
         # v104 P2（M21）teach 空挂修复：有对话树的教习 NPC 走对话树选项；
         # 无对话树的教习 NPC（龙语者·古尔/上古守卫者/墓王·静语）→ 按职业直接传授对应技能
         if dlg:
-            lines.append("🗡️ 直接回复序号继续交谈，这位前辈或许能指点你一二")
+            lines.append(_T.static("find.teach_hint"))
         else:
             lines.extend(self._teach_by_npc(group_id, qq_id, player, npc_id))
     if "ency" in funcs:
-        lines.append("📚 输入『百科 <材料/怪物/地图名>』查询世界知识(镇长藏书)")
+        lines.append(_T.static("find.ency_hint"))
     # v104 P1（M21）：隐藏 NPC 解锁 flag 设置点——与特定野外 NPC 交谈即授予（幂等）
     _granted = self._grant_wild_unlock_flags(group_id, qq_id, npc_id)
     if _granted:
@@ -3267,7 +3268,7 @@ def _render_talk_node(self, npc, dlg, node, ctx) -> list:
                for o in opts):
         try:
             npc_id = ctx.get("npc_id") or ""
-            _auto_opt = {"text": "📜 有活儿要交给我吗？", "next": "__end__",
+            _auto_opt = {"text": _T.static("talk.auto_quest_opt"), "next": "__end__",
                          "need": {"side_available": True}, "side_menu": {"after": "welcome"}}
             _expanded = self._side_menu_expand(ctx.get("_gid") or "", ctx.get("_qid") or "", npc_id, _auto_opt)
             if _expanded:
@@ -3278,7 +3279,7 @@ def _render_talk_node(self, npc, dlg, node, ctx) -> list:
         lines.append("━━━━━━━━━━━━")
         for i, opt in enumerate(opts, 1):
             lines.append(f"{i}. {opt['text']}")
-        lines.append("0. 结束对话")
+        lines.append(_T.static("talk.end_opt"))
         lines.append(self._tip("talk_tree"))
     return lines
 
@@ -3551,7 +3552,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
                 # 报"这里没有第 0 位 NPC"——玩家在单层 NPC 闲聊后想结束对话却得不到退出反馈）
                 # O99 修复：全角 ０ 与 ASCII 0 同判（此前全角 ０ 落入 find_npc 报"没有第 0 位"）
                 if raw0 in ("0", "０"):
-                    yield event.plain_result("你现在没有正在进行的对话。输入『对话 <NPC名>』开始交谈～")
+                    yield event.plain_result(_T.static("talk.no_session"))
                     return
                 # 复用 find_npc 查找/渲染链（改写消息为『找 X』）
                 event.message_str = "找 " + raw0
@@ -3561,7 +3562,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
             # 『对话』空参 = 显示当前 NPC 列表
             yield event.plain_result("\n".join(self._start_talk_list(group_id, qq_id)))
             return
-        yield event.plain_result("你现在没有正在进行的对话。输入『对话 <NPC名>』开始交谈～")
+        yield event.plain_result(_T.static("talk.no_session"))
         return
     # 会话游标**值**（引擎 `Cursor`）：还原不出时回落原始 schema 取值（口径分歧 ⑦ 逐字保留）
     _cur = Cursor.of(st, subject_key=_TALK_SUBJECT_KEY, node_key=_TALK_NODE_KEY)
@@ -3569,7 +3570,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
     npc = _LOOKUP.first(npc_id)[0]                       # 两表真值链（原 `or` 链同口径）
     if not npc:
         db.clear_talk_state(group_id, qq_id)
-        yield event.plain_result("这位 NPC 似乎已经离开了……")
+        yield event.plain_result(_T.static("talk.npc_left_map"))
         return
     npc = dict(npc)
     npc.setdefault("title", "游历于野外的旅人")  # v95.11：wild NPC 无 title，与 _find_wild_npc 一致
@@ -3577,19 +3578,19 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
     if _wild.npc_map_id(npc_id, npc) != player.get("cur_map"):
         db.clear_talk_state(group_id, qq_id)
         _ta = "她" if npc.get("gender") == "女" else "他"  # v95 #141：代词跟随 NPC 性别
-        yield event.plain_result(f"{npc['name']}不在这里了，对话只能作罢。去找{_ta}再聊聊吧～")
+        yield event.plain_result(_T.text("talk.gone_here", name=npc['name'], ta=_ta))
         return
     # v127.5 限时NPC：对话中野外NPC的在场的限时事件过期 → 会话作废
     # （倒计时结束显示与对话同时消失；与 npc_map_id 失效同位置、同文案风格）
     if npc_id in _wild.ALL_WILD and not _timed.get_timed(group_id, qq_id, f"wild:{npc_id}"):
         db.clear_talk_state(group_id, qq_id)
         _ta = "她" if npc.get("gender") == "女" else "他"  # v95 #141：代词跟随 NPC 性别
-        yield event.plain_result(f"{npc['name']}已经离开了，对话只能作罢。去找{_ta}再聊聊吧～")
+        yield event.plain_result(_T.text("talk.gone_timed", name=npc['name'], ta=_ta))
         return
     dlg = _dlg.get_dialogue(npc_id)
     if not dlg:
         db.clear_talk_state(group_id, qq_id)
-        yield event.plain_result(f"{npc['name']}似乎不想再多说了。")
+        yield event.plain_result(_T.text("talk.silent", name=npc['name']))
         return
     # 剥指令名拿参数（对话/继续/结束对话/再见/告辞）
     msg = event.get_message_str().strip()
@@ -3608,8 +3609,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
     # 一律拦截，结束对话统一回复裸数字 0（与选项回复同通道，无二义性）。
     if msg.startswith("对话") and raw:
         yield event.plain_result(
-            f"你正在和 {npc['name']} 对话——直接回复数字选选项，回复 0 结束对话～\n"
-            f"💡 想找别的 NPC？先回复 0 结束当前对话再说")
+            _T.text("talk.busy_hint", name=npc['name']))
         return
     cur_node_id = _cur.node if _cur is not None else st.get("node", dlg.get("start", ""))
     node = _dlg.dialogue_node(dlg, cur_node_id)
@@ -3618,15 +3618,15 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
         idx = int(raw)
         if idx == 0:
             db.clear_talk_state(group_id, qq_id)
-            yield event.plain_result(f"{npc['name']}：那就再会了，冒险者。")
+            yield event.plain_result(_T.text("talk.farewell", name=npc['name']))
             return
         # 1-based 取可见选项走引擎 `Dialogue.pick`（越界 → None，不抛）
         opt = _TALK.of(dlg).pick(node, idx, ctx, expand=ctx.get("side_menu_expand"))
         if opt is None:
             # v101.28l #426：单选项时不再显示"1-1"（越界文案）
             _n = len(_dlg.visible_options(dlg, node, ctx))   # 文案需要可见选项总数
-            _sel_hint = "回复 1 选择" if _n == 1 else f"回复 1-{_n} 选择"
-            yield event.plain_result(f"没有这个选项！{_sel_hint}，回复 0 结束。")
+            _sel_hint = _T.static("talk.pick_one") if _n == 1 else _T.text("talk.pick_range", n=_n)
+            yield event.plain_result(_T.text("talk.bad_option", hint=_sel_hint))
             return
         player = self._player(group_id, qq_id)
         action = opt.get("action") or {}
@@ -3637,7 +3637,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
         notices, _route = await self._apply_talk_action_async(group_id, qq_id, player, npc_id, action)
         if _route == "__end__":
             db.clear_talk_state(group_id, qq_id)
-            lines = notices + [f"{npc['name']}：那就再会了，冒险者。"]
+            lines = notices + [_T.text("talk.farewell", name=npc['name'])]
             yield event.plain_result("\n".join(lines))
             return
         if _route == "fail":
@@ -3650,7 +3650,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
         _ach.check_achievements(group_id, qq_id)
         if _TALK.is_end(nxt):
             db.clear_talk_state(group_id, qq_id)
-            lines = notices + [f"{npc['name']}：那就再会了，冒险者。"]
+            lines = notices + [_T.text("talk.farewell", name=npc['name'])]
             yield event.plain_result("\n".join(lines))
             return
         db.set_talk_state(group_id, qq_id, npc_id, nxt)
@@ -3661,7 +3661,7 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
         return
     if not raw and any(c in msg for c in ("结束对话", "再见", "告辞")):
         db.clear_talk_state(group_id, qq_id)
-        yield event.plain_result(f"{npc['name']}：那就再会了，冒险者。")
+        yield event.plain_result(_T.text("talk.farewell", name=npc['name']))
         return
     # 无参数/其他 → 重渲染当前节点
     lines = self._render_talk_node(npc, dlg, node, ctx)
