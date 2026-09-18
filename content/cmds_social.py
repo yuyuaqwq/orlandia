@@ -44,6 +44,7 @@ from . import social_cmds as _SC
 from . import social_pet as _SP
 from . import social_stall as _SS
 from .commands import bind, register
+from . import texts as _T          # C 档 20a（2026-09-19）：文案表读口（本文件首次接入）
 # 宿主替身口：与 `content/social_cmds.py` 同一份（`C` / `db` 正文一字未改；见该模块头注）
 from .social_cmds import db
 from ._pkgref import PkgModule
@@ -99,7 +100,7 @@ def market(env):
     player = env.player
     items = db.market_list(group_id)
     if not items:
-        return ["🏪 市场空空如也。『上架 <物品> <价格>』寄售你的宝贝！"]
+        return [_T.static("stall.mkt_empty")]
     raw = shell._strip_cmd(env.raw, "市场")
     page = shell._parse_page(raw)
     page_items, pages, page = shell._page_items(items, page, per_page=5)
@@ -119,17 +120,17 @@ def market_sell(env):
     player = env.player
     args = shell._strip_cmd(env.raw, "上架").rsplit(None, 1)
     if len(args) < 2 or not args[1].isdigit() or int(args[1]) < ECON_CONFIG["market_min_price"]:
-        return ["格式：上架 <物品名> <价格>，如『上架 铁剑 500』；价格至少 1 金币"]
+        return [_T.static("stall.sell_fmt")]
     item_name = args[0]
     price = int(args[1])
     # v104R3 P2：上架价格上限——防止 999999999 恶意占坑/诱导高价（上限远超任何物品价值）
     if price > ECON_CONFIG["market_price_cap"]:
-        return [f"价格太高啦！上架价最多 {ECON_CONFIG['market_price_cap']} 金币～"]
+        return [_T.text("stall.sell_cap", cap=ECON_CONFIG['market_price_cap'])]
     # B9-L3：按名找背包物品 + 单事务原子上架在包内（真源 market_sell 的解析/落库段）
     ok, nm, err = _SS.market_sell_place(group_id, qq_id, item_name, price)
     if not ok:
         return [err]
-    return [f"📦 已上架【{nm}】，定价 {price} 金币！\n『市场』查看，『下架 <编号>』撤回"]
+    return [_T.text("stall.sell_ok", name=nm, price=price)]
 
 
 @register("market_unsell", guards=("hook:player",), params=("cmd=下架",))
@@ -139,7 +140,7 @@ def market_unsell(env):
     group_id, qq_id = env.group_id, env.uid
     args = shell._strip_cmd(env.raw, "下架").split()
     if not args or not args[0].isdigit():
-        return ["格式：下架 <编号>，『市场』查看编号"]
+        return [_T.static("stall.unsell_fmt")]
     mid = int(args[0])
     # B9-L3：目标选取 + 所有权守卫在包内
     ok, it, err = _SS.market_unsell_pick(db.market_list(group_id), mid, qq_id)
@@ -148,7 +149,7 @@ def market_unsell(env):
     db.market_remove(mid)
     # v126.4 审计 P1：下架回流按 1 件，快照只带 1 条个体（防旧整堆快照破坏不变量）
     db.add_item(group_id, qq_id, it["item_key"], _snapshot_one(it["item_data"]), count=1)
-    return [f"↩️ 已下架【{it['item_data'].get('name','?')}】，物品退回背包"]
+    return [_T.text("stall.unsell_ok", name=it['item_data'].get('name','?'))]
 
 
 @register("market_buy", guards=("hook:player",), params=("cmd=购入",))
@@ -159,11 +160,11 @@ def market_buy(env):
     player = env.player
     args = shell._strip_cmd(env.raw, "购入").split()
     if not args or not args[0].isdigit():
-        return ["格式：购入 <编号>，『市场』查看编号"]
+        return [_T.static("stall.buy_fmt")]
     mid = int(args[0])
     it = db.market_get(mid)
     if not it:
-        return ["没有这个物品！可能已被买走。"]
+        return [_T.static("stall.buy_gone")]
     # B9-L3：自买/换摊/异地/金币守卫在包内
     ok, err = _SS.market_buy_check(it, player, qq_id)
     if not ok:
@@ -172,7 +173,7 @@ def market_buy(env):
     ok, err, item_name = db.market_buy_atomic(group_id, qq_id, mid)
     if not ok:
         return [err]
-    return [f"🛒 购入成功！【{item_name}】已放入背包(花费 {it['price']} 金币)"]
+    return [_T.text("stall.buy_ok", name=item_name, price=it['price'])]
 
 
 # ============================================================
@@ -190,10 +191,7 @@ def market_buy(env):
 @register("stall_deprecated", guards=("hook:player",), params=("cmd=摆摊",))
 def stall_deprecated(env):
     """『摆摊』旧词引导（v167 已拆成 摆卖/摆换，不静默消失；priority=5 让位给新指令）。"""
-    return ["『摆摊』已拆成两条指令啦：\n"
-            "· 摆卖 = 卖金币：『摆卖 <物品/背包序号> <单价> [数量]』\n"
-            "· 摆换 = 以物换物：『摆换 <物品/背包序号> [数量]』\n"
-            "例：『摆卖 3 500 5』(背包第3件×5个，单价500)｜『摆换 铁剑』"]
+    return [_T.static("stall.deprecated")]
 
 
 @register("stall_sell", guards=("hook:player",), params=("cmd=摆卖",))
@@ -208,13 +206,13 @@ def stall_sell(env):
         return [parsed[1]]
     item_name, (price, count) = parsed
     if price <= 0:
-        return ["摆卖要带金币价！想以物换物用『摆换 <物品> [数量]』～"]
+        return [_T.static("stall.need_price")]
     ok, res = _SS.stall_place(group_id, qq_id, player, item_name, price, count)
     if not ok:
         return [res]
     item_nm, cnt_s, map_name, tip = res
-    head = f"🏪 你在『{map_name}』支起了摊位，出售【{item_nm}{cnt_s}】定价 {price} 金币！{tip}\n"
-    tail = "『收摊』收摊，『摊位』看看本地谁在摆摊"
+    head = _T.text("stall.sell_head", map=map_name, name=item_nm, cnt=cnt_s, price=price, tip=tip)
+    tail = _T.static("stall.sell_tail")
     return [head + tail]
 
 
@@ -233,8 +231,8 @@ def stall_exchange_pawn(env):
     if not ok:
         return [res]
     item_nm, cnt_s, map_name, tip = res
-    head = f"🔄 你在『{map_name}』支起了换摊——【{item_nm}{cnt_s}】只换不卖！{tip}\n"
-    tail = "『收摊』收摊，别人可用『换 <编号> <物品名>』跟你交换"
+    head = _T.text("stall.pawn_head", map=map_name, name=item_nm, cnt=cnt_s, tip=tip)
+    tail = _T.static("stall.pawn_tail")
     return [head + tail]
 
 
@@ -246,12 +244,12 @@ def stall_close(env):
     player = env.player
     removed = db.market_remove_by_seller(group_id, qq_id)
     if not removed:
-        return ["你现在没有摊位。『摆摊 <物品> <价格>』支起摊位～"]
+        return [_T.static("stall.close_none")]
     for s in removed:
         # v126.4 审计 P1：收摊回流按 1 件，快照只带 1 条个体
         db.add_item(group_id, qq_id, s["item_key"], _snapshot_one(s["item_data"]), count=1)
     names = "、".join(s["item_data"].get("name", "?") for s in removed)
-    return [f"🏪 收摊！【{names}】退回背包"]
+    return [_T.text("stall.close_ok", names=names)]
 
 
 @register("stall_view", guards=("hook:player",), params=("cmd=摊位",))
@@ -265,21 +263,21 @@ def stall_view(env):
     if raw:
         target = db.find_player_by_name(raw)
         if not target:
-            return [f"没找到玩家『{raw}』！"]
+            return [_T.text("stall.view_noplayer", name=raw)]
         target_id = target["qq_id"]
         tp = db.get_player(group_id, target_id)
         if tp:
             db.market_sync_stall(target_id, tp.get("cur_map", ""))  # 摊位惰性跟随
         stalls = [s for s in db.market_list_by_seller(group_id, target_id) if s.get("map_id")]
         if not stalls:
-            return [f"{target['name']} 没有在摆摊。"]
+            return [_T.text("stall.view_nostall", name=target['name'])]
         # B9-L3：面板行在包内
         return ["\n".join(_SS.stall_view_player_lines(target, stalls))]
     # 无参 → 当前地图所有摊位
     cur_map = player.get("cur_map", "")
     stalls = db.market_list(group_id, cur_map)
     if not stalls:
-        return ["此地没有摊位。『摆摊 <物品> [价格]』支起你的小摊(不带价格 = 换摊)！"]
+        return [_T.static("stall.view_none")]
     return ["\n".join(_SS.stall_view_here_lines(cur_map, stalls, shell._player, group_id))]
 
 
@@ -291,11 +289,11 @@ def stall_exchange(env):
     player = env.player
     args = shell._strip_cmd(env.raw, "换").split(None, 1)
     if len(args) < 2 or not args[0].isdigit():
-        return ["格式：换 <摊位编号> <物品名>，如『换 3 狼皮』(对方摆摊不带价格 = 换摊)"]
+        return [_T.static("stall.ex_fmt")]
     mid, give_name = int(args[0]), args[1].strip()
     it = db.market_get(mid)
     if not it:
-        return [f"没有编号 {mid} 的摊位！『摊位』看看～"]
+        return [_T.text("stall.ex_noid", id=mid)]
     # B9-L3：寄售/异地/自己/出售中/背包守卫在包内
     ok, give, err = _SS.stall_exchange_check(it, player, qq_id, group_id, give_name)
     if not ok:
@@ -306,8 +304,8 @@ def stall_exchange(env):
     if not ok:
         return [_ename]
     return [
-        f"🔄 交换成功！你用【{give['data']['name']}】换到了【{it['item_data'].get('name','?')}】！\n"
-        f"对方的东西已放进你背包，你的【{give['data']['name']}】已送到对方背包～"
+        _T.text("stall.ex_ok", mine=give['data']['name'], theirs=it['item_data'].get('name','?'),
+            mine2=give['data']['name'])
     ]
 
 

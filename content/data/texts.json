@@ -11832,6 +11832,412 @@
     "category": "叠层名",
     "desc": "搬自 combat_cmds.py:_STACK_NAMES（B 批 B-1）"
   },
+  "stall.buy_far": {
+    "value": "这是【{name}】的摊位货，需要到『{map}』当面购入～(『摊位』看看谁在摆摊)",
+    "params": [
+      "name",
+      "map"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_buy_check（B 批 C 档）"
+  },
+  "stall.buy_fmt": {
+    "value": "格式：购入 <编号>，『市场』查看编号",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_buy（B 批 C 档）"
+  },
+  "stall.buy_gone": {
+    "value": "没有这个物品！可能已被买走。",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_buy（B 批 C 档）"
+  },
+  "stall.buy_no_gold": {
+    "value": "金币不足！需要 {price} 金币。",
+    "params": [
+      "price"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_buy_check（B 批 C 档）"
+  },
+  "stall.buy_ok": {
+    "value": "🛒 购入成功！【{name}】已放入背包(花费 {price} 金币)",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_buy（B 批 C 档）"
+  },
+  "stall.buy_pawn": {
+    "value": "【{name}】是换摊(只换不卖)——用『换 {id} <物品名>』提出交换！",
+    "params": [
+      "name",
+      "id"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_buy_check（B 批 C 档）"
+  },
+  "stall.buy_self": {
+    "value": "不能买自己的物品！",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_buy_check（B 批 C 档）"
+  },
+  "stall.close_none": {
+    "value": "你现在没有摊位。『摆摊 <物品> <价格>』支起摊位～",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_close（B 批 C 档）"
+  },
+  "stall.close_ok": {
+    "value": "🏪 收摊！【{names}】退回背包",
+    "params": [
+      "names"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_close（B 批 C 档）"
+  },
+  "stall.deprecated": {
+    "value": "『摆摊』已拆成两条指令啦：\n· 摆卖 = 卖金币：『摆卖 <物品/背包序号> <单价> [数量]』\n· 摆换 = 以物换物：『摆换 <物品/背包序号> [数量]』\n例：『摆卖 3 500 5』(背包第3件×5个，单价500)｜『摆换 铁剑』",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_deprecated（B 批 C 档）"
+  },
+  "stall.err_count_nan": {
+    "value": "数量要用数字！例『摆换 3 5』",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.err_count_range": {
+    "value": "摆摊数量请填 1~999 之间！",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.err_price_cap": {
+    "value": "价格太高啦！摆摊价最多 {cap} 金币～",
+    "params": [
+      "cap"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.err_price_min": {
+    "value": "价格至少 1 金币！",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.err_price_nan": {
+    "value": "价格要用数字！例『摆卖 铁剑 500』『摆卖 3 500 5』",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.ex_consign": {
+    "value": "这是群市场寄售，不参与交换——用『购入 <编号>』金币购买～",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_exchange_check（B 批 C 档）"
+  },
+  "stall.ex_far": {
+    "value": "这是【{name}】的换摊，需要到『{map}』当面交换～",
+    "params": [
+      "name",
+      "map"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_exchange_check（B 批 C 档）"
+  },
+  "stall.ex_fmt": {
+    "value": "格式：换 <摊位编号> <物品名>，如『换 3 狼皮』(对方摆摊不带价格 = 换摊)",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_exchange（B 批 C 档）"
+  },
+  "stall.ex_noid": {
+    "value": "没有编号 {id} 的摊位！『摊位』看看～",
+    "params": [
+      "id"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_exchange（B 批 C 档）"
+  },
+  "stall.ex_ok": {
+    "value": "🔄 交换成功！你用【{mine}】换到了【{theirs}】！\n对方的东西已放进你背包，你的【{mine2}】已送到对方背包～",
+    "params": [
+      "mine",
+      "theirs",
+      "mine2"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_exchange（B 批 C 档）"
+  },
+  "stall.ex_onsale": {
+    "value": "【{name}】是出售中的({price} 金币)，用『购入 {id}』购买～",
+    "params": [
+      "name",
+      "price",
+      "id"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_exchange_check（B 批 C 档）"
+  },
+  "stall.ex_self": {
+    "value": "不能和自己交换！",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_exchange_check（B 批 C 档）"
+  },
+  "stall.fmt_pawn": {
+    "value": "格式：摆换 <物品名/背包序号> [数量]\n例：『摆换 3 5』(背包第3件拿5个出来换)｜『摆换 铁剑』(换1件)",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.fmt_sell": {
+    "value": "格式：摆卖 <物品名/背包序号> <单价> [数量]\n例：『摆卖 3 500 5』(背包第3件×5个，单价500)｜『摆卖 铁剑 500』",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_parse_args（B 批 C 档）"
+  },
+  "stall.fuzzy_name": {
+    "value": "❓ 找到 {n} 件名字含『{name}』的物品，用全名或背包序号指定：",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_resolve（B 批 C 档）"
+  },
+  "stall.home_full": {
+    "value": "🏪 铺面挂机位已满({n}/{slots})！先『收摊』腾位置，或升级房屋获得更多挂机位～",
+    "params": [
+      "n",
+      "slots"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
+  "stall.home_no_slot": {
+    "value": "🏠 木屋没有铺面挂机位！『地契 升级』到石屋解锁 1 个挂机位～",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
+  "stall.mkt_empty": {
+    "value": "🏪 市场空空如也。『上架 <物品> <价格>』寄售你的宝贝！",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market（B 批 C 档）"
+  },
+  "stall.mkt_next": {
+    "value": "💡 『市场 {page}』看下一页(共 {pages} 页)",
+    "params": [
+      "page",
+      "pages"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_view_lines（B 批 C 档）"
+  },
+  "stall.mkt_row": {
+    "value": "#{id} {name} ｜ {price} 金币 ｜ 卖家 {seller}",
+    "params": [
+      "id",
+      "name",
+      "price",
+      "seller"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_view_lines（B 批 C 档）"
+  },
+  "stall.mkt_title": {
+    "value": "🏪 【群友市场】(第 {page}/{pages} 页 · 共 {n} 件)",
+    "params": [
+      "page",
+      "pages",
+      "n"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_view_lines（B 批 C 档）"
+  },
+  "stall.need_price": {
+    "value": "摆卖要带金币价！想以物换物用『摆换 <物品> [数量]』～",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_sell（B 批 C 档）"
+  },
+  "stall.no_index": {
+    "value": "背包里没有第 {idx} 件物品（共 {n} 件）！『背包』查看序号～",
+    "params": [
+      "idx",
+      "n"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_resolve（B 批 C 档）"
+  },
+  "stall.no_item": {
+    "value": "背包里没有『{name}』！『背包』查看～",
+    "params": [
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_resolve（B 批 C 档）"
+  },
+  "stall.no_map": {
+    "value": "这里没法摆摊……换个地方试试。",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
+  "stall.not_enough": {
+    "value": "『{name}』你只有 {have} 个，摆不了 {want} 个！",
+    "params": [
+      "name",
+      "have",
+      "want"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
+  "stall.old_closed": {
+    "value": "(旧摊位已收摊，{n} 件物品退回背包)",
+    "params": [
+      "n"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
+  "stall.pawn_head": {
+    "value": "🔄 你在『{map}』支起了换摊——【{name}{cnt}】只换不卖！{tip}\n",
+    "params": [
+      "map",
+      "name",
+      "cnt",
+      "tip"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_exchange_pawn（B 批 C 档）"
+  },
+  "stall.pawn_tail": {
+    "value": "『收摊』收摊，别人可用『换 <编号> <物品名>』跟你交换",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_exchange_pawn（B 批 C 档）"
+  },
+  "stall.same_name": {
+    "value": "❓ 找到 {n} 件同名『{name}』，用背包序号指定摆哪件（『摆卖 <序号> <价>』/『摆换 <序号>』）：",
+    "params": [
+      "n",
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_resolve（B 批 C 档）"
+  },
+  "stall.sell_cap": {
+    "value": "价格太高啦！上架价最多 {cap} 金币～",
+    "params": [
+      "cap"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_sell（B 批 C 档）"
+  },
+  "stall.sell_fmt": {
+    "value": "格式：上架 <物品名> <价格>，如『上架 铁剑 500』；价格至少 1 金币",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_sell（B 批 C 档）"
+  },
+  "stall.sell_head": {
+    "value": "🏪 你在『{map}』支起了摊位，出售【{name}{cnt}】定价 {price} 金币！{tip}\n",
+    "params": [
+      "map",
+      "name",
+      "cnt",
+      "price",
+      "tip"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_sell（B 批 C 档）"
+  },
+  "stall.sell_ok": {
+    "value": "📦 已上架【{name}】，定价 {price} 金币！\n『市场』查看，『下架 <编号>』撤回",
+    "params": [
+      "name",
+      "price"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_sell（B 批 C 档）"
+  },
+  "stall.sell_tail": {
+    "value": "『收摊』收摊，『摊位』看看本地谁在摆摊",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_sell（B 批 C 档）"
+  },
+  "stall.unsell_fmt": {
+    "value": "格式：下架 <编号>，『市场』查看编号",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_unsell（B 批 C 档）"
+  },
+  "stall.unsell_gone": {
+    "value": "没有这个上架物品！",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_unsell_pick（B 批 C 档）"
+  },
+  "stall.unsell_notmine": {
+    "value": "只能下架自己的物品！",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:market_unsell_pick（B 批 C 档）"
+  },
+  "stall.unsell_ok": {
+    "value": "↩️ 已下架【{name}】，物品退回背包",
+    "params": [
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:market_unsell（B 批 C 档）"
+  },
+  "stall.view_none": {
+    "value": "此地没有摊位。『摆摊 <物品> [价格]』支起你的小摊(不带价格 = 换摊)！",
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_view（B 批 C 档）"
+  },
+  "stall.view_noplayer": {
+    "value": "没找到玩家『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_view（B 批 C 档）"
+  },
+  "stall.view_nostall": {
+    "value": "{name} 没有在摆摊。",
+    "params": [
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/cmds_social.py:stall_view（B 批 C 档）"
+  },
+  "stall.view_row": {
+    "value": "#{id} {name} ｜ {label} ｜ 在 {map}",
+    "params": [
+      "id",
+      "name",
+      "label",
+      "map"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_view_player_lines（B 批 C 档）"
+  },
+  "stall.view_tip_here": {
+    "value": "💡 标 🔄 的是换摊：『换 <编号> <物品名>』当面交换；其他『购入 <编号>』，『摊位 <玩家名>』看指定摊位",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_view_here_lines（B 批 C 档）"
+  },
+  "stall.view_tip_pl": {
+    "value": "💡 标 🔄 的是换摊：『换 <编号> <物品名>』当面交换；其他『购入 <编号>』(需在同一位置)",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_view_player_lines（B 批 C 档）"
+  },
+  "stall.view_title_here": {
+    "value": "🏪 【此地摊位】({map})",
+    "params": [
+      "map"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_view_here_lines（B 批 C 档）"
+  },
+  "stall.view_title_pl": {
+    "value": "🏪 【{name} 的摊位】",
+    "params": [
+      "name"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_view_player_lines（B 批 C 档）"
+  },
   "stat_name.abyss_res": {
     "value": "深渊抗性",
     "category": "属性名",

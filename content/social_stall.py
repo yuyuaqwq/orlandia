@@ -42,6 +42,7 @@ import re
 # ★ B14-2 L6：数据表切包内门面（宿主 `game/data` 删掉后本域仍能活）
 from . import catalog_life as _cl        # HOUSE_LEVELS / ECON_CONFIG
 from . import catalog_space as _cs       # MAP_BY_ID
+from . import texts as _T            # C 档 20a（2026-09-19）：文案表读口（本文件首次接入）
 
 # ============================================================
 # ① 宿主替身口（存储层 / 宿主常量）—— 引擎 wire 形状
@@ -124,10 +125,8 @@ def stall_parse_args(raw: str, is_sell: bool):
     econ = ECON_CONFIG()
     if not raw:
         if is_sell:
-            return None, ("格式：摆卖 <物品名/背包序号> <单价> [数量]\n"
-                          "例：『摆卖 3 500 5』(背包第3件×5个，单价500)｜『摆卖 铁剑 500』")
-        return None, ("格式：摆换 <物品名/背包序号> [数量]\n"
-                      "例：『摆换 3 5』(背包第3件拿5个出来换)｜『摆换 铁剑』(换1件)")
+            return None, (_T.static("stall.fmt_sell"))
+        return None, (_T.static("stall.fmt_pawn"))
     parts = re.split(r"[\s*]+", raw)
     item_name = parts[0]
     rest = parts[1:]
@@ -136,8 +135,8 @@ def stall_parse_args(raw: str, is_sell: bool):
         num_tokens = [t for t in rest if t.isdigit()]
         if not num_tokens:
             if is_sell:
-                return None, "价格要用数字！例『摆卖 铁剑 500』『摆卖 3 500 5』"
-            return None, "数量要用数字！例『摆换 3 5』"
+                return None, _T.static("stall.err_price_nan")
+            return None, _T.static("stall.err_count_nan")
         if is_sell:
             price = int(num_tokens[0])
             count = int(num_tokens[1]) if len(num_tokens) >= 2 else 1
@@ -145,11 +144,11 @@ def stall_parse_args(raw: str, is_sell: bool):
             count = int(num_tokens[0])
         if price > 0:
             if price < econ["market_min_price"]:
-                return None, "价格至少 1 金币！"
+                return None, _T.static("stall.err_price_min")
             if price > econ["market_price_cap"]:
-                return None, f"价格太高啦！摆摊价最多 {econ['market_price_cap']} 金币～"
+                return None, _T.text("stall.err_price_cap", cap=econ['market_price_cap'])
         if count < 1 or count > 999:
-            return None, "摆摊数量请填 1~999 之间！"
+            return None, _T.static("stall.err_count_range")
     return item_name, (price, count)
 
 
@@ -159,14 +158,14 @@ def stall_resolve(inv, item_name):
     if item_name.isdigit():
         idx = int(item_name)
         if idx < 1 or idx > len(inv):
-            return None, f"背包里没有第 {idx} 件物品（共 {len(inv)} 件）！『背包』查看序号～"
+            return None, _T.text("stall.no_index", idx=idx, n=len(inv))
         return inv[idx - 1], None
     # 按名：精确名优先，同名多件列出让玩家选（对齐『出售』）
     exact = [it for it in inv if it["data"].get("name") == item_name]
     if len(exact) == 1:
         return exact[0], None
     if len(exact) > 1:
-        flines = [f"❓ 找到 {len(exact)} 件同名『{item_name}』，用背包序号指定摆哪件（『摆卖 <序号> <价>』/『摆换 <序号>』）："]
+        flines = [_T.text("stall.same_name", n=len(exact), name=item_name)]
         for i, it in enumerate(exact, 1):
             fd = it["data"]
             _q = quality[fd["quality"]] if fd.get("quality") and fd.get("slot") else None
@@ -177,14 +176,14 @@ def stall_resolve(inv, item_name):
     if len(fuzzy) == 1:
         return fuzzy[0], None
     if len(fuzzy) > 1:
-        flines = [f"❓ 找到 {len(fuzzy)} 件名字含『{item_name}』的物品，用全名或背包序号指定："]
+        flines = [_T.text("stall.fuzzy_name", n=len(fuzzy), name=item_name)]
         for i, it in enumerate(fuzzy, 1):
             fd = it["data"]
             _q = quality[fd["quality"]] if fd.get("quality") and fd.get("slot") else None
             fname_s = f"{_q['color']}【{fd['name']}】" if _q else fd["name"]
             flines.append(f"  {i}. {fname_s} ×{it['count']}")
         return None, "\n".join(flines)
-    return None, f"背包里没有『{item_name}』！『背包』查看～"
+    return None, _T.text("stall.no_item", name=item_name)
 
 
 def stall_place(group_id, qq_id, player, item_name, price, count):
@@ -198,11 +197,11 @@ def stall_place(group_id, qq_id, player, item_name, price, count):
     if not found:
         return False, err
     if count > (found["count"] or 1):
-        return False, f"『{found['data'].get('name','?')}』你只有 {found['count']} 个，摆不了 {count} 个！"
+        return False, _T.text("stall.not_enough", name=found['data'].get('name','?'), have=found['count'], want=count)
     cur_map = player.get("cur_map", "")
     map_obj = maps.get(cur_map, {})
     if not map_obj and not cur_map.startswith("home_"):
-        return False, "这里没法摆摊……换个地方试试。"
+        return False, _T.static("stall.no_map")
     if cur_map.startswith("home_"):
         map_name = "家里"
     else:
@@ -214,14 +213,14 @@ def stall_place(group_id, qq_id, player, item_name, price, count):
         hl = house_levels.get(dlv, house_levels[1])
         slots = hl.get("stall_slots", 0)
         if slots <= 0:
-            return False, "🏠 木屋没有铺面挂机位！『地契 升级』到石屋解锁 1 个挂机位～"
+            return False, _T.static("stall.home_no_slot")
         if len(old) >= slots:
-            return False, f"🏪 铺面挂机位已满({len(old)}/{slots})！先『收摊』腾位置，或升级房屋获得更多挂机位～"
+            return False, _T.text("stall.home_full", n=len(old), slots=slots)
     _old_items = [] if _home_stall else [s for s in old]
     db.market_stall_sell_atomic(
         group_id, qq_id, found["key"], found["data"], price, cur_map, _old_items, count=count
     )
-    tip = f"(旧摊位已收摊，{len(old)} 件物品退回背包)" if (old and not _home_stall) else ""
+    tip = _T.text("stall.old_closed", n=len(old)) if (old and not _home_stall) else ""
     item_nm = found["data"].get("name", "?")
     cnt_s = f" ×{count}" if count > 1 else ""
     return True, (item_nm, cnt_s, map_name, tip)
@@ -242,38 +241,39 @@ def market_view_lines(items, page_items, page, pages, seller_lookup, seller_grou
 
     真源逐字：行首编号直接用 DB id（与『购入 <编号>』『下架 <编号>』解析同基准）。
     """
-    lines = [f"🏪 【群友市场】(第 {page}/{pages} 页 · 共 {len(items)} 件)", "━━━━━━━━━━━━"]
+    lines = [_T.text("stall.mkt_title", page=page, pages=pages, n=len(items)), "━━━━━━━━━━━━"]
     for it in page_items:
         seller = seller_lookup(seller_group_id, it["seller"])
         sname = seller["name"] if seller else it["seller"]
         d = it["item_data"]
-        lines.append(f"#{it['id']} {d.get('name','?')} ｜ {it['price']} 金币 ｜ 卖家 {sname}")
+        lines.append(_T.text("stall.mkt_row", id=it['id'], name=d.get('name','?'), price=it['price'], seller=sname))
     lines.append("")
     if pages > 1 and page < pages:
-        lines.append(f"💡 『市场 {page+1}』看下一页(共 {pages} 页)")
+        lines.append(_T.text("stall.mkt_next", page=page+1, pages=pages))
     return lines
 
 
 def stall_view_player_lines(target, stalls):
     """『摊位 <玩家名>』面板行（真源 `social.py:364-368`）。"""
     maps = MAP_BY_ID()
-    lines = [f"🏪 【{target['name']} 的摊位】", "━━━━━━━━━━━━"]
+    lines = [_T.text("stall.view_title_pl", name=target['name']), "━━━━━━━━━━━━"]
     for s in stalls:
         map_name = maps.get(s.get("map_id", ""), {}).get("name", "？")
-        lines.append(f"#{s['id']} {s['item_data'].get('name','?')} ｜ {stall_label(s)} ｜ 在 {map_name}")
-    lines.append("💡 标 🔄 的是换摊：『换 <编号> <物品名>』当面交换；其他『购入 <编号>』(需在同一位置)")
+        lines.append(_T.text("stall.view_row", id=s['id'], name=s['item_data'].get('name','?'), label=stall_label(s),
+                         map=map_name))
+    lines.append(_T.static("stall.view_tip_pl"))
     return lines
 
 
 def stall_view_here_lines(cur_map, stalls, player_lookup, group_id):
     """『摊位』（无参）本地摊位面板行（真源 `social.py:377-382`）。"""
     maps = MAP_BY_ID()
-    lines = [f"🏪 【此地摊位】({maps.get(cur_map, {}).get('name', '这里')})", "━━━━━━━━━━━━"]
+    lines = [_T.text("stall.view_title_here", map=maps.get(cur_map, {}).get('name', '这里')), "━━━━━━━━━━━━"]
     for s in stalls:
         seller = player_lookup(group_id, s["seller"])
         sname = seller["name"] if seller else s["seller"]
         lines.append(f"#{s['id']} {s['item_data'].get('name','?')} ｜ {stall_label(s)} ｜ {sname}")
-    lines.append("💡 标 🔄 的是换摊：『换 <编号> <物品名>』当面交换；其他『购入 <编号>』，『摊位 <玩家名>』看指定摊位")
+    lines.append(_T.static("stall.view_tip_here"))
     return lines
 
 
@@ -285,9 +285,9 @@ def market_unsell_pick(items, mid, qq_id):
     """下架目标选取 + 所有权守卫。返回 (ok, 条目, err)（真源 `social.py:106-113` 逐字）。"""
     it = next((x for x in items if x["id"] == mid), None)
     if not it:
-        return False, None, "没有这个上架物品！"
+        return False, None, _T.static("stall.unsell_gone")
     if str(it["seller"]) != str(qq_id):
-        return False, None, "只能下架自己的物品！"
+        return False, None, _T.static("stall.unsell_notmine")
     return True, it, None
 
 
@@ -300,7 +300,7 @@ def market_sell_place(group_id, qq_id, item_name, price):
             found = (it["key"], it["data"])
             break
     if not found:
-        return False, item_name, f"背包里没有『{item_name}』！『背包』查看～"
+        return False, item_name, _T.text("stall.no_item", name=item_name)
     item_key, data = found
     # v116 审计修复 H0-A2：原 market_add + remove_item 两次独立调用，崩溃会致
     # 物品复制/少货得金。改走 store.social.market_sell_atomic 单事务原子上架。
@@ -311,7 +311,7 @@ def market_sell_place(group_id, qq_id, item_name, price):
     if _store_social is None:
         from .persistence import social as _store_social   # 包内直取（调用时取件，与旧口径同时机）
     if not _store_social.market_sell_atomic(group_id, qq_id, item_key, data, price):
-        return False, item_name, f"背包里没有『{item_name}』！『背包』查看～"
+        return False, item_name, _T.text("stall.no_item", name=item_name)
     return True, data["name"], None
 
 
@@ -322,21 +322,19 @@ def stall_exchange_check(it, player, qq_id, group_id, give_name):
     """
     maps = MAP_BY_ID()
     if not it.get("map_id"):
-        return False, None, "这是群市场寄售，不参与交换——用『购入 <编号>』金币购买～"
+        return False, None, _T.static("stall.ex_consign")
     # 当面交换：双方必须同地图
     if player.get("cur_map", "") != it["map_id"]:
         map_name = maps.get(it["map_id"], {}).get("name", "那里")
-        return False, None, (f"这是【{it['item_data'].get('name','?')}】的换摊，需要到『{map_name}』"
-                             f"当面交换～")
+        return False, None, (_T.text("stall.ex_far", name=it['item_data'].get('name','?'), map=map_name))
     if str(it["seller"]) == str(qq_id):
-        return False, None, "不能和自己交换！"
+        return False, None, _T.static("stall.ex_self")
     if (it.get("price") or 0) > 0:
-        return False, None, (f"【{it['item_data'].get('name','?')}】是出售中的({it['price']} 金币)，"
-                             f"用『购入 {it['id']}』购买～")
+        return False, None, (_T.text("stall.ex_onsale", name=it['item_data'].get('name','?'), price=it['price'], id=it['id']))
     inv = db.get_inventory(group_id, qq_id)
     give = next((x for x in inv if x["data"].get("name") == give_name), None)
     if not give:
-        return False, None, f"背包里没有『{give_name}』！『背包』查看～"
+        return False, None, _T.text("stall.no_item", name=give_name)
     return True, give, None
 
 
@@ -348,16 +346,14 @@ def market_buy_check(it, player, qq_id):
     """
     maps = MAP_BY_ID()
     if str(it["seller"]) == str(qq_id):
-        return False, "不能买自己的物品！"
+        return False, _T.static("stall.buy_self")
     if (it.get("price") or 0) <= 0:
-        return False, (f"【{it['item_data'].get('name','?')}】是换摊(只换不卖)——"
-                       f"用『换 {it['id']} <物品名>』提出交换！")
+        return False, (_T.text("stall.buy_pawn", name=it['item_data'].get('name','?'), id=it['id']))
     # v66：摊位货必须当面买（摆摊在当前位置，需要同地图）
     if it.get("map_id"):
         if player.get("cur_map") != it["map_id"]:
             map_name = maps.get(it["map_id"], {}).get("name", "那里")
-            return False, (f"这是【{it['item_data'].get('name','?')}】的摊位货，需要到『{map_name}』"
-                           f"当面购入～(『摊位』看看谁在摆摊)")
+            return False, (_T.text("stall.buy_far", name=it['item_data'].get('name','?'), map=map_name))
     if player["gold"] < it["price"]:
-        return False, f"金币不足！需要 {it['price']} 金币。"
+        return False, _T.text("stall.buy_no_gold", price=it['price'])
     return True, None
