@@ -798,11 +798,11 @@ class EconomyImpl(CommandBase):
             return
         cur_map = _cspace.MAP_BY_ID.get(player["cur_map"], {})
         if cur_map.get("type") == _ccore.MAP_TYPE_TOWN:
-            yield event.plain_result("城镇里没有可采集的野生物资，去野外吧（『前往 <地图名>』）！")
+            yield event.plain_result(_T.static("prof.gather_town"))
             return
         # v104 R3 M14 P1-2：副本内采集白嫖强化石/怪物专属材料（副本怪掉落专属材料应走战斗获取）
         if cur_map.get("type") == _ccore.MAP_TYPE_INSTANCE:
-            yield event.plain_result("副本里没有可采集的野生物资，专心闯关吧！（怪物会掉落专属材料）")
+            yield event.plain_result(_T.static("prof.gather_inst"))
             return
         # v173 采集副业等级门禁：采集图按池最高料价分档（采集 Lv.1→9），
         # 等级不足不能跨级白嫖高等级图稀有料（鱼鱼 2026-09 拍板：按副业等级卡、分阶段，
@@ -815,15 +815,14 @@ class EconomyImpl(CommandBase):
             text, _ok = self._prof_wait_flow(
                 event, group_id, qq_id, "gather",
                 extra={"spot_map": player["cur_map"]},
-                begin_text=f"🌿 你俯身开始采集【{cur_map.get('name', '？')}】的野生物资……预计 ",
+                begin_text=_T.text("prof.gather_begin", map_name=cur_map.get('name', '？')),
             )
             if _ok:
                 # flow 已挂新轮引擎 → 清掉（防到点自动结算绕过门禁）
                 self._prof_wait_clear(group_id, qq_id)
                 if text:
                     yield event.plain_result(act_msg + text + "\n" +
-                        f"🌿 但【{cur_map.get('name')}】的植物太珍稀（需采集 Lv.{_need_gather}，你 Lv.{_gather_lv}）——"
-                        "先在低等级区域练练采集吧！")
+                        _T.text("prof.gather_lv", map_name=cur_map.get('name'), need=_need_gather, lv=_gather_lv))
                     return
                 yield event.plain_result(act_msg + text)
                 return
@@ -836,7 +835,7 @@ class EconomyImpl(CommandBase):
             event, group_id, qq_id, "gather",
             # v105R3 M13 P2-4：extra 带 spot_map，重启后旧等待按原地图结算（防串到当前地图采集池）
             extra={"spot_map": player["cur_map"]},
-            begin_text=f"🌿 你俯身开始采集【{cur_map.get('name', '？')}】的野生物资……预计 ",
+            begin_text=_T.text("prof.gather_begin", map_name=cur_map.get('name', '？')),
         )
         if not _ok:
             yield event.plain_result(act_msg + text)
@@ -863,12 +862,12 @@ class EconomyImpl(CommandBase):
         cur_map = _cspace.MAP_BY_ID.get(player["cur_map"], {})
         # v104 R3 M14 P2-3：城镇安全区拦挖掘（与采集规则一致，防城镇无风险挖高价值矿）
         if cur_map.get("type") == _ccore.MAP_TYPE_TOWN:
-            yield event.plain_result("城镇里没有矿脉，去野外矿点吧（『前往 <地图名>』）！")
+            yield event.plain_result(_T.static("prof.mining_town"))
             return
         # 矿脉点（v13：明确配置，地图上显示⛏️；v173 dict 化含 min_lv）
         _mine = _clife.MINE_SPOTS.get(cur_map.get("id"))
         if not _mine:
-            yield event.plain_result("这里没有矿脉！地图上会显示⛏️矿脉的位置，去那边『挖掘』吧～")
+            yield event.plain_result(_T.static("prof.mining_nomine"))
             return
         # v173 挖掘副业等级门禁：矿脉分阶段（挖掘 Lv.1→9），等级不足不能挖高级矿脉
         # （对齐垂钓钓点 min_lv 模型 + 19 章"挖掘等级解锁更高品质矿脉"）
@@ -876,8 +875,9 @@ class EconomyImpl(CommandBase):
         _prof_lv = db.get_prof_level(group_id, qq_id, "mining")
         if _prof_lv < _need:
             yield event.plain_result(
-                f"⛏️ 【{_mine.get('name', '矿脉') if isinstance(_mine, dict) else _mine}】需要挖掘 Lv.{_need}，"
-                f"你才 Lv.{_prof_lv}——先在低阶矿脉练练手吧！"
+                _T.text("prof.mining_lv",
+                    mine_name=_mine.get('name', '矿脉') if isinstance(_mine, dict) else _mine,
+                    need=_need, lv=_prof_lv)
             )
             return
         # v55 等待制（原 90 秒 CD 改为随机等待，自动入包，等级减时）
@@ -886,7 +886,7 @@ class EconomyImpl(CommandBase):
         text, _ok = self._prof_wait_flow(
             event, group_id, qq_id, "mining",
             extra={"spot_map": player["cur_map"]},
-            begin_text=f"⛏️ 你举起镐子凿向【{cur_map.get('name', '？')}】的矿脉……预计 ",
+            begin_text=_T.text("prof.mining_begin", map_name=cur_map.get('name', '？')),
         )
         if not _ok:
             yield event.plain_result(act_msg + text)
@@ -904,8 +904,7 @@ class EconomyImpl(CommandBase):
         # 重复指令不误计、体力不足回滚轮次不计数）才 tick，连续 5 次进入疲劳。
         _fc, _ff = self._mining_fatigue_tick(group_id, qq_id)
         if _ff:
-            text += ("\n💤 连续挖掘让你手臂发酸……疲劳时稀有矿脉更难挖到了，"
-                     "休息 10 分钟（不挖掘）或吃点食物恢复吧！")
+            text += (_T.static("prof.mining_fatigue"))
         yield event.plain_result(act_msg + text)
 
     @declared("alchemy")
@@ -926,7 +925,7 @@ class EconomyImpl(CommandBase):
                 if (r.get("purify") is True) == purify_only]
         recs.sort(key=lambda x: x[1].get("min_lv", 1))
         page_items, pages, page = self._page_items(recs, page, per_page=5)
-        title = "🧪 【炼金工坊·提纯】(3 份低档 → 1 份高档)材料提纯配方：" if purify_only else f"🧪 【炼金工坊】(炼金 Lv.{prof_lv})材料合成配方："
+        title = _T.static("alchemy.pure_head") if purify_only else _T.text("alchemy.list_head", lv=prof_lv)
         lines = [title, "━━━━━━━━━━━━"]
         base = (page - 1) * 5
         for i, (rname, r) in enumerate(page_items, 1):
@@ -939,14 +938,15 @@ class EconomyImpl(CommandBase):
             mark = "✅" if prof_lv >= need else "🔒"
             # v124 图纸学习制：带 blueprint 的配方未学习时标注（合成时拦截）
             if r.get("blueprint") and r["blueprint"] not in (player.get("learned_blueprints") or []):
-                mark += " 📜未学"
-            lines.append(f"{base + i:>2}. {mark} {C.display('alchemy', rname)}：{cost} → {pname2}  [炼金Lv.{need}]")
+                mark += _T.static("prof.not_learned")
+            lines.append(_T.text("alchemy.recipe_row", idx=base + i, mark=mark, name=C.display('alchemy', rname),
+                             mats=cost, out=pname2, lv=need))
             lines.append(f"    {r['desc']}")
         lines.append("━━━━━━━━━━━━")
         nxt = ""
         if page < pages:
-            nxt = f"｜『炼金 提纯 {page + 1}』下一页" if purify_only else f"｜『炼金 {page + 1}』下一页"
-        lines.append(f"📄 第 {page}/{pages} 页{nxt}")
+            nxt = _T.text("alchemy.next_pure", page=page + 1) if purify_only else _T.text("alchemy.next_page", page=page + 1)
+        lines.append(_T.text("alchemy.page_no", page=page, total=pages, next=nxt))
         self._record_list_state(qq_id, "炼金 提纯" if purify_only else "炼金", page, pages)
         lines.append(self._tip("alchemy"))
         yield event.plain_result("\n".join(lines))
@@ -963,7 +963,7 @@ class EconomyImpl(CommandBase):
             return
         rname = self._strip_cmd(event, "合成").strip()
         if not rname:
-            yield event.plain_result("格式：合成 <配方名>！『炼金』查看全部配方～")
+            yield event.plain_result(_T.static("alchemy.usage"))
             return
         # v130.7 意见#30：『合成 <序号>』= 『炼金』面板第 N 个配方（取数列表与面板同源：非提纯 + min_lv 排序）
         if rname.isdigit():
@@ -971,21 +971,21 @@ class EconomyImpl(CommandBase):
             _recs = [(k, r) for k, r in _clife.ALCHEMY_RECIPES.items() if r.get("purify") is not True]
             _recs.sort(key=lambda x: x[1].get("min_lv", 1))
             if idx < 1 or idx > len(_recs):
-                yield event.plain_result(f"没有第 {idx} 个炼金配方(共 {len(_recs)} 个)！『炼金』查看～")
+                yield event.plain_result(_T.text("alchemy.no_recipe_idx", idx=idx, total=len(_recs)))
                 return
             rname = _recs[idx - 1][0]
         # v48：配方 key 已是 ID，用户输入中文名需 resolve
         rkey = C.resolve("alchemy", rname)
         r = _clife.ALCHEMY_RECIPES.get(rkey)
         if not r:
-            yield event.plain_result(f"没有『{rname}』这个配方！『炼金』查看全部～")
+            yield event.plain_result(_T.text("alchemy.no_recipe", name=rname))
             return
         # v54 副业等级限制
         prof_lv = db.get_prof_level(group_id, qq_id, "alchemy")
         need = r.get("min_lv", 1)
         if prof_lv < need:
             yield event.plain_result(
-                f"【{C.display('alchemy', rkey)}】需要炼金 Lv.{need}，你才 Lv.{prof_lv}！多合成低级配方升级炼金吧～"
+                _T.text("alchemy.lv_short", name=C.display('alchemy', rkey), need=need, lv=prof_lv)
             )
             return
         # v124 图纸学习制：带 blueprint 的炼金配方需先『学习』（与锻造一致）
@@ -995,11 +995,11 @@ class EconomyImpl(CommandBase):
                 have_bp = db.count_item(group_id, qq_id, bp_name)
                 if have_bp >= 1:
                     yield event.plain_result(
-                        f"你背包里有『{bp_name}』！输入『学习 {bp_name}』解锁配方后就能永久合成了～"
+                        _T.text("alchemy.have_blueprint", name=bp_name, item=bp_name)
                     )
                 else:
                     yield event.plain_result(
-                        f"【{C.display('alchemy', rkey)}】需要先学习配方『{bp_name}』(支线奖励获取)！『学习 <图纸名>』永久解锁。"
+                        _T.text("alchemy.need_recipe", name=C.display('alchemy', rkey), recipe=bp_name)
                     )
                 return
         items = db.get_inventory(group_id, qq_id)
@@ -1010,7 +1010,7 @@ class EconomyImpl(CommandBase):
             mname = C.display("materials", mat)
             have = sum(it["count"] for it in items if it["data"].get("name") == mname)
             if have < cnt:
-                yield event.plain_result(f"材料不足！需要 {mname}×{cnt}(你有 {have})")
+                yield event.plain_result(_T.text("alchemy.mat_short", need=mname, qty=cnt, have=have))
                 return
         # v94 体力：炼金合成消耗 10 体力（材料校验通过后才扣）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["alchemy"], player, "炼金")
@@ -1040,7 +1040,7 @@ class EconomyImpl(CommandBase):
                 # v125.2 B3：产物价格兜底读 prof_config.RARE_MATERIAL_PRICE（原字面量 150，行为等价）
                 _mprice = _cit.MATERIALS.get(pkey, {}).get("price", _clife.RARE_MATERIAL_PRICE)
                 db.add_item(group_id, qq_id, pkey, {"name": mname, "type": _cit.MATERIALS.get(pkey, {}).get("type", "材料"), "stackable": True, "price": _mprice if _cc_price_floor is None or _mprice <= _cc_price_floor else _cc_price_floor, "craft_cost": _cc})
-                lines.append(f"  🎒 获得材料：{mname} ×{pcnt}")
+                lines.append(_T.text("alchemy.gain_mat", name=mname, n=pcnt))
             else:
                 itdef = _cit.ITEMS.get(pkey, {})
                 _iprice = itdef.get("price", 100)
@@ -1052,12 +1052,12 @@ class EconomyImpl(CommandBase):
                                                     "price": _iprice, "craft_cost": _cc,
                                                     **{k: v for k, v in itdef.items() if k not in ("name", "price")}},
                                count=pcnt)
-                lines.append(f"  🎒 获得：{itdef.get('name', pkey)} ×{pcnt}")
+                lines.append(_T.text("alchemy.gain_item", name=itdef.get('name', pkey), n=pcnt))
         # 副业经验（炼金成功 +1）
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "alchemy", 1)
         lv_msg = ""
         if leveled:
-            lv_msg = f"\n🌟 炼金等级提升到 Lv.{new_lv}！"
+            lv_msg = _T.text("alchemy.lv_up", lv=new_lv)
         # 每日任务推进
         _done, _msg = self._daily_prof_bump(group_id, qq_id, "alchemy")
         lv_msg += _msg
@@ -1071,9 +1071,9 @@ class EconomyImpl(CommandBase):
         if r.get("purify"):
             _cost_txt = " + ".join(f"{C.display('materials', cm)}×{cc}" for cm, cc in r["cost"].items())
             _prod_txt = " + ".join(f"{C.display('materials', pm)}×{pc}" for pm, pc in r["product"].items())
-            success_head = f"🧪 提纯成功！{_cost_txt} → {_prod_txt}【{C.display('alchemy', rkey)}】"
+            success_head = _T.text("alchemy.pure_ok", src=_cost_txt, dst=_prod_txt, item=C.display('alchemy', rkey))
         else:
-            success_head = f"🧪 【炼金成功】合成了【{C.display('alchemy', rkey)}】！"
+            success_head = _T.text("alchemy.craft_ok", name=C.display('alchemy', rkey))
         yield event.plain_result(act_msg + success_head + "\n" + "\n".join(lines) + lv_msg
                                  + (f"\n{_rule_txt}" if _rule_txt else ""))
 
@@ -1089,25 +1089,25 @@ class EconomyImpl(CommandBase):
         page = int(raw) if raw.isdigit() else 1
         recs = list(_clife.COOKING_RECIPES.items())
         page_items, pages, page = self._page_items(recs, page, per_page=5)
-        lines = ["🍳 【烹饪灶台】料理配方：", "━━━━━━━━━━━━"]
+        lines = [_T.static("cooking.list_head"), "━━━━━━━━━━━━"]
         base = (page - 1) * 5
         for i, (rkey, r) in enumerate(page_items, 1):
             lock = "" if cook_lv >= r["min_lv"] else " 🔒"
             # v124 图纸学习制：带 blueprint 的食谱未学习时标注（烹饪时拦截）
             if r.get("blueprint") and r["blueprint"] not in (player.get("learned_blueprints") or []):
-                lock += " 📜未学"
+                lock += _T.static("prof.not_learned")
             def _mname(k):
                 # v105R3 M16 P3-1：全部 cost 已 mat_ ID 化（v48），fish 分支死——
                 # 改 items 兜底（i_ 前缀材料如强化石也能正确显示）
                 return C.display("materials", k) if k.startswith("mat_") else C.display("items", k)
             cost = " + ".join(f"{_mname(m)}×{c}" for m, c in r["cost"].items())
-            lines.append(f"{base + i:>2}. {r['name']}(烹饪Lv.{r['min_lv']}){lock}")
+            lines.append(_T.text("cooking.recipe_row", idx=base + i, name=r['name'], lv=r['min_lv'], lock=lock))
             lines.append(f"    {cost} → {C.display('items', next(iter(r['product'])))}")
         lines.append("")
-        lines.append(f"📄 第 {page}/{pages} 页" + (f"｜『烹饪列表 {page + 1}』下一页" if page < pages else ""))
+        lines.append(_T.text("common.page_no", page=page, total=pages) + (_T.text("cooking.next_page", page=page + 1) if page < pages else ""))
         self._record_list_state(qq_id, "烹饪列表", page, pages)
         lines.append(self._tip("cooking"))
-        lines.append("💡 烹饪等级：采集植物 + 垂钓 → 料理，成功制作＋1 经验")
+        lines.append(_T.static("cooking.tip_exp"))
         yield event.plain_result("\n".join(lines))
 
     @declared("cooking")
@@ -1122,14 +1122,14 @@ class EconomyImpl(CommandBase):
             return
         raw = self._strip_cmd(event, "烹饪").strip()
         if not raw or raw == "列表":
-            yield event.plain_result("发『烹饪列表』查看全部料理配方～(如：烹饪 蛇羹)")
+            yield event.plain_result(_T.static("cooking.usage"))
             return
         # v130.7 意见#30：『烹饪 <序号>』= 『烹饪列表』面板第 N 道料理（取数列表与面板同源：COOKING_RECIPES 插入序）
         if raw.isdigit():
             idx = int(raw)
             _recs = list(_clife.COOKING_RECIPES.items())
             if idx < 1 or idx > len(_recs):
-                yield event.plain_result(f"没有第 {idx} 道料理(共 {len(_recs)} 道)！『烹饪列表』查看～")
+                yield event.plain_result(_T.text("cooking.no_dish_idx", idx=idx, total=len(_recs)))
                 return
             raw = _recs[idx - 1][0]
         rkey = C.resolve("cooking", raw)
@@ -1142,13 +1142,13 @@ class EconomyImpl(CommandBase):
                 if rec.get("name") == raw + "(自制)" or rec.get("name", "").startswith(raw + "(")))
             if full:
                 yield event.plain_result(
-                    f"没有『{raw}』这道料理！你是不是想烹饪『{full[0]}』？发『烹饪 {full[0]}』试试～")
+                    _T.text("cooking.suggest", name=raw, near=full[0], cmd=full[0]))
             else:
-                yield event.plain_result(f"没有『{raw}』这道料理！『烹饪列表』查看全部～")
+                yield event.plain_result(_T.text("cooking.no_dish", name=raw))
             return
         cook_lv = db.get_prof_level(group_id, qq_id, "cooking")
         if cook_lv < r["min_lv"]:
-            yield event.plain_result(f"【{r['name']}】需要烹饪 Lv.{r['min_lv']}，你才 Lv.{cook_lv}。多做简单料理提升吧！")
+            yield event.plain_result(_T.text("cooking.lv_short", name=r['name'], need=r['min_lv'], lv=cook_lv))
             return
         # v124 图纸学习制：带 blueprint 的食谱需先『学习』（与锻造一致）
         if r.get("blueprint"):
@@ -1157,11 +1157,11 @@ class EconomyImpl(CommandBase):
                 have_bp = db.count_item(group_id, qq_id, bp_name)
                 if have_bp >= 1:
                     yield event.plain_result(
-                        f"你背包里有『{bp_name}』！输入『学习 {bp_name}』解锁食谱后就能永久烹饪了～"
+                        _T.text("cooking.have_recipe", name=bp_name, item=bp_name)
                     )
                 else:
                     yield event.plain_result(
-                        f"【{r['name']}】需要先学习食谱『{bp_name}』(支线奖励获取)！『学习 <图纸名>』永久解锁。"
+                        _T.text("cooking.need_recipe", name=r['name'], recipe=bp_name)
                     )
                 return
         # 检查材料（v48 起全部 cost 已是 mat_/i_ ID，无 fish_ 中文 key）
@@ -1172,9 +1172,9 @@ class EconomyImpl(CommandBase):
             have = db.count_item(group_id, qq_id, m)
             if have < cnt:
                 mname = C.display("materials", m) if m.startswith("mat_") else C.display("items", m)
-                lack.append(f"{mname}×{cnt}(你有{have})")
+                lack.append(_T.text("cooking.lack_detail", item=mname, qty=cnt, have=have))
         if lack:
-            yield event.plain_result(f"食材不足！做【{r['name']}】还缺：{'、'.join(lack)}。垂钓/采集收集食材～")
+            yield event.plain_result(_T.text("cooking.mat_short", name=r['name'], lack='、'.join(lack)))
             return
         # v101.30 体力：烹饪消耗 5 体力（食材校验通过后才扣；制造副业半价，亲民入口）
         _ok, _st = self._spend_stamina(group_id, qq_id, _clife.PROF_STAMINA_COST["cooking"], player, "烹饪")
@@ -1215,7 +1215,7 @@ class EconomyImpl(CommandBase):
                 # 防御分支（正常不可达：上方 count_item 已校验总量）：回滚已扣，整次失败
                 for rkey, rdata, rcnt in deducted:
                     db.add_item(group_id, qq_id, rkey, rdata, count=rcnt)
-                yield event.plain_result(f"食材不足！做【{r['name']}】还缺：{mname}×{remain}，已回滚扣除。垂钓/采集收集食材～")
+                yield event.plain_result(_T.text("cooking.mat_short_rollback", name=r['name'], item=mname, n=remain))
                 return
         # 发料理（读 ITEMS 定义；v101.28i 修复：必须带全效果字段 food_effect/hot/hot_turns/hot_mana，
         # 否则烹饪出的词条料理在战斗里没有特殊效果）
@@ -1245,14 +1245,14 @@ class EconomyImpl(CommandBase):
                     _item_kwargs[_fk] = round(_item_kwargs[_fk] * 1.5, 3)
             # v105R3 M16 P3-4：完美料理 desc 追加 ×1.5 标注——播报与背包详情
             # 不再显示未增强旧数值误导（效果字段已 ×1.5，desc 原文数值脱节）
-            _item_kwargs["desc"] = itdef.get("desc", "") + "（完美料理：上述效果 ×1.5）"
-            _perfect_line = " ✨完美料理！效果提升 50%！"
+            _item_kwargs["desc"] = itdef.get("desc", "") + _T.static("cooking.perfect_note")
+            _perfect_line = _T.static("cooking.perfect_msg")
         db.add_item(group_id, qq_id, pkey, {"name": itdef.get("name", pkey), "type": "消耗品", "stackable": True, "price": _iprice, "craft_cost": _cc, **_item_kwargs})
         # 副业经验
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "cooking", 1)
         lv_msg = ""
         if leveled:
-            lv_msg = f"\n🌟 烹饪等级提升到 Lv.{new_lv}！"
+            lv_msg = _T.text("cooking.lv_up", lv=new_lv)
         # 每日任务推进
         _done, _msg = self._daily_prof_bump(group_id, qq_id, "cooking")
         lv_msg += _msg
@@ -1262,8 +1262,8 @@ class EconomyImpl(CommandBase):
         # v97.5 行为彩蛋规则：烹饪成功后
         _rule_txt = self._rule_fire("craft_done", group_id, qq_id, player,
                                     _cspace.MAP_BY_ID.get(player["cur_map"], {}))
-        yield event.plain_result(act_msg + f"🍳 灶火升腾，香气四溢……\n"
-            f"✅ 烹饪成功！【{itdef.get('name', pkey)}】({_item_kwargs.get('desc', '')})已放入背包！{_perfect_line}{lv_msg}"
+        yield event.plain_result(act_msg + _T.text("cooking.craft_ok", name=itdef.get('name', pkey), eat=_item_kwargs.get('desc', ''),
+                                               desc=_perfect_line, tail=lv_msg)
             + (f"\n{_rule_txt}" if _rule_txt else "")
         )
 
@@ -1458,7 +1458,7 @@ class EconomyImpl(CommandBase):
             asyncio.get_running_loop()
             pname = (player or {}).get("name") or str(qq_id)
             asyncio.create_task(self._broadcast(
-                f"📢 【传说】玩家 {pname} 在{spot}钓上了【{fname}】！！全服为之震动！"
+                _T.text("prof.fish_legend", name=pname, spot=spot, fish=fname)
             ))
         except Exception:
             pass
@@ -1541,12 +1541,12 @@ class EconomyImpl(CommandBase):
             if key not in (player.get("apprentices") or []):
                 tname, tmap = _clife.PROF_TUTORS.get(key, ("对应导师", "对应城市"))
                 return False, (
-                    f"🔒 副业「{db.PROF_FIELDS.get(key, key)}」还没解锁！\n"
-                    f"先去 {tmap} 找 {tname} 拜师学习吧～(『对话 {tname}』)"
+                    _T.text("prof.locked", prof_name=db.PROF_FIELDS.get(key, key), city=tmap, tutor=tname,
+                        tutor2=tname)
                 )
         db.activate_prof(group_id, qq_id, key)
         new_lst = db.get_activated_profs(group_id, qq_id)
-        return True, f"\n🔓 你选择了「{db.PROF_FIELDS.get(key, key)}」作为副业(当前已激活 {len(new_lst)} 条)！"
+        return True, _T.text("prof.activated", prof_name=db.PROF_FIELDS.get(key, key), n=len(new_lst))
 
     @declared("profession_view")
     @require_player()
@@ -1560,7 +1560,7 @@ class EconomyImpl(CommandBase):
             return
         profs = db.get_professions(group_id, qq_id)
         activated = db.get_activated_profs(group_id, qq_id)
-        lines = [f"🧵 【副业面板】(当前已激活 {len(activated)} 条)", "━━━━━━━━━━━━"]
+        lines = [_T.text("prof.panel_head", n=len(activated)), "━━━━━━━━━━━━"]
         icons = _PROF_ICON               # ★ B 批 B-1 B 档：真源 = 文案表 prof_icon.*
         total = 0
         for key, p in profs.items():
@@ -1572,18 +1572,19 @@ class EconomyImpl(CommandBase):
             total += p["lv"]  # v113.6：总分只计已激活副业（未激活不计分，与排行同口径）
             if p["lv"] >= 10:
                 # v104 P2 修复：满级不画经验条（lv>=10 时 exp 恒 0，旧版显示空条 0/200）
-                lines.append(f"{icons.get(key, '·')} {p['name']}：Lv.{p['lv']} 已满级 ✅")
+                lines.append(_T.text("prof.panel_max", icon=icons.get(key, '·'), name=p['name'], lv=p['lv']))
                 continue
             need = C.prof_exp_need(p["lv"])
             bar_len = min(10, p["exp"] // (need // 10 + 1))
             bar = "█" * bar_len + "░" * (10 - bar_len)
-            lines.append(f"{icons.get(key, '·')} {p['name']}：Lv.{p['lv']}  {bar} {p['exp']}/{need} 经验 ✅")
+            lines.append(_T.text("prof.panel_exp", icon=icons.get(key, '·'), name=p['name'], lv=p['lv'], bar=bar,
+                             cur=p['exp'], cap=need))
         if not activated:
-            lines.append("还没有解锁任何副业！去城里找对应导师拜师学习吧～")
+            lines.append(_T.static("prof.panel_empty"))
         lines.append("")
         # v113.6：副业总分只计已激活副业（与『副业 排行』prof_top 同口径，未激活不计分）——
         # v113.5 曾统一为 8 条之和，但未激活也是 Lv.1 导致人人默认 8 分，鱼鱼拍板不计分
-        lines.append(f"📊 副业总分：{total}(已激活副业等级之和，与『副业 排行』同口径)")
+        lines.append(_T.text("prof.panel_total", total=total))
         # v130.7 意见#14：3 条固定 💡（2条上限+遗忘/拜师解锁/稀有采集兔蛋）已收敛进 tips.py
         # profession 随机池（含新条目共 12 条），面板只留 1 条随机提示（v130.5 意见#8 同标准）
         lines.append(self._tip("profession"))
@@ -1596,7 +1597,7 @@ class EconomyImpl(CommandBase):
         player = self._player(group_id, qq_id)
         raw = self._strip_cmd(event, "遗忘副业").strip()
         if not raw:
-            yield event.plain_result("格式：遗忘副业 <名称>，如『遗忘副业 采集』(等级清零，请慎重！)")
+            yield event.plain_result(_T.static("prof.forget_usage"))
             return
         key = None
         for k, name in db.PROF_FIELDS.items():
@@ -1604,7 +1605,7 @@ class EconomyImpl(CommandBase):
                 key = k
                 break
         if not key:
-            yield event.plain_result(f"没有『{raw}』这个副业！可选：{'、'.join(db.PROF_FIELDS.values())}")
+            yield event.plain_result(_T.text("prof.forget_no_prof", name=raw, options='、'.join(db.PROF_FIELDS.values())))
             return
         # v105R3 M13 P2-9：遗忘前先结算已到期未结算的等待（finish<=now）——
         # 防"等待已到期但推送失败/重启过、遗忘即丢已付体力的产出"；
@@ -1625,26 +1626,26 @@ class EconomyImpl(CommandBase):
                 self._prof_wait_clear(group_id, qq_id)
         old_lv = db.forget_prof(group_id, qq_id, key)
         if old_lv is None:
-            yield event.plain_result(f"{db.PROF_FIELDS[key]} 本来就没激活，不用遗忘～")
+            yield event.plain_result(_T.text("prof.forget_idle", name=db.PROF_FIELDS[key]))
             return
         yield event.plain_result(
-            f"📦 你遗忘了「{db.PROF_FIELDS[key]}」(原 Lv.{old_lv}，已清零)！\n"
-            f"副业随时可以重新拜师学习，放心去探索其他生活职业吧～"
+            _T.text("prof.forget_done", name=db.PROF_FIELDS[key], lv=old_lv)
             + (f"\n{_settle_text}" if _settle_text else "")
         )
 
     def _prof_rank_text(self, group_id):
         tops = db.prof_top(group_id, 10)
         if not tops:
-            return "🏆 【副业排行】\n━━━━━━━━━━━━\n还没有人练副业，快来当第一名！"
-        lines = ["🏆 【副业排行】(总分 = 已激活副业等级之和)", "━━━━━━━━━━━━"]
+            return _T.static("prof.rank_empty")
+        lines = [_T.static("prof.rank_head"), "━━━━━━━━━━━━"]
         names = {}
         for t in tops:
             p = self._player(group_id, t["qq_id"])
             names[t["qq_id"]] = p["name"] if p else t["qq_id"]
         for i, t in enumerate(tops, 1):
             medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, "  ")
-            lines.append(f"{medal} {i:>2}. {names.get(t['qq_id'], t['qq_id'])}：{t['total']} 分")
+            lines.append(_T.text("prof.rank_row", medal=medal, idx=i, name=names.get(t['qq_id'], t['qq_id']),
+                             score=t['total']))
         lines.append("")
         lines.append(self._tip("profession"))
         return "\n".join(lines)
@@ -1702,7 +1703,8 @@ class EconomyImpl(CommandBase):
             # v125.2 B3：每日副业奖励经验数据下沉 prof_config.DAILY_PROF_EXP（原字面量 50）
             _nl, _lvl2 = db.add_prof_exp(group_id, qq_id, tkey2, _clife.DAILY_PROF_EXP)
             _lvl2_msg = f"→ Lv.{_nl}！" if _lvl2 else ""
-            return True, f"\n🎯 今日副业任务完成！【{name}×{need}】奖励 {gold} 金币 + {_clife.DAILY_PROF_EXP} 副业经验{_lvl2_msg}！"
+            return True, _T.text("prof.daily_bump", name=name, n=need, gold=gold, exp=_clife.DAILY_PROF_EXP,
+                             tail=_lvl2_msg)
         return False, ""
 
     # v104 M24 P2-1：『每日副业/今日副业』别名（19 章旧称呼，策划案 §六统一为『副业任务』）
@@ -1715,18 +1717,18 @@ class EconomyImpl(CommandBase):
         tkey, name, need, gold, cnt, claimed = self._daily_prof_state(group_id, qq_id)
         mark = "✅" if claimed else f"({cnt}/{need})"
         lines = [
-            "🎯 【今日副业任务】",
+            _T.static("prof.daily_head"),
             "━━━━━━━━━━━━",
-            f"目标：{name} ×{need} {mark}",
-            f"奖励：{gold} 金币 + {_clife.DAILY_PROF_EXP} 副业经验",
+            _T.text("prof.daily_goal", name=name, need=need, mark=mark),
+            _T.text("prof.daily_reward", gold=gold, exp=_clife.DAILY_PROF_EXP),
             "",
-            "💡 完成对应副业动作自动推进，明天刷新新任务！",
+            _T.static("prof.daily_tip"),
         ]
         # v105R3 M13 P3-5：无激活副业时任务随机指向未解锁副业（做不了）→ 明确拜师引导
         if not db.get_activated_profs(group_id, qq_id):
-            lines.append("🔒 你还没解锁任何副业，任务做不了！先去城里找对应导师拜师学习吧～")
+            lines.append(_T.static("prof.daily_locked"))
         if claimed:
-            lines.append("✨ 今日任务已完成，明天再来～")
+            lines.append(_T.static("prof.daily_done"))
         yield event.plain_result("\n".join(lines))
 
     @declared("fishing")
@@ -1740,7 +1742,7 @@ class EconomyImpl(CommandBase):
             yield event.plain_result(act_msg)
             return
         if self._in_battle(group_id, qq_id):
-            yield event.plain_result("你正在战斗中！先解决眼前的敌人(攻击/逃跑)")
+            yield event.plain_result(_T.static("prof.fish_battle"))
             return
         cur = player["cur_map"]
         spot_info = _clife.FISHING_SPOTS.get(cur)
@@ -1750,7 +1752,7 @@ class EconomyImpl(CommandBase):
             _spots = "、".join(
                 s["name"] if isinstance(s, dict) else str(s) for s in _clife.FISHING_SPOTS.values()
             )
-            yield event.plain_result(f"这里没有水域！找有水的地方垂钓：{_spots}")
+            yield event.plain_result(_T.text("prof.fish_no_water", spots=_spots))
             return
         # v87.17 子区域绑定：钓点在指定子区域，不在那边没钓位
         _want_sa = spot_info.get("subarea", "") if isinstance(spot_info, dict) else ""
@@ -1761,7 +1763,8 @@ class EconomyImpl(CommandBase):
                     _sa_name = _s.get("name", "")
                     break
             yield event.plain_result(
-                f"🎣 {spot_info.get('name', '水域')}在{_sa_name or _want_sa}那边，这里没有好钓位！（『前往 {_sa_name or _want_sa}』）"
+                _T.text("prof.fish_wrong_sub", spot=spot_info.get('name', '水域'), sub=_sa_name or _want_sa,
+                    sub2=_sa_name or _want_sa)
             )
             return
         spot = spot_info["name"] if isinstance(spot_info, dict) else spot_info
@@ -1769,7 +1772,7 @@ class EconomyImpl(CommandBase):
         prof_lv = db.get_prof_level(group_id, qq_id, "fishing")
         need = spot_info.get("min_lv", 1) if isinstance(spot_info, dict) else 1
         if prof_lv < need:
-            yield event.plain_result(f"🌊 {spot}是高级水域(需垂钓 Lv.{need}，你 Lv.{prof_lv})……先在低阶水域练练吧！")
+            yield event.plain_result(_T.text("prof.fish_lv_short", spot=spot, need=need, lv=prof_lv))
             return
         # v104 M23 消费契约（combat.py 探索 POI「鱼群聚集」写入，key poi_fish_{gid}_{qid}，
         # payload json {"ts": float, "window": 1800}）：ts 在 1800s 窗口内 →
@@ -1787,7 +1790,7 @@ class EconomyImpl(CommandBase):
             # 鱼群聚集：免体力/免冷却，直接结算一次并删除 key（不干扰进行中的等待副业）
             db.delete_event_state(f"poi_fish_{group_id}_{qq_id}")
             text = self._settle_fishing(group_id, qq_id, {"type": "fishing", "spot": spot, "spot_map": cur})
-            yield event.plain_result(act_msg + f"🐟 鱼群聚集！{text}")
+            yield event.plain_result(act_msg + _T.text("prof.fish_school", bonus=text))
             return
         # v55 等待制（原 60 秒 CD 改为随机等待，自动入包，等级减时；spot 存状态供结算消息用）
         # 9.3：extra 带 spot_map 供 roll_fish 钓点差异化（禁出档位 + 品种限定水域）
@@ -1795,7 +1798,7 @@ class EconomyImpl(CommandBase):
         text, _ok = self._prof_wait_flow(
             event, group_id, qq_id, "fishing",
             extra={"spot": spot, "spot_map": cur},
-            begin_text=f"🎣 你在{spot}抛出鱼竿，开始垂钓……预计 ",
+            begin_text=_T.text("prof.fish_begin", spot=spot),
         )
         if not _ok:
             yield event.plain_result(act_msg + text)

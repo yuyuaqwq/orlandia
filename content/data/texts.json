@@ -391,6 +391,162 @@
     "category": "冒险手册",
     "desc": "搬自 content/economy_cmds.py:_adventure_overview（B 批 C 档）"
   },
+  "alchemy.craft_ok": {
+    "value": "🧪 【炼金成功】合成了【{name}】！",
+    "params": [
+      "name"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.gain_item": {
+    "value": "  🎒 获得：{name} ×{n}",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.gain_mat": {
+    "value": "  🎒 获得材料：{name} ×{n}",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.have_blueprint": {
+    "value": "你背包里有『{name}』！输入『学习 {item}』解锁配方后就能永久合成了～",
+    "params": [
+      "name",
+      "item"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.list_head": {
+    "value": "🧪 【炼金工坊】(炼金 Lv.{lv})材料合成配方：",
+    "params": [
+      "lv"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "alchemy.lv_short": {
+    "value": "【{name}】需要炼金 Lv.{need}，你才 Lv.{lv}！多合成低级配方升级炼金吧～",
+    "params": [
+      "name",
+      "need",
+      "lv"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.lv_up": {
+    "value": "\n🌟 炼金等级提升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.mat_short": {
+    "value": "材料不足！需要 {need}×{qty}(你有 {have})",
+    "params": [
+      "need",
+      "qty",
+      "have"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.need_recipe": {
+    "value": "【{name}】需要先学习配方『{recipe}』(支线奖励获取)！『学习 <图纸名>』永久解锁。",
+    "params": [
+      "name",
+      "recipe"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.next_page": {
+    "value": "｜『炼金 {page}』下一页",
+    "params": [
+      "page"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "alchemy.next_pure": {
+    "value": "｜『炼金 提纯 {page}』下一页",
+    "params": [
+      "page"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "alchemy.no_recipe": {
+    "value": "没有『{name}』这个配方！『炼金』查看全部～",
+    "params": [
+      "name"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.no_recipe_idx": {
+    "value": "没有第 {idx} 个炼金配方(共 {total} 个)！『炼金』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.page_no": {
+    "value": "📄 第 {page}/{total} 页{next}",
+    "params": [
+      "page",
+      "total",
+      "next"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "alchemy.pure_head": {
+    "value": "🧪 【炼金工坊·提纯】(3 份低档 → 1 份高档)材料提纯配方：",
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "alchemy.pure_ok": {
+    "value": "🧪 提纯成功！{src} → {dst}【{item}】",
+    "params": [
+      "src",
+      "dst",
+      "item"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
+  "alchemy.recipe_row": {
+    "value": "{idx:>2}. {mark} {name}：{mats} → {out}  [炼金Lv.{lv}]",
+    "params": [
+      "idx",
+      "mark",
+      "name",
+      "mats",
+      "out",
+      "lv"
+    ],
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "alchemy.usage": {
+    "value": "格式：合成 <配方名>！『炼金』查看全部配方～",
+    "category": "炼金",
+    "desc": "搬自 content/economy_cmds.py:alchemy_craft（B 批 C 档）"
+  },
   "attr.free_pts": {
     "value": "🎯 自由属性点：{pts}",
     "params": [
@@ -637,6 +793,15 @@
     ],
     "category": "流派",
     "desc": "搬自 content/player_cmds.py:build_view（B 批 C 档）"
+  },
+  "common.page_no": {
+    "value": "📄 第 {page}/{total} 页",
+    "params": [
+      "page",
+      "total"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:cooking_list（B 批 C 档）"
   },
   "cond_label.element_marks": {
     "value": "敌方{element}印记≥{n}层",
@@ -956,6 +1121,153 @@
     "value": "⏳ 时光凝滞！敌人被定身，跳过一次行动！",
     "category": "战斗日志",
     "desc": "搬自 we_procs.py:_CONTROL_LOG（B 批 B-1）"
+  },
+  "cooking.craft_ok": {
+    "value": "🍳 灶火升腾，香气四溢……\n✅ 烹饪成功！【{name}】({eat})已放入背包！{desc}{tail}",
+    "params": [
+      "name",
+      "eat",
+      "desc",
+      "tail"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.have_recipe": {
+    "value": "你背包里有『{name}』！输入『学习 {item}』解锁食谱后就能永久烹饪了～",
+    "params": [
+      "name",
+      "item"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.lack_detail": {
+    "value": "{item}×{qty}(你有{have})",
+    "params": [
+      "item",
+      "qty",
+      "have"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.list_head": {
+    "value": "🍳 【烹饪灶台】料理配方：",
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking_list（B 批 C 档）"
+  },
+  "cooking.lv_short": {
+    "value": "【{name}】需要烹饪 Lv.{need}，你才 Lv.{lv}。多做简单料理提升吧！",
+    "params": [
+      "name",
+      "need",
+      "lv"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.lv_up": {
+    "value": "\n🌟 烹饪等级提升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.mat_short": {
+    "value": "食材不足！做【{name}】还缺：{lack}。垂钓/采集收集食材～",
+    "params": [
+      "name",
+      "lack"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.mat_short_rollback": {
+    "value": "食材不足！做【{name}】还缺：{item}×{n}，已回滚扣除。垂钓/采集收集食材～",
+    "params": [
+      "name",
+      "item",
+      "n"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.need_recipe": {
+    "value": "【{name}】需要先学习食谱『{recipe}』(支线奖励获取)！『学习 <图纸名>』永久解锁。",
+    "params": [
+      "name",
+      "recipe"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.next_page": {
+    "value": "｜『烹饪列表 {page}』下一页",
+    "params": [
+      "page"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking_list（B 批 C 档）"
+  },
+  "cooking.no_dish": {
+    "value": "没有『{name}』这道料理！『烹饪列表』查看全部～",
+    "params": [
+      "name"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.no_dish_idx": {
+    "value": "没有第 {idx} 道料理(共 {total} 道)！『烹饪列表』查看～",
+    "params": [
+      "idx",
+      "total"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.perfect_msg": {
+    "value": " ✨完美料理！效果提升 50%！",
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.perfect_note": {
+    "value": "（完美料理：上述效果 ×1.5）",
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.recipe_row": {
+    "value": "{idx:>2}. {name}(烹饪Lv.{lv}){lock}",
+    "params": [
+      "idx",
+      "name",
+      "lv",
+      "lock"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking_list（B 批 C 档）"
+  },
+  "cooking.suggest": {
+    "value": "没有『{name}』这道料理！你是不是想烹饪『{near}』？发『烹饪 {cmd}』试试～",
+    "params": [
+      "name",
+      "near",
+      "cmd"
+    ],
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
+  },
+  "cooking.tip_exp": {
+    "value": "💡 烹饪等级：采集植物 + 垂钓 → 料理，成功制作＋1 经验",
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking_list（B 批 C 档）"
+  },
+  "cooking.usage": {
+    "value": "发『烹饪列表』查看全部料理配方～(如：烹饪 蛇羹)",
+    "category": "烹饪",
+    "desc": "搬自 content/economy_cmds.py:cooking（B 批 C 档）"
   },
   "daily.done_full": {
     "value": "【每日】今日已完成 {done}/{limit} 个每日任务，明天再来！",
@@ -5669,6 +5981,298 @@
     "value": "可选：力量 / 敏捷 / 智力 / 耐力",
     "category": "加点洗点",
     "desc": "搬自 content/player_cmds.py:add_attr（B 批 C 档）"
+  },
+  "prof.activated": {
+    "value": "\n🔓 你选择了「{prof_name}」作为副业(当前已激活 {n} 条)！",
+    "params": [
+      "prof_name",
+      "n"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_prof_active_check（B 批 C 档）"
+  },
+  "prof.daily_bump": {
+    "value": "\n🎯 今日副业任务完成！【{name}×{n}】奖励 {gold} 金币 + {exp} 副业经验{tail}！",
+    "params": [
+      "name",
+      "n",
+      "gold",
+      "exp",
+      "tail"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_daily_prof_bump（B 批 C 档）"
+  },
+  "prof.daily_done": {
+    "value": "✨ 今日任务已完成，明天再来～",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:daily_prof（B 批 C 档）"
+  },
+  "prof.daily_goal": {
+    "value": "目标：{name} ×{need} {mark}",
+    "params": [
+      "name",
+      "need",
+      "mark"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:daily_prof（B 批 C 档）"
+  },
+  "prof.daily_head": {
+    "value": "🎯 【今日副业任务】",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:daily_prof（B 批 C 档）"
+  },
+  "prof.daily_locked": {
+    "value": "🔒 你还没解锁任何副业，任务做不了！先去城里找对应导师拜师学习吧～",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:daily_prof（B 批 C 档）"
+  },
+  "prof.daily_reward": {
+    "value": "奖励：{gold} 金币 + {exp} 副业经验",
+    "params": [
+      "gold",
+      "exp"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:daily_prof（B 批 C 档）"
+  },
+  "prof.daily_tip": {
+    "value": "💡 完成对应副业动作自动推进，明天刷新新任务！",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:daily_prof（B 批 C 档）"
+  },
+  "prof.fish_battle": {
+    "value": "你正在战斗中！先解决眼前的敌人(攻击/逃跑)",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:fishing（B 批 C 档）"
+  },
+  "prof.fish_begin": {
+    "value": "🎣 你在{spot}抛出鱼竿，开始垂钓……预计 ",
+    "params": [
+      "spot"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:fishing（B 批 C 档）"
+  },
+  "prof.fish_legend": {
+    "value": "📢 【传说】玩家 {name} 在{spot}钓上了【{fish}】！！全服为之震动！",
+    "params": [
+      "name",
+      "spot",
+      "fish"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_fish_legend_broadcast（B 批 C 档）"
+  },
+  "prof.fish_lv_short": {
+    "value": "🌊 {spot}是高级水域(需垂钓 Lv.{need}，你 Lv.{lv})……先在低阶水域练练吧！",
+    "params": [
+      "spot",
+      "need",
+      "lv"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:fishing（B 批 C 档）"
+  },
+  "prof.fish_no_water": {
+    "value": "这里没有水域！找有水的地方垂钓：{spots}",
+    "params": [
+      "spots"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:fishing（B 批 C 档）"
+  },
+  "prof.fish_school": {
+    "value": "🐟 鱼群聚集！{bonus}",
+    "params": [
+      "bonus"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:fishing（B 批 C 档）"
+  },
+  "prof.fish_wrong_sub": {
+    "value": "🎣 {spot}在{sub}那边，这里没有好钓位！（『前往 {sub2}』）",
+    "params": [
+      "spot",
+      "sub",
+      "sub2"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:fishing（B 批 C 档）"
+  },
+  "prof.forget_done": {
+    "value": "📦 你遗忘了「{name}」(原 Lv.{lv}，已清零)！\n副业随时可以重新拜师学习，放心去探索其他生活职业吧～",
+    "params": [
+      "name",
+      "lv"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:prof_forget（B 批 C 档）"
+  },
+  "prof.forget_idle": {
+    "value": "{name} 本来就没激活，不用遗忘～",
+    "params": [
+      "name"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:prof_forget（B 批 C 档）"
+  },
+  "prof.forget_no_prof": {
+    "value": "没有『{name}』这个副业！可选：{options}",
+    "params": [
+      "name",
+      "options"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:prof_forget（B 批 C 档）"
+  },
+  "prof.forget_usage": {
+    "value": "格式：遗忘副业 <名称>，如『遗忘副业 采集』(等级清零，请慎重！)",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:prof_forget（B 批 C 档）"
+  },
+  "prof.gather_begin": {
+    "value": "🌿 你俯身开始采集【{map_name}】的野生物资……预计 ",
+    "params": [
+      "map_name"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:gather（B 批 C 档）"
+  },
+  "prof.gather_inst": {
+    "value": "副本里没有可采集的野生物资，专心闯关吧！（怪物会掉落专属材料）",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:gather（B 批 C 档）"
+  },
+  "prof.gather_lv": {
+    "value": "🌿 但【{map_name}】的植物太珍稀（需采集 Lv.{need}，你 Lv.{lv}）——先在低等级区域练练采集吧！",
+    "params": [
+      "map_name",
+      "need",
+      "lv"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:gather（B 批 C 档）"
+  },
+  "prof.gather_town": {
+    "value": "城镇里没有可采集的野生物资，去野外吧（『前往 <地图名>』）！",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:gather（B 批 C 档）"
+  },
+  "prof.locked": {
+    "value": "🔒 副业「{prof_name}」还没解锁！\n先去 {city} 找 {tutor} 拜师学习吧～(『对话 {tutor2}』)",
+    "params": [
+      "prof_name",
+      "city",
+      "tutor",
+      "tutor2"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_prof_active_check（B 批 C 档）"
+  },
+  "prof.mining_begin": {
+    "value": "⛏️ 你举起镐子凿向【{map_name}】的矿脉……预计 ",
+    "params": [
+      "map_name"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:mining（B 批 C 档）"
+  },
+  "prof.mining_fatigue": {
+    "value": "\n💤 连续挖掘让你手臂发酸……疲劳时稀有矿脉更难挖到了，休息 10 分钟（不挖掘）或吃点食物恢复吧！",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:mining（B 批 C 档）"
+  },
+  "prof.mining_lv": {
+    "value": "⛏️ 【{mine_name}】需要挖掘 Lv.{need}，你才 Lv.{lv}——先在低阶矿脉练练手吧！",
+    "params": [
+      "mine_name",
+      "need",
+      "lv"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:mining（B 批 C 档）"
+  },
+  "prof.mining_nomine": {
+    "value": "这里没有矿脉！地图上会显示⛏️矿脉的位置，去那边『挖掘』吧～",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:mining（B 批 C 档）"
+  },
+  "prof.mining_town": {
+    "value": "城镇里没有矿脉，去野外矿点吧（『前往 <地图名>』）！",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:mining（B 批 C 档）"
+  },
+  "prof.not_learned": {
+    "value": " 📜未学",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:alchemy（B 批 C 档）"
+  },
+  "prof.panel_empty": {
+    "value": "还没有解锁任何副业！去城里找对应导师拜师学习吧～",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:profession_view（B 批 C 档）"
+  },
+  "prof.panel_exp": {
+    "value": "{icon} {name}：Lv.{lv}  {bar} {cur}/{cap} 经验 ✅",
+    "params": [
+      "icon",
+      "name",
+      "lv",
+      "bar",
+      "cur",
+      "cap"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:profession_view（B 批 C 档）"
+  },
+  "prof.panel_head": {
+    "value": "🧵 【副业面板】(当前已激活 {n} 条)",
+    "params": [
+      "n"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:profession_view（B 批 C 档）"
+  },
+  "prof.panel_max": {
+    "value": "{icon} {name}：Lv.{lv} 已满级 ✅",
+    "params": [
+      "icon",
+      "name",
+      "lv"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:profession_view（B 批 C 档）"
+  },
+  "prof.panel_total": {
+    "value": "📊 副业总分：{total}(已激活副业等级之和，与『副业 排行』同口径)",
+    "params": [
+      "total"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:profession_view（B 批 C 档）"
+  },
+  "prof.rank_empty": {
+    "value": "🏆 【副业排行】\n━━━━━━━━━━━━\n还没有人练副业，快来当第一名！",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_prof_rank_text（B 批 C 档）"
+  },
+  "prof.rank_head": {
+    "value": "🏆 【副业排行】(总分 = 已激活副业等级之和)",
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_prof_rank_text（B 批 C 档）"
+  },
+  "prof.rank_row": {
+    "value": "{medal} {idx:>2}. {name}：{score} 分",
+    "params": [
+      "medal",
+      "idx",
+      "name",
+      "score"
+    ],
+    "category": "生活副业",
+    "desc": "搬自 content/economy_cmds.py:_prof_rank_text（B 批 C 档）"
   },
   "prof_icon.alchemy": {
     "value": "🧪",
