@@ -9,7 +9,7 @@
   - 每个测试文件 = 独立子进程 + 独立 GWEN_GAME_DB 私有库（tests/.run_all_workers_<pid>_<ts>/ 下）
   - 每轮跑先 init_db 建一次空白 schema 模板，各文件复制一份 → 表结构齐全且零残留，
     文件间互不污染（conftest 的 setdefault 尊重外层 env）
-  - 默认 --jobs 按核数自适应（4~16）；--serial 恢复旧的纯串行共享库行为
+  - 默认 --jobs 按核数自适应（4~8，实测本机 P/E 核混合架构下 8 路最快）；--serial 恢复旧的纯串行共享库行为
   - --skip= 跳过已知坏测试；--file= 单文件走旧逻辑（共享 test_game_data.db）
   - v117.5：默认注入 tests/shim_astrbot（行为等价的 astrbot 替身）；--real-astrbot 退回真实 astrbot
   - 硬编码共享 test_game_data.db 的文件自动进「串行槽」先跑
@@ -22,9 +22,11 @@
     宿主测试要 pypinyin 等依赖 → 请用 AstrBot 的 uv python 启动本器）
   - 跑全量期间不要改动任何源文件（避免中间态误判）
 """
+import json
 import os
 import re
 import shutil
+import tempfile
 import subprocess
 import sys
 import time
@@ -55,6 +57,33 @@ def _test_timeout(jobs: int) -> int:
     """单文件超时秒数：基线 × 并发档位（每 4 路一档），不超过上限。"""
     slots = max(1, (int(jobs) + 3) // 4)
     return min(_TIMEOUT_CAP, _BASE_TIMEOUT * slots)
+
+
+# ★ 2026-09-18：实测耗时记录 + LPT（最长作业优先）调度。
+#   动因：总墙钟由**最慢的单文件**决定（一次实测：285 文件共 5994s CPU 时间 / 691s 墙钟，
+#   其中 6 个重文件占 43% CPU 时间，最慢 u1i2 605s ⇒ 墙钟下界就等于它）。
+#   按枚举顺序启动时重文件可能排在最后 → 尾部空转；按实测耗时降序启动可逼近下界。
+#   记录存 TEMP（不入库、不受 tests/ 清理影响；丢了只回退到枚举顺序，无副作用）。
+_TIMES_FILE = os.path.join(tempfile.gettempdir(), "gwen_run_all_times.json")
+_RUN_SECS = {}
+
+
+def _load_times() -> dict:
+    try:
+        with open(_TIMES_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except Exception:                                        # noqa: BLE001
+        return {}
+
+
+def _save_times(d: dict) -> None:
+    try:
+        with open(_TIMES_FILE, "w", encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, sort_keys=True)
+    except Exception:                                        # noqa: BLE001
+        pass
+
 
 PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # 包仓根
 TESTS_DIR = os.path.join(PKG_ROOT, "tests")
@@ -146,7 +175,11 @@ def _parse_args(argv):
     fail_fast = "--fail-fast" in argv
     serial = "--serial" in argv
     real_astrbot = "--real-astrbot" in argv
-    jobs = max(4, min(16, os.cpu_count() or 8))  # 默认按核数自适应（4~16）
+    # ★ 2026-09-18 实测：默认并发上限 16 → 8。本机 i7-14650HX = 8 个 P 核 + 8 个 E 核
+    #   （24 逻辑核）：16 路时有一半进程落到 E 核（约 P 核六成性能）+ 满载争用，
+    #   全量 275s；8 路正好塞满 P 核、不碰 E 核，实测 180~193s（快 30%，连跑两次 285/285）。
+    #   需要压满逻辑核时用 `--jobs=16` 覆盖。
+    jobs = max(4, min(8, os.cpu_count() or 8))  # 默认按核数自适应（4~8）
     only = None
     skips = []
     for a in argv:
@@ -210,7 +243,9 @@ def _run_one(f, env, seed_db=None, timeout=None):
         timed_out, ok = False, proc.returncode == 0
     except subprocess.TimeoutExpired as te:  # P2：超时记录
         proc, timed_out, ok = te, True, False
-    return os.path.basename(f), ok, proc, time.time() - ts, timed_out
+    dt = time.time() - ts
+    _RUN_SECS[os.path.basename(f)] = dt      # ★ LPT 调度用的实测耗时
+    return os.path.basename(f), ok, proc, dt, timed_out
 
 
 def _report(name, ok, proc, dt, timed_out):
@@ -329,7 +364,11 @@ def main():
     if parallel_files and par_timeout != _BASE_TIMEOUT:
         print(f"单文件超时：串行 {_BASE_TIMEOUT}s ｜ 并行 {par_timeout}s（{jobs} 路并发）",
               flush=True)
-    base_env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    # ★ 2026-09-18：测试库是**一次性的** ⇒ 用 NORMAL 同步模式（WAL 下只在 checkpoint
+    #   时 fsync）。实测 6 个重门禁并发：FULL 下磁盘队列 1~9、CPU 只占 19%（全在等 IO），
+    #   各文件 29~88s；NORMAL 下各 7~25s。真实运行不设此变量 ⇒ 仍是 FULL（耐久性最高）。
+    base_env = {**os.environ, "PYTHONIOENCODING": "utf-8",
+                "GWEN_SQLITE_SYNC": os.environ.get("GWEN_SQLITE_SYNC", "NORMAL")}
     if not real_astrbot and os.path.isdir(SHIM_DIR):
         # shim astrbot 注入：放 PYTHONPATH 最前（优先于 site-packages 的真实 astrbot）
         _pp = base_env.get("PYTHONPATH", "")
@@ -352,6 +391,10 @@ def main():
             return {**base_env, "GWEN_GAME_DB": os.path.join(worker_dir, f"test_game_data_w{i}.db")}
 
         jobs = max(1, min(jobs, len(parallel_files)))
+        # ★ LPT：最长作业优先启动（无记录的文件按 0 排在后面）
+        _t = _load_times()
+        if _t:
+            parallel_files.sort(key=lambda p: -float(_t.get(os.path.basename(p), 0.0)))
         queue = iter(enumerate(parallel_files))
         executor = ThreadPoolExecutor(max_workers=jobs)
         pending = {}
@@ -383,6 +426,13 @@ def main():
                 submit_next()
         executor.shutdown(wait=True)
 
+    if _RUN_SECS:
+        _merged = {**_load_times(), **_RUN_SECS}
+        _save_times(_merged)
+        _slow = sorted(_RUN_SECS.items(), key=lambda kv: -kv[1])[:3]
+        if _slow:
+            print("最慢 3 个：%s（已记入 LPT 耗时表，下次按降序启动）"
+                  % " · ".join("%s %.0fs" % kv for kv in _slow), flush=True)
     shutil.rmtree(worker_dir, ignore_errors=True)
     rc = _summary(results, t0)
     if not framework_ok:

@@ -25,7 +25,9 @@
 from __future__ import annotations
 
 import importlib
+import sqlite3
 import sys
+import threading
 import time as _time
 
 # ★ W2a 改指：包内内容聚合门面（原 `C`（包内惰性门面句柄） → 宿主 `game.content`）。
@@ -121,7 +123,66 @@ class _LockProxy:
 
 
 _lock = _LockProxy()
-_connect = connect
+
+
+class _ConnProxy:
+    """借出的连接包装：`close()` = **归还**（不真关），归还前回滚未提交事务。
+
+    ★ 2026-09-18（实测驱动）：包内 116 处持久化调用点都是宿主逐字端口的
+    「开连接 → 读写 → commit → close」短事务形态。SQLite 默认
+    `journal_mode=DELETE` + `synchronous=FULL` ⇒ **每次 commit 都 fsync 落盘**
+    （实测 6.9ms/次）：单个冻结门禁 18610 次 commit 花 128.5s、25998 次 connect
+    再花 14.9s，合计占该测试 2/3 墙钟 —— 真实玩家每次捡物品/买卖/存取仓库同样
+    在付这笔钱。改 WAL 后 commit 降到 0.32ms，但「每次开新连接」反而更贵
+    （WAL 要 attach `-wal`/`-shm`，实测 3.4ms/次）⇒ 必须同时复用连接。
+
+    等价性：SQLite 里「关闭一条带未提交事务的连接」= 回滚该事务；本代理 `close()`
+    先在 `in_transaction` 时 `rollback()` 再归还 ⇒ **逐语义等价**（调用方一字不改）。
+    线程隔离：连接只在本线程内复用（sqlite 默认 `check_same_thread=True`）。
+    """
+
+    __slots__ = ("_conn", "_free")
+
+    def __init__(self, conn, free):
+        self._conn = conn
+        self._free = free
+
+    def close(self):                        # 归还而非真关
+        c = self._conn
+        try:
+            if c.in_transaction:
+                c.rollback()
+        except sqlite3.Error:
+            pass
+        self._free.append(c)
+
+    def __getattr__(self, item):            # execute / commit / cursor / row_factory …
+        return getattr(self._conn, item)
+
+    def __enter__(self):                    # 与 sqlite3.Connection 同形（事务边界，不关连接）
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            self._conn.commit()
+        else:
+            self._conn.rollback()
+        return False
+
+
+_POOL = threading.local()
+
+
+def _connect():
+    """取一条连接（**线程本地复用**）：语义同引擎 `connect()`，代价低一个数量级。
+
+    调用方照常 `commit()` / `close()`，事务边界与原来完全一致
+    （未提交即关闭 = 回滚）。连接归还后留在本线程池里复用。
+    """
+    free = getattr(_POOL, "free", None)
+    if free is None:
+        free = _POOL.free = []
+    return _ConnProxy(free.pop() if free else connect(), free)
 
 
 # ============================================================
