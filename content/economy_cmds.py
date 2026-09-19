@@ -1274,22 +1274,22 @@ class EconomyImpl(CommandBase):
         if not raw:
             page = 1
             page_items, pages, page = self._page_items(_cands, page, per_page=5)
-            lines = [f"📜 【图纸残页合成】(图纸残页×{_shards}/10)", "━━━━━━━━━━━━"]
+            lines = [_T.text("bpc.head", n=_shards), "━━━━━━━━━━━━"]
             for i, (rid, r) in enumerate(page_items, 1):
                 q = _b143.QUALITY.get(r["quality"], {})
                 lines.append(f"{(page - 1) * 5 + i:>2}. {q.get('color', '')}【{r['name']}】Lv.{r['lv']} {_b143.EQUIP_SLOTS.get(r['slot'], r['slot'])}")
             lines.append("━━━━━━━━━━━━")
-            lines.append(f"📄 第 {page}/{pages} 页" + (f"｜『图纸合成 {page + 1}』下一页" if page < pages else ""))
-            lines.append(f"💡 『图纸合成 <装备名>』消耗 10 张图纸残页，定向获得 1 张指定图纸（只列出有锻造配方的装备）")
+            lines.append(_T.text("bpc.page", page=page, pages=pages) + (_T.text("bpc.next", n=page + 1) if page < pages else ""))
+            lines.append(_T.text("bpc.tip", ))
             if _shards < 10:
-                lines.append(f"🈳 图纸残页不足(你有 {_shards}/10)——Boss/宝箱/垂钓/副本掉落或已学图纸折算")
+                lines.append(_T.text("bpc.short_panel", n=_shards))
             yield event.plain_result("\n".join(lines))
             return
         # 数字 → 面板第 N 件
         if raw.isdigit():
             idx = int(raw)
             if idx < 1 or idx > len(_cands):
-                yield event.plain_result(f"没有第 {idx} 件可合成装备(共 {len(_cands)} 件)！『图纸合成』查看～")
+                yield event.plain_result(_T.text("bpc.idx_oob", idx=idx, n=len(_cands)))
                 return
             raw = _cands[idx - 1][1]["name"]
         # 解析装备：名册名精确/包含匹配（限制 source=图纸/boss）
@@ -1298,13 +1298,12 @@ class EconomyImpl(CommandBase):
             _hit = [rid for rid, r in _cands if raw in r["name"]]
         if not _hit:
             yield event.plain_result(
-                f"没有『{raw}』这个可合成的装备图纸！『图纸合成』查看全部可合成图纸（仅图纸/Boss 来源装备可定向合成）～")
+                _T.text("bpc.no_bp", name=raw))
             return
         rid = _hit[0]
         r = _cit.EQUIP_ROSTER[rid]
         if _shards < 10:
-            yield event.plain_result(f"图纸残页不足！合成【{r['name']}图纸】需要 10 张图纸残页，你有 {_shards} 张。"
-                                     f"Boss/宝箱/垂钓/副本掉落，或已学图纸自动折算～")
+            yield event.plain_result(_T.text("bpc.short_craft", name=r['name'], n=_shards))
             return
         # 扣 10 张残页（跨堆扣取，key 优先 + 名字兜底）
         remain = 10
@@ -1324,16 +1323,14 @@ class EconomyImpl(CommandBase):
             if db.remove_item(group_id, qq_id, it["key"], take):
                 remain -= take
         if remain > 0:
-            yield event.plain_result(f"图纸残页不足！需要 10 张，你有 {_shards} 张。")
+            yield event.plain_result(_T.text("bpc.short_10", n=_shards))
             return
         bp = C.make_blueprint(rid)
         import uuid
         db.add_item(group_id, qq_id, f"bp_{uuid.uuid4().hex[:8]}", bp)
         q = _b143.QUALITY.get(r["quality"], {})
         yield event.plain_result(
-            f"📜 10 张图纸残页在掌中拼合，微光闪过——\n"
-            f"✅ 合成成功！获得【{bp['name']}】({q.get('name', '')}·Lv.{r['lv']})\n"
-            f"💡 『学习 {bp['name']}』永久解锁锻造配方！"
+            _T.text("bpc.craft_ok", name=bp['name'], q=q.get('name', ''), lv=r['lv'], name2=bp['name'])
         )
 
     # ---------------- 等待型副业（v181.P4-7：业务迁 services/profession.py，本区只留薄转发） ----------------

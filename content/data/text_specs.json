@@ -1519,6 +1519,89 @@
     "category": "战前设置",
     "desc": "搬自 content/combat_cmds.py:battle_prefs_view（B 批 C 档）"
   },
+  "bpc.craft_ok": {
+    "value": "📜 10 张图纸残页在掌中拼合，微光闪过——\n✅ 合成成功！获得【{name}】({q}·Lv.{lv})\n💡 『学习 {name2}』永久解锁锻造配方！",
+    "params": [
+      "name",
+      "q",
+      "lv",
+      "name2"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.head": {
+    "value": "📜 【图纸残页合成】(图纸残页×{n}/10)",
+    "params": [
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.idx_oob": {
+    "value": "没有第 {idx} 件可合成装备(共 {n} 件)！『图纸合成』查看～",
+    "params": [
+      "idx",
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.next": {
+    "value": "｜『图纸合成 {n}』下一页",
+    "params": [
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.no_bp": {
+    "value": "没有『{name}』这个可合成的装备图纸！『图纸合成』查看全部可合成图纸（仅图纸/Boss 来源装备可定向合成）～",
+    "params": [
+      "name"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.page": {
+    "value": "📄 第 {page}/{pages} 页",
+    "params": [
+      "page",
+      "pages"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.short_10": {
+    "value": "图纸残页不足！需要 10 张，你有 {n} 张。",
+    "params": [
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.short_craft": {
+    "value": "图纸残页不足！合成【{name}图纸】需要 10 张图纸残页，你有 {n} 张。Boss/宝箱/垂钓/副本掉落，或已学图纸自动折算～",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.short_panel": {
+    "value": "🈳 图纸残页不足(你有 {n}/10)——Boss/宝箱/垂钓/副本掉落或已学图纸折算",
+    "params": [
+      "n"
+    ],
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
+  "bpc.tip": {
+    "value": "💡 『图纸合成 <装备名>』消耗 10 张图纸残页，定向获得 1 张指定图纸（只列出有锻造配方的装备）",
+    "category": "锻造",
+    "desc": "搬自 content/economy_cmds.py:bp_craft（B 批 C 档）"
+  },
   "bt.boss_noflee": {
     "value": "\n👑 Boss 战无法逃跑！『防御』不耗体力可拖延等待自然恢复，或吃食物(『使用 <食物>』)立即恢复～",
     "category": "战斗主循环",

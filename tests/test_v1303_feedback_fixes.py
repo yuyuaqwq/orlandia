@@ -134,7 +134,13 @@ async def main():
     # ③ 背包页数底部
     src_eco2 = _eco_src()
     # 背包视图渲染里 📄 行在 lines.append 列表尾部区域（翻页提示）
-    check("背包页数底部实现", "📄 第" in src_eco2 and "(page - 1) * 10 + 1" in src_eco2)
+    # ★ 2026-09-19 随迁移改判（C 档 36b）：旧判据「源码含 📄 第 字面量」原先靠
+    #   bp_craft 的分页行顶着；该行入表后源码侧只剩键名 ⇒ 旧判据失效（基线同样红）。
+    #   新判据 = 文案表真源里有页数行 + 实现仍引用该键 + 序号起点公式未变。
+    check("背包页数底部实现",
+          "bag.page_line" in src_eco2
+          and "📄 第" in _tbl_value("bag.page_line")
+          and "(page - 1) * 10 + 1" in src_eco2)
 
     # ④ 采集 on_expire 回调
     check("采集 on_expire 回调", "_prof_wait_expire_cb" in src_eco2)
