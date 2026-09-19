@@ -1732,6 +1732,15 @@
     "category": "战斗主循环",
     "desc": "搬自 content/combat_cmds.py:wild_king_chest（B 批 C 档）"
   },
+  "chronicle.panel": {
+    "value": "📖 【{title}】\n━━━━━━━━━━━━\n{text}\n━━━━━━━━━━━━\n(奥兰迪亚编年史 · 输入『编年史』再听一段)",
+    "params": [
+      "title",
+      "text"
+    ],
+    "category": "编年史",
+    "desc": "搬自 content/world_cmds.py:chronicle（B 批 C 档）"
+  },
   "common.bag_no_idx": {
     "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看全部～",
     "params": [
@@ -5247,6 +5256,16 @@
     ],
     "category": "NPC查找",
     "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
+  },
+  "find.unseen_hint": {
+    "value": "🧭 『{name}』{label}，现在({period})还没到出现的时候，换个时间再来找找吧～",
+    "params": [
+      "name",
+      "label",
+      "period"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_wild_unseen_hint（B 批 C 档）"
   },
   "find.wild_left": {
     "value": "这位旅人似乎已经离开了……",
@@ -16017,6 +16036,15 @@
     ],
     "category": "NPC对话",
     "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "talk.side_take": {
+    "value": "📜 接『{name}』({obj})",
+    "params": [
+      "name",
+      "obj"
+    ],
+    "category": "NPC对话",
+    "desc": "搬自 content/world_cmds.py:_side_menu_expand（B 批 C 档）"
   },
   "talk.silent": {
     "value": "{name}似乎不想再多说了。",

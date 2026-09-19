@@ -90,7 +90,9 @@ CLASS = {
     "content/world_cmds.py::_player_map_name": "E",
     "content/world_cmds.py::_subarea_name": "E",
     "content/world_cmds.py::_find_wild_npc": "E",
-    "content/world_cmds.py::_wild_unseen_hint": "E",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 31a（B-2 第 18 片）把本段的句壳搬进文案表
+    #   （`_T.text("find.unseen_hint")`），实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::_wild_unseen_hint": "C",
     # ↓ 2026-09-19 由 E 改判 C：C 档 26a（B-2 第 12 片）把本段的句壳搬进文案表
     #   （`_T.static/_T.text("time.*" / "notes.*" / "npcwhere.*" / "wildcond.*" / "time_name.*")），
     #   实现不再逐字等于冻结基线（非本线接引擎形状）。
@@ -101,7 +103,9 @@ CLASS = {
     "content/world_cmds.py::_wild_cond_label": "C",
     "content/world_cmds.py::_talk_active": "E",
     "content/world_cmds.py::_talk_ctx": "E",
-    "content/world_cmds.py::_side_menu_expand": "E",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 31a（B-2 第 18 片）把本段的句壳搬进文案表
+    #   （`_T.text("talk.side_take")`），实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::_side_menu_expand": "C",
     # ↓ 2026-09-19 由 E 改判 C：同上（C 档 22c；`talk.auto_quest_opt` / `talk.end_opt` 入表）。
     "content/world_cmds.py::_render_talk_node": "C",
     "content/world_cmds.py::_apply_talk_action_async": "E",

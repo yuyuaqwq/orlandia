@@ -2454,7 +2454,7 @@ def _wild_unseen_hint(self, player, name_key, group_id, qq_id):
             continue  # 条件满足（概率/保底问题），不归这里管
         label = self._wild_cond_label(wnpc)
         period = (PERIOD_CN.get(_tw.current_period(), "") or "").strip()
-        return f"🧭 『{name_key}』{label}，现在({period})还没到出现的时候，换个时间再来找找吧～"
+        return _T.text("find.unseen_hint", name=name_key, label=label, period=period)
     return None
 
 
@@ -3201,7 +3201,7 @@ def _side_menu_expand(self, group_id, qq_id, npc_id, opt) -> list:
     subs = []
     for item in available:
         subs.append({
-            "text": f"📜 接『{item['name']}』({item['objective_text']})",
+            "text": _T.text("talk.side_take", name=item['name'], obj=item['objective_text']),
             "next": nxt,
             "action": {"side_take_one": item["sid"]},
         })
@@ -4276,11 +4276,7 @@ async def camp_rank(self, event: AstrMessageEvent):
 async def chronicle(self, event: AstrMessageEvent, group_id, qq_id, player):
     c = random.choice(_cat_b143.CHRONICLES)
     yield event.plain_result(
-        f"📖 【{c['title']}】\n"
-        f"━━━━━━━━━━━━\n"
-        f"{c['text']}\n"
-        f"━━━━━━━━━━━━\n"
-        f"(奥兰迪亚编年史 · 输入『编年史』再听一段)"
+        _T.text("chronicle.panel", title=c['title'], text=c['text'])
     )
 
 
