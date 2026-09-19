@@ -243,7 +243,11 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          "资源名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          # ★ B-1 A 档（2026-09-17）：we_procs 的三张战斗日志文案表 + time_weather 的天气/季节名
          #   引用面 = 各自文件里的 `_*_KEYS` 字面量表（`_scan_calls` ②「字面量也算引用」）
-         "战斗日志": os.path.join(PKG_CONTENT, "mech", "we_procs.py"),
+         # ★ C 档 PRE2（2026-09-19 并行批 2）：effect_actions / flow/boss_script 两文件的
+         #   「战斗日志」键与既有 mech/we_procs.py 同域 ⇒ 本项改成文件列表（_wired_paths 支持）
+         "战斗日志": [os.path.join(PKG_CONTENT, "mech", "we_procs.py"),
+                  os.path.join(PKG_CONTENT, "effect_actions.py"),
+                  os.path.join(PKG_CONTENT, "flow", "boss_script.py")],
          "天气名": os.path.join(PKG_CONTENT, "time_weather.py"),
          "季节名": os.path.join(PKG_CONTENT, "time_weather.py"),
          # ★ B 批 B-1 第三批（B 档，2026-09-17）：属性名（4 处内联字面量合并成一张表：
@@ -463,7 +467,11 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 22b（B-2 第 7 片第 5 小片）：生活「称号 · 物品查看模式」尾巴
          #   （EconomyImpl.titles 称号面板四行 · _equip_title 用法/未获得/佩戴成功三行
          #    ⇒ 新分类 称号面板；item_view_mode_cmd 开关两条回执照归既有 **背包面板**）
-         "称号面板": PKG_ECONOMY_SRC}
+         "称号面板": PKG_ECONOMY_SRC,
+         # ★ C 档 PRE2（2026-09-19 并行批 2）：两域首次接入 _T
+         #   （事件模板 = event_templates.py 的 12 个 tpl_* ；装备描述 = drops.py 的 _eq_random_desc）
+         "事件模板": os.path.join(PKG_CONTENT, "event_templates.py"),
+         "装备描述": os.path.join(PKG_CONTENT, "drops.py")}
 
 
 def _wired_paths(path):
@@ -1109,7 +1117,9 @@ def t1_table_selfcheck():
                         #   （药水效果 = potion_effects.py 36 个 handler · 场景触发 = poi_effects.py 15 函数 ·
                         #    职业机制 = class_mech.py 的 _clear_actor / _melody_finale；其余 40 处被
                         #    test_u1d2_triggers_extra_frozen.py 的逐段 sha 冻结挡住，另案）
-                        "药水效果", "场景触发", "职业机制"}, cats)
+                        "药水效果", "场景触发", "职业机制",
+                        # ★ C 档 PRE2（2026-09-19 并行批 2）：effects 之外的另两域
+                        "事件模板", "装备描述"}, cats)
 
 
 def t2_key_and_params_accounting():
@@ -2992,8 +3002,8 @@ def t11_instance_panel_frozen():
                     left.append((os.path.basename(_p), _s, _v[:60]))
     check("★ 旧句壳零残留（句壳只在文案表；排版分隔线/取值回退/命令关键字留在代码）",
           not left, left[:5])
-    check("表里 72 条面板文案全部由本域文件引用（key 双向对账见 [2]）",
-          len([k for k in T.table().keys() if k.startswith("instance.面板_")]) == 72,
+    check("表里 76 条面板文案全部由本域文件引用（key 双向对账见 [2]）",
+          len([k for k in T.table().keys() if k.startswith("instance.面板_")]) == 76,
           len([k for k in T.table().keys() if k.startswith("instance.面板_")]))
 
 
