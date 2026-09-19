@@ -4816,7 +4816,7 @@
     ]
   },
   "ency.gem_socket": {
-    "value": "🔩 打孔镶嵌：稀有装 1 孔（碎裂-普通）· 史诗装 2 孔（普通-无瑕）· 传说装 3 孔（无瑕-神话）",
+    "value": "🔩 打孔镶嵌：稀有装 1 孔（碎裂-黯淡）· 史诗装 2 孔（黯淡-明亮）· 传说装 3 孔（普通-神话）",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
   },
@@ -8539,7 +8539,7 @@
     "desc": "搬自 content/misc_cmds.py:CMD_HELP（B 批 B-1 B 档）"
   },
   "help_panel.CMD_HELP_ADV": {
-    "value": "🗺️ 【冒险】指令\n━━━━━━━━━━━━\n『地图』 当前区域全景（设施/场景/NPC/怪物/可前往）\n『位置』 当前精简导航；想赶路请发『赶路』（v128.2 起移除回复 0 捷径）\n『赶路 [NPC/怪物/场景/设施]』 只看对应内容+通道，回复序号直接赶路，0 结束（v128.1）\n『前往 <地名或序号>』 前往相邻区域\n『寻路 <地名>』 查当前位置到目标的最短路径（『问路』同效）\n『探索』 野外遇怪/偶遇/事件（城镇安全区无怪）\n『休息』 野外露营（恢复部分状态）\n『住宿』 城镇旅店（全额恢复）\n『时间』 当前时间/季节/天气\n『许愿 <经验/金币/材料>』 向流星许愿（探索偶遇流星后限时；许愿井彩蛋走『交互 许愿井』，每日一次）——v105 M23 P2-2 帮助文案与实现对齐\n『见闻录』 野外 NPC 见闻收集\n『足迹』 我去过的区域明细（城镇/野外子区域+首访日期） 『冒险手册』 冒险经历总览\n💡 移动可能撞怪：等级低于地图容易被拦路，高级玩家威慑低级怪",
+    "value": "🗺️ 【冒险】指令\n━━━━━━━━━━━━\n『地图』 当前区域全景（设施/场景/NPC/怪物/可前往）\n『位置』 当前精简导航；想赶路请发『赶路』（v128.2 起移除回复 0 捷径）\n『赶路 [NPC/怪物/场景/设施]』 只看对应内容+通道，回复序号直接赶路，0 结束（v128.1）\n『前往 <地名或序号>』 前往相邻区域\n『寻路 <地名>』 查当前位置到目标的最短路径（『问路』同效）\n『探索』 野外遇怪/偶遇/事件（城镇安全区无怪）\n『休息』 野外露营（恢复部分状态）\n『住宿』 城镇旅店（全额恢复）\n『时间』 当前时间/季节/天气\n『许愿 <经验/金币/材料>』 向流星许愿（探索偶遇流星后限时；许愿井彩蛋走『交互 许愿井』，每日一次）\n『见闻录』 野外 NPC 见闻收集\n『足迹』 我去过的区域明细（城镇/野外子区域+首访日期） 『冒险手册』 冒险经历总览\n💡 移动可能撞怪：等级低于地图容易被拦路，高级玩家威慑低级怪",
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_ADV（B 批 B-1 B 档）"
   },
@@ -13470,6 +13470,30 @@
     "category": "场景触发",
     "desc": "搬自 content/poi_effects.py:poi_loot（B 批 C 档）"
   },
+  "poi.mech_open_secret": {
+    "value": "🔓 隐藏房间出现了！『副本地图』查看详情。",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
+  },
+  "poi.mech_skip_elite": {
+    "value": "🧭 机关打通了一条捷径——下一层的精英被绕开了！",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
+  },
+  "poi.mech_skip_wave": {
+    "value": "🧭 援兵被引开了一部分——下一层的敌人减少了！",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
+  },
+  "poi.mech_unlock": {
+    "value": "✨ 机关启动，某种封锁被解除了！",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
+  },
   "poi.merchant_blueprint": {
     "value": "{icon} 【{name}】行商神秘地掏出一卷图纸：{bp}！\n📜 他称这是从远方古墓里『顺』来的，你赶紧收好。",
     "params": [
@@ -13538,10 +13562,28 @@
     "category": "场景触发",
     "desc": "搬自 content/poi_effects.py:poi_rune（B 批 C 档）"
   },
+  "poi.rune_avoid_trap": {
+    "value": "✨ 你记住了避开陷阱的路线。",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
+  },
+  "poi.rune_boss_buff": {
+    "value": "✨ 风神的祝福涌入体内——Boss 战前将获得速度加持！",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
+  },
   "poi.rune_lore_default": {
     "value": "碑文模糊不清，似乎被岁月磨平了。",
     "category": "场景触发",
     "desc": "搬自 content/poi_effects.py:inst_rune_stone（B 批 C 档）"
+  },
+  "poi.rune_unlock": {
+    "value": "✨ 碑文的内容似乎触发了什么……(某个机关被解锁了！)",
+    "params": [],
+    "category": "场景触发",
+    "desc": "搬自 content/effects/poi_effects.py 的模块级 dict（C 档另案 · 机关/石碑播报；dict 存 key、调用点 _T.static 渲染，保 texts.reload() 热更）"
   },
   "poi.sight": {
     "value": "{icon} 【{name}】你停住脚步，抬头望向{loc}的风景。\n🌄 {txt}",

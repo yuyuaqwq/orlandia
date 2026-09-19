@@ -347,19 +347,22 @@ def _act_avoid_trap(st, eff):
     st.setdefault("poi_unlocks", {})[f"avoid_{eff['avoid_trap']}"] = True
 
 
-# 机关 effect 子键分发表（数据声明）：{子键: (动作函数, 播报文案)}
+# 机关 effect 子键分发表（数据声明）：{子键: (动作函数, 文案 key)}
+# ★ 2026-09-19（C 档另案）：值由「播报文案」改为**文案 key** —— 本表在模块级（import 期），
+#   若此处直接 `_T.static(...)` 会把文案在 import 期定稿、`texts.reload()` 热更失效；
+#   故改「dict 存 key、调用点 `logs.append(_T.static(line))` 渲染」（渲染发生在运行时）。
 _MECHANISM_ACTIONS = {
-    "open_secret": (_act_flag("stage_secret_found"), "🔓 隐藏房间出现了！『副本地图』查看详情。"),
-    "skip_elite": (_act_flag("skip_elite_next"), "🧭 机关打通了一条捷径——下一层的精英被绕开了！"),
-    "skip_wave": (_act_flag("skip_wave_next"), "🧭 援兵被引开了一部分——下一层的敌人减少了！"),
-    "unlock": (_act_unlock, "✨ 机关启动，某种封锁被解除了！"),
+    "open_secret": (_act_flag("stage_secret_found"), "poi.mech_open_secret"),
+    "skip_elite": (_act_flag("skip_elite_next"), "poi.mech_skip_elite"),
+    "skip_wave": (_act_flag("skip_wave_next"), "poi.mech_skip_wave"),
+    "unlock": (_act_unlock, "poi.mech_unlock"),
 }
 
-# 石碑 effect 子键分发表（数据声明）：{子键: (动作函数, 播报文案)}
+# 石碑 effect 子键分发表（数据声明）：{子键: (动作函数, 文案 key)}（同 _MECHANISM_ACTIONS 口径）
 _RUNE_STONE_ACTIONS = {
-    "unlock": (_act_unlock, "✨ 碑文的内容似乎触发了什么……(某个机关被解锁了！)"),
-    "avoid_trap": (_act_avoid_trap, "✨ 你记住了避开陷阱的路线。"),
-    "boss_buff": (_act_flag("boss_buff_next"), "✨ 风神的祝福涌入体内——Boss 战前将获得速度加持！"),
+    "unlock": (_act_unlock, "poi.rune_unlock"),
+    "avoid_trap": (_act_avoid_trap, "poi.rune_avoid_trap"),
+    "boss_buff": (_act_flag("boss_buff_next"), "poi.rune_boss_buff"),
 }
 
 
@@ -454,7 +457,7 @@ def inst_rune_stone(ctx):
     for key, (act, line) in _RUNE_STONE_ACTIONS.items():
         if eff.get(key):
             act(st, eff)
-            logs.append(line)
+            logs.append(_T.static(line))
     return "\n".join(logs)
 
 
@@ -472,7 +475,7 @@ def inst_mechanism(ctx):
     for key, (act, line) in _MECHANISM_ACTIONS.items():
         if eff.get(key):
             act(st, eff)
-            logs.append(line)
+            logs.append(_T.static(line))
     ctx.mark_used()
     return "\n".join(logs)
 

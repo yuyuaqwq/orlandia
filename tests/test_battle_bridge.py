@@ -14,8 +14,29 @@ import sys
 import tempfile
 
 # 独立临时 GWEN_GAME_DB（HANDOFF 约定：测试独立临时库）
+# ★ 2026-09-19 卫生修复（本文件原先**从不清理**该临时目录 ⇒ 实测累积 824 目录 / 92MB；
+#   审计线一度误登记为「文案批 B-2 的产物 gwen_b2bridge_*」，实为本文件的 mkdtemp 泄漏）。
+#   双保险，缺一不可：
+#   ① **跑前**清掉超过 1 小时的**历史遗留** —— Windows 上 sqlite 连接在解释器退出时往往还持有
+#      文件锁 ⇒ `rmtree` 静默失败（实测确认：单靠 atexit 堵不住）；1 小时阈值避免误删并发兄弟进程。
+#   ② **atexit** 尽力清自己那个（锁解开时能删成功）。
+#   实测（2026-09-19）：跑前清理把 4 个历史目录清成 0；本次那个因 sqlite 文件锁残留 1 个
+#   ⇒ **稳态 ≤1 个**（原先是「每跑一次涨一个」，累积到 824）✓
+import atexit as _atexit            # noqa: E402
+import glob as _glob                # noqa: E402
+import shutil as _shutil            # noqa: E402
+import time as _time                # noqa: E402
+
+for _d in _glob.glob(os.path.join(tempfile.gettempdir(), "gwen_b2bridge_*")):
+    try:
+        if _time.time() - os.path.getmtime(_d) > 3600:
+            _shutil.rmtree(_d, ignore_errors=True)
+    except OSError:
+        pass
+
 _tmp_db = tempfile.mkdtemp(prefix="gwen_b2bridge_")
 os.environ["GWEN_GAME_DB"] = os.path.join(_tmp_db, "game.db")
+_atexit.register(_shutil.rmtree, _tmp_db, ignore_errors=True)
 os.environ["GWEN_TEST_MODE"] = "1"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
