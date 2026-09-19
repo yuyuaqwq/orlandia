@@ -438,7 +438,9 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 20c（B-2 第 6 片第 3 小片）：社交「世界事件 · 拍卖竞拍」
          #   （事件惰性调度通知/面板两态 · 落槌结算头 · 拍卖未开张两态/开张面板 ·
          #    竞拍格式/无此物/四道守卫/被超越退还/一口价/成功两态）
-         "世界事件": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py")],
+         # ★ C 档 PRE3（并行批 3）：world_event_templates 的 wevt.* 也属世界事件域（本项已是列表）
+         "世界事件": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py"),
+                  os.path.join(PKG_CONTENT, "world_event_templates.py")],
          "社交拍卖": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py")],
          # ★ C 档 20d（B-2 第 6 片第 4 小片）：社交「宠物 · 坐骑」
          #   （content/social_pet.py **全 5 函数**首次接入 `_T`：宠物面板全行 · 喂养全分支 ·
@@ -461,7 +463,8 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          #   （命令层 economy_cmds.py 的 _bag_view / equip / use 三函数 ⇒ 三个新分类）
          "背包面板": PKG_ECONOMY_SRC,
          "装备面板": PKG_ECONOMY_SRC,
-         "道具使用": PKG_ECONOMY_SRC,
+         # ★ C 档 PRE3（并行批 3）：mech/item_use.py 的 iu.* 也归道具使用域 ⇒ 改文件列表
+         "道具使用": [PKG_ECONOMY_SRC, os.path.join(PKG_CONTENT, "mech", "item_use.py")],
          "商店出售": PKG_ECONOMY_SRC,
          "商店限购": os.path.join(PKG_CONTENT, "shop_stock.py"),
          # ★ C 档 22b（B-2 第 7 片第 5 小片）：生活「称号 · 物品查看模式」尾巴
@@ -471,7 +474,11 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 PRE2（2026-09-19 并行批 2）：两域首次接入 _T
          #   （事件模板 = event_templates.py 的 12 个 tpl_* ；装备描述 = drops.py 的 _eq_random_desc）
          "事件模板": os.path.join(PKG_CONTENT, "event_templates.py"),
-         "装备描述": os.path.join(PKG_CONTENT, "drops.py")}
+         "装备描述": os.path.join(PKG_CONTENT, "drops.py"),
+         # ★ C 档 PRE3（并行批 3）：mech 两机制族首次接入 _T
+         #   （团队机制 = team_procs.py 的 tp.* 17 键 · 元素机制 = element_procs.py 的 ep.* 7 键）
+         "团队机制": os.path.join(PKG_CONTENT, "mech", "team_procs.py"),
+         "元素机制": os.path.join(PKG_CONTENT, "mech", "element_procs.py")}
 
 
 def _wired_paths(path):
@@ -1051,7 +1058,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制 / 事件模板 / 装备描述 / 团队机制 / 元素机制）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "副本移动", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -1119,7 +1126,9 @@ def t1_table_selfcheck():
                         #    test_u1d2_triggers_extra_frozen.py 的逐段 sha 冻结挡住，另案）
                         "药水效果", "场景触发", "职业机制",
                         # ★ C 档 PRE2（2026-09-19 并行批 2）：effects 之外的另两域
-                        "事件模板", "装备描述"}, cats)
+                        "事件模板", "装备描述",
+                        # ★ C 档 PRE3（2026-09-19 并行批 3）：mech 两机制族
+                        "团队机制", "元素机制"}, cats)
 
 
 def t2_key_and_params_accounting():

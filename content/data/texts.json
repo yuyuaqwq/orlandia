@@ -5045,6 +5045,61 @@
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:enchant（B 批 C 档）"
   },
+  "ep.chain": {
+    "value": "⚡ 感电：连击 +1（累计 {n}）",
+    "params": [
+      "n"
+    ],
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:elem_reaction（B 批 C 档）"
+  },
+  "ep.cleanse_melt": {
+    "value": "🌡️ 冰层消融（解冻）",
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:elem_counter（B 批 C 档）"
+  },
+  "ep.conv": {
+    "value": "🌀 元素转化：本次技能转为【{elem}】系",
+    "params": [
+      "elem"
+    ],
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:elem_conv_apply（B 批 C 档）"
+  },
+  "ep.counter": {
+    "value": "✦ 元素克制【{name}】：伤害 ×{mult:g}（{note}）",
+    "params": [
+      "name",
+      "mult",
+      "note"
+    ],
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:elem_counter（B 批 C 档）"
+  },
+  "ep.freeze": {
+    "value": "❄️ 【{name}】被冻结 2 刻！",
+    "params": [
+      "name"
+    ],
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:_apply_freeze（B 批 C 档）"
+  },
+  "ep.reaction": {
+    "value": "💥 元素反应【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:elem_reaction（B 批 C 档）"
+  },
+  "ep.switch": {
+    "value": "🌀 元素流转：主系切换为【{main}】，下次挂印随主系",
+    "params": [
+      "main"
+    ],
+    "category": "元素机制",
+    "desc": "搬自 content/element_procs.py:class_element_switch（B 批 C 档）"
+  },
   "equip.diff_head": {
     "value": "📊 属性变化：",
     "category": "装备面板",
@@ -10653,6 +10708,92 @@
     "value": "🔍 物品查看模式已开启！直接回复背包序号即可查看物品详情；\n『物品详情结束』退出，『物品详情 <名称>』照常使用。",
     "category": "背包面板",
     "desc": "搬自 content/economy_cmds.py:item_view_mode_cmd（B 批 C 档）"
+  },
+  "iu.buff": {
+    "value": "{head}，{nm}大幅提升！(3 刻)",
+    "params": [
+      "head",
+      "nm"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.food_fx": {
+    "value": "🍲 你吃下了料理，获得【{names}】效果！(本场战斗)",
+    "params": [
+      "names"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.food_hot": {
+    "value": "🍲 你吃下了食物，{desc}！({turns} 刻)",
+    "params": [
+      "desc",
+      "turns"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.heal": {
+    "value": "💊 你使用了战斗道具，恢复 {real} 点生命！({hp}/{maxhp})",
+    "params": [
+      "real",
+      "hp",
+      "maxhp"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.hm": {
+    "value": "💊 你使用了战斗道具，{msgs}！",
+    "params": [
+      "msgs"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.item_used": {
+    "value": "💊 你使用了战斗道具！",
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.mana": {
+    "value": "💙 你使用了战斗道具，恢复 {real} 点魔力！({mp}/{mx})",
+    "params": [
+      "real",
+      "mp",
+      "mx"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.potion_ready": {
+    "value": "🧪 你饮下战斗药水，效果就绪！(本场)",
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:_translate_special（B 批 C 档）"
+  },
+  "iu.purify_none": {
+    "value": "✨ 净化卷轴展开，没有需要驱散的负面效果～",
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.purify_ok": {
+    "value": "✨ 净化卷轴驱散了负面效果！({lines})",
+    "params": [
+      "lines"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.shield": {
+    "value": "🛡️ 你饮下药剂，获得护盾！(吸收 {pct}% 最大生命，{turns} 刻)",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:_translate_special（B 批 C 档）"
   },
   "job.base_head": {
     "value": "🟦 基础六职业（30 级转职，各分攻/守双线）",
@@ -17632,6 +17773,11 @@
     "category": "技能详情",
     "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
   },
+  "skill_card.gain_label_dmg": {
+    "value": "伤害",
+    "category": "技能详情",
+    "desc": "搬自 content/player_cmds.py:_skill_upgrade_gains（B 批 C 档）"
+  },
   "skill_card.gain_lifesteal": {
     "value": "吸血 {p}%",
     "params": [
@@ -19408,6 +19554,156 @@
     "value": "👑 你已登顶修炼塔之巅！这座塔已没有能拦住你的楼层了——强者无需重复登顶，把传说留给后来者吧。",
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
+  "tp.arcane_edge_apply": {
+    "value": "🗡️ 奥术力场·利刃：本次奥术技伤害 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:arcane_edge_apply（B 批 C 档）"
+  },
+  "tp.arcane_field_edge": {
+    "value": "🔮 奥术力场【利刃】：下次奥术技伤害 ×1.3",
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:arcane_field（B 批 C 档）"
+  },
+  "tp.arcane_field_shield": {
+    "value": "🔮 奥术力场【护盾】",
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:arcane_field（B 批 C 档）"
+  },
+  "tp.block_once": {
+    "value": "🛡️ {label}：格挡下一次攻击",
+    "params": [
+      "label"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:block_once（B 批 C 档）"
+  },
+  "tp.block_once_apply": {
+    "value": "🛡️ 【{name}】格挡了这一击！",
+    "params": [
+      "name"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:block_once_apply（B 批 C 档）"
+  },
+  "tp.block_reflect_hit": {
+    "value": "⚔️ 格挡反伤：{rd} 点！",
+    "params": [
+      "rd"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:block_reflect_hit（B 批 C 档）"
+  },
+  "tp.cc_immune": {
+    "value": "✨ {label}：全队 {n} 人免疫控制（{turns} 刻）",
+    "params": [
+      "label",
+      "n",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:team_cc_immune（B 批 C 档）"
+  },
+  "tp.cc_immune_self": {
+    "value": "✨ {label}（{turns} 刻）",
+    "params": [
+      "label",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:self_cc_immune（B 批 C 档）"
+  },
+  "tp.dmg_aura": {
+    "value": "🔮 {label}：全队 {n} 人伤害 +{pct}%（{turns} 刻）",
+    "params": [
+      "label",
+      "n",
+      "pct",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:team_dmg_aura（B 批 C 档）"
+  },
+  "tp.guard": {
+    "value": "🛡️ {label}：为 {n} 名队友挡刀（{turns} 刻",
+    "params": [
+      "label",
+      "n",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:team_guard（B 批 C 档）"
+  },
+  "tp.guard_reflect": {
+    "value": "⚔️ 守护反伤：反弹 {rd} 点伤害！",
+    "params": [
+      "rd"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:guard_reflect（B 批 C 档）"
+  },
+  "tp.lock_mark": {
+    "value": "🎯 {name} 被锁定（{turns} 刻）",
+    "params": [
+      "name",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:target_lock_mark（B 批 C 档）"
+  },
+  "tp.self_shield": {
+    "value": "🛡️ {label}：获得 {value} 点护盾（{turns} 刻）",
+    "params": [
+      "label",
+      "value",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:self_shield（B 批 C 档）"
+  },
+  "tp.taken_reduce": {
+    "value": "🛡️ {label}：全队 {n} 人减伤 {pct}%（{turns} 刻）",
+    "params": [
+      "label",
+      "n",
+      "pct",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:team_taken_reduce（B 批 C 档）"
+  },
+  "tp.team_apply": {
+    "value": "🛡️ {label}：全队 {n} 人获得增益",
+    "params": [
+      "label",
+      "n"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:team_apply（B 批 C 档）"
+  },
+  "tp.team_shield": {
+    "value": "🛡️ {label}：全队 {n} 人各获 {value} 点护盾（{turns} 刻）",
+    "params": [
+      "label",
+      "n",
+      "value",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:team_shield（B 批 C 档）"
+  },
+  "tp.vuln": {
+    "value": "💢 {name} 受到伤害 +{pct}%（{turns} 刻）",
+    "params": [
+      "name",
+      "pct",
+      "turns"
+    ],
+    "category": "团队机制",
+    "desc": "搬自 content/team_procs.py:timed_vuln（B 批 C 档）"
   },
   "tpl.affixroll.in_battle": {
     "value": "命运之墨要在铁匠铺使用，战斗中用不上～",
@@ -21445,6 +21741,72 @@
     ],
     "category": "世界事件",
     "desc": "搬自 content/social_cmds.py:maybe_roll_event（B 批 C 档）"
+  },
+  "wevt.auction_buyout": {
+    "value": "   💰 一口价 {buyout}｜『竞拍 {id} <金币>』",
+    "params": [
+      "buyout",
+      "id"
+    ],
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_auction（B 批 C 档）"
+  },
+  "wevt.auction_item": {
+    "value": "📦 {id}. {name} ｜ 底价 {base}｜ 最高 {top_name}：{top}",
+    "params": [
+      "id",
+      "name",
+      "base",
+      "top_name",
+      "top"
+    ],
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_auction（B 批 C 档）"
+  },
+  "wevt.boss_head": {
+    "value": "{icon} {name} Lv.{lv}",
+    "params": [
+      "icon",
+      "name",
+      "lv"
+    ],
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_boss（B 批 C 档）"
+  },
+  "wevt.boss_hint": {
+    "value": "⚔️ 输入『讨伐』参与战斗！贡献越高奖励越丰厚！",
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_boss（B 批 C 档）"
+  },
+  "wevt.boss_hp": {
+    "value": "❤️ 剩余血量 {hp:,} / {max_hp:,}({pct}%)",
+    "params": [
+      "hp",
+      "max_hp",
+      "pct"
+    ],
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_boss（B 批 C 档）"
+  },
+  "wevt.festival": {
+    "value": "🎉 『签到』奖励翻倍！金币掉落增加！",
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_festival（B 批 C 档）"
+  },
+  "wevt.merchant": {
+    "value": "🎁 所有商店 8 折优惠进行中！『商店』查看，『购买 <物品>』扫货！",
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_merchant（B 批 C 档）"
+  },
+  "wevt.omen": {
+    "value": "🌧️ 经验与金币收益＋50%！快去『探索』打怪吧！",
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_omen（B 批 C 档）"
+  },
+  "wevt.swarm": {
+    "value": "⚔️ 怪物经验＋30%，击杀声望双倍！守护大陆！",
+    "category": "世界事件",
+    "desc": "搬自 content/world_event_templates.py:_d_swarm（B 批 C 档）"
   },
   "wildcond.anytime": {
     "value": "随时可能出现",

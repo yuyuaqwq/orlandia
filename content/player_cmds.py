@@ -1171,7 +1171,7 @@ async def add_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     attr[key] = attr.get(key, 0) + n
     import json
     db.update_player(group_id, qq_id, attr_pts=pts - n, attributes=json.dumps(attr, ensure_ascii=False))
-    names = {"str": "力量", "agi": "敏捷", "int": "智力", "vit": "耐力"}
+    names = {"str": _T.static("attr_name.str"), "agi": _T.static("attr_name.agi"), "int": _T.static("attr_name.int"), "vit": _T.static("attr_name.vit")}
     yield event.plain_result(_T.text("points.ok_add", name=names[key], n=n, left=pts - n))
 
 async def reset_skill(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1664,7 +1664,7 @@ def _skill_upgrade_gains(self, info: dict, lv: int, stats: dict | None = None) -
         # v162 修复：只有攻击类（物理/魔法/真伤）显示"伤害"，增益/嘲讽/被动不该显示伤害
         # （铁壁等增益技能带 power 字段，此前误显示"伤害 100%"）
         if kind in ("物理", "魔法", "真伤") or kind.startswith(("物理", "魔法")):
-            label = "治疗" if kind == "治疗" else "伤害"
+            label = "治疗" if kind == "治疗" else _T.static("skill_card.gain_label_dmg")
             # v101.25b #339：显示总伤害倍率 power×mult（此前只显示 mult 倍率——
             # 圣光术 desc 115% vs 升级预览 110% 玩家以为升级降伤害）
             parts.append(f"{label} {int(info['power'] * skill_power_mult(lv, info) * 100)}%")

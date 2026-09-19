@@ -39,6 +39,8 @@ from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.battle.effects import apply_effects, register_action
 
+from .. import texts as _T                    # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
+
 # 团队态统一前缀（effects 容器命名空间；避免与引擎/其它模块 key 撞名）
 PREFIX = "team:"
 
@@ -192,7 +194,7 @@ def team_apply(battle, caster, target, params, logs):
         return
     for a in members:
         apply_effects(battle, a, a, [dict(inner)], logs)
-    logs.append(f"🛡️ {params.get('label') or key}：全队 {len(members)} 人获得增益")
+    logs.append(_T.text("tp.team_apply", label=params.get('label') or key, n=len(members)))
 
 
 # ============================================================
@@ -274,7 +276,8 @@ def team_shield(battle, caster, target, params, logs):
         return
     for a in members:
         act_shield(battle, a, a, {"key": key, "value": value, "turns": turns, "halve": halve}, logs)
-    logs.append(f"🛡️ {params.get('label') or '护盾'}：全队 {len(members)} 人各获 {value} 点护盾（{turns} 刻）")
+    logs.append(_T.text("tp.team_shield", label=params.get('label') or '护盾', n=len(members), value=value,
+                    turns=turns))
 
 
 @register_action("self_shield")
@@ -292,7 +295,7 @@ def self_shield(battle, caster, target, params, logs):
     key = params.get("key") or "shield"
     halve = bool(params.get("halve", False))
     act_shield(battle, src, src, {"key": key, "value": value, "turns": turns, "halve": halve}, logs)
-    logs.append(f"🛡️ {params.get('label') or '护盾'}：获得 {value} 点护盾（{turns} 刻）")
+    logs.append(_T.text("tp.self_shield", label=params.get('label') or '护盾', value=value, turns=turns))
 
 
 # ============================================================
@@ -365,7 +368,8 @@ def team_taken_reduce(battle, caster, target, params, logs):
     for a in members:
         a.setdefault("effects", {})[state_key] = {"stacks": 1, "expire": now + turns, "reduce": r}
         _mount(a, "taken_calc", {"action": "team_ss_reduce_apply", "key": state_key})
-    logs.append(f"🛡️ {params.get('label') or '减伤'}：全队 {len(members)} 人减伤 {int(r * 100)}%（{turns} 刻）")
+    logs.append(_T.text("tp.taken_reduce", label=params.get('label') or '减伤', n=len(members), pct=int(r * 100),
+                    turns=turns))
 
 
 @register_action("team_ss_reduce_apply")
@@ -411,7 +415,7 @@ def timed_vuln(battle, caster, target, params, logs):
     holder.setdefault("effects", {})[state_key] = {
         "stacks": 1, "expire": _now(battle) + turns, "amp": amp}
     _mount(holder, "taken_calc", {"action": "timed_vuln_apply", "key": state_key})
-    logs.append(f"💢 {holder.get('name', '目标')} 受到伤害 +{int(amp * 100)}%（{turns} 刻）")
+    logs.append(_T.text("tp.vuln", name=holder.get('name', '目标'), pct=int(amp * 100), turns=turns))
 
 
 @register_action("timed_vuln_apply")
@@ -468,7 +472,8 @@ def team_dmg_aura(battle, caster, target, params, logs):
     for a in members:
         a.setdefault("effects", {})[state_key] = {"stacks": 1, "expire": now + turns}
         _mount(a, "dmg_calc", dict(decl))
-    logs.append(f"🔮 {params.get('label') or '全队增伤'}：全队 {len(members)} 人伤害 +{int(add * 100)}%（{turns} 刻）")
+    logs.append(_T.text("tp.dmg_aura", label=params.get('label') or '全队增伤', n=len(members), pct=int(add * 100),
+                    turns=turns))
 
 
 @register_action("team_dmg_aura_apply")
@@ -519,7 +524,7 @@ def target_lock_mark(battle, caster, target, params, logs):
     tag = str(params.get("lock") or info.get("lock_tag") or params.get("key") or "star")
     holder.setdefault("effects", {})[f"{PREFIX}lock:{tag}"] = {
         "stacks": 1, "expire": _now(battle) + turns}
-    logs.append(f"🎯 {holder.get('name', '目标')} 被锁定（{turns} 刻）")
+    logs.append(_T.text("tp.lock_mark", name=holder.get('name', '目标'), turns=turns))
 
 
 # ============================================================
@@ -545,7 +550,7 @@ def team_cc_immune(battle, caster, target, params, logs):
     now = _now(battle)
     for a in members:
         a.setdefault("effects", {})["cc_immune"] = {"stacks": 1, "expire": now + turns}
-    logs.append(f"✨ {params.get('label') or '免疫控制'}：全队 {len(members)} 人免疫控制（{turns} 刻）")
+    logs.append(_T.text("tp.cc_immune", label=params.get('label') or '免疫控制', n=len(members), turns=turns))
 
 
 @register_action("self_cc_immune")
@@ -559,7 +564,7 @@ def self_cc_immune(battle, caster, target, params, logs):
         return
     src.setdefault("effects", {})["cc_immune"] = {
         "stacks": 1, "expire": _now(battle) + turns}
-    logs.append(f"✨ {params.get('label') or '免疫控制'}（{turns} 刻）")
+    logs.append(_T.text("tp.cc_immune_self", label=params.get('label') or '免疫控制', turns=turns))
 
 
 # ============================================================
@@ -603,7 +608,7 @@ def team_guard(battle, caster, target, params, logs):
         _mount(a, "time_advance", {"action": "guard_expire", "key": state_key,
                                   "until": now + turns, "uid": uid})
         n += 1
-    logs.append(f"🛡️ {params.get('label') or '守护'}：为 {n} 名队友挡刀（{turns} 刻"
+    logs.append(_T.text("tp.guard", label=params.get('label') or '守护', n=n, turns=turns)
                 + (f"，反伤 {int(reflect * 100)}%" if reflect > 0 else "") + "）")
 
 
@@ -646,7 +651,7 @@ def guard_reflect(battle, caster, target, params, logs):
         return
     rd = max(1, int(int(ctx.get("dmg", 0) or 0) * pct))
     deal_damage(battle, holder, attacker, rd, logs)
-    logs.append(f"⚔️ 守护反伤：反弹 {rd} 点伤害！")
+    logs.append(_T.text("tp.guard_reflect", rd=rd))
 
 
 # ============================================================
@@ -672,7 +677,7 @@ def block_once(battle, caster, target, params, logs):
     # 反伤走受击后事件（见 block_reflect_hit 的注释：taken_calc 里不可递归）
     _mount(src, "on_taken", {"action": "block_reflect_hit", "key": state_key,
                              "reflect_pct": reflect})
-    logs.append(f"🛡️ {params.get('label') or '格挡'}：格挡下一次攻击"
+    logs.append(_T.text("tp.block_once", label=params.get('label') or '格挡')
                 + (f"（反伤 {int(reflect * 100)}%）" if reflect > 0 else ""))
 
 
@@ -697,7 +702,7 @@ def block_once_apply(battle, caster, target, params, logs):
     ctx["mult"] = 0.0                       # 本次承伤归零（引擎 clamp 到至少 1 点）
     holder["_block_base"] = int(ctx.get("dmg", 0) or 0)
     holder["effects"].pop(key, None)        # 1 次性：格挡后消耗
-    logs.append(f"🛡️ 【{holder.get('name', '目标')}】格挡了这一击！")
+    logs.append(_T.text("tp.block_once_apply", name=holder.get('name', '目标')))
 
 
 @register_action("block_reflect_hit")
@@ -721,7 +726,7 @@ def block_reflect_hit(battle, caster, target, params, logs):
         return
     rd = max(1, int(base * pct))
     deal_damage(battle, holder, attacker, rd, logs)
-    logs.append(f"⚔️ 格挡反伤：{rd} 点！")
+    logs.append(_T.text("tp.block_reflect_hit", rd=rd))
 
 
 # 注：元素流转（`element_switch`）的完整实现在 `content/mech/element_procs.py`（主系切换 + 下次挂印转换 + 元素两轴）。
@@ -759,10 +764,10 @@ def arcane_field(battle, caster, target, params, logs):
             "stacks": 1, "expire": _now(battle) + turns, "add": 0.30}
         _mount(src, "dmg_calc", {"action": "arcane_edge_apply", "key": state_key,
                                  "mech_prefix": "arcane", "add": 0.30})
-        logs.append("🔮 奥术力场【利刃】：下次奥术技伤害 ×1.3")
+        logs.append(_T.static("tp.arcane_field_edge"))
         return
     self_shield(battle, caster, target, params, logs)
-    logs.append("🔮 奥术力场【护盾】")
+    logs.append(_T.static("tp.arcane_field_shield"))
 
 
 @register_action("arcane_edge_apply")
@@ -785,4 +790,4 @@ def arcane_edge_apply(battle, caster, target, params, logs):
         return
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + add)
     holder["effects"].pop(key, None)      # 一次性
-    logs.append(f"🗡️ 奥术力场·利刃：本次奥术技伤害 +{int(add * 100)}%！")
+    logs.append(_T.text("tp.arcane_edge_apply", pct=int(add * 100)))

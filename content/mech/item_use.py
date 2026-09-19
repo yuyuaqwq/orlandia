@@ -58,6 +58,8 @@ from typing import Optional
 from saintess_engine import config as _b2config
 from saintess_engine.battle.landing import heal_actor
 
+from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
+
 # payload 尾部 cast/recovery 剥离（同旧 battle._item_payload_cast 剥离正则）
 _CAST_RE = re.compile(r"(?:^|[;&,])\s*(?:cast|recovery):[\d.]+")
 
@@ -207,7 +209,7 @@ def translate(battle, actor: dict, payload: str,
             except Exception:
                 pass  # 数据异常不阻断（护盾段可选）
         _names = [(_food_params().get(a) or {}).get("name", a) for a in aids]
-        logs.append(f"🍲 你吃下了料理，获得【{'、'.join(_names)}】效果！(本场战斗)")
+        logs.append(_T.text("iu.food_fx", names='、'.join(_names)))
         return logs, cast
 
     # ---- 1.5 purify 净化卷轴（I5：模板只判定，清除在翻译器）----
@@ -234,9 +236,9 @@ def translate(battle, actor: dict, payload: str,
                 _cleaned.append((_h.get("name", "?"), sorted(_rem)))
         if _cleaned:
             _lines = [f"{_nm}：{'、'.join(_ks)}" for _nm, _ks in _cleaned]
-            logs.append(f"✨ 净化卷轴驱散了负面效果！({'; '.join(_lines)})")
+            logs.append(_T.text("iu.purify_ok", lines='; '.join(_lines)))
         else:
-            logs.append("✨ 净化卷轴展开，没有需要驱散的负面效果～")
+            logs.append(_T.static("iu.purify_none"))
         return logs, cast
 
     # ---- 2. hot（持续恢复：effects["regen_hot"] period 声明，schedule 周期结算）----
@@ -258,7 +260,7 @@ def translate(battle, actor: dict, payload: str,
             _desc.append(f"每刻恢复 {int(hpct * 100)}% 生命")
         if mpct > 0:
             _desc.append(f"每刻恢复 {int(mpct * 100)}% 魔力")
-        logs.append(f"🍲 你吃下了食物，{('、'.join(_desc))}！({turns} 刻)")
+        logs.append(_T.text("iu.food_hot", desc='、'.join(_desc), turns=turns))
         return logs, cast
 
     # ---- 3. mana 回蓝 ----
@@ -269,7 +271,7 @@ def translate(battle, actor: dict, payload: str,
             _mx = int(actor.get("max_mp", before) or before)
             actor["mp"] = min(_mx, before + mv)
             _real = int(actor["mp"]) - before
-            logs.append(f"💙 你使用了战斗道具，恢复 {_real} 点魔力！({actor['mp']}/{_mx})")
+            logs.append(_T.text("iu.mana", real=_real, mp=actor['mp'], mx=_mx))
         return logs, cast
 
     # ---- 4. hm 双恢复 ----
@@ -291,7 +293,7 @@ def translate(battle, actor: dict, payload: str,
             _real = int(actor["mp"]) - before
             if _real > 0:
                 msgs.append(f"恢复 {_real} 点魔力")
-        logs.append(f"💊 你使用了战斗道具，{'、'.join(msgs)}！")
+        logs.append(_T.text("iu.hm", msgs='、'.join(msgs)))
         return logs, cast
 
     # ---- 5. special 特殊分发 ----
@@ -332,7 +334,7 @@ def translate(battle, actor: dict, payload: str,
             return None
         _food = any(k.startswith("food_") for k in applied)
         _nm = "、".join(applied)
-        logs.append(f"{'🍖 你吃下了料理' if _food else '🧪 你饮下战斗药水'}，{_nm}大幅提升！(3 刻)")
+        logs.append(_T.text("iu.buff", head='🍖 你吃下了料理' if _food else '🧪 你饮下战斗药水', nm=_nm))
         return logs, cast
 
     # ---- 7. 纯数字 heal ----
@@ -354,11 +356,11 @@ def translate(battle, actor: dict, payload: str,
         heal_actor(battle, actor, heal, logs)
         _real = int(actor.get("hp", 0) or 0) - before
         if _real > 0:
-            logs.append(f"💊 你使用了战斗道具，恢复 {_real} 点生命！({actor['hp']}/{actor.get('max_hp', '?')})")
+            logs.append(_T.text("iu.heal", real=_real, hp=actor['hp'], maxhp=actor.get('max_hp', '?')))
         else:
-            logs.append("💊 你使用了战斗道具！")
+            logs.append(_T.static("iu.item_used"))
     else:
-        logs.append("💊 你使用了战斗道具！")
+        logs.append(_T.static("iu.item_used"))
     return logs, cast
 
 
@@ -399,7 +401,7 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float)
             # 消费即清；无 turns 的动作（act_buff 要求 turns>0）会不挂
             apply_effects(battle, actor, actor,
                           [{"type": kind, "turns": 999, "on": "caster"}], logs)
-            logs.append(f"🧪 你饮下战斗药水，效果就绪！(本场)")
+            logs.append(_T.static("iu.potion_ready"))
             return logs, cast
     # 2. shield 动词族（value=物品 effect_data 或 DEFAULTS；turns 缺省 3）
     if kind in _SHIELD_KINDS:
@@ -414,7 +416,7 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float)
         apply_effects(battle, actor, actor,
                       [{"action": "shield", "key": _key, "pct": pct,
                         "turns": turns, "on": "caster"}], logs)
-        logs.append(f"🛡️ 你饮下药剂，获得护盾！(吸收 {int(pct * 100)}% 最大生命，{turns} 刻)")
+        logs.append(_T.text("iu.shield", pct=int(pct * 100), turns=turns))
         return logs, cast
     # 3. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None

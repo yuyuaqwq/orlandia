@@ -187,7 +187,7 @@ FROZEN_COUNTS = {
     #     `content/reward.py`「奖励发放」9 处替换（两新分类）⇒ 2737 → 2774
     # ★ C 档 34c（B-2 第 26 片）：`content/misc_cmds.py`「帮助兜底/成就面板/意见反馈」
     #     8 处替换 + `content/achievements.py`「成就」11 处替换（两新分类）⇒ 2774 → 2792
-    "texts": 2996,
+    "texts": 3041,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

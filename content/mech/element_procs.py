@@ -37,6 +37,8 @@ from saintess_engine.battle.effects import register_action
 from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
+from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
+
 # 印记 key（元素 → 印记）
 ELEMENT_MARKS = {"fire": "fire_mark", "ice": "ice_mark", "thunder": "thunder_mark"}
 
@@ -158,7 +160,7 @@ def elem_reaction(battle, caster, target, params, logs):
     if mult != 1.0:
         ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
     name = r.get("name") or "元素反应"
-    logs.append(f"💥 元素反应【{name}】" + (f" 伤害 ×{mult:g}" if mult != 1.0 else ""))
+    logs.append(_T.text("ep.reaction", name=name) + (f" 伤害 ×{mult:g}" if mult != 1.0 else ""))
     # 清印（反应消耗印记）
     if r.get("clear"):
         ef = tgt.setdefault("effects", {})
@@ -174,7 +176,7 @@ def elem_reaction(battle, caster, target, params, logs):
         old = ef.get("elem_chain") or {}
         n = int(old.get("stacks", 0) or 0) + 1 if isinstance(old, dict) else 1
         ef["elem_chain"] = {"stacks": n, "expire": None}
-        logs.append(f"⚡ 感电：连击 +1（累计 {n}）")
+        logs.append(_T.text("ep.chain", n=n))
 
 
 def _apply_freeze(battle, tgt: dict, logs) -> None:
@@ -188,7 +190,7 @@ def _apply_freeze(battle, tgt: dict, logs) -> None:
     old = ef.get("freeze") or {}
     old_exp = float(old.get("expire", 0) or 0) if isinstance(old, dict) else 0.0
     ef["freeze"] = {"expire": max(old_exp, now + 2), "mode": "skip", "stacks": 1}
-    logs.append(f"❄️ 【{tgt.get('name', '目标')}】被冻结 2 刻！")
+    logs.append(_T.text("ep.freeze", name=tgt.get('name', '目标')))
 
 
 # ============================================================
@@ -222,13 +224,13 @@ def elem_counter(battle, caster, target, params, logs):
         return
     mult = float(rule.get("mult", 1.25) or 1.25)
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
-    logs.append(f"✦ 元素克制【{rule.get('name')}】：伤害 ×{mult:g}（{rule.get('note', '')}）")
+    logs.append(_T.text("ep.counter", name=rule.get('name'), mult=mult, note=rule.get('note', '')))
     # 附带：解冻 / 打断
     if rule.get("cleanse"):
         ef = tgt.setdefault("effects", {})
         if isinstance(ef.get(rule["cleanse"]), dict):
             ef.pop(rule["cleanse"], None)
-            logs.append("🌡️ 冰层消融（解冻）")
+            logs.append(_T.static("ep.cleanse_melt"))
     if rule.get("interrupt"):
         try:
             from saintess_engine.battle.effects import apply_effects
@@ -267,7 +269,7 @@ def class_element_switch(battle, caster, target, params, logs):
     nxt = cycle[(cycle.index(cur) + 1) % len(cycle)] if cur in cycle else cycle[0]
     src["cur_element"] = nxt
     src["_elem_conv"] = nxt          # 一次性：下次挂印按主系
-    logs.append(f"🌀 元素流转：主系切换为【{nxt}】，下次挂印随主系")
+    logs.append(_T.text("ep.switch", main=nxt))
 
 
 # 撤销基线哨兵：记录时该键**原本不存在**（撤销 = 删键，而非写回 None）
@@ -338,7 +340,7 @@ def elem_conv_apply(battle, caster, target, params, logs):
     # 挂印类技能（mech 是元素印）→ 换成主系的印
     if str(info.get("mech") or "") in ELEMENT_MARKS.values():
         info["mech"] = mark
-    logs.append(f"🌀 元素转化：本次技能转为【{conv}】系")
+    logs.append(_T.text("ep.conv", elem=conv))
 
 
 __all__ = ["elem_reaction", "elem_counter", "class_element_switch", "elem_conv_apply",
