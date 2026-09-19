@@ -9,6 +9,7 @@
   【3】判据 3 槽满硬报错：词条槽越界 / 无词条槽 → 明确报错 + 材料金币未扣
   【4】判据 4 材料不足 / 金币不足 → 明确报错 + 无任何副作用
   【5】反证：现有『附魔』（确定性配方）产出/消耗/槽满文案**逐字未变**
+  【6】台账 §0 D4：保底产物绑定 —— 不可出售 / 不可上架 / 不可摆卖（三条出口 fail-closed）
 
 运行：python tests/test_v2_reroll.py（exit=0 全绿）
 """
@@ -332,6 +333,72 @@ async def sec5_enchant_untouched():
           "【烈焰之刃】的 1 个附魔槽已满！先『出售』旧装备，或等新装备吧～" in out2, out2[:200])
 
 
+# ============================================================ 【6】
+async def sec6_bound():
+    """台账 §0 D4：保底产物绑定 —— 不可出售 / 不可上架 / 不可摆卖（三条出口 fail-closed）。"""
+    print("【6】台账 §0 D4：保底产物绑定（不可出售 / 不可上架 / 不可摆卖）")
+    _d0 = {}
+    check("⑥ 读口：空 data → 未绑定", R.is_bound(_d0) is False, R.is_bound(_d0))
+    R.mark_bound(_d0)
+    check("⑥ 读口：mark_bound 后 is_bound == True", R.is_bound(_d0) is True, _d0)
+    check("⑥ 读口：坏形状不炸（None / rec 非映射）",
+          R.is_bound(None) is False and R.is_bound({"reroll": "x"}) is False, "")
+
+    # 6.1 保底触发 → 绑定
+    m = setup(gold=100000, affixes=["a1", "a2", "a3"], mats=2, reroll={"count": 3})
+    out = await cmd(m, "reroll", G, Q, "重铸 紫霄试炼剑")
+    after = item_of(G, Q, "eq_v2_test")
+    check("⑥ 保底触发 → item_data.reroll.bound == True",
+          (after.get("reroll") or {}).get("bound") is True, after.get("reroll"))
+    check("⑥ bound 与轮次计数同记录（出金后 count 归零）",
+          (after.get("reroll") or {}).get("count") == 0, after.get("reroll"))
+
+    # 6.2 未到保底 → 不绑定（streak=0 时 pity 不可达 = 反证）
+    m = setup(gold=100000, affixes=[], mats=2)
+    await cmd(m, "reroll", G, Q, "重铸 紫霄试炼剑")
+    after = item_of(G, Q, "eq_v2_test")
+    check("⑥ 反证：streak=0 重铸（不可能是保底轮）→ 不绑定",
+          not (after.get("reroll") or {}).get("bound"), after.get("reroll"))
+
+    # 6.3 单件出售被拒
+    m = setup(gold=100000, affixes=[], mats=2, reroll={"count": 1, "rounds": 1, "bound": True})
+    out = await cmd(m, "sell", G, Q, "出售 紫霄试炼剑")
+    p = db.get_player(G, Q)
+    check("⑥ 出售被拒：点名『重铸』保底产物", "是『重铸』保底产物" in out, out[:160])
+    check("⑥ 出售被拒：金币未动 / 装备仍在背包",
+          p["gold"] == 100000 and db.count_item(G, Q, "紫霄试炼剑") == 1,
+          "%s / %s" % (p["gold"], db.count_item(G, Q, "紫霄试炼剑")))
+
+    # 6.4 批量出售跳过（不静默）
+    m = setup(gold=100000, affixes=[], mats=2, reroll={"count": 1, "bound": True})
+    out = await cmd(m, "sell", G, Q, "出售 装备")
+    check("⑥ 批量出售：跳过行点名", "已跳过" in out and "保底产物" in out, out[:200])
+    check("⑥ 批量出售：装备未卖（背包仍有）", db.count_item(G, Q, "紫霄试炼剑") == 1, out[:200])
+    check("⑥ 批量出售：金币未增", db.get_player(G, Q)["gold"] == 100000,
+          db.get_player(G, Q)["gold"])
+
+    # 6.5 上架被拒
+    m = setup(gold=100000, affixes=[], mats=2, reroll={"count": 1, "bound": True})
+    db.update_player(G, Q, cur_map="oak_town")
+    out = await cmd(m, "market_sell", G, Q, "上架 紫霄试炼剑 100")
+    check("⑥ 上架被拒：点名『重铸』保底产物", "是『重铸』保底产物" in out, out[:160])
+    check("⑥ 上架被拒：背包仍有 / 市场无货",
+          db.count_item(G, Q, "紫霄试炼剑") == 1 and not db.market_list(G), "")
+
+    # 6.6 摆卖被拒
+    m = setup(gold=100000, affixes=[], mats=2, reroll={"count": 1, "bound": True})
+    db.update_player(G, Q, cur_map="oak_town")
+    out = await cmd(m, "stall_sell", G, Q, "摆卖 紫霄试炼剑 100")
+    check("⑥ 摆卖被拒：点名『重铸』保底产物", "是『重铸』保底产物" in out, out[:160])
+    check("⑥ 摆卖被拒：背包仍有", db.count_item(G, Q, "紫霄试炼剑") == 1, "")
+
+    # 6.7 反证：同款未绑定装备照旧可上架
+    m = setup(gold=100000, affixes=[], mats=2)
+    db.update_player(G, Q, cur_map="oak_town")
+    out = await cmd(m, "market_sell", G, Q, "上架 紫霄试炼剑 100")
+    check("⑥ 反证：未绑定装备照旧上架成功", "已上架" in out and "保底产物" not in out, out[:160])
+
+
 async def main():
     sec0_tables()
     await sec1_e2e()
@@ -339,6 +406,7 @@ async def main():
     await sec3_slot_full()
     await sec4_lack()
     await sec5_enchant_untouched()
+    await sec6_bound()
     print("\n== 结果：通过 %d / 共 %d ==" % (passed, passed + failed))
     if failed:
         print("FAILED:", failed)

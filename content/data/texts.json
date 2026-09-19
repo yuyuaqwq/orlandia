@@ -16684,6 +16684,22 @@
     "category": "掉落播报",
     "desc": "搬自 content/settlement.py:roll_equip_drop（B 批 C 档）"
   },
+  "reroll.bound": {
+    "value": "🔒【{name}】是『重铸』保底产物（已绑定），不能出售、上架或摆摊。",
+    "params": [
+      "name"
+    ],
+    "category": "经济面板",
+    "desc": "D4 保底产物绑定（不可交易/不可出售）——T3 第 1 轮"
+  },
+  "reroll.bound_skip": {
+    "value": "🔒 已跳过 {items}（重铸保底产物·已绑定，不可出售）",
+    "params": [
+      "items"
+    ],
+    "category": "经济面板",
+    "desc": "D4 保底产物绑定：批量出售跳过行 ——T3 第 1 轮"
+  },
   "reroll.full": {
     "value": "【{name}】的词条槽已满({have}/{cap})，无法重铸！先换一件装备吧～",
     "params": [

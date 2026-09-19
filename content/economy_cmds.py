@@ -3862,6 +3862,9 @@ class EconomyImpl(CommandBase):
         d["affixes"] = new_ids
         rec["count"] = new_streak
         rec["rounds"] = int(rec.get("rounds", 0) or 0) + 1
+        if forced:
+            # 台账 §0 D4：保底产物绑定（不可交易 / 不可出售）—— 反通胀，不是提高总产出
+            rec["bound"] = True
         d["reroll"] = rec
         if target.get("_equipped"):
             eq = dict(player.get("equipment") or {})
@@ -6431,10 +6434,15 @@ class EconomyImpl(CommandBase):
             # v104 M08 P0-1：判据双保险——背包 data.type 可能被发放路径写死为"材料"，
             # 按名查 MATERIALS_BY_NAME 定义兜底（历史错误数据也能拦住）
             quest_protected = []
+            bound_protected = []      # 台账 §0 D4：绑定（重铸保底产物）——批量出售跳过
             for it in items:
                 d = it["data"]
                 if self._is_quest_item(d):
                     quest_protected.append(f"{d['name']}×{it['count']}")
+                    continue
+                # 台账 §0 D4：重铸保底产物绑定 —— 批量出售一律跳过（不许静默卖成金币）
+                if _reroll.is_bound(d):
+                    bound_protected.append(f"{d['name']}×{it['count']}")
                     continue
                 if mode == "mat" and d.get("type", "") != "材料":
                     continue
@@ -6457,6 +6465,8 @@ class EconomyImpl(CommandBase):
                 tip = _T.text("sell.blocked_hint", hint=_MAT_FACILITY_HINT) if blocked else ""
                 if quest_protected:
                     tip += _T.text("sell.kept_quest", items='、'.join(quest_protected))
+                if bound_protected:
+                    tip += _T.text("reroll.bound_skip", items='、'.join(bound_protected))
                 if protected:
                     tip += _T.text("sell.kept_appr", items='、'.join(protected))
                 yield event.plain_result(_T.text("sell.none", tip=tip))
@@ -6472,6 +6482,8 @@ class EconomyImpl(CommandBase):
                 lines.append(_T.text("sell.blocked", n=blocked, hint=_MAT_FACILITY_HINT))
             if quest_protected:
                 lines.append(_T.text("sell.skip_quest", items='、'.join(quest_protected)))
+            if bound_protected:
+                lines.append(_T.text("reroll.bound_skip", items='、'.join(bound_protected)))
             if protected:
                 lines.append(_T.text("sell.skip_appr", items='、'.join(protected)))
             yield event.plain_result("\n".join(lines))
@@ -6539,6 +6551,10 @@ class EconomyImpl(CommandBase):
         # MATERIALS_BY_NAME type=任务道具 → _MAT_FACILITY=shop → 0.8 折卖掉卡 H7）
         if self._is_quest_item(d):
             yield event.plain_result(_T.text("sell.quest_item", name=d['name']))
+            return
+        # 台账 §0 D4：重铸保底产物绑定 —— 出售口 fail-closed 拒绝（不扣任何东西）
+        if _reroll.is_bound(d):
+            yield event.plain_result(_T.text("reroll.bound", name=d['name']))
             return
         # v134.1 意见#40：指定数量超持有 → 显式报错（对齐『使用』批量语义，不静默钳制）
         if qty > 1 and qty > target.get("count", 1):

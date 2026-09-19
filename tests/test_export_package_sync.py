@@ -206,7 +206,10 @@ FROZEN_COUNTS = {
     #   monster.sub_name；键名全 ASCII，中文键数锚点不变）⇒ 3194 → 3197
     # ★ C 档 44（2026-09-19）：模块级 dict 盲区 6 键（we.dot_* 4 + we.affix_*_hit 2；键名全 ASCII
     #   ⇒ 中文键数锚点不变）⇒ 3197 → 3203 → 3205（C 档 45：ebuff_name.bleed / ebuff_name.poison_bar）
-    "texts": 3205,
+    # ★ 2026-09-20 T3 第 1 轮（『重铸』保底产物绑定 · 台账 §0 D4）：新增 2 条玩家可见文案
+    #   （`reroll.bound` 拒绝语 / `reroll.bound_skip` 批量跳过行）⇒ 3205 → 3207。
+    #   口径变更（有意）：文案仍只由 `text_specs.json` 一个真源驱动，本账只反映条目数。
+    "texts": 3207,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

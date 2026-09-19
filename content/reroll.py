@@ -115,6 +115,29 @@ def is_gold_affix(aid: str) -> bool:
     idx = [order.index(t) for t in tiers if t in order]
     return bool(idx) and max(idx) == order.index(want)
 
+def mark_bound(d: dict) -> None:
+    """保底触发 → 给该装备个体打**绑定**标记（台账 §0 D4：保底产物不可交易 / 不可出售）。
+
+    落点 = `item_data.reroll.bound`（与轮次计数同一份记录 —— 随装备走，换人不丢；
+    装备在背包 / 已装备两个位置写的是同一个 `data` 对象，命令层两条写回路径都带上它）。
+    """
+    if not isinstance(d, dict):
+        return
+    rec = d.get("reroll")
+    if not isinstance(rec, dict):
+        rec = {}
+    rec["bound"] = True
+    d["reroll"] = rec
+
+
+def is_bound(d: dict) -> bool:
+    """该装备是否**绑定**（= 吃过保底的重铸产物）—— 出售 / 上架 / 摆卖三条出口共用本读口。
+
+    非映射 / 无记录 / 记录坏形状 → `False`（未绑定），不抛（出口守卫是热路径）。
+    """
+    rec = d.get("reroll") if isinstance(d, dict) else None
+    return bool(isinstance(rec, dict) and rec.get("bound"))
+
 
 def gold_pool(kind, is_gold=None) -> list:
     """金档词条池（按 `kind` = `attack`/`defense` 过滤）。

@@ -42,6 +42,7 @@ import re
 # ★ B14-2 L6：数据表切包内门面（宿主 `game/data` 删掉后本域仍能活）
 from . import catalog_life as _cl        # HOUSE_LEVELS / ECON_CONFIG
 from . import catalog_space as _cs       # MAP_BY_ID
+from . import reroll as _reroll          # 台账 §0 D4：绑定读口（保底产物不可交易）
 from . import texts as _T            # C 档 20a（2026-09-19）：文案表读口（本文件首次接入）
 
 # ============================================================
@@ -182,6 +183,9 @@ def stall_place(group_id, qq_id, player, item_name, price, count):
     found, err = stall_resolve(db.get_inventory(group_id, qq_id), item_name)
     if not found:
         return False, err
+    # 台账 §0 D4：绑定（重铸保底产物）→ 摆卖/摆换 fail-closed 拒绝
+    if _reroll.is_bound(found["data"]):
+        return False, _T.text("reroll.bound", name=found['data'].get('name', '?'))
     if count > (found["count"] or 1):
         return False, _T.text("stall.not_enough", name=found['data'].get('name','?'), have=found['count'], want=count)
     cur_map = player.get("cur_map", "")
@@ -288,6 +292,9 @@ def market_sell_place(group_id, qq_id, item_name, price):
     if not found:
         return False, item_name, _T.text("stall.no_item", name=item_name)
     item_key, data = found
+    # 台账 §0 D4：绑定（重铸保底产物）→ 上架 fail-closed 拒绝
+    if _reroll.is_bound(data):
+        return False, item_name, _T.text("reroll.bound", name=data.get('name', item_name))
     # v116 审计修复 H0-A2：原 market_add + remove_item 两次独立调用，崩溃会致
     # 物品复制/少货得金。改走 store.social.market_sell_atomic 单事务原子上架。
     # ★ REPOINT-PKG（2026-09-15，B4R B 组第 5 项）：兜底由宿主子模块 `game.store.social`
