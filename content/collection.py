@@ -49,7 +49,6 @@ _BOOKS = placeholder("_BOOKS")
 _ITEMS = placeholder("_ITEMS")
 
 
-
 def books() -> list:
     """全部收藏册（**源列表序**）；读不到表 → 空列表（宿主据此走「数据缺失」分支）。"""
     return list(_BOOKS)
@@ -86,7 +85,6 @@ _BOOKS = placeholder("_BOOKS")
 _ITEMS = placeholder("_ITEMS")
 
 
-
 def _items() -> dict:
     """包内 items 域（`content/data/items.json`）—— 惰性加载（900 条，没用到就不读）。"""
     global _ITEMS
@@ -104,7 +102,6 @@ def item_info(key: str):
     故一次查 items 域与真源两次查**逐一等价**（导出器 `derive_items` 的 docstring 已证）。
     """
     return _items().get(key)
-
 
 
 def _rebuild_view() -> list:
@@ -145,11 +142,7 @@ def _rebuild_view() -> list:
     return out
 
 
-def _same_container(a, b) -> bool:
-    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
-    return ((isinstance(a, dict) and isinstance(b, dict))
-            or (isinstance(a, list) and isinstance(b, list))
-            or (isinstance(a, set) and isinstance(b, set)))
+from ._domainio import same_container as _same_container   # P0-4d 单源（纯函数小工具）
 
 
 register_view(_rebuild_view, order=70)

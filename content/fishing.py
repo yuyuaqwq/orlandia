@@ -48,7 +48,7 @@ _R = set_from_domains(_PKG_ROOT, ("fishing_spots", "fishing_pool"))
 FISHING_SPOTS = placeholder("FISHING_SPOTS")
 FISH_POOL = placeholder("FISH_POOL")
 
-from ._domainio import seq_rows             # P0-4d 域读口单源
+from ._domainio import seq_rows, same_container as _same_container             # P0-4d 域读口单源
 
 from .catalog_rules import FISH_COLLECT   # ★ B16-W11d：包内门面（无域 → dump）          # v101.25i6 别名：= QUALITY_ORDER
 from .catalog_b143 import QUALITY_ORDER as FISH_QUALITY_ORDER   # ★ B16-W11d：真源 = `QUALITY_ORDER` 别名      # v184：垂钓档位/权重唯一真相源
@@ -200,7 +200,6 @@ def roll_collect_fish(spot_id: str | None = None, is_night: bool = False):
     return None
 
 
-
 def _rebuild_view() -> list:
     """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
 
@@ -239,13 +238,6 @@ def _rebuild_view() -> list:
             continue                           # 首次构建：全局已是新对象
         out.append((before, new))
     return out
-
-
-def _same_container(a, b) -> bool:
-    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
-    return ((isinstance(a, dict) and isinstance(b, dict))
-            or (isinstance(a, list) and isinstance(b, list))
-            or (isinstance(a, set) and isinstance(b, set)))
 
 
 register_view(_rebuild_view, order=100)

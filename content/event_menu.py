@@ -132,9 +132,7 @@ def display_material(entity_id: str) -> str:
 # ============================================================
 # ⑤ 今日奇遇（纯逻辑；`game/core/daily_events.py:21 today_map_event` 逐字搬）
 # ============================================================
-def _day_hash(seed: int, salt: str = "") -> int:
-    h = seed * 2654435761 + (sum(ord(c) for c in salt) if salt else 0)
-    return h & 0x7FFFFFFF
+from ._domainio import day_hash as _day_hash             # P0-4d 单源（纯函数小工具）
 
 
 def daily_event_for(map_id, daily_map, now=None):

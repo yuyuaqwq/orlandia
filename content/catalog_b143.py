@@ -61,7 +61,7 @@ from functools import partial
 
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
-from ._domainio import int_keys as _int_keys, num_sorted, ordered, require_key_order   # P0-4 域读口单源
+from ._domainio import int_keys as _int_keys, num_sorted, ordered, require_key_order, same_container as _same_container   # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -453,13 +453,6 @@ def _rebuild_view() -> list:
             continue                           # 首次构建：全局已是新对象
         out.append((before, new))
     return out
-
-
-def _same_container(a, b) -> bool:
-    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
-    return ((isinstance(a, dict) and isinstance(b, dict))
-            or (isinstance(a, list) and isinstance(b, list))
-            or (isinstance(a, set) and isinstance(b, set)))
 
 
 register_view(_rebuild_view, order=20)

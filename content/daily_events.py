@@ -48,9 +48,7 @@ def __getattr__(name):
     raise AttributeError(name)
 
 
-def _day_hash(seed: int, salt: str = "") -> int:
-    h = seed * 2654435761 + (sum(ord(c) for c in salt) if salt else 0)
-    return h & 0x7FFFFFFF
+from ._domainio import day_hash as _day_hash             # P0-4d 单源（纯函数小工具）
 
 
 def today_map_event(map_id, now=None):

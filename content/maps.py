@@ -240,7 +240,6 @@ __all__ = [
 ]
 
 
-
 def _rebuild_view() -> list:
     """重读本模块声明的域 → 重建模块级派生状态；返回非容器替换序列（见文件头 ★ 视图）。
 
@@ -283,11 +282,7 @@ def _rebuild_view() -> list:
     return out
 
 
-def _same_container(a, b) -> bool:
-    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
-    return ((isinstance(a, dict) and isinstance(b, dict))
-            or (isinstance(a, list) and isinstance(b, list))
-            or (isinstance(a, set) and isinstance(b, set)))
+from ._domainio import same_container as _same_container   # P0-4d 单源（纯函数小工具）
 
 
 register_view(_rebuild_view, order=120)

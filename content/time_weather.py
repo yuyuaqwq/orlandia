@@ -72,10 +72,7 @@ def current_season(now: datetime.datetime | None = None) -> str:
     return "winter"
 
 
-def _day_hash(seed: int, salt: str = "") -> int:
-    """日期哈希：全服一致、可查(roam/cycle/天气共用)"""
-    h = seed * 2654435761 + (sum(ord(c) for c in salt) if salt else 0)
-    return h & 0x7FFFFFFF
+from ._domainio import day_hash as _day_hash             # P0-4d 单源（纯函数小工具）
 
 
 def today_weather(map_id: str | None = None, now: datetime.date | None = None) -> str:

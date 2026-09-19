@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""包内域读口单点（`content/_domainio.py`）—— 键型还原 / 序声明 / JSON 域读取。
+"""包内小工具单点（`content/_domainio.py`）—— 键型还原 / 序声明 / JSON 域读取 / 表形状 / 纯函数小工具。
 
 为什么要它（`重复实现审计_报告.md` P0-4）
 --------------------------------------
@@ -35,6 +35,11 @@
 报错文案由调用方绑定）/ `keyed_values`（`economy_cmds` / `panel` 的 `_domain_table`）/
 `domain_section`（`mech/equip` / `mech/params`，逐字同体）/ `seq_rows`（`fishing` /
 `catalog_life` / `catalog_quests` 三处内联「按 seq 还原插入序」）。
+
+**P1-2 / P1-3（2026-09-19 同批）** —— 另两族**逐字相同**的包内纯函数小工具也收在这里：
+`same_container`（`_same_container` ×11 中的 10 处；`catalog_quests` 那份因 `test_u1d2_quest_frozen.py`
+的整文件 sha pin 未动）· `day_hash`（`daily_events` / `event_menu` / `time_weather` / `wild_king` 各一份，
+`time_weather` 版多一行 docstring，一并采用）。
 
 **有意未收**：`catalog_life` / `catalog_quests` 的 `_ordered`（序名由本模块解析 / 空序宽容 /
 报错口径与前两处不同，硬合会改诊断措辞）；`dialogue.py` / `dialogue_conds.py` 的 `_main_quests`
@@ -254,3 +259,17 @@ def seq_rows(values) -> list:
     """域内「带 `seq` 注入字段」的条目 → 按 `seq` 还原源插入序的 list（顺手剥掉 `seq`）。"""
     return [{k: v for k, v in ent.items() if k != "seq"}
             for ent in sorted(values, key=lambda x: x["seq"])]
+
+
+# ───────────────────────────────────────────────────────── 纯函数小工具（P1-2 / P1-3 单源）
+def same_container(a, b) -> bool:
+    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
+    return ((isinstance(a, dict) and isinstance(b, dict))
+            or (isinstance(a, list) and isinstance(b, list))
+            or (isinstance(a, set) and isinstance(b, set)))
+
+
+def day_hash(seed: int, salt: str = "") -> int:
+    """日期哈希：全服一致、可查(roam/cycle/天气共用)"""
+    h = seed * 2654435761 + (sum(ord(c) for c in salt) if salt else 0)
+    return h & 0x7FFFFFFF

@@ -80,9 +80,7 @@ META_PREFIX = "wild_king_meta_"
 
 
 # ================= 日期+时段哈希（全服一致，与 wild.py _day_hash 同模式） =================
-def _day_hash(seed: int, salt: str = "") -> int:
-    h = seed * 2654435761 + (sum(ord(c) for c in salt) if salt else 0)
-    return h & 0x7FFFFFFF
+from ._domainio import day_hash as _day_hash             # P0-4d 单源（纯函数小工具）
 
 
 def period_hour(now: datetime.datetime | None = None) -> int:
