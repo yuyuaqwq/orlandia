@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""P4 下沉（2026-09-13）：与游戏仓 `game/data/kinds.py` 同内容同源（= 原 `saintess_engine/kinds/__init__.py` 逐字搬）。
+r"""P4 下沉（2026-09-13）：与游戏仓 `game/data/kinds.py` 同内容同源（= 原 `saintess_engine/kinds/__init__.py` 逐字搬）。
 
 下沉原因：引擎内部零消费者（`grep -rn "SkillKind\|K_PHYS\|import kinds" saintess_engine/` 排除自身后为空），中文 kind 词表属**内容侧**；引擎只经 `config.mount(kinds=...)` 注入面（`config.kind_of` → `battle.actions._kind`）读它。
 

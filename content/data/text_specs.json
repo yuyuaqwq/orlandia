@@ -12200,6 +12200,32 @@
     "category": "挖掘结算",
     "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
   },
+  "monster.cub_name": {
+    "value": "{base}·幼崽",
+    "params": [
+      "base"
+    ],
+    "category": "怪物命名",
+    "desc": "搬自 content/drops.py:build_monster_group（B 批 C 档 42a）"
+  },
+  "monster.minion_name": {
+    "value": "{base}的爪牙{n}",
+    "params": [
+      "base",
+      "n"
+    ],
+    "category": "怪物命名",
+    "desc": "搬自 content/drops.py:build_monster_group（B 批 C 档 42a）"
+  },
+  "monster.sub_name": {
+    "value": "{base}的{name}",
+    "params": [
+      "base",
+      "name"
+    ],
+    "category": "怪物命名",
+    "desc": "搬自 content/instance_cmds.py:_instance_build_enemy_array（B 批 C 档 42a）"
+  },
   "mount.buy_hint": {
     "value": "去商店『购买 {name}』",
     "params": [

@@ -1384,7 +1384,7 @@ class InstanceImpl:
                                                     "name": st.get("inst_id") or "x", "area": "instance"})
                     sub = self._mark_minion_copy(_mo,
                                                   "{}-m{}_{}".format(base_uid, mi, j),
-                                                  "{}的{}".format(base_name, mname))
+                                                  _T.text("monster.sub_name", base=base_name, name=mname))
                 else:
                     # 旧格式兼容（name/role 无 monster 模板）：仍按 Boss ×0.5 派生（老数据兜底）
                     role = cfg.get("role", "dps")
@@ -1392,7 +1392,7 @@ class InstanceImpl:
                     mreach = 2 if role in ("caster", "healer") else 1
                     sub = self._scale_enemy_copy(
                         boss, 0.5, "{}-m{}_{}".format(base_uid, mi, j),
-                        "{}的{}".format(base_name, mname), mrank, mreach)
+                        _T.text("monster.sub_name", base=base_name, name=mname), mrank, mreach)
                 sub.setdefault("ct", _ict(sub.get("spd", 0)))
                 enemies.append(sub)
         return enemies

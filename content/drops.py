@@ -617,7 +617,7 @@ def build_monster_group(monster: dict, map_obj: dict, player: dict = None,
         if double:
             cub_uid = "{}-cub".format(base_uid)
             cub = _scale_monster(main, 0.6, cub_uid,
-                                 "{}{}".format(base_name, "·幼崽"), 2, 2)
+                                 _T.text("monster.cub_name", base=base_name), 2, 2)
             return [main, cub]
         return [monster]
 
@@ -631,7 +631,7 @@ def build_monster_group(monster: dict, map_obj: dict, player: dict = None,
     for i in (1, 2):
         min_uid = "{}-minion{}".format(base_uid, i)
         minions.append(_scale_monster(main, 0.5, min_uid,
-                                      "{}的爪牙{}".format(base_name, i), 1, 1))
+                                      _T.text("monster.minion_name", base=base_name, n=i), 1, 1))
     return [main] + minions
 
 
