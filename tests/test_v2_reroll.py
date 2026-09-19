@@ -9,7 +9,8 @@
   【3】判据 3 槽满硬报错：词条槽越界 / 无词条槽 → 明确报错 + 材料金币未扣
   【4】判据 4 材料不足 / 金币不足 → 明确报错 + 无任何副作用
   【5】反证：现有『附魔』（确定性配方）产出/消耗/槽满文案**逐字未变**
-  【6】台账 §0 D4：保底产物绑定 —— 不可出售 / 不可上架 / 不可摆卖（三条出口 fail-closed）
+  【6】台账 §0 D4：保底产物绑定 —— 不可出售 / 不可上架 / 不可摆卖 / **不可『换』交出**
+        （四条出口 fail-closed；第 2 轮补『换』交出侧 = 与摆换挂出侧同一条 D4 规则）
 
 运行：python tests/test_v2_reroll.py（exit=0 全绿）
 """
@@ -335,7 +336,9 @@ async def sec5_enchant_untouched():
 
 # ============================================================ 【6】
 async def sec6_bound():
-    """台账 §0 D4：保底产物绑定 —— 不可出售 / 不可上架 / 不可摆卖（三条出口 fail-closed）。"""
+    """台账 §0 D4：保底产物绑定 —— 不可出售 / 不可上架 / 不可摆卖 / 不可『换』交出
+
+    四条出口 fail-closed（第 2 轮补齐『换』交出侧 —— 与摆换挂出侧同一条 D4 规则）。"""
     print("【6】台账 §0 D4：保底产物绑定（不可出售 / 不可上架 / 不可摆卖）")
     _d0 = {}
     check("⑥ 读口：空 data → 未绑定", R.is_bound(_d0) is False, R.is_bound(_d0))
@@ -344,14 +347,21 @@ async def sec6_bound():
     check("⑥ 读口：坏形状不炸（None / rec 非映射）",
           R.is_bound(None) is False and R.is_bound({"reroll": "x"}) is False, "")
 
-    # 6.1 保底触发 → 绑定
-    m = setup(gold=100000, affixes=["a1", "a2", "a3"], mats=2, reroll={"count": 3})
-    out = await cmd(m, "reroll", G, Q, "重铸 紫霄试炼剑")
-    after = item_of(G, Q, "eq_v2_test")
+    # 6.1 保底触发 → 绑定（★ 去随机性：streak=3 时**自然出金**走另一支路 → 本轮不算保底、不绑；
+    #     单次 ~97% 走保底 ⇒ 最多重试 5 次取「保底触发」那一次；5 次全自然出金（p≈3e-8）则断言响亮失败）
+    _fo, _fi = None, None
+    for _ in range(5):
+        m = setup(gold=100000, affixes=["a1", "a2", "a3"], mats=2, reroll={"count": 3})
+        _o = await cmd(m, "reroll", G, Q, "重铸 紫霄试炼剑")
+        if "保底触发" in _o:
+            _fo, _fi = _o, item_of(G, Q, "eq_v2_test")
+            break
     check("⑥ 保底触发 → item_data.reroll.bound == True",
-          (after.get("reroll") or {}).get("bound") is True, after.get("reroll"))
+          bool(_fi) and (_fi.get("reroll") or {}).get("bound") is True,
+          (_fi or {}).get("reroll"))
     check("⑥ bound 与轮次计数同记录（出金后 count 归零）",
-          (after.get("reroll") or {}).get("count") == 0, after.get("reroll"))
+          bool(_fi) and (_fi.get("reroll") or {}).get("count") == 0,
+          (_fi or {}).get("reroll"))
 
     # 6.2 未到保底 → 不绑定（streak=0 时 pity 不可达 = 反证）
     m = setup(gold=100000, affixes=[], mats=2)
@@ -397,6 +407,50 @@ async def sec6_bound():
     db.update_player(G, Q, cur_map="oak_town")
     out = await cmd(m, "market_sell", G, Q, "上架 紫霄试炼剑 100")
     check("⑥ 反证：未绑定装备照旧上架成功", "已上架" in out and "保底产物" not in out, out[:160])
+
+    # 6.8 『换』（以物换物·交出侧）：绑定装备 → 拒绝（第 2 轮补；与摆换挂出侧同一条 D4 规则）
+    m = setup(gold=100000, affixes=[], mats=2, reroll={"count": 1, "bound": True})
+    make_player(G, "v2_swapq", "换摊主", "法师", level=10)
+    db.update_player(G, Q, cur_map="oak_town")
+    db.update_player(G, "v2_swapq", cur_map="oak_town")
+    db.add_item(G, "v2_swapq", "eq_v2_swap",
+                {"name": "精铁胸甲", "type": "装备", "slot": "armor",
+                 "quality": "blue", "lv": 5, "stats": {"def": 5}, "affixes": []}, 1)
+    out = await cmd(m, "stall_exchange_pawn", G, "v2_swapq", "摆换 精铁胸甲")
+    check("⑥ 前置：对方换摊挂出成功（price=0）", "换摊" in out, out[:160])
+    _stalls = db.market_list(G, "oak_town")
+    mid = _stalls[0]["id"]
+    out = await cmd(m, "stall_exchange", G, Q, "换 %s 紫霄试炼剑" % mid)
+    print("   换（交出绑定装）回复:", out[:160])
+    check("⑥ 换·交出侧被拒：点名『重铸』保底产物",
+          "是『重铸』保底产物" in out, out[:160])
+    _st = db.market_list(G, "oak_town")
+    check("⑥ 换·交出侧被拒：绑定装备仍在背包 / 摊位货未动 / 未拿到对方货",
+          db.count_item(G, Q, "紫霄试炼剑") == 1
+          and len(_st) == 1 and _st[0]["item_data"].get("name") == "精铁胸甲"
+          and _st[0]["price"] == 0
+          and db.count_item(G, Q, "精铁胸甲") == 0,
+          "bind=%s stall=%s/%s got=%s" % (db.count_item(G, Q, "紫霄试炼剑"),
+                                          len(_st),
+                                          _st[0]["item_data"].get("name") if _st else None,
+                                          db.count_item(G, Q, "精铁胸甲")))
+
+    # 6.9 反证：同款**未绑定**装备照旧可『换』（交出侧只拦绑定）
+    m = setup(gold=100000, affixes=[], mats=2)
+    make_player(G, "v2_swapq2", "换摊主2", "法师", level=10)
+    db.update_player(G, Q, cur_map="oak_town")
+    db.update_player(G, "v2_swapq2", cur_map="oak_town")
+    db.add_item(G, "v2_swapq2", "eq_v2_swap2",
+                {"name": "精铁胸甲", "type": "装备", "slot": "armor",
+                 "quality": "blue", "lv": 5, "stats": {"def": 5}, "affixes": []}, 1)
+    await cmd(m, "stall_exchange_pawn", G, "v2_swapq2", "摆换 精铁胸甲")
+    mid2 = db.market_list(G, "oak_town")[0]["id"]
+    out = await cmd(m, "stall_exchange", G, Q, "换 %s 紫霄试炼剑" % mid2)
+    check("⑥ 反证：未绑定装备照旧可换（换摊成交）",
+          "交换成功" in out and "保底产物" not in out
+          and db.count_item(G, Q, "精铁胸甲") == 1
+          and db.count_item(G, "v2_swapq2", "紫霄试炼剑") == 1,
+          out[:200])
 
 
 async def main():

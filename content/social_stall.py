@@ -328,6 +328,10 @@ def stall_exchange_check(it, player, qq_id, group_id, give_name):
     give = next((x for x in inv if x["data"].get("name") == give_name), None)
     if not give:
         return False, None, _T.text("stall.no_item", name=give_name)
+    # 台账 §0 D4：重铸保底产物绑定 —— **交出侧** fail-closed
+    # （与「摆换」挂出侧同一条 D4 规则：不可交易；挂出侧拦在 stall_place）
+    if _reroll.is_bound(give["data"]):
+        return False, None, _T.text("reroll.bound", name=give["data"].get("name", give_name))
     return True, give, None
 
 
