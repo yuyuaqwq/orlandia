@@ -32,7 +32,9 @@
     "垂钓结算": "垂钓『钓鱼』结算整段：鱼饵生效/档位前奏/等级提升/鱼王/宝物/垃圾/收获行/生活渠道产出（B 批 C 档 33a，搬自 content/profession.py:settle_fishing）",
     "垂钓惊喜": "垂钓惊喜层（v168.2 按品质触发）：传说/图纸/装备/符文/宝石/材料六档（B 批 C 档 33a，搬自 content/profession.py:fishing_surprise_fn）",
     "采集结算": "采集『采集』结算整段：收获行/等级提升/坐骑叼回/兔蛋/驯鹿缰绳/稀有产出指路（B 批 C 档 33a，搬自 content/profession.py:settle_gather）",
-    "挖掘结算": "挖掘『挖掘』结算整段：稀有矿脉/暴击/普通三态演出 + 疲劳提示 + 收获行（B 批 C 档 33a，搬自 content/profession.py:settle_mining）"
+    "挖掘结算": "挖掘『挖掘』结算整段：稀有矿脉/暴击/普通三态演出 + 疲劳提示 + 收获行（B 批 C 档 33a，搬自 content/profession.py:settle_mining）",
+    "职业速查": "『职业』『职业 <名称>』速查面板：总览分组 / 详情（核心玩法/档位路线/核心资源/解锁）/ 多命中/未找到（B 批 C 档 33b，搬自 content/cmds_job.py）",
+    "收藏册": "『收藏册 [册名]』『收藏册 领取 [册名]』：总览 / 单册明细 / 满套领奖（含已领取/发放失败/无宝箱配置）（B 批 C 档 33b，搬自 content/cmds_collection.py）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
@@ -1781,6 +1783,117 @@
     ],
     "category": "编年史",
     "desc": "搬自 content/world_cmds.py:chronicle（B 批 C 档）"
+  },
+  "collect.claim_done": {
+    "value": "📖 {name} 集齐奖励已经领取过啦，不能重复领取～",
+    "params": [
+      "name"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_claim（B 批 C 档）"
+  },
+  "collect.claim_fail": {
+    "value": "⚠️ {name} 宝箱发放失败，请联系管理",
+    "params": [
+      "name"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_claim（B 批 C 档）"
+  },
+  "collect.claim_nochest": {
+    "value": "📖 {name} 已集齐（无宝箱奖励配置）",
+    "params": [
+      "name"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_claim（B 批 C 档）"
+  },
+  "collect.claim_none": {
+    "value": "📖 没有可领取的收藏册奖励（指定册名或全领）～",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_claim（B 批 C 档）"
+  },
+  "collect.claim_not_full": {
+    "value": "⬜ {name} 未集齐({got}/{total})，无法领取",
+    "params": [
+      "name",
+      "got",
+      "total"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_claim（B 批 C 档）"
+  },
+  "collect.claim_ok": {
+    "value": "🎁 {name} 集齐奖励：{item}×1 已入包！",
+    "params": [
+      "name",
+      "item"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_claim（B 批 C 档）"
+  },
+  "collect.done": {
+    "value": "🎉 集齐了！可用『收藏册 领取』领奖！",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_detail（B 批 C 档）"
+  },
+  "collect.head": {
+    "value": "📖 【冒险者收藏册】",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:collection（B 批 C 档）"
+  },
+  "collect.no_data": {
+    "value": "📖 收藏册数据缺失，请联系管理～",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:collection（B 批 C 档）"
+  },
+  "collect.not_found": {
+    "value": "📖 没找到收藏册『{arg}』，试试『收藏册』看全部～",
+    "params": [
+      "arg"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:collection（B 批 C 档）"
+  },
+  "collect.reward_bonus": {
+    "value": "永久属性(%s)",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_reward_line（B 批 C 档）"
+  },
+  "collect.reward_chest": {
+    "value": "宝箱×1",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_reward_line（B 批 C 档）"
+  },
+  "collect.reward_head": {
+    "value": "🎁 满套奖励：",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_reward_line（B 批 C 档）"
+  },
+  "collect.reward_title": {
+    "value": "称号『{title}』",
+    "params": [
+      "title"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:_reward_line（B 批 C 档）"
+  },
+  "collect.row": {
+    "value": "{mark} {name}：{got}/{total}(『收藏册 {name2}』查看)",
+    "params": [
+      "mark",
+      "name",
+      "got",
+      "total",
+      "name2"
+    ],
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:collection（B 批 C 档）"
+  },
+  "collect.tip": {
+    "value": "💡 收集各册条目，集齐后可『收藏册 领取』领宝箱奖励！",
+    "category": "收藏册",
+    "desc": "搬自 content/cmds_collection.py:collection（B 批 C 档）"
   },
   "common.bag_no_idx": {
     "value": "背包里没有第 {idx} 件物品(共 {total} 件)！『背包』查看全部～",
@@ -9823,6 +9936,171 @@
     "value": "🔍 物品查看模式已开启！直接回复背包序号即可查看物品详情；\n『物品详情结束』退出，『物品详情 <名称>』照常使用。",
     "category": "背包面板",
     "desc": "搬自 content/economy_cmds.py:item_view_mode_cmd（B 批 C 档）"
+  },
+  "job.base_head": {
+    "value": "🟦 基础六职业（30 级转职，各分攻/守双线）",
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_overview（B 批 C 档）"
+  },
+  "job.blood": {
+    "value": "🧬 血脉：仅限{race}方可传承",
+    "params": [
+      "race"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_unlock_line（B 批 C 档）"
+  },
+  "job.extra_res": {
+    "value": "　↳ 转职分支专属·{res_name}（上限 {res_max}）：{res_desc}",
+    "params": [
+      "res_name",
+      "res_max",
+      "res_desc"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_resource_line（B 批 C 档）"
+  },
+  "job.head": {
+    "value": "⚔️ 【职业】12 职业速查 · 『职业 <名称>』看详情",
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_overview（B 批 C 档）"
+  },
+  "job.hidden_head": {
+    "value": "🟪 隐藏六职业（40 级起完成对应任务链解锁）",
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_overview（B 批 C 档）"
+  },
+  "job.mech": {
+    "value": "🎯 核心玩法：{mech}",
+    "params": [
+      "mech"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_detail（B 批 C 档）"
+  },
+  "job.multi": {
+    "value": "🤔 『{raw}』 匹配到多个职业，试试精确名称：{names}",
+    "params": [
+      "raw",
+      "names"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:job_guide（B 批 C 档）"
+  },
+  "job.not_found": {
+    "value": "⚠️ 未找到职业『{raw}』！输入『职业』可查看全部 12 职业速查。",
+    "params": [
+      "raw"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:job_guide（B 批 C 档）"
+  },
+  "job.origin": {
+    "value": "🌱 渊源：由{base}一脉传承",
+    "params": [
+      "base"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_unlock_line（B 批 C 档）"
+  },
+  "job.race_limit": {
+    "value": "，限{race}血脉",
+    "params": [
+      "race"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_unlock_line（B 批 C 档）"
+  },
+  "job.resource": {
+    "value": "⚡ 核心资源·{res_name}（上限 {res_max}）：{res_desc}",
+    "params": [
+      "res_name",
+      "res_max",
+      "res_desc"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_resource_line（B 批 C 档）"
+  },
+  "job.role": {
+    "value": "🎯 定位：{role} · {melee}",
+    "params": [
+      "role",
+      "melee"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_detail（B 批 C 档）"
+  },
+  "job.successor": {
+    "value": "🔮 隐藏传承：{icon}{name}（{unlock}）",
+    "params": [
+      "icon",
+      "name",
+      "unlock"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_detail（B 批 C 档）"
+  },
+  "job.tier_base": {
+    "value": "  T{t}(Lv.{lv}) 攻线·{atk} / 守线·{dfn}",
+    "params": [
+      "t",
+      "lv",
+      "atk",
+      "dfn"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_tier_line（B 批 C 档）"
+  },
+  "job.tier_head": {
+    "value": "🔀 档位路线：",
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_tier_line（B 批 C 档）"
+  },
+  "job.tier_hidden": {
+    "value": "  T{t}(Lv.{lv}) 流派·{names}",
+    "params": [
+      "t",
+      "lv",
+      "names"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_tier_line（B 批 C 档）"
+  },
+  "job.tier_single": {
+    "value": "  T{t}(Lv.{lv}) {names}",
+    "params": [
+      "t",
+      "lv",
+      "names"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_tier_line（B 批 C 档）"
+  },
+  "job.tip": {
+    "value": "💡 详情含转职分支/核心资源/解锁条件：『职业 战士』『职业 淬势者』",
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_overview（B 批 C 档）"
+  },
+  "job.unlock_full": {
+    "value": "🗝️ 解锁：完成「{tk}」任务链（Lv.{lv1} 起，档位 {lv1b}/{lv2}/{lv3}）",
+    "params": [
+      "tk",
+      "lv1",
+      "lv1b",
+      "lv2",
+      "lv3"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_unlock_line（B 批 C 档）"
+  },
+  "job.unlock_short": {
+    "value": "完成「{tk}」任务链 Lv.{lv} 解锁",
+    "params": [
+      "tk",
+      "lv"
+    ],
+    "category": "职业速查",
+    "desc": "搬自 content/cmds_job.py:_jg_unlock_line（B 批 C 档）"
   },
   "join.already": {
     "value": "你已经有正式职业了，冒险者行会只负责给新人就职。",

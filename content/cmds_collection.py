@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from . import collection as _LIB
 from .commands import register
+from . import texts as _T                # ★ C 档 33b（2026-09-19）：文案表读口（本文件首次接入）
 from .index import display as _display
 from .persistence import add_item, get_bestiary, get_event_state, get_inventory, set_event_state
 
@@ -63,12 +64,12 @@ def _reward_line(rw: dict) -> str:
     """满套奖励行：宝箱 / 称号 / 永久属性 —— 真源 `_book_detail` 尾部逐行。"""
     rw_txt = []
     if rw.get("chest"):
-        rw_txt.append("宝箱×1")
+        rw_txt.append(_T.static("collect.reward_chest"))
     if rw.get("title"):
-        rw_txt.append(f"称号『{rw['title']}』")
+        rw_txt.append(_T.text("collect.reward_title", title=rw['title']))
     if rw.get("bonus"):
-        rw_txt.append("永久属性(%s)" % "、".join(f"{k}+{v}" for k, v in rw["bonus"].items()))
-    return "🎁 满套奖励：" + "、".join(rw_txt)
+        rw_txt.append(_T.static("collect.reward_bonus") % "、".join(f"{k}+{v}" for k, v in rw["bonus"].items()))
+    return _T.static("collect.reward_head") + "、".join(rw_txt)
 
 
 @register("collection", guards=("hook:player",), params=("cmd=收藏册",))
@@ -79,7 +80,7 @@ def collection(env) -> list:
     raw_arg = env.arg_text("收藏册")             # = 旧 `self._strip_cmd(event, "收藏册")`
     books = _LIB.books()                         # 包内表（源列表序）
     if not books:
-        return ["📖 收藏册数据缺失，请联系管理～"]
+        return [_T.static("collect.no_data")]
     # 『收藏册 领取』：满套册领宝箱
     if raw_arg.startswith("领取"):
         return _claim(group_id, qq_id, raw_arg, books)
@@ -87,16 +88,16 @@ def collection(env) -> list:
     if raw_arg:
         target = next((b for b in books if b["name"] in raw_arg or raw_arg in b["name"]), None)
         if not target:
-            return [f"📖 没找到收藏册『{raw_arg}』，试试『收藏册』看全部～"]
+            return [_T.text("collect.not_found", arg=raw_arg)]
         return _detail(group_id, qq_id, target)
     # 总览
-    lines = ["📖 【冒险者收藏册】", _SEP]
+    lines = [_T.static("collect.head"), _SEP]
     for b in books:
         got, total = _progress(group_id, qq_id, b)
         mark = "✅" if got == total else "⬜"
-        lines.append(f"{mark} {b['name']}：{got}/{total}(『收藏册 {b['name']}』查看)")
+        lines.append(_T.text("collect.row", mark=mark, name=b['name'], got=got, total=total, name2=b['name']))
     lines.append("")
-    lines.append("💡 收集各册条目，集齐后可『收藏册 领取』领宝箱奖励！")
+    lines.append(_T.static("collect.tip"))
     return lines
 
 
@@ -114,7 +115,7 @@ def _detail(group_id, qq_id, book) -> list:
         hint = e.get("hint", "")
         lines.append(f"{mark} {nm}（{hint}）" if hint else f"{mark} {nm}")
     if got == total:
-        lines.append("🎉 集齐了！可用『收藏册 领取』领奖！")
+        lines.append(_T.static("collect.done"))
     if rw.get("chest") or rw.get("title") or rw.get("bonus"):
         lines.append(_reward_line(rw))
     return lines
@@ -132,19 +133,19 @@ def _claim(group_id, qq_id, raw_arg, books) -> list:
     if name:
         books = [b for b in books if b["name"] in name or name in b["name"]]
     if not books:
-        return ["📖 没有可领取的收藏册奖励（指定册名或全领）～"]
+        return [_T.static("collect.claim_none")]
     lines = []
     for b in books:
         got, total = _progress(group_id, qq_id, b)
         if got < total:
-            lines.append(f"⬜ {b['name']} 未集齐({got}/{total})，无法领取")
+            lines.append(_T.text("collect.claim_not_full", name=b['name'], got=got, total=total))
             continue
         rw = b.get("reward") or {}
         chest = rw.get("chest")
         if chest:
             _claimed_key = f"collection_claimed_{b.get('id') or b.get('name')}_{qq_id}"
             if get_event_state(_claimed_key):
-                lines.append(f"📖 {b['name']} 集齐奖励已经领取过啦，不能重复领取～")
+                lines.append(_T.text("collect.claim_done", name=b['name']))
                 continue
             try:
                 idata = _LIB.item_info(chest)     # 包内 items 域（真源 C.ITEMS/C.MATERIALS）
@@ -152,9 +153,9 @@ def _claim(group_id, qq_id, raw_arg, books) -> list:
                     idata = {"name": chest, "type": "消耗品", "stackable": True, "price": 0}
                 add_item(group_id, qq_id, chest, idata, count=1)
                 set_event_state(_claimed_key, "1")
-                lines.append(f"🎁 {b['name']} 集齐奖励：{idata.get('name', chest)}×1 已入包！")
+                lines.append(_T.text("collect.claim_ok", name=b['name'], item=idata.get('name', chest)))
             except Exception:                            # noqa: BLE001
-                lines.append(f"⚠️ {b['name']} 宝箱发放失败，请联系管理")
+                lines.append(_T.text("collect.claim_fail", name=b['name']))
         else:
-            lines.append(f"📖 {b['name']} 已集齐（无宝箱奖励配置）")
+            lines.append(_T.text("collect.claim_nochest", name=b['name']))
     return lines

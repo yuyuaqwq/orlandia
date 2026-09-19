@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from . import tables as _TBL
 from .commands import register
+from . import texts as _T                # ★ C 档 33b（2026-09-19）：文案表读口（本文件首次接入）
 
 JOB_GUIDE = _TBL.JOB_GUIDE                      # 7 条；已含 aliases / extra_resources 注入
 BASE_ORDER = _TBL.job_base_order()
@@ -51,26 +52,26 @@ def job_guide(env) -> list:
         return _jg_detail(hit).split("\n")
     if isinstance(hit, list):
         return [
-            "🤔 『{}』 匹配到多个职业，试试精确名称：{}".format(
+            _T.text("job.multi", raw=raw, names="、".join(f"『职业 {JOB_GUIDE[c]['name']}』" for c in hit)).format(
                 raw, "、".join(f"『职业 {JOB_GUIDE[c]['name']}』" for c in hit))]
-    return [f"⚠️ 未找到职业『{raw}』！输入『职业』可查看全部 12 职业速查。"]
+    return [_T.text("job.not_found", raw=raw)]
 
 
 # ---------------- 一览 ----------------
 
 def _jg_overview() -> str:
-    lines = ["⚔️ 【职业】12 职业速查 · 『职业 <名称>』看详情", "━━━━━━━━━━━━"]
-    lines.append("🟦 基础六职业（30 级转职，各分攻/守双线）")
+    lines = [_T.static("job.head"), "━━━━━━━━━━━━"]
+    lines.append(_T.static("job.base_head"))
     for cid in BASE_ORDER:
         g = JOB_GUIDE[cid]
         lines.append(f"{g['icon']} {g['name']}：{g['position']}")
     lines.append("")
-    lines.append("🟪 隐藏六职业（40 级起完成对应任务链解锁）")
+    lines.append(_T.static("job.hidden_head"))
     for cid in HIDDEN_ORDER:
         g = JOB_GUIDE[cid]
         lines.append(f"{g['icon']} {g['name']}：{g['position']}")
     lines.append("")
-    lines.append("💡 详情含转职分支/核心资源/解锁条件：『职业 战士』『职业 淬势者』")
+    lines.append(_T.static("job.tip"))
     return "\n".join(lines)
 
 
@@ -84,46 +85,49 @@ def _jg_detail(cid: str) -> str:
     # v130.7 意见#19：核心玩法机制解释（classes.py mech，无该字段的兜底不显示该行）
     _mech = CLASSES.get(cid, {}).get("mech")
     if _mech:
-        lines.append(f"🎯 核心玩法：{_mech}")
+        lines.append(_T.text("job.mech", mech=_mech))
     lines.append(_jg_tier_line(g))
     lines.append(_jg_resource_line(g))
     melee = "近战" if g["reach"] == 1 else "远程"
     role = g["role"] + (" · " + g["rank_label"] if g["rank_label"] else "")
-    lines.append(f"🎯 定位：{role} · {melee}")
+    lines.append(_T.text("job.role", role=role, melee=melee))
     if g["hidden"]:
         lines.append(_jg_unlock_line(g))
     else:
         for s in HIDDEN_SUCCESSORS.get(cid, []):
             sg = JOB_GUIDE[s]
             lines.append(
-                f"🔮 隐藏传承：{sg['icon']}{sg['name']}（{_jg_unlock_line(sg, short=True)}）")
+                _T.text("job.successor", icon=sg['icon'], name=sg['name'],
+                    unlock=_jg_unlock_line(sg, short=True)))
     return "\n".join(lines)
 
 
 def _jg_tier_line(g: dict) -> str:
     """档位路线：T1(Lv.30) 攻线·狂战士 / 守线·盾卫士（基础双线，index0=攻线）"""
-    lines = ["🔀 档位路线："]
+    lines = [_T.static("job.tier_head")]
     tlv = g["tier_levels"]
     for t in sorted(g.get("tiers") or {}):
         names = g["tiers"][t]
         lv = tlv.get(int(t), 30)
         if g["hidden"] or len(names) <= 1:
-            lines.append(f"  T{t}(Lv.{lv}) 流派·{' / '.join(names)}" if g["hidden"]
-                         else f"  T{t}(Lv.{lv}) {' / '.join(names)}")
+            lines.append(_T.text("job.tier_hidden", t=t, lv=lv, names=' / '.join(names)) if g["hidden"]
+                         else _T.text("job.tier_single", t=t, lv=lv, names=' / '.join(names)))
         else:
             atk = names[0] if len(names) > 0 else "?"
             dfn = names[1] if len(names) > 1 else "?"
-            lines.append(f"  T{t}(Lv.{lv}) 攻线·{atk} / 守线·{dfn}")
+            lines.append(_T.text("job.tier_base", t=t, lv=lv, atk=atk, dfn=dfn))
     return "\n".join(lines)
 
 
 def _jg_resource_line(g: dict) -> str:
     """核心资源与机制一句话（JOB_GUIDE resource_desc，源 job_guide CORE_RESOURCE_GUIDE 展示表）+ 转职分支专属资源"""
-    lines = [f"⚡ 核心资源·{g['resource_name']}（上限 {g['resource_max']}）：{g['resource_desc']}"]
+    lines = [_T.text("job.resource", res_name=g['resource_name'], res_max=g['resource_max'],
+                 res_desc=g['resource_desc'])]
     for rk in EXTRA_RESOURCES.get(g["cls_id"], []):
         r = EXTRA_RESOURCE_GUIDE.get(rk)
         if r:
-            lines.append(f"　↳ 转职分支专属·{r.get('name', rk)}（上限 {r.get('max')}）：{r.get('desc')}")
+            lines.append(_T.text("job.extra_res", res_name=r.get('name', rk), res_max=r.get('max'),
+                             res_desc=r.get('desc')))
     return "\n".join(lines)
 
 
@@ -132,16 +136,16 @@ def _jg_unlock_line(g: dict, short: bool = False) -> str:
     tlv = g["tier_levels"]
     tk = g.get("task_name") or "专属试炼"
     if short:
-        line = f"完成「{tk}」任务链 Lv.{tlv.get(1, 40)} 解锁"
+        line = _T.text("job.unlock_short", tk=tk, lv=tlv.get(1, 40))
         if g.get("src_race"):
-            line += f"，限{g['race_name']}血脉"
+            line += _T.text("job.race_limit", race=g['race_name'])
         return line
-    lines = [f"🗝️ 解锁：完成「{tk}」任务链（Lv.{tlv.get(1, 40)} 起，档位 "
-             f"{tlv.get(1, 40)}/{tlv.get(2, 60)}/{tlv.get(3, 90)}）"]
+    lines = [_T.text("job.unlock_full", tk=tk, lv1=tlv.get(1, 40), lv1b=tlv.get(1, 40), lv2=tlv.get(2, 60),
+                 lv3=tlv.get(3, 90))]
     if g.get("src_race"):
-        lines.append(f"🧬 血脉：仅限{g['race_name']}方可传承")
+        lines.append(_T.text("job.blood", race=g['race_name']))
     if g.get("src_base"):
-        lines.append(f"🌱 渊源：由{JOB_GUIDE[g['src_base']]['name']}一脉传承")
+        lines.append(_T.text("job.origin", base=JOB_GUIDE[g['src_base']]['name']))
     if g.get("hint"):
         lines.append(g["hint"])
     return "\n".join(lines)
