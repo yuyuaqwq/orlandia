@@ -70,6 +70,7 @@
 from __future__ import annotations
 
 from saintess_engine.events import EventBus
+from ._domainio import read_domain as _read_domain   # ⑦ BOSS 图鉴域读口（实证演练新增）
 
 # ★ W4（2026-09-14）：`C.HIDDEN_MONSTERS` → 包内门面（真源 `game/data/hidden_monsters.py:18`）
 from . import catalog_b143 as _cat_b143
@@ -247,6 +248,22 @@ def _sub_tower_guard(ctx):
 
 
 # ---------------------------------------------------------------------------
+# 订阅方 7：BOSS 图鉴（`role == "boss"` 的怪）—— ⑦ 实证演练新增（2026-09-20）
+#   数据域 = 包内 `content/data/boss_dex.json`（编辑器可编）；
+#   本订阅方只在结算日志里回填一行图鉴条目，**无副作用、无 DB 写入**。
+#   ★ 加它**没有**碰触发点：挂的是已有的 `battle_victory` 反应总线（行序见下方注册处）。
+# ---------------------------------------------------------------------------
+def _sub_boss_dex(ctx):
+    monster = ctx.get("monster") or {}
+    mid = str(monster.get("id", ""))
+    if not mid or str(monster.get("role", "")) != "boss":
+        return []
+    dex = _read_domain("boss_dex") or {}
+    line = dex.get(mid) if isinstance(dex, dict) else None
+    return [line] if line else []
+
+
+# ---------------------------------------------------------------------------
 # 订阅方 6：成就（按 kind 组装 extra）——field 原 combat L2100-2118 / instance 原
 # _instance_victory L3187(inst_id+flawless) / worldboss 原 _worldboss_act L2432
 # kind 分支只此一处（P0 任务书 §9）：场景决定 extra，解锁判定全局一致。
@@ -303,4 +320,6 @@ def ensure_registered() -> None:
     register("battle_victory", _sub_wild_king, blank_line=True)
     register("battle_victory", _sub_tower_guard, blank_line=True)
     register("battle_victory", _sub_achievements, blank_line=True)
+    #  ⑦ 实证演练新增：BOSS 图鉴（回填在成就之后；无副作用、无 DB 写入）
+    register("battle_victory", _sub_boss_dex, blank_line=True)
     _registered = True

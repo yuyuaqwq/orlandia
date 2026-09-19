@@ -503,6 +503,15 @@
     "owner": "package",
     "tier": "fixed"
   },
+  "boss_dex": {
+    "label": "BOSS图鉴",
+    "kind": "data",
+    "schema": null,
+    "primary": null,
+    "icon": "📖",
+    "owner": "package",
+    "tier": "portable"
+  },
   "boss_phases": {
     "label": "Boss 阶段",
     "kind": "data",
