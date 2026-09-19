@@ -40,27 +40,17 @@
 """
 from __future__ import annotations
 
-import json
 import os
 
 from ..gameplay import EFFECT_ACTIONS                      # 名词→动词表单源（content/gameplay.py）
 from .kinds import K_BUFF, K_HEAL, K_MAGI, K_PHYS, K_TRUE   # kind 词表单源（下沉自引擎，见 kinds.py）
 from saintess_engine.records import RecordsDeclarationError, records_from_domain
+from .._domainio import read_json as _read_json
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
 _CONTENT = os.path.dirname(_HERE)                           # <pkg>/content
 _PKG_ROOT = os.path.dirname(_CONTENT)                       # <pkg>
 _RULES_DIR = os.path.join(_CONTENT, "rules")
-
-
-def _read_json(name: str, default):
-    """读包内 content/rules/<name>（缺文件/坏 JSON → default，不抛）。"""
-    path = os.path.join(_RULES_DIR, name)
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 def _domain_section(domain: str, key: str) -> dict:
@@ -174,7 +164,7 @@ BAR_INJECT_FIELDS: dict = {
 # ============================================================
 # ⑩ 声明表（`config.load_game_rules(本模块)` 读这两个属性）
 # ============================================================
-EFFECT_RULES = _read_json("effect_rules.json", {})   # 85 条（包内 rules/effect_rules.json）
+EFFECT_RULES = _read_json(os.path.join(_RULES_DIR, "effect_rules.json"), {})   # 85 条（包内 rules/effect_rules.json）
 # EFFECT_ACTIONS：**不再自带定义** —— 归位后由文件头 `from ..gameplay import` 再导出
 # （属性必须存在：`content/apply.py:153` 经 `load_game_rules(P)` 读它）。
 

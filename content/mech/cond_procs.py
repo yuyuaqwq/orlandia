@@ -48,26 +48,13 @@
 """
 from __future__ import annotations
 
-import json
-import os
 
 from saintess_engine.battle.effects import register_action
 from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.conditions import Conditions        # ★ U1-I5：条件注册表 = 引擎 conditions.Conditions
+from .._domainio import read_data_json as _read_json
 
-_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
-_DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")    # <pkg>/content/data
-
-
-def _read_json(name: str, default):
-    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
-    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 # 敌方减益键（控制/属性降）；DOT/印记类走 effects 层数判定

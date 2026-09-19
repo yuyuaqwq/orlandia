@@ -32,20 +32,11 @@
 """
 from __future__ import annotations
 
-import json
 import os
+from ._domainio import read_json as _read_json
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _DATA_DIR = os.path.join(_HERE, "data")
-
-
-def _read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → default，不抛 —— 与 `content/tables.py` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 # ============================================================

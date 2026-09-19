@@ -52,7 +52,6 @@ from __future__ import annotations
 
 import datetime
 import json
-import os
 
 # 包内常量读口（B9-L7：WEEKLY_PICK / WEEKLY_MIN_LV 改读 `game_config` 常量域，不再自带副本）
 from .. import config as _CFG
@@ -68,6 +67,7 @@ _WIRE = Wire()
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）
 from .._hostref import make_bound_host  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
+from .._domainio import read_data_json_strict
 
 
 class HostInjectionMissing(RuntimeError):
@@ -144,18 +144,7 @@ WEEKLY_MIN_LV_SRC = "game/data/weekly_quests.py:155 WEEKLY_MIN_LV"
 WEEKLY_PICK: int = _CFG.const("weekly_quests", "WEEKLY_PICK")
 WEEKLY_MIN_LV: int = _CFG.const("weekly_quests", "WEEKLY_MIN_LV")
 
-_DOMAIN_JSON = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                            "data", "weekly_quests.json")
 _POOL = None               # 悬赏池缓存（包内域文件是静态数据，进程内不失效）
-
-
-def _read_domain():
-    """读包内 `content/data/weekly_quests.json` → `{悬赏名: 条目}`（缺文件/坏 JSON → 抛，不静默空池）。"""
-    with open(_DOMAIN_JSON, encoding="utf-8") as f:
-        tbl = json.load(f)
-    if not isinstance(tbl, dict) or not tbl:
-        raise RuntimeError(f"weekly_quests 域文件不可用（{_DOMAIN_JSON}）—— 空表 = 静默无悬赏")
-    return tbl
 
 
 def weekly_pool() -> list:
@@ -165,7 +154,7 @@ def weekly_pool() -> list:
     """
     global _POOL
     if _POOL is None:
-        tbl = _read_domain()
+        tbl = read_data_json_strict("weekly_quests.json", "weekly_quests", "静默无悬赏")
         rows = []
         for name, ent in tbl.items():
             if not isinstance(ent, dict):

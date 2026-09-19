@@ -13,28 +13,15 @@
 """
 from __future__ import annotations
 
-import json
-import os
 import random
 # ---- 包内门面读口（W12 收口：真源顶层 `from ..data import MOUNT_*`）----
 from . import catalog_life as _cl                                  # noqa: E402  MOUNT_BY_KEY（派生索引）
 from .catalog_b143 import MOUNT_DROP_BOSS, MOUNT_DROP_ELITE        # noqa: E402  两张掉落表
 
 from saintess_engine.wire import Wire
+from ._domainio import read_data_json as _read_json
 _WIRE = Wire()
 
-_HERE = os.path.dirname(os.path.abspath(__file__))                  # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")                             # <pkg>/content/data
-
-
-def _read_json(name: str, default):
-    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
-    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 def bind_host(**objs):

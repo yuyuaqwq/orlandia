@@ -65,8 +65,6 @@
 """
 from __future__ import annotations
 
-import json
-import os
 import random
 import re
 import sys
@@ -122,6 +120,7 @@ from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, drops_ctor  # 宿主取件样
 from saintess_engine.wire import Wire
 # ★ U1-I4 L6：副本层节点取用 → 引擎多表首命中形状（单表真值链）
 from saintess_engine.presence import Lookup
+from ._domainio import read_domain as _read_domain
 _WIRE = Wire()
 
 
@@ -259,16 +258,6 @@ def no_prof_waiting(*_a, **_k):
 # ============================================================
 # ③ 包内域读口（I1）—— 只切**逐值等同**的域（探针见模块头注）
 # ============================================================
-_HERE = os.path.dirname(os.path.abspath(__file__))
-
-
-def _read_domain(name: str) -> dict:
-    """读包内 `content/data/<域>.json`（缺文件/坏 JSON → {}，与 `content/tables.py` 同款）。"""
-    try:
-        with open(os.path.join(_HERE, "data", "%s.json" % name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                            # noqa: BLE001
-        return {}
 
 
 CLASSES = _read_domain("classes")      # 真源 game/data/classes.py 的 CLASSES（宿主聚合层；探针逐值等同，8 键）

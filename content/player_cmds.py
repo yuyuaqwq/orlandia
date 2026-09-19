@@ -65,7 +65,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
 
@@ -116,6 +115,7 @@ EFFECT_RULES = _cat_rules.EFFECT_RULES
 #   **模块级** `_EFFECT_CN`（原为宿主 `CombatCmds` 类属性，绑壳读不到 ⇒ 线上 AttributeError）。
 from . import combat_cmds as _combat_cmds_mod   # noqa: E402
 from . import texts as _T                       # noqa: E402  文案表（B 批 B-1）
+from ._domainio import read_data_json as _read_json
 
 # ★ B 批 B-1：技能团队特效名 → 文案真源（`content/data/text_specs.json` 的 `team_effect.*`）
 _TEAM_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
@@ -134,18 +134,6 @@ _TEAM_CN = _T.names(_TEAM_KEYS, prefix="team_effect")
 
 # ★ D9：注册性别输入别名映射（原 `register` 函数内字面量）→ 包内域
 #   `content/data/gender_aliases.json`（键序 = 表内序）
-_HERE = os.path.dirname(os.path.abspath(__file__))              # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")                         # <pkg>/content/data
-
-
-def _read_json(name: str, default):
-    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
-    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 _GENDER_TBL = _read_json("gender_aliases.json", {})

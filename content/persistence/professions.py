@@ -26,20 +26,8 @@ from .handles import _connect, _lock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
 import json  # v67 activated 列 JSON 序列化
-import os
+from .._domainio import read_data_json as _read_json
 
-_HERE = os.path.dirname(os.path.abspath(__file__))              # <pkg>/content/persistence
-_DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")        # <pkg>/content/data
-
-
-def _read_json(name: str, default):
-    """读包内 content/data/<name>（缺文件/坏 JSON → default，不抛）—— 与
-    `content/mech/params.py:54` / `content/misc_cmds.py:63` 同款包内读口。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 # 副业字段表（key → 中文名）—— ★ D9：进包内域 `content/data/prof_fields.json`

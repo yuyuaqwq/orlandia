@@ -18,22 +18,10 @@
 """
 from __future__ import annotations
 
-import json
-import os
 
 from saintess_engine.text import TextTable
+from .._domainio import read_data_json as _read_json
 
-_HERE = os.path.dirname(os.path.abspath(__file__))            # <pkg>/content/flow
-_DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")      # <pkg>/content/data
-
-
-def _read_json(name: str, default):
-    """读包内数据域 `content/data/<name>`（缺文件/坏 JSON → default，不抛）。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return default
 
 
 class _Texts:

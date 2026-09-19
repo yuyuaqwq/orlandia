@@ -59,8 +59,7 @@
 
 from __future__ import annotations
 
-import json as _json
-import os as _os
+from ._domainio import read_domain as _read_domain
 
 
 # ============================================================
@@ -68,16 +67,6 @@ import os as _os
 # 实测（探针 `overnight/w1213_b13l4_probe.py`）：900 键 / 键集合与 `name` 字段**全等** →
 # 正文里 `C.ITEMS.get(_ik)` 一处读本读口；B14-2 起材料 / 成就 / 地图索引三名数据名也切门面。
 # ============================================================
-_HERE = _os.path.dirname(_os.path.abspath(__file__))
-
-
-def _read_domain(name: str) -> dict:
-    """读包内 `content/data/<域>.json`（缺文件 / 坏 JSON → `{}`，与 `content/tables.py` 同款）。"""
-    try:
-        with open(_os.path.join(_HERE, "data", "%s.json" % name), encoding="utf-8") as f:
-            return _json.load(f)
-    except Exception:                            # noqa: BLE001
-        return {}
 
 
 ITEMS = _read_domain("items")                   # ← 真源 `C.ITEMS`

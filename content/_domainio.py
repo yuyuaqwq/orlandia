@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""包内域读口单点（`content/_domainio.py`）—— 键型还原 / 序声明。
+"""包内域读口单点（`content/_domainio.py`）—— 键型还原 / 序声明 / JSON 域读取。
 
 为什么要它（`重复实现审计_报告.md` P0-4）
 --------------------------------------
@@ -15,6 +15,21 @@
   **取件源与装载口不是一回事** ⇒ 不并入 `order_of()`，只共用「形状校验」那一段
   （`require_key_order()`）。
 
+**P0-4b（2026-09-19 续批）** —— 读口的余族同样收在这里：
+
+* `_read_json` ×11（`mounts` / `player_cmds` / `mech/cond_procs` / `persistence/professions` /
+  `flow/boss_script` / `flow/instance_gate` / `apply` / `loot` / `exploration` / `misc_cmds` /
+  `mech/params`）—— **逐字同体**，只差「包内 `content/data/<name>` 拼接」还是「调用方给绝对路径」，
+  ⇒ 拆成 `read_data_json(name, default, sub)`（8 处）与 `read_json(path, default)`（3 处）。
+* `_read_domain` ×9（`talk_actions` / `shop_stock` / `smith_stock` / `instance_cmds` /
+  `wild_king` / `world_cmds` / `achievements`）—— 全部同体（`_HERE/<sub>/<domain>.json`，坏则 `{}`）
+  ⇒ `read_domain(domain, sub, default)`。
+* `_read_domain` ×2 **fail-closed 变体**（`social_guild.py` 的 `guild.json` / `flow/weekly_progress.py`
+  的 `weekly_quests.json`：硬编码单域 + 空表抛 `RuntimeError`）⇒ `read_data_json_strict()`。
+* **未收的两处**：`content/dialogue.py` / `content/dialogue_conds.py` 的 `_read_domain` ——
+  `tests/test_u1i4_dialogue_frozen.py` 把这两段源码逐段冻结（E 栏断言 `frozen == live`，
+  缺符号直接 `KeyError`）且门禁自哈希 pinned ⇒ 该线收口后才能随冻结基准重采一并并入。
+
 落点理由（与 `content/_pkgref.py` / `content/_hostref.py` 同一条纪律：**安全依赖面决定落点**）
 ----------------------------------------------------------------------------------
 `tables.py` 在装配最早期被 import，且它派生的表遍布全包 ⇒ 本模块只允许依赖
@@ -27,6 +42,7 @@
 """
 from __future__ import annotations
 
+import json
 import os
 
 from saintess_engine.records import orders_of
@@ -67,3 +83,44 @@ def require_key_order(orders, name: str) -> list:
             "key_order：读不到 %r 的键序声明（域缺该条目，或形状不是 {keys: [...]}）"
             "—— 序读不到就不许静默改成空表" % (name,))
     return keys
+
+
+# ───────────────────────────────────────────────────────── 域读口（P0-4b：读 JSON / 读域文件）
+_DATA_DIR = os.path.join(_HERE, "data")
+
+
+def read_json(path: str, default):
+    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → `default`，不抛）。"""
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                        # noqa: BLE001
+        return default
+
+
+def read_data_json(name: str, default=None, sub: str = "data"):
+    """读包内 `content/<sub>/<name>`（`name` 带扩展名）—— 缺文件 / 坏 JSON → `default`，不抛。"""
+    return read_json(os.path.join(_HERE, sub, name), default)
+
+
+def read_domain(domain: str, sub: str = "data", default=None):
+    """读包内 `content/<sub>/<domain>.json`（缺文件 / 坏 JSON → `default`，不抛）。
+
+    缺省 `default=None` ⇒ 交回 `{}`（包内各原地读口的历史口径，逐字保留）。
+    """
+    return read_json(os.path.join(_HERE, sub, "%s.json" % domain),
+                     {} if default is None else default)
+
+
+def read_data_json_strict(name: str, label: str, hint: str) -> dict:
+    """读包内 `content/data/<name>`，**fail-closed**：文件缺 → `OSError`；空表 / 顶层不是映射 → `RuntimeError`。
+
+    给「空表 = 静默无内容」的单域读点用（`guild` / `weekly_quests`）：
+    读不到就点名抛，绝不给空表。
+    """
+    path = os.path.join(_DATA_DIR, name)
+    with open(path, encoding="utf-8") as f:
+        tbl = json.load(f)
+    if not isinstance(tbl, dict) or not tbl:
+        raise RuntimeError("%s 域文件不可用（%s）—— 空表 = %s" % (label, path, hint))
+    return tbl

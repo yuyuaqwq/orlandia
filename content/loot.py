@@ -53,7 +53,6 @@ v184 起它已在引擎 `saintess_engine.loot`（引擎零知识），真源与�
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 from collections.abc import Mapping
@@ -64,13 +63,13 @@ from saintess_engine.records import records_from_domain   # D8：包内域读口
 
 # B14-2（L7 线）：包内默认内容 API 的**数据来源**切到包内门面（原就地读 content/data/*.json）
 from .catalog_items import EQUIP_ROSTER, ITEMS, RUNES   # 真源 `game.content`:ITEMS / :EQUIP_ROSTER；B15b 补 RUNES
+from ._domainio import read_data_json as _read_json
 
 # ============================================================
 # 搬运头：替身接口落点（包内新增，非真源正文）
 # ============================================================
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_DATA_DIR = os.path.join(_HERE, "data")
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>（域声明派生口用）
 
 # ---- 包内域读口（D8）：月份 → 季节 ----
@@ -99,15 +98,6 @@ _PACKAGE_CONTENT = None
 # 调用方显式 `install_quality_tiers(None)` 时挂的空表（`_roll_fish` 守卫读它 → 抽不出；
 # 不是「等权兜底」那种静默降级）。未挂任何值时不再走它 —— R4 起默认 = 包内真源 FISH_TIERS。
 _EMPTY_TIERS = TierTable(())
-
-
-def _read_json(name: str, default):
-    """读 `content/data/<name>`（缺文件 / 坏 JSON → default，不抛）。"""
-    try:
-        with open(os.path.join(_DATA_DIR, name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 class _PackageContent:

@@ -40,7 +40,6 @@
 """
 from __future__ import annotations
 
-import json
 import os
 from .skills import branch_skill_owner, skill_info  # noqa: F401  (包内端口，不是宿主)
 
@@ -52,15 +51,6 @@ from . import wild as _wild
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _ROOT = os.path.dirname(_HERE)                             # <pkg>
-
-
-def _read_domain(domain: str, sub: str = "data", default=None):
-    """读包内 `content/<sub>/<domain>.json`（缺文件 / 坏 JSON → default，不抛）。"""
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                       # noqa: BLE001
-        return {} if default is None else default
 
 
 # ============================================================
@@ -75,6 +65,7 @@ _WIRE = Wire()
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` 同口径（B8.2 线1 立的规矩）
 from ._hostref import make_bound_host  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
+from ._domainio import read_domain as _read_domain        # P0-4b 域读口单源
 
 
 def bind_host(db=None, grant_reward=None) -> None:

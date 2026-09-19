@@ -34,7 +34,6 @@ import datetime
 import json
 import random
 
-import os
 
 # ============================================================
 # ① 宿主取件（B2-C2：本模块已全部改包内直取；原 `_host_*` 宿主替身机械已删）
@@ -53,6 +52,7 @@ from . import catalog_space as _cs      # noqa: E402  MAP_BY_ID
 from .catalog_rules import (WILD_KING_CHEST_TIERS, WILD_KING_GLOBAL_LIMIT, WILD_KING_LIFETIME_SEC,
                             WILD_KING_LOOT_PRIORITY_SEC, WILD_KING_MAPS, WILD_KING_NO_KILL_EXTRA,
                             WILD_KING_PER_DAY_LIMIT, WILD_KING_PER_PERIOD_LIMIT, WILD_KING_PITY_PERIODS)
+from ._domainio import read_domain as _read_domain
 
 
 # ============================================================
@@ -62,16 +62,6 @@ from .catalog_rules import (WILD_KING_CHEST_TIERS, WILD_KING_GLOBAL_LIMIT, WILD_
 #    （`overnight/b13l2_probe*.py`）。**不改形状**：JSON 里的值原样用。
 #    其余常数（时段/候选图/宝箱档位/上限）**域内没有** → ★ B16-W11b 起改走包内门面 `catalog_rules`（见上）。
 # ============================================================
-_HERE = os.path.dirname(os.path.abspath(__file__))
-
-
-def _read_domain(name: str) -> dict:
-    """读包内 `content/data/<域>.json`（缺文件/坏 JSON → {}，与 `content/tables.py` 同款）。"""
-    try:
-        with open(os.path.join(_HERE, "data", "%s.json" % name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                            # noqa: BLE001
-        return {}
 
 
 WILD_KINGS = _read_domain("wild_king")

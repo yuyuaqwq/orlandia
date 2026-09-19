@@ -26,7 +26,6 @@
 """
 import datetime
 import json
-import os
 import time
 from datetime import date
 
@@ -50,21 +49,12 @@ def bind_host(**objs):
 
 from ._pkgref import DB as db
 from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
+from ._domainio import read_domain as _read_domain
 
 # ============================================================
 # ② 包内域读口 —— 商店限购配置（域 `shop_stock`；真源 = `game/data/shop_limit.py:39 SHOP_LIMIT`，
 #    导出器 = 游戏仓 `scripts/export_domains/shop_econ.py:derive_shop_stock`）
 # ============================================================
-_HERE = os.path.dirname(os.path.abspath(__file__))
-
-
-def _read_domain(domain: str, sub: str = "data"):
-    """读包内 `content/<sub>/<domain>.json`（缺文件/坏 JSON → {}，不抛，与 tables.py 同款）。"""
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                            # noqa: BLE001
-        return {}
 
 
 SHOP_LIMIT: dict = _read_domain("shop_stock")

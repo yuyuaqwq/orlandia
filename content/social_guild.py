@@ -45,8 +45,6 @@
 from __future__ import annotations
 
 import datetime
-import json
-import os
 
 # ★ W4（2026-09-14）：`C.GUILD_CONFIG` 兜底 → 包内门面（真源 `game/data/guild.py:3`）
 from . import catalog_b143 as _cat_b143
@@ -65,6 +63,7 @@ _WIRE = Wire()
 
 from ._hostref import make_bound_host  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
 from ._domainio import int_keys as _int_keys          # P0-4 域读口单源
+from ._domainio import read_data_json_strict
 
 
 def bind_host(db=None, config=None, store_social=None):
@@ -117,7 +116,6 @@ def _cfg():
 # ============================================================
 # ② 读表口：包内 `guild` 域（真源 `game/data/guild.py`）
 # ============================================================
-_DOMAIN_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "guild.json")
 _DOMAIN = None
 
 # 职位词 → role key（真源 `game/services/guild.py:195 ROLE_MAP`，逻辑常量，不是数据表）
@@ -127,19 +125,10 @@ ROLE_MAP = {"副会长": "vice_leader", "精英": "elite"}
 APPOINTABLE_ROLES = ("vice_leader", "elite")
 
 
-def _read_domain() -> dict:
-    """读包内 `content/data/guild.json`（缺文件/坏 JSON/空表 → 抛，不静默空表）。"""
-    with open(_DOMAIN_JSON, encoding="utf-8") as f:
-        tbl = json.load(f)
-    if not isinstance(tbl, dict) or not tbl:
-        raise RuntimeError(f"guild 域文件不可用（{_DOMAIN_JSON}）—— 空表 = 静默无职位/无商店")
-    return tbl
-
-
 def _domain() -> dict:
     global _DOMAIN
     if _DOMAIN is None:
-        _DOMAIN = _read_domain()
+        _DOMAIN = read_data_json_strict("guild.json", "guild", "静默无职位/无商店")
     return _DOMAIN
 
 

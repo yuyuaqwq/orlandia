@@ -55,15 +55,7 @@ _DATA_DIR = os.path.join(_HERE, "data")
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/talk_actions.py` 同口径（B8.2 线1 立的规矩）
 from ._hostref import make_bound_host  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
-
-
-def _read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → default，不抛 —— 与 `content/tables.py` 同款）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
+from ._domainio import read_json as _read_json            # P0-4b 读口单源
 
 
 # ============================================================

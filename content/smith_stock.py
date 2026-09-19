@@ -37,7 +37,6 @@
 import copy
 import datetime
 import json
-import os
 import random
 import time
 from datetime import date
@@ -59,21 +58,12 @@ ECON_CONFIG = _clife.ECON_CONFIG
 from .stats import equip_stats, equip_value
 from .quality_tiers import QUALITY_TIERS
 from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
+from ._domainio import read_domain as _read_domain
 
 # ============================================================
 # ② 包内域读口（域 `smith_stock` + `shop`；导出器 = 游戏仓
 #    `scripts/export_domains/shop_econ.py:derive_smith_stock / derive_shop`）
 # ============================================================
-_HERE = os.path.dirname(os.path.abspath(__file__))
-
-
-def _read_domain(domain: str, sub: str = "data"):
-    """读包内 `content/<sub>/<domain>.json`（缺文件/坏 JSON → {}，不抛，与 tables.py 同款）。"""
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                            # noqa: BLE001
-        return {}
 
 
 _SMITH_CFG: dict = _read_domain("smith_stock")

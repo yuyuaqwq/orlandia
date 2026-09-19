@@ -144,6 +144,7 @@ from . import worlds as _worlds          # get_instance_world
 
 # 真源宿主顶层 `from ..services.quests import DAILY_META_KEYS as _DAILY_META_KEYS`
 from .profession_quests import DAILY_META_KEYS as _DAILY_META_KEYS
+from ._domainio import read_domain as _read_domain
 
 # v104 M23 许愿井彩蛋概率（真源 world.py:47；唯一常量定义点搬到本模块，宿主薄壳再导出同名）
 WISH_WELL_EGG_CHANCE = 0.05
@@ -190,15 +191,6 @@ _TALK_NODE_KEY = "node"
 # ============================================================
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>（D8 域声明派生口用）
-
-
-def _read_domain(name: str) -> dict:
-    """读包内 `content/data/<域>.json`（缺文件/坏 JSON → {}，与 `content/tables.py` 同款）。"""
-    try:
-        with open(os.path.join(_HERE, "data", "%s.json" % name), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                            # noqa: BLE001
-        return {}
 
 
 PORTALS = _read_domain("portals")
