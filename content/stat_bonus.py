@@ -86,6 +86,7 @@ engine.player_final_stats 的 title_bonus 位置参数保留（旧引擎冻结�
 from . import obs                           # noqa: E402  包内唯一 LOG/tlog 取用口（fail-closed）
 from .index import display as _index_display  # noqa: E402  真源 `C.display`（同一对象）
 from ._pkgref import DB as db, HANDLES
+from ._dbread import visited_map_ids as _visited_maps   # 免锁直连读口单源（P1-4）
 # ★ R2（终态补债）：库路径的包内真源 = `content/persistence/handles.py::db_path()`
 #   （`content/persistence/__init__.py` 头注逐字写明：`DB_PATH` **不在包侧** —— 库路径是部署
 #   信息，由宿主 `store_factory` 解析后注入 `handles`；「需要读路径时用 `handles.db_path()`」）。
@@ -108,18 +109,6 @@ from . import collection as _col            # noqa: E402  COLLECTION_BOOKS → b
 #   `saintess_engine.bonus.Bonus`（只此一份；lane env 该形状与引擎仓 HEAD 逐字节相同，
 #   见 `out/LANDING.md`「环境事实」）
 from saintess_engine.bonus import Bonus     # noqa: E402
-
-
-def _visited_maps(group_id, qq_id):
-    """已探索地图 id 列表（独立直连，不占用 store 锁）。"""
-    import sqlite3
-    try:
-        conn = sqlite3.connect(HANDLES.db_path())
-        rows = conn.execute("SELECT map_id FROM visited WHERE qq_id=?", (qq_id,)).fetchall()
-        conn.close()
-        return [r[0] for r in rows]
-    except Exception:
-        return []
 
 
 def _has_enhanced(group_id, qq_id, level):

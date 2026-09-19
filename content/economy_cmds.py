@@ -44,9 +44,17 @@ from . import texts as _T      # ★ B 批 B-1：文案表（属性名）
 #   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
 #   读口 = `content/_domainio.py::keyed_values`（P0-4d 单源；底层仍是引擎 `records_from_domain`）。
 from ._domainio import keyed_values
+from ._dbread import visited_map_ids as _visited_maps   # 免锁直连读口单源（P1-4）
 
 # ★ B 批 B-1：属性中文名 → 文案真源（`content/data/text_specs.json` 的 `stat_name.*`）
 #   本文件原有 3 处内联字面量（附魔成功行 7 键 / 套装 bonus_2 9 键 / bonus_4_stats 8 键）已合并到这一张表。
+#   ★ P1-4 复核（2026-09-19）：本表与 `content/reward.py` 的同名表**有意保留两份** —— 两条硬约束
+#   都试过、都走不通（实测，不是推测）：
+#     ① 搬进 `content/texts.py` ⇒ `tests/test_texts_table.py` 的『表里没有死文案』判定面 =
+#        WIRED 登记的模块，字面量一旦离开被扫描模块，`stat_name.heal` 当场被判死文案（红）；
+#     ② 改成 `reward` 从本模块 import ⇒ 装配窗口炸：`content/facade.py:504 bind_host` 绑
+#        `content.reward.grant_reward` 时本模块还在半初始化（`_MAT_FACILITY` 取自 `_shop_svc`），
+#        包全量 285 里 265 个连带红（引擎前置门禁另 2 个）。表是**纯数据、逐字同体**，两处并存无行为分叉风险。
 _STAT_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死文案」）
     "atk": "stat_name.atk",
     "crit": "stat_name.crit",
@@ -5288,7 +5296,7 @@ class EconomyImpl(CommandBase):
         quests = db.get_quests(group_id, qq_id)
         ctx = TitleCtx(group_id, qq_id, player, stats, rep, quests, hooks={
             "has_enhanced": self._has_enhanced,
-            "visited_maps": self._visited_maps,
+            "visited_maps": _visited_maps,
         })
         earned = []
         for t in _cquest.TITLES:
@@ -5302,16 +5310,6 @@ class EconomyImpl(CommandBase):
                 ok = False  # 未知称号 id：不获得（数据错误时安全降级）
             earned.append(ok)
         return earned
-
-    def _visited_maps(self, group_id, qq_id):
-        import sqlite3
-        try:
-            conn = sqlite3.connect(HANDLES.db_path())
-            rows = conn.execute("SELECT map_id FROM visited WHERE qq_id=?", (qq_id,)).fetchall()
-            conn.close()
-            return [r[0] for r in rows]
-        except Exception:
-            return []
 
     def _has_enhanced(self, group_id, qq_id, level):
         items = db.get_inventory(group_id, qq_id)
