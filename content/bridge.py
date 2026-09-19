@@ -67,7 +67,7 @@ from saintess_engine import make_actor  # 只读 saintess_engine 工厂，不改
 # 的实现体（读 `game/tlog_setup` 开关 + `game/services/battle_tlog.py` 采集 sink，属平台件），
 # 按宿主壳同款约定取：`bind_host(attach_tlog=…)` 注入 → `sys.modules` 已加载 → import。
 # ============================================================
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_host_mod  # 宿主包名常量单源（P0-3）
+from ._hostref import make_host_mod  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 

@@ -25,7 +25,7 @@
 #   注入面 = 宿主薄壳 `game/core/class_sets.py:47-49` 的 `bind_host(data=…)`（本文件既有口）
 #   解析：注入优先 → `sys.modules` 已加载的宿主模块（**不 import** 之外的模块树）→ importlib → 抛
 # ============================================================
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_host_mod  # 宿主包名常量单源（P0-3）
+from ._hostref import make_host_mod  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 

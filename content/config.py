@@ -20,7 +20,7 @@
 ----------------------------------------------------------------------
   1. **int 键要还原**：塔表键 `"1".."30"` 与 `UPGRADE_TABLE` / `HOUSE_LEVELS` / `HOUSE_REFUND` /
      `ENHANCE_FAIL_DROP` 这类 int 档位键 —— 不还原 = `.get(3)` 恒 `None`（静默归零）。
-     本模块 `int_keys()` 是 `tables.py:_int_keys` 的同口径实现（非整数键**原样保留**，不静默丢）。
+     键型还原**单源** = `content/_domainio.py:int_keys`（本模块原样再导出；非整数键**原样保留**，不静默丢）。
   2. **顺序要还原**：塔表真源是 `list`（下标 = 层序 - 1），域文件外层键是**字典序** ——
      `trial_floors()` 按 `floor` 排回源顺序；少了这一步，`content/flow/tower_progress.py`
      的「下一层」推导与页面渲染顺序都会漂移。
@@ -46,6 +46,8 @@ from __future__ import annotations
 
 import json
 import os
+
+from ._domainio import int_keys  # noqa: F401  （公共再导出，见 __all__）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _DATA_DIR = os.path.join(_HERE, "data")
@@ -100,21 +102,6 @@ def const(group: str, name: str):
         raise RuntimeError(f"{CONFIG_DOMAIN} 域 {group!r} 组里没有常量 {name!r}"
                            f"（现有：{sorted(grp)}）—— 拒绝静默取 None")
     return grp[name]
-
-
-def int_keys(tbl) -> dict:
-    """JSON 字符串键 → int 键（`content/tables.py:_int_keys` **同口径**：非整数键原样保留）。
-
-    用途：`UPGRADE_TABLE` / `HOUSE_LEVELS` / `HOUSE_REFUND` / `ENHANCE_FAIL_DROP` 这类
-    `{int 档位: 值}` 的表 —— 不还原 = `.get(3)` 恒 `None`（静默归零）。
-    """
-    out: dict = {}
-    for k, v in (tbl or {}).items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            out[k] = v
-    return out
 
 
 def trial_floors() -> list:

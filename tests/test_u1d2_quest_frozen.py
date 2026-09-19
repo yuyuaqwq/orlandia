@@ -206,7 +206,7 @@ _PIN = {
         'content/cmds_world.py::quest_view': '7f482f99fa6605b6cca162aa3ad62bd798c270a1e066e0082b5e11669a9e0887',
     },
     'aux': {
-        'catalog_quests_sha': '31d5196cbffabd931657d6709bb7711c5ff15de3939247a608795e43a472ffe5',
+        'catalog_quests_sha': 'a01253296243131a3d740442c0d336158a42019f2e82995f99bd77f095f38d37',
         'obj_progress_lines_raw': '204bfb10c95759cb92bbfd1d6c15cf60ee2c723fbddb3a2cd927f1fede38d00e',
         'persistence_quests_sha': '99abd0d87d5bf18fa2a133ca6d7efb1a2dda1570fb659fcc284e20cbcc3339e0',
         'quests_completed_main_raw': '[]',

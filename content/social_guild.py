@@ -63,7 +63,8 @@ from saintess_engine.wire import Wire
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
 
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
+from ._hostref import make_bound_host  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
+from ._domainio import int_keys as _int_keys          # P0-4 域读口单源
 
 
 def bind_host(db=None, config=None, store_social=None):
@@ -140,17 +141,6 @@ def _domain() -> dict:
     if _DOMAIN is None:
         _DOMAIN = _read_domain()
     return _DOMAIN
-
-
-def _int_keys(tbl) -> dict:
-    """字符串键 → int 键（JSON 只有 str 键；非整数键**原样保留**，不静默丢）。"""
-    out: dict = {}
-    for k, v in (tbl or {}).items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            out[k] = v
-    return out
 
 
 def guild_roles() -> dict:

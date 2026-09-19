@@ -28,7 +28,9 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import apply_replacements, orders_of, placeholder, register_view, set_from_domains, update_in_place
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
+
+from ._domainio import order_of as _order                        # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -67,9 +69,6 @@ def _ordered(tbl, order, where):
 # ---- 序声明读口：**唯一源** = `content/data/key_order.json`（`key_order` 域）----
 # S2 ①：本文件原先内嵌的 6 张序字面量（1,072 行清尾的一部分）已搬进该域，
 # 「值 + 类型 + 序」与搬前逐元素对拍相等；读不到即 raise（**不静默空序 / 不静默改序**）。
-def _order(name: str) -> list:
-    """按名取包内序声明（引擎装载口 `orders_of`，落点由包内域声明派生）。"""
-    return orders_of(_PKG_ROOT, name, domain="key_order")
 
 
 # ============================================================

@@ -74,7 +74,7 @@ from saintess_engine.command import TextSink, collect_messages
 _WIRE = Wire()
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` 同口径（B8.2 线1 立的规矩）
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
+from ._hostref import make_bound_host  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
 
 
 def bind_host(db=None, grant_reward=None) -> None:

@@ -65,6 +65,8 @@ import os
 
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
+from ._domainio import require_key_order   # P0-4 域读口单源
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
@@ -112,13 +114,7 @@ def _by_source(dom: dict, source: str, drop=("source",)) -> dict:
 # =============================================================================
 def _order(name: str) -> list:
     """按名取键序声明（`key_order` 域）—— 缺条目 / 形状不对 → raise（不静默当空序）。"""
-    ent = _ORDERS.get(name)
-    keys = ent.get("keys") if isinstance(ent, dict) else None
-    if not isinstance(keys, list) or not keys:
-        raise ValueError(
-            "key_order：读不到 %r 的键序声明（域缺该条目，或形状不是 {keys: [...]}）"
-            "—— 序读不到就不许静默改成空表" % (name,))
-    return keys
+    return require_key_order(_ORDERS, name)
 
 
 # =============================================================================

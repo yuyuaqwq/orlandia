@@ -45,7 +45,9 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import apply_replacements, orders_of, placeholder, register_view, set_from_domains, update_in_place
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
+
+from ._domainio import int_keys as _int_keys, order_of as _order   # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -82,30 +84,12 @@ def _tupled_rows(rows):
         return rows
     return tuple(tuple(x) if isinstance(x, list) else x for x in rows)
 
-def _int_keys(tbl) -> dict:
-    """字符串键 → **int 键**（JSON 只有 str 键；还原不了的键**原样保留**，不静默丢）。
-
-    `FISH_QUALITY_WEIGHTS` 的真源键是 `1/3/5/7/9`（int）—— 不还原 = `.get(3)` 恒 None。
-    """
-    out: dict = {}
-    for k, v in (tbl or {}).items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            out[k] = v
-    return out
-
 
 # ============================================================
 # 序声明（真源**插入序**）——**唯一源** = `content/data/key_order.json`（`key_order` 域）
 # S2 ①：本文件原先内嵌的 85 行序字面量已搬进该域，「值 + 类型 + 序」与搬前逐元素对拍相等。
 # 读不到即 raise（**不静默空序 / 不静默改序**）。
 # ============================================================
-
-
-def _order(name: str) -> list:
-    """按名取包内序声明（引擎装载口 `orders_of`，落点由包内域声明派生）。"""
-    return orders_of(_PKG_ROOT, name, domain="key_order")
 
 
 _ORDER_EFFECT_RULES = _order("effect_rules")

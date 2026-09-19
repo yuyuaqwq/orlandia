@@ -58,7 +58,9 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.records import apply_replacements, orders_of, placeholder, records_from_domain, register_view, set_from_domains, update_in_place
+from saintess_engine.records import apply_replacements, placeholder, records_from_domain, register_view, set_from_domains, update_in_place
+
+from ._domainio import int_keys as _int_keys, order_of as _order   # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -72,9 +74,6 @@ _RUNES_RAW: dict = {}
 # ---- 序声明读口：**唯一源** = `content/data/key_order.json`（`key_order` 域）----
 # S2 ①：本文件原先内嵌的 10 张序字面量（`__B14B_ORDERS_BEGIN__` 段）已搬进该域，
 # 「值 + 类型 + 序」与搬前逐元素对拍相等；读不到即 raise（**不静默空序**）。
-def _order(name: str) -> list:
-    """按名取包内序声明（引擎装载口 `orders_of`，落点由包内域声明派生）。"""
-    return orders_of(_PKG_ROOT, name, domain="key_order")
 
 
 # __B14B_ORDERS_BEGIN__
@@ -184,16 +183,6 @@ UPGRADE_MATERIAL_CN = placeholder("UPGRADE_MATERIAL_CN")
 REFINE_RECIPES = placeholder("REFINE_RECIPES")
 _CFG_REFINE_EXCLUSIVE = placeholder("_CFG_REFINE_EXCLUSIVE")
 REFINE_EXCLUSIVE_RECIPES = placeholder("REFINE_EXCLUSIVE_RECIPES")
-
-def _int_keys(tbl) -> dict:
-    """字符串键 → int 键（非整数键**原样保留**，不静默丢）。"""
-    out: dict = {}
-    for k, v in (tbl or {}).items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            out[k] = v
-    return out
 
 
 def _num_sorted(tbl) -> dict:

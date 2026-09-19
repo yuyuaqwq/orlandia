@@ -36,7 +36,7 @@
 # 宿主替身口（`content/index.py` / `content/world_cmds.py` 同款：注入优先 → sys.modules →
 # importlib；**绝不静默空跑**）
 # ============================================================
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_wire_module  # 宿主包名常量单源（P0-3）
+from ._hostref import make_wire_module  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 

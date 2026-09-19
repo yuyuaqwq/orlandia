@@ -38,6 +38,8 @@ import os
 from saintess_engine.records import (apply_replacements, placeholder, register_view,
                                     set_from_domains, update_in_place)
 
+from ._domainio import int_keys as _int_keys          # P0-4 域读口单源
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
@@ -68,17 +70,6 @@ SKILLS: dict = {}
 RACES: dict = {}
 SETS: dict = {}
 _PANEL_RULES: dict = {}
-
-
-def _int_keys(tbl) -> dict:
-    """字符串键 → int 键（JSON 只有 str 键；非整数键**原样保留**，不静默丢）。"""
-    out: dict = {}
-    for k, v in (tbl or {}).items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            out[k] = v
-    return out
 
 
 # 强化等级 → {rate, cost, mult}（面板读 [k]["mult"]；原文是 .get(int)）
