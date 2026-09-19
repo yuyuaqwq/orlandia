@@ -163,7 +163,9 @@ FROZEN_COUNTS = {
     #     15 新键 = objline.* 9（含手改拆出的 find_ready / find_ready_map）+ wpick.* 6）⇒ 2405 → 2420
     #   ★ C 档 28a（B-2 第 14 片：settlement「战斗结算：经验/金币加成 + 掉落播报」
     #     37 新键 = 战斗结算 25 + 掉落播报 12）⇒ 2420 → 2457
-    "texts": 2457,
+    #   ★ C 档 28b（B-2 第 15 片：settlement「胜利面板 / 战败结算」两个大编排
+    #     9 新键 = victory_settle 3 + defeat_settle 6）⇒ 2457 → 2466
+    "texts": 2466,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

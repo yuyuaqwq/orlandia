@@ -853,9 +853,9 @@ def victory_settle(host, group_id, qq_id, player, monster, result, extra_kills=N
     # ---- 段21 面板行骨架 ----
     need = C.exp_to_next(player["level"])
     exp_pct = min(100, int(player["exp"] / need * 100)) if need else 0
-    lines = [result, f"🎉 你击败了【{monster['name']}】！",
-             f"✨ 经验 +{exp}",
-             f"📈 经验进度 {player['exp']}/{need} ({exp_pct}%)"]
+    lines = [result, _T.text("vsettle.kill", name=monster['name']),
+             _T.text("vsettle.exp", exp=exp),
+             _T.text("vsettle.progress", cur=player['exp'], need=need, pct=exp_pct)]
     if _exp_note:
         lines.insert(3, _exp_note)
     if lucky_line:
@@ -911,7 +911,7 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
     db.bump_stats(group_id, qq_id, deaths=1)
     lost = int(player["gold"] * 0.1)
     new_gold = max(0, player["gold"] - lost)
-    lines = [f"{result}", f"💀 你倒下了……被【{monster['name']}】击败。"]
+    lines = [f"{result}", _T.text("dsettle.down", name=monster['name'])]
     # v84 红名死亡惩罚（26 章三 第二档）：红名期间死亡额外掉 10%（上限 2000）
     extra = 0
     if is_redname(host, qq_id):
@@ -946,11 +946,9 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
         db.update_player(group_id, qq_id, hp=player["max_hp"], mp=player["max_mp"],
                          max_hp=player["max_hp"], max_mp=player["max_mp"],
                          cur_map=_town_id, cur_subarea=_town_sa)
-        _pen = f"{lost} 金币" + (f"(红名额外 {extra})" if extra else "")
+        _pen = _T.text("dsettle.penalty", n=lost) + (_T.text("dsettle.penalty_red", extra=extra) if extra else "")
         lines.append(
-            f"🪶 背包里的复活羽毛泛起微光！回复『使用复活羽毛』消耗 1 根，免于损失 {_pen}；"
-            f"或回复『放弃复活』损失 {_pen}。\n"
-            f"你已被送回{_town_name}·{_town_sa_name}，休息后满血复活。"
+            _T.text("dsettle.feather", pen=_pen, town=_town_name, sa=_town_sa_name)
         )
         # v97.5 行为彩蛋规则：战败（用于清零连胜等计数，不产出彩蛋）
         # 签名照抄 base._rule_fire：fire(group_id, qq_id, player, cur_map, trigger, evt, hooks)
@@ -964,13 +962,12 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
                                                  "monster": monster.get("name", "?")},
                 "player": player}
     if extra:
-        lines.append(f"☠️ 红名期间死亡：额外损失 {extra} 金币(上限 2000)！")
+        lines.append(_T.text("dsettle.red_extra", n=extra))
     db.update_player(group_id, qq_id, gold=new_gold, hp=player["max_hp"], mp=player["max_mp"],
                      max_hp=player["max_hp"], max_mp=player["max_mp"],
                      cur_map=_town_id, cur_subarea=_town_sa)
     lines.append(
-        f"你丢失了 {lost} 金币（战败损失 10% 金币），被好心人送回了{_town_name}·{_town_sa_name}。\n"
-        f"休息后满血复活！下次要小心啊，冒险者。"
+        _T.text("dsettle.lost", lost=lost, town=_town_name, sa=_town_sa_name)
     )
     # v97.5 行为彩蛋规则：战败（用于清零连胜等计数，不产出彩蛋）
     # 签名照抄 base._rule_fire：fire(group_id, qq_id, player, cur_map, trigger, evt, hooks)

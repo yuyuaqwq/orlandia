@@ -2780,6 +2780,58 @@
     "category": "每日任务",
     "desc": "任务面板：每日段小标题"
   },
+  "dsettle.down": {
+    "value": "💀 你倒下了……被【{name}】击败。",
+    "params": [
+      "name"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
+  },
+  "dsettle.feather": {
+    "value": "🪶 背包里的复活羽毛泛起微光！回复『使用复活羽毛』消耗 1 根，免于损失 {pen}；或回复『放弃复活』损失 {pen}。\n你已被送回{town}·{sa}，休息后满血复活。",
+    "params": [
+      "pen",
+      "town",
+      "sa"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
+  },
+  "dsettle.lost": {
+    "value": "你丢失了 {lost} 金币（战败损失 10% 金币），被好心人送回了{town}·{sa}。\n休息后满血复活！下次要小心啊，冒险者。",
+    "params": [
+      "lost",
+      "town",
+      "sa"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
+  },
+  "dsettle.penalty": {
+    "value": "{n} 金币",
+    "params": [
+      "n"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
+  },
+  "dsettle.penalty_red": {
+    "value": "(红名额外 {extra})",
+    "params": [
+      "extra"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
+  },
+  "dsettle.red_extra": {
+    "value": "☠️ 红名期间死亡：额外损失 {n} 金币(上限 2000)！",
+    "params": [
+      "n"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
+  },
   "ebuff_name.burn": {
     "value": "🔥灼烧",
     "category": "减益名",
@@ -16809,6 +16861,32 @@
     "value": "你不在战斗中（状态异常）！",
     "category": "道具使用",
     "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "vsettle.exp": {
+    "value": "✨ 经验 +{exp}",
+    "params": [
+      "exp"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:victory_settle（B 批 C 档）"
+  },
+  "vsettle.kill": {
+    "value": "🎉 你击败了【{name}】！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:victory_settle（B 批 C 档）"
+  },
+  "vsettle.progress": {
+    "value": "📈 经验进度 {cur}/{need} ({pct}%)",
+    "params": [
+      "cur",
+      "need",
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:victory_settle（B 批 C 档）"
   },
   "way.already_here": {
     "value": "你已经在【{name}】了～",
