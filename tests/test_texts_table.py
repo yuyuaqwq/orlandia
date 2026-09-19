@@ -227,6 +227,8 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          "周常": [PKG_WEEKLY_SRC, os.path.join(PKG_CONTENT, "flow", "weekly_progress.py")],
          "签到": PKG_MISC_SRC, "补给箱": PKG_EVENT_SRC,
          "每日任务": PKG_WORLD_SRC, "每日命令": PKG_QUESTS_SRC,
+         # ★ C 档 36a（B-2 第 29 片）：quest_view『任务』面板句壳（本文件首次接入 `T`）
+         "任务面板": PKG_WORLD_SRC,
          "社交": PKG_SOCIAL_SRC,
          "经济": PKG_ECONOMY_SRC,
          # ★ D2（数据进表）：武器特效域的文案 key 由**读口** `content/mech/we_data.py`
@@ -1140,7 +1142,9 @@ def t1_table_selfcheck():
                         # ★ C 档 PRE3（2026-09-19 并行批 3）：mech 两机制族
                         "团队机制", "元素机制",
                         # ★ C 档 35a（B-2 第 27 片）：升级/里程碑播报 + 探索进度面板
-                        "升级提示", "探索进度"}, cats)
+                        "升级提示", "探索进度",
+                        # ★ C 档 36a（B-2 第 29 片）：quest_view 面板（新分类 任务面板）
+                        "任务面板"}, cats)
 
 
 def t2_key_and_params_accounting():

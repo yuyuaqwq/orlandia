@@ -197,7 +197,7 @@ _PIN = {
         'content/world_cmds.py::_take_main_quest': '0b3f8c8dc0ec564e2dff5a77e27ee826cf2788e9e1df2bcefc899c583026556a',
         'content/cmds_world.py::_svc': '84f063ece8743a96b4c98ba39aaaa4c293799b285d01b16c5472ecd5ffeba3b9',
         'content/cmds_world.py::_kill_prog_count': 'a0446090c33bb1e071c4892236a2938a0d7ca84e5d0987185de00a7b3575f495',
-        'content/cmds_world.py::quest_view': '7f482f99fa6605b6cca162aa3ad62bd798c270a1e066e0082b5e11669a9e0887',
+        'content/cmds_world.py::quest_view': 'a6129156aaa39a8e99daa5bb3bd9310671aa5e0ca1aa1b14fab92c01eccc220d',
     },
     'aux': {
         'catalog_quests_sha': 'a01253296243131a3d740442c0d336158a42019f2e82995f99bd77f095f38d37',

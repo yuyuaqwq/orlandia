@@ -118,9 +118,9 @@ def quest_view(env) -> list:
     group_id, qq_id = env.group_id, env.uid
     player = env.player
     if shell._is_redname(qq_id):
-        return ["☠️ 你是红名！守卫不让你靠近任务板……(等红名消退再来)"]
+        return [T.static("qv.redname")]
     quests = db.get_quests(group_id, qq_id)
-    lines = ["📜 【冒险日志】", "━━━━━━━━━━━━"]
+    lines = [T.static("qv.title"), "━━━━━━━━━━━━"]
     # 主线
     main_id = quests.get("main_quest")
     if main_id:
@@ -139,14 +139,14 @@ def quest_view(env) -> list:
             giver = _ginfo.get("name", "？")
             giver_map = _ginfo.get("map", "")
             giver_map_name = MAP_BY_ID.get(giver_map, {}).get("name", "？")
-            lines.append(f"【主线】『{mq['name']}』")
+            lines.append(T.text("qv.main_head", name=mq['name']))
             lines.append(f"  {mq['desc']}")
             st = quests.get("main_status", "pending")
             if st == "pending":
-                lines.append(f"  ⏳ 未接取：去找 {giver}(在{giver_map_name})对话接取")
+                lines.append(T.text("qv.main_pending", giver=giver, map=giver_map_name))
             elif st == "ready":
                 # v95.25 #47b：主线交付=找 NPC 自动触发（与『交付任务』指令并存），不写死交付方式
-                lines.append(f"  ✅ 目标达成！回去找 {giver} 交付")
+                lines.append(T.text("qv.main_ready", giver=giver))
             else:
                 prog = quests.get("main_progress", {})
                 obj = mq["objective"]
@@ -157,9 +157,9 @@ def quest_view(env) -> list:
                     have = db.count_item(group_id, qq_id, obj["collect"])
                     need = obj.get("count", 1)
                     if have >= need:
-                        lines.append(f"  ✅ 材料已齐：{obj['collect']} {have}/{need}（回去找 {giver} 交付）")
+                        lines.append(T.text("qv.main_collect_ready", item=obj['collect'], have=have, need=need, giver=giver))
                     else:
-                        lines.append(f"  收集：{have}/{need}")
+                        lines.append(T.text("qv.main_collect_need", have=have, need=need))
                 else:
                     # v101.3：目标类型展示查表化（kill/collect/explore/talk，顺序与原 if-elif 一致）
                     # ★ U1-D2 L4：改走引擎「有序目标注册表 + 行骨架」（内容侧 text_of = 上面
@@ -168,13 +168,13 @@ def quest_view(env) -> list:
                         lines.append(_t)
                         break
     else:
-        lines.append("【主线】已全部完成！🎊")
+        lines.append(T.static("qv.main_all_done"))
     # 支线（v101.25i3：已完成任务不进面板，鱼鱼：交了还显示）
     side = quests.get("side", {})
     side_items = [(sid, sq) for sid, sq in side.items() if sq.get("status", "active") != "done"]
     if side_items:
         lines.append("")
-        lines.append("【支线】")
+        lines.append(T.static("qv.side_section"))
         raw = env.arg_text("任务")
         page = env.page(raw)
         page_items, pages, page = env.page_items(side_items, page, per_page=5)
@@ -187,7 +187,7 @@ def quest_view(env) -> list:
             obj = sqd["objective"]
             # v95.12：已交付支线显示已完成（不占可交付位）
             if st == "done":
-                lines.append(f"{i:>2}. 『{sqd['name']}』[✅ 已完成]")
+                lines.append(T.text("qv.item_done", i=i, name=sqd['name']))
                 continue
             # v127.7 排版：任务名单独一行（名字+状态），描述缩进下一行，目标进度行统一再缩进
             # v116 §3.4：进行中支线可放弃（主线不可弃），放弃提示统一放面板底部（v123e 去行尾冗余）
@@ -199,15 +199,15 @@ def quest_view(env) -> list:
                 kill_txt = ""
                 if obj.get("kill"):
                     kv = _kill_prog_count(obj, prog)  # v105 M19 P2：兼容旧档老 key 聚合
-                    kill_txt = f"｜击杀：{kv}/{obj.get('count', 0)}"
+                    kill_txt = T.text("qv.kill_txt", kv=kv, need=obj.get('count', 0))
                 if have >= need:
-                    lines.append(f"{i:>2}. 『{sqd['name']}』[✅ 可交{kill_txt}]")
+                    lines.append(T.text("qv.item_collect_ready", i=i, name=sqd['name'], kill_txt=kill_txt))
                     lines.append(f"    {sqd['desc']}")
-                    lines.append(f"    材料已齐！回去找 {giver} {_WC._deliver_hint(shell, sqd['giver'])}")
+                    lines.append(T.text("qv.collect_ready_hint", giver=giver, hint=_WC._deliver_hint(shell, sqd['giver'])))
                 else:
-                    lines.append(f"{i:>2}. 『{sqd['name']}』[⏳{kill_txt}]")
+                    lines.append(T.text("qv.item_collect", i=i, name=sqd['name'], kill_txt=kill_txt))
                     lines.append(f"    {sqd['desc']}")
-                    lines.append(f"    收集：{obj['collect']} {have}/{need}{kill_txt}")
+                    lines.append(T.text("qv.collect_need", item=obj['collect'], have=have, need=need, kill_txt=kill_txt))
                 # v125.1 P2：复合目标（collect+use/find/explore，如 s53/s56/s64/s105）
                 # 补显其余目标行，与 find/use 分支的 _obj_text_lines 展示口径一致
                 # （收集/击杀行已在上方展示，过滤避免重复）
@@ -219,40 +219,40 @@ def quest_view(env) -> list:
             # v104 M20 P2：find 型（告示委托等）面板提示机制——在 XX 探索有概率遇到
             # （此前走通用兜底只显示 desc+[⏳]，玩家不知如何推进）
             if obj.get("find"):
-                lines.append(f"{i:>2}. 『{sqd['name']}』[{'✅ 可交' if st == 'ready' else '⏳'}]")
+                lines.append(T.text("qv.item_flag", i=i, name=sqd['name'], flag='✅ 可交' if st == 'ready' else '⏳'))
                 lines.append(f"    {sqd['desc']}")
                 # v124.2 复合目标逐行显示（s18 kill+find 两行都展示）
                 for _t in _WC._obj_text_lines(shell, obj, st):
                     lines.append(f"    {_t}")
                 if st == "ready":
-                    lines.append(f"    回去找 {giver} {_WC._deliver_hint(shell, sqd['giver'])}")
+                    lines.append(T.text("qv.back_hint", giver=giver, hint=_WC._deliver_hint(shell, sqd['giver'])))
                 continue
             # v124 use 型（使用指定物品达成）——同 find 处理
             if obj.get("use"):
-                lines.append(f"{i:>2}. 『{sqd['name']}』[{'✅ 可交' if st == 'ready' else '⏳'}]")
+                lines.append(T.text("qv.item_flag", i=i, name=sqd['name'], flag='✅ 可交' if st == 'ready' else '⏳'))
                 lines.append(f"    {sqd['desc']}")
                 for _t in _WC._obj_text_lines(shell, obj, st):
                     lines.append(f"    {_t}")
                 if st == "ready":
-                    lines.append(f"    回去找 {giver} {_WC._deliver_hint(shell, sqd['giver'])}")
+                    lines.append(T.text("qv.back_hint", giver=giver, hint=_WC._deliver_hint(shell, sqd['giver'])))
                 continue
             mark = "✅ 可交" if st == "ready" else "⏳"
-            lines.append(f"{i:>2}. 『{sqd['name']}』[{mark}]")
+            lines.append(T.text("qv.item_flag", i=i, name=sqd['name'], flag=mark))
             lines.append(f"    {sqd['desc']}")
             if st == "ready":
-                lines.append(f"    回去找 {giver} {_WC._deliver_hint(shell, sqd['giver'])}")
+                lines.append(T.text("qv.back_hint", giver=giver, hint=_WC._deliver_hint(shell, sqd['giver'])))
         # v127.7 翻页提示补全：上一页/下一页 + 总页数（此前只有下一页）
         if pages > 1:
             _nav = []
             if page > 1:
-                _nav.append(f"『任务 {page-1}』上一页")
+                _nav.append(T.text("qv.nav_prev", n=page-1))
             if page < pages:
-                _nav.append(f"『任务 {page+1}』下一页")
-            lines.append(f"💡 {' | '.join(_nav)}(共 {pages} 页)")
+                _nav.append(T.text("qv.nav_next", n=page+1))
+            lines.append(T.text("qv.nav_note", nav=' | '.join(_nav), pages=pages))
         shell._record_list_state(qq_id, "任务", page, pages)
     else:
         lines.append("")
-        lines.append("【支线】暂无——找镇上的 NPC 聊聊可能有意外收获")
+        lines.append(T.static("qv.side_empty"))
     # 每日
     # v116 §3.4：daily 含 _completed/_repeat 元数据（active 任务清空后仍在）——
     # 只剩元数据 = 今日全部完成，按"已完成"分支展示；_completed 超额时给出计数。
@@ -300,8 +300,8 @@ def quest_view(env) -> list:
     if _master in _MASTER_IDS:
         _tnpc = _NPCS_LOOKUP.first(_master)[0] or {}
         lines.append("")
-        lines.append("【师门考验】")
-        lines.append(f"  ⏳ 正在接受【{_tnpc.get('name', '导师')}】的拜师考验，回复『继续』接着进行")
+        lines.append(T.static("qv.master_section"))
+        lines.append(T.text("qv.master_track", name=_tnpc.get('name', '导师')))
     lines.append("")
     # v127.1 每面板只抽 1 条随机提示（v123e 放弃/接取引导并入随机池）
     lines.append(shell._tip("quest"))

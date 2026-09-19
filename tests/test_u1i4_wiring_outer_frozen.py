@@ -151,7 +151,7 @@ _PIN = {
         'content/cmds_base_rules.py::wild_trader_here': '1c9ebab2da508b821c09e81540d04b3f417ecba48681b61f0d2ef91175fc9c4b',
         'content/instance_cmds.py::_stage_npcs': 'cf6ae326b0300abdd6ef55605c688811807800d4ebc9684755c56b96ed433f20',
         'content/shop.py::apprentice_protect_mats': '12f8e4751608242aa5d9de2daccaf3271edc5b710102db78fa718161216d7141',
-        'content/cmds_world.py::quest_view': '7f482f99fa6605b6cca162aa3ad62bd798c270a1e066e0082b5e11669a9e0887',
+        'content/cmds_world.py::quest_view': 'a6129156aaa39a8e99daa5bb3bd9310671aa5e0ca1aa1b14fab92c01eccc220d',
         'content/economy_cmds.py::shop': '33ae09d1eb24631183eb89122cf4831960f85f80ab26fe53076f0d9e3815b79b',
         'content/economy_cmds.py::buy': '0a184db7ae814cb261037db4a9bc52cdc76de65241cfb4f2e4e4a6ac14be2eec',
         'content/talk_actions.py::action_apprentice_check': '4c05506466967be3773bb5fce784cdb31985a9985a77b0984e66bb31bc41b0f2',
