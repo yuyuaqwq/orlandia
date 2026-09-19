@@ -154,7 +154,12 @@ FROZEN_COUNTS = {
     #   move.same_sa；新分类 副本移动）——content/world_cmds.py 的 _instance_dungeon_move
     #   （副本内移动全守卫链 + 遇怪/Boss 房开场）+ _subarea_arrive（落点赶路模式提示行）
     #   ⇒ 2333 → 2341
-    "texts": 2369,
+    # ★ C 档 25a（B-2 第 11 片：world「NPC 支线/进化教学族」28 处替换 / 28 新键）⇒ 2341 → 2369
+    # ★ C 档 26a（B-2 第 12 片：world 收尾「见闻录 / 时间面板 / 地图尾块 / 指路」
+    #   42 处替换 / 36 新键，6 处同值幂等复用（hurry.fac_head/poi_head/prop_head/
+    #   monster_head/elite + npclist.head）；新分类 见闻录 / 时间面板 / 时段名，
+    #   季节名 / 天气名 为既有分类）⇒ 2369 → 2405
+    "texts": 2405,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

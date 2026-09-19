@@ -6349,6 +6349,19 @@
     "category": "PvP荣誉",
     "desc": "搬自 content/combat_cmds.py:honor_shop（B 批 C 档）"
   },
+  "home.head_mine": {
+    "value": "🏠 【我的家】",
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
+  "home.head_other": {
+    "value": "🏠 【{name}的家】",
+    "params": [
+      "name"
+    ],
+    "category": "家园地契",
+    "desc": "搬自 content/world_cmds.py:_home_view（B 批 C 档）"
+  },
   "home.owner_left": {
     "value": "这个家的主人已经离开了……(『出门』离开)",
     "category": "家园地契",
@@ -9022,6 +9035,44 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:location_view（B 批 C 档）"
   },
+  "map.ev_note_encounter": {
+    "value": "(遇怪率↑)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_blocks（B 批 C 档）"
+  },
+  "map.ev_note_event": {
+    "value": "(事件率↑)",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_blocks（B 批 C 档）"
+  },
+  "map.ev_note_loot": {
+    "value": "(掉落×{mult})",
+    "params": [
+      "mult"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_blocks（B 批 C 档）"
+  },
+  "map.players_head": {
+    "value": "👤 此地的玩家：",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_blocks（B 批 C 档）"
+  },
+  "map.today_event": {
+    "value": "🌤 今日奇遇：{name}——{desc}{note}",
+    "params": [
+      "name",
+      "desc",
+      "note"
+    ],
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_blocks（B 批 C 档）"
+  },
+  "map.traveler_head": {
+    "value": "🧭 游历的旅人：",
+    "category": "地图导航",
+    "desc": "搬自 content/world_cmds.py:_map_blocks（B 批 C 档）"
+  },
   "mech_name.arcane": {
     "value": "奥术",
     "category": "机制名",
@@ -9520,6 +9571,25 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
   },
+  "notes.empty": {
+    "value": "📖 【见闻录】还是空白的……\n去野外走走，那些藏在角落里的旅人、隐士、夜行者，都在等着被遇见。",
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:wild_notes（B 批 C 档）"
+  },
+  "notes.head": {
+    "value": "📖 【见闻录】你见过的人({n}/{tot})：",
+    "params": [
+      "n",
+      "tot"
+    ],
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:wild_notes（B 批 C 档）"
+  },
+  "notes.tip": {
+    "value": "💡 集齐见闻是冒险者的浪漫——见过的人会记住你。",
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:wild_notes（B 批 C 档）"
+  },
   "npc.home_empty": {
     "value": "家里没有 NPC 可以交谈～『出门』去镇上找人吧！",
     "category": "NPC面板",
@@ -9580,6 +9650,24 @@
     ],
     "category": "NPC面板",
     "desc": "搬自 content/world_cmds.py:_start_talk_list（B 批 C 档）"
+  },
+  "npcwhere.else": {
+    "value": "🧭 『{name}』在「{where}」一带（你现在不在这里）。输入『地图』查看路线，到了地方用『对话』定位～",
+    "params": [
+      "name",
+      "where"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_npc_direction_hint（B 批 C 档）"
+  },
+  "npcwhere.here": {
+    "value": "🧭 『{name}』就在你所在的「{where}」一带。输入『地图』查看路线，到了地方用『对话』定位～",
+    "params": [
+      "name",
+      "where"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_npc_direction_hint（B 批 C 档）"
   },
   "pageflip.no_list": {
     "value": "📄 先打开一个列表（『背包』『技能列表』『任务』等）再发翻页快捷键～",
@@ -12378,6 +12466,26 @@
     ],
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_scene（B 批 C 档）"
+  },
+  "season_cn.autumn": {
+    "value": "秋季",
+    "category": "季节名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "season_cn.spring": {
+    "value": "春季",
+    "category": "季节名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "season_cn.summer": {
+    "value": "夏季",
+    "category": "季节名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "season_cn.winter": {
+    "value": "冬季",
+    "category": "季节名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
   },
   "season_name.autumn": {
     "value": "🍂 秋",
@@ -15214,6 +15322,49 @@
     "category": "团队特效名",
     "desc": "搬自 player_cmds.py（B 批 B-1）"
   },
+  "time.hints_head": {
+    "value": "🍃 附近似乎有人影出没：",
+    "category": "时间面板",
+    "desc": "搬自 content/world_cmds.py:time_cmd（B 批 C 档）"
+  },
+  "time.hints_none": {
+    "value": "🍃 附近没有特别的气息……",
+    "category": "时间面板",
+    "desc": "搬自 content/world_cmds.py:time_cmd（B 批 C 档）"
+  },
+  "time.location": {
+    "value": "📍 你在【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "时间面板",
+    "desc": "搬自 content/world_cmds.py:time_cmd（B 批 C 档）"
+  },
+  "time.title": {
+    "value": "🕰️ 【时间】",
+    "category": "时间面板",
+    "desc": "搬自 content/world_cmds.py:time_cmd（B 批 C 档）"
+  },
+  "time_name.day": {
+    "value": "白天",
+    "category": "时段名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "time_name.evening": {
+    "value": "黄昏",
+    "category": "时段名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "time_name.morning": {
+    "value": "清晨",
+    "category": "时段名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "time_name.night": {
+    "value": "夜晚",
+    "category": "时段名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
   "title.empty": {
     "value": "🏅 【称号】\n━━━━━━━━━━━━\n还没有称号……提升等级、击杀怪物、解锁成就可以获得！",
     "category": "称号面板",
@@ -16804,6 +16955,31 @@
       "n"
     ]
   },
+  "weather_cn.fog": {
+    "value": "雾天",
+    "category": "天气名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "weather_cn.rain": {
+    "value": "雨天",
+    "category": "天气名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "weather_cn.snow": {
+    "value": "雪天",
+    "category": "天气名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "weather_cn.storm": {
+    "value": "暴风雨",
+    "category": "天气名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "weather_cn.sunny": {
+    "value": "晴夜",
+    "category": "天气名",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
   "weather_name.cloudy": {
     "value": "🌤️ 多云",
     "category": "天气名",
@@ -17008,6 +17184,42 @@
     ],
     "category": "世界事件",
     "desc": "搬自 content/social_cmds.py:maybe_roll_event（B 批 C 档）"
+  },
+  "wildcond.anytime": {
+    "value": "随时可能出现",
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "wildcond.appear": {
+    "value": "出现",
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "wildcond.chance": {
+    "value": "概率 {pct}%",
+    "params": [
+      "pct"
+    ],
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "wildcond.cycle": {
+    "value": "每{cycle}天",
+    "params": [
+      "cycle"
+    ],
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "wildcond.locked": {
+    "value": "🔓 需解锁",
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
+  },
+  "wildcond.season_suffix": {
+    "value": "限定",
+    "category": "见闻录",
+    "desc": "搬自 content/world_cmds.py:_wild_cond_label（B 批 C 档）"
   },
   "world.hidden": {
     "value": " (🔒隐藏)",

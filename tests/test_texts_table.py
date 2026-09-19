@@ -336,6 +336,13 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          #   （对话动作 unlock_class → _do_join_class）—— 调用点同在 world_cmds.py
          "NPC教习": PKG_WORLDCMDS_SRC,
          "行会就职": PKG_WORLDCMDS_SRC,
+         # ★ C 档 26a（B-2 第 12 片）：world 收尾「见闻录 / 时间面板 / 地图尾块 / 指路」
+         #   （_map_blocks 地图公共块 · time_cmd 时间面板 · wild_notes 见闻录 ·
+         #    _npc_direction_hint 指路 · _wild_cond_label 出现条件标签 —— 调用点同在 world_cmds.py；
+         #    时段/季节/天气三张内联 dict 的展示名 ⇒ 新分类 时段名，季节名/天气名 为既有分类）
+         "见闻录": PKG_WORLDCMDS_SRC,
+         "时间面板": PKG_WORLDCMDS_SRC,
+         "时段名": PKG_WORLDCMDS_SRC,
          # ★ C 档 19a（B-2 第 5 片第 1 小片）：combat 战斗域「探索·战斗主循环」
          #   （explore/attack/defend/flee · 摸宝箱 · 战斗状态行/编队/底栏/胜利行）
          "战斗主循环": os.path.join(PKG_CONTENT, "combat_cmds.py"),
@@ -973,7 +980,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "副本移动", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -999,7 +1006,11 @@ def t1_table_selfcheck():
                         # ★ C 档 25a（B-2 第 11 片）：world 散落「NPC 支线/进化教学族」
                         #   （_teach_by_npc 教习五态 · _do_join_class 行会就职 · _do_evolve_via_npc 导师转职
                         #    ⇒ 新分类 行会就职 / NPC教习；交付 turn_in 归既有 任务委托 / _npc_absent 归 NPC查找）
-                        "行会就职", "NPC教习"}, cats)
+                        "行会就职", "NPC教习",
+                        # ★ C 档 26a（B-2 第 12 片）：world 收尾「见闻录/时间面板/地图尾块/指路」
+                        #   （wild_notes 见闻录 · time_cmd 时间面板 · _wild_cond_label 的
+                        #    时段名；季节名 / 天气名 沿用既有两类）
+                        "见闻录", "时间面板", "时段名"}, cats)
 
 
 def t2_key_and_params_accounting():

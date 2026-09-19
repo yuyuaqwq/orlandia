@@ -828,12 +828,12 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
                 _ev_fx = (_ev.get("effects") or {})
                 _ev_note = ""
                 if _ev_fx.get("encounter_rate", 0) > 0:
-                    _ev_note = "(遇怪率↑)"
+                    _ev_note = _T.static("map.ev_note_encounter")
                 elif _ev_fx.get("event_chance", 0) > 0:
-                    _ev_note = "(事件率↑)"
+                    _ev_note = _T.static("map.ev_note_event")
                 elif _ev_fx.get("loot_mult", 1.0) > 1.0:
-                    _ev_note = f"(掉落×{_ev_fx.get('loot_mult', 1.0)})"
-                lines.append(f"🌤 今日奇遇：{_ev['name']}——{_ev.get('desc', '')}{_ev_note}")
+                    _ev_note = _T.text("map.ev_note_loot", mult=_ev_fx.get('loot_mult', 1.0))
+                lines.append(_T.text("map.today_event", name=_ev['name'], desc=_ev.get('desc', ''), note=_ev_note))
         except Exception:
             pass
     # v87.4 区块间统一空行分隔（不再叠分隔线）
@@ -844,7 +844,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
     if fac:
         if lines and lines[-1]:
             lines.append("")
-        lines.append("🏪 此地设施：")
+        lines.append(_T.static("hurry.fac_head"))
         if _compact:
             lines.append("  ●" + " ●".join(fac))
         else:
@@ -855,7 +855,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
     if poi_lines:
         if lines and lines[-1]:
             lines.append("")
-        lines.append("🔎 可探索触发：")
+        lines.append(_T.static("hurry.poi_head"))
         if _compact:
             names = []
             for l in poi_lines:
@@ -868,7 +868,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
     if prop_lines:
         if lines and lines[-1]:
             lines.append("")
-        lines.append("✨ 可交互场景：")
+        lines.append(_T.static("hurry.prop_head"))
         if _compact:
             names = [f"●{i}. {l.split('(')[0].strip()}" for i, l in enumerate(prop_lines, 1)]
             lines.append("  " + " ".join(names))
@@ -895,7 +895,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
     if npcs:
         if lines and lines[-1]:
             lines.append("")
-        lines.append("👥 这里的 NPC：")
+        lines.append(_T.static("npclist.head"))
         if _compact:
             # 城镇紧凑：●1. 名 ●2. 名（无头衔，鱼鱼模板）
             _parts = [f"●{i}. {n['icon']}{n['name']}" for i, (_, n) in enumerate(npcs, 1)]
@@ -910,7 +910,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
     if wild_lines:
         if lines and lines[-1]:
             lines.append("")
-        lines.append("🧭 游历的旅人：")
+        lines.append(_T.static("map.traveler_head"))
         lines.extend(wild_lines)
     # v66 此地玩家（含摆摊标记；v132 加编号，鱼鱼新排版）
     # v134 #33：无其他玩家时不显示本段（连标题行一并省略，不留空行）
@@ -921,7 +921,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
         stall_sellers = {str(s["seller"]) for s in db.market_list(group_id, cur)}
         if lines and lines[-1]:
             lines.append("")
-        lines.append("👤 此地的玩家：")
+        lines.append(_T.static("map.players_head"))
         if _compact:
             # 城镇紧凑：●1. 名 Lv.X ●2. 名 Lv.X（鱼鱼模板；摆摊标记保留——功能状态）
             _parts = [f"●{i}. {p['name']} Lv.{p['level']}"
@@ -951,7 +951,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
         else:
             base_lv = (cur_sa_obj.get("lv") if cur_sa_obj else None) or cur_map["lv"]
             lv_label = f"Lv.{base_lv}"
-        lines.append(f"🐾 此地的怪物 ({lv_label})：")
+        lines.append(_T.text("hurry.monster_head", lv=lv_label))
         for mid, name, role, lv, skills, drops in mons:
             # v95r38 去重：池子条目与 elite/boss 字段重复时不重复显示（字段行会展示）
             if role == "elite" and elite and elite[0] == mid:
@@ -963,7 +963,7 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
             jitter = "±1" if role not in ("elite", "boss") else ""
             lines.append(f"  {mark}{name} Lv.{lv}{jitter}")
     if elite:
-        lines.append(f"  ⭐ 精英：{elite[1]}")
+        lines.append(_T.text("hurry.elite", name=elite[1]))
     if boss:
         lines.append(f"  👑 Boss：{boss[1]}")
     if lines and lines[-1]:
@@ -2284,7 +2284,8 @@ def _home_view(self, group_id, qq_id, cur_map_id):
     is_mine = str(owner_qid) == str(qq_id)
     deed = owner.get("deed", "") or ""
     prop = _cat_life.PROPERTIES.get(deed, {})
-    lines = [f"🏠 【{('我的' if is_mine else owner['name'] + '的') + '家'}】"]
+    lines = [_T.static("home.head_mine") if is_mine
+             else _T.text("home.head_other", name=owner['name'])]
     if prop:
         dlv = int(owner.get("deed_lv", 1) or 1)
         hl = _cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])
@@ -2553,9 +2554,9 @@ def _npc_direction_hint(self, player, name_key):
                    if m_id == cur and (not sa_id or not cur_sa or sa_id == cur_sa)]
         if same_sa:
             here_uniq = list(dict.fromkeys(same_sa))
-            return f"🧭 『{name_key}』就在你所在的「{'、'.join(here_uniq)}」一带。输入『地图』查看路线，到了地方用『对话』定位～"
+            return _T.text("npcwhere.here", name=name_key, where='、'.join(here_uniq))
     uniq = list(dict.fromkeys(l for _, _, l in locs))
-    return f"🧭 『{name_key}』在「{'、'.join(uniq)}」一带（你现在不在这里）。输入『地图』查看路线，到了地方用『对话』定位～"
+    return _T.text("npcwhere.else", name=name_key, where='、'.join(uniq))
 
 
 def _npc_dialogue(self, group_id, qq_id, npc_id, npc):
@@ -2652,25 +2653,25 @@ def _wild_cond_label(self, npc: dict) -> str:
     labels = []
     t = cond.get("time")
     if t:
-        tm = {"morning": "清晨", "day": "白天", "evening": "黄昏", "night": "夜晚"}
-        labels.append("/".join(tm.get(x, x) for x in t) + "出现")
+        tm = {"morning": _T.static("time_name.morning"), "day": _T.static("time_name.day"), "evening": _T.static("time_name.evening"), "night": _T.static("time_name.night")}
+        labels.append("/".join(tm.get(x, x) for x in t) + _T.static("wildcond.appear"))
     s_ = cond.get("season")
     if s_:
-        sm = {"spring": "春季", "summer": "夏季", "autumn": "秋季", "winter": "冬季"}
-        labels.append("/".join(sm.get(x, x) for x in s_) + "限定")
+        sm = {"spring": _T.static("season_cn.spring"), "summer": _T.static("season_cn.summer"), "autumn": _T.static("season_cn.autumn"), "winter": _T.static("season_cn.winter")}
+        labels.append("/".join(sm.get(x, x) for x in s_) + _T.static("wildcond.season_suffix"))
     w = cond.get("weather")
     if w:
-        wm = {"rain": "雨天", "storm": "暴风雨", "snow": "雪天", "fog": "雾天", "sunny": "晴夜"}
-        labels.append(wm.get(w, w) + "出现")
+        wm = {"rain": _T.static("weather_cn.rain"), "storm": _T.static("weather_cn.storm"), "snow": _T.static("weather_cn.snow"), "fog": _T.static("weather_cn.fog"), "sunny": _T.static("weather_cn.sunny")}
+        labels.append(wm.get(w, w) + _T.static("wildcond.appear"))
     if cond.get("min_level"):
         labels.append(f"Lv.{cond['min_level']}+")
     if npc.get("cycle"):
-        labels.append(f"每{npc['cycle']}天")
+        labels.append(_T.text("wildcond.cycle", cycle=npc['cycle']))
     if npc.get("chance"):
-        labels.append(f"概率 {int(npc['chance']*100)}%")
+        labels.append(_T.text("wildcond.chance", pct=int(npc['chance']*100)))
     if npc.get("unlock"):
-        labels.append("🔓 需解锁")
-    return "，".join(labels) if labels else "随时可能出现"
+        labels.append(_T.static("wildcond.locked"))
+    return "，".join(labels) if labels else _T.static("wildcond.anytime")
 
 
 async def time_cmd(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -2678,19 +2679,19 @@ async def time_cmd(self, event: AstrMessageEvent, group_id, qq_id, player):
     summary = _tw.time_weather_summary(cur)
     cur_map = _cat_space.MAP_BY_ID.get(cur, {})
     lines = [
-        "🕰️ 【时间】",
+        _T.static("time.title"),
         f"⏰ {summary}",
-        f"📍 你在【{cur_map.get('name', '未知区域')}】",
+        _T.text("time.location", name=cur_map.get('name', '未知区域')),
         "━━━━━━━━━━━━",
     ]
     hints = _wild.nearby_hints(group_id, qq_id, player, cur)
     if hints:
-        lines.append("🍃 附近似乎有人影出没：")
+        lines.append(_T.static("time.hints_head"))
         for nid, npc in hints[:5]:
             lines.append(f"  {npc['icon']}{npc['name']}({self._wild_cond_label(npc)})")
         lines.append(self._tip("explore"))
     else:
-        lines.append("🍃 附近没有特别的气息……")
+        lines.append(_T.static("time.hints_none"))
     yield event.plain_result("\n".join(lines))
 
 
@@ -2698,11 +2699,10 @@ async def wild_notes(self, event: AstrMessageEvent, group_id, qq_id, player):
     met = _wild.met_wild(group_id, qq_id)
     if not met:
         yield event.plain_result(
-            "📖 【见闻录】还是空白的……\n"
-            "去野外走走，那些藏在角落里的旅人、隐士、夜行者，都在等着被遇见。"
+            _T.static("notes.empty")
         )
         return
-    lines = [f"📖 【见闻录】你见过的人({len(met)}/{len(_wild.ALL_WILD)})：", "━━━━━━━━━━━━"]
+    lines = [_T.text("notes.head", n=len(met), tot=len(_wild.ALL_WILD)), "━━━━━━━━━━━━"]
     for nid in met:
         npc = _wild.ALL_WILD.get(nid)
         if not npc:
@@ -2710,7 +2710,7 @@ async def wild_notes(self, event: AstrMessageEvent, group_id, qq_id, player):
         lines.append(f"{npc['icon']}{npc['name']}")
         lines.append(f"　　{npc['desc']}")
         lines.append(f"　　🕐 {self._wild_cond_label(npc)}")
-    lines.append("💡 集齐见闻是冒险者的浪漫——见过的人会记住你。")
+    lines.append(_T.static("notes.tip"))
     yield event.plain_result("\n".join(lines))
 
 

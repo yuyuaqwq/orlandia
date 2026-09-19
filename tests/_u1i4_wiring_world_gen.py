@@ -91,8 +91,14 @@ CLASS = {
     "content/world_cmds.py::_subarea_name": "E",
     "content/world_cmds.py::_find_wild_npc": "E",
     "content/world_cmds.py::_wild_unseen_hint": "E",
-    "content/world_cmds.py::_npc_direction_hint": "E",
-    "content/world_cmds.py::_wild_cond_label": "E",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 26a（B-2 第 12 片）把本段的句壳搬进文案表
+    #   （`_T.static/_T.text("time.*" / "notes.*" / "npcwhere.*" / "wildcond.*" / "time_name.*")），
+    #   实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::_npc_direction_hint": "C",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 26a（B-2 第 12 片）把本段的句壳搬进文案表
+    #   （`_T.static/_T.text("time.*" / "notes.*" / "npcwhere.*" / "wildcond.*" / "time_name.*")），
+    #   实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::_wild_cond_label": "C",
     "content/world_cmds.py::_talk_active": "E",
     "content/world_cmds.py::_talk_ctx": "E",
     "content/world_cmds.py::_side_menu_expand": "E",
@@ -107,8 +113,14 @@ CLASS = {
     #     实为死代码）；改走 v137 统一口径 `_inst_map_id`。
     "content/world_cmds.py::npc_quick_dialog": "C",
     "content/world_cmds.py::move": "C",
-    "content/world_cmds.py::time_cmd": "E",
-    "content/world_cmds.py::wild_notes": "E",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 26a（B-2 第 12 片）把本段的句壳搬进文案表
+    #   （`_T.static/_T.text("time.*" / "notes.*" / "npcwhere.*" / "wildcond.*" / "time_name.*")），
+    #   实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::time_cmd": "C",
+    # ↓ 2026-09-19 由 E 改判 C：C 档 26a（B-2 第 12 片）把本段的句壳搬进文案表
+    #   （`_T.static/_T.text("time.*" / "notes.*" / "npcwhere.*" / "wildcond.*" / "time_name.*")），
+    #   实现不再逐字等于冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::wild_notes": "C",
     # ── C：本线接上引擎形状（Lookup / Presence / minutes_left / Cursor / Dialogue.pick·next_of·is_end）──
     "content/world_cmds.py::_current_npcs": "C",
     "content/world_cmds.py::_present_wild_hints": "C",
