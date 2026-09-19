@@ -33,7 +33,10 @@ check = bind_check(globals(), "PASS", "FAIL")
 def test_counts():
     print("【1. 数量基线】")
     check("名册 687 件", len(C.EQUIP_ROSTER) == 687, str(len(C.EQUIP_ROSTER)))  # v171 +6 新手流派白装; v172 路B +24 重锻专属; v173.3 #103 +5 自选礼包武器
-    check("配方 426 条", len(CRAFT_RECIPES) == 426, str(len(CRAFT_RECIPES)))
+    # ★ 2026-09-20：426 → 413 —— 删 13 条「同图纸不可达配方」（同一件装备两条配方，
+    #   解析路径只命中一条 ⇒ 另一条正常玩法不可达；仅删死数据那条，见 §0-补34 与
+    #   tests/test_craft_recipe_unique.py 的防复发门禁）。
+    check("配方 413 条", len(CRAFT_RECIPES) == 413, str(len(CRAFT_RECIPES)))
     check("素材 598 个(v167 +30新料 + 后续版本补充)", len(C.MATERIALS) == 598, str(len(C.MATERIALS)))
     # 新素材存在
     for mid in ["mat_ye_zhu_pi", "mat_shan_zei_hui_zhang", "mat_shu_shi_he_xin",

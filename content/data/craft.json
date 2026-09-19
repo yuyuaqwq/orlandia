@@ -208,20 +208,6 @@
     "name": "北风护符",
     "roster_id": "eq_bei_feng_hu_fu"
   },
-  "rec_bei_feng_zhang_gong": {
-    "slot": "weapon",
-    "quality": "purple",
-    "lv": 65,
-    "weapon_type": "bow",
-    "mats": {
-      "mat_jing_ling_zhi_mu": 20
-    },
-    "gold": 540,
-    "desc": "北境霜狼部族的御寒战具",
-    "name": "北风长弓",
-    "roster_id": "eq_bei_feng_chang_gong",
-    "blueprint": "北风长弓图纸"
-  },
   "rec_bi_chui_bu_xue": {
     "slot": "boots",
     "quality": "purple",
@@ -426,21 +412,6 @@
     "name": "苍穹项链",
     "roster_id": "eq_cang_qiong_xiang_lian",
     "blueprint": "苍穹项链图纸"
-  },
-  "rec_cang_qiong_zhi_qiang": {
-    "slot": "weapon",
-    "quality": "purple",
-    "lv": 88,
-    "weapon_type": "spear",
-    "mats": {
-      "mat_jing_jin_ding": 20,
-      "mat_jin_lang_ya": 2
-    },
-    "gold": 724,
-    "desc": "风翼群岛的苍穹工匠之作",
-    "name": "苍穹之枪",
-    "roster_id": "eq_cang_qiong_zhi_qiang",
-    "blueprint": "苍穹之枪图纸"
   },
   "rec_cang_qiong_zhi_xue": {
     "slot": "boots",
@@ -1051,21 +1022,6 @@
     "roster_id": "eq_gu_lu_de_huang_guan",
     "blueprint": "咕噜的皇冠图纸"
   },
-  "rec_gu_wang_jian": {
-    "slot": "weapon",
-    "quality": "orange",
-    "lv": 42,
-    "weapon_type": "sword",
-    "mats": {
-      "mat_gang_tie_ding": 20,
-      "mat_mo_xiang_can_he": 2
-    },
-    "gold": 356,
-    "desc": "晨曦城圣光教团的制式装备",
-    "name": "古王剑",
-    "roster_id": "eq_gu_wang_jian",
-    "blueprint": "古王剑图纸"
-  },
   "rec_gu_wang_jian_zhen": {
     "slot": "weapon",
     "quality": "orange",
@@ -1178,20 +1134,6 @@
     "roster_id": "eq_hai_shen_san_cha_ji",
     "blueprint": "海神三叉戟图纸"
   },
-  "rec_hai_shen_xiang_lian": {
-    "slot": "necklace",
-    "quality": "purple",
-    "lv": 58,
-    "mats": {
-      "mat_shen_hai_shui_jing": 4,
-      "mat_yao_jing_zhi_chen": 9
-    },
-    "gold": 484,
-    "desc": "无尽海的海神祭器工艺",
-    "name": "海神项链",
-    "roster_id": "eq_hai_shen_xiang_lian",
-    "blueprint": "海神项链图纸"
-  },
   "rec_hai_shen_zhang_xue": {
     "slot": "boots",
     "quality": "purple",
@@ -1276,20 +1218,6 @@
     "desc": "帆布与麻线缝制的航海斗篷，沾着盐粒",
     "name": "航海斗篷",
     "roster_id": "eq_hang_hai_dou_peng"
-  },
-  "rec_he_er_jia_de_ji_qi": {
-    "slot": "necklace",
-    "quality": "orange",
-    "lv": 88,
-    "mats": {
-      "mat_shuang_ju_mo_xue": 4,
-      "mat_ying_guang_fen": 25
-    },
-    "gold": 596,
-    "desc": "北境霜狼部族的御寒战具",
-    "name": "赫尔加的祭器",
-    "roster_id": "eq_he_er_jia_de_ji_qi",
-    "blueprint": "赫尔加的祭器图纸"
   },
   "rec_he_er_jia_jing_zhu": {
     "slot": "necklace",
@@ -1616,20 +1544,6 @@
     "roster_id": "eq_jing_lei_zhan_gong",
     "blueprint": "惊雷战弓图纸"
   },
-  "rec_jing_ling_lian_jia": {
-    "slot": "armor",
-    "quality": "purple",
-    "lv": 55,
-    "mats": {
-      "mat_ying_ying_ge": 20,
-      "mat_lin_ge_zhi_lin": 2
-    },
-    "gold": 460,
-    "desc": "精灵月语工艺，轻盈灵动",
-    "name": "精灵链甲",
-    "roster_id": "eq_jing_ling_lian_jia",
-    "blueprint": "精灵链甲图纸"
-  },
   "rec_jing_ling_pi_feng": {
     "slot": "armor",
     "quality": "blue",
@@ -1752,20 +1666,6 @@
     "roster_id": "eq_lang_ge_zhi_lei",
     "blueprint": "澜歌之泪图纸"
   },
-  "rec_lan_ge_zhi_lei": {
-    "slot": "necklace",
-    "quality": "orange",
-    "lv": 68,
-    "mats": {
-      "mat_shen_hai_shui_jing": 4,
-      "mat_shou_wei_gu_mu": 15
-    },
-    "gold": 564,
-    "desc": "无尽海的海神祭器工艺",
-    "name": "澜歌之泪",
-    "roster_id": "eq_lang_ge_zhi_lei",
-    "blueprint": "澜歌之泪图纸"
-  },
   "rec_lei_guang_hui_zhang": {
     "slot": "necklace",
     "quality": "purple",
@@ -1793,21 +1693,6 @@
     },
     "gold": 3800,
     "desc": "云怒之核淬进雷鸣龙鳞盾坯，盾面隐隐滚着闷雷",
-    "name": "雷鸣龙鳞",
-    "roster_id": "eq_lei_ming_long_lin_dun",
-    "blueprint": "雷鸣龙鳞图纸"
-  },
-  "rec_lei_ming_long_lin_dun": {
-    "slot": "weapon",
-    "quality": "purple",
-    "lv": 58,
-    "weapon_type": "shield",
-    "mats": {
-      "mat_lei_ming_long_lin": 2,
-      "mat_jing_tie": 4
-    },
-    "gold": 5200,
-    "desc": "风暴海龙雷鸣的鳞片铸成的盾牌，隐隐带电",
     "name": "雷鸣龙鳞",
     "roster_id": "eq_lei_ming_long_lin_dun",
     "blueprint": "雷鸣龙鳞图纸"
@@ -2168,21 +2053,6 @@
     "name": "深渊项链",
     "roster_id": "eq_shen_yuan_xiang_lian",
     "blueprint": "深渊项链图纸"
-  },
-  "rec_long_ji_da_jian": {
-    "slot": "weapon",
-    "quality": "purple",
-    "lv": 85,
-    "weapon_type": "sword",
-    "mats": {
-      "mat_jing_jin_ding": 20,
-      "mat_gu_chong_ke": 2
-    },
-    "gold": 700,
-    "desc": "龙脊山隘的龙裔锻造技艺",
-    "name": "龙脊大剑",
-    "roster_id": "eq_long_ji_da_jian",
-    "blueprint": "龙脊大剑图纸"
   },
   "rec_long_ji_hui_ji": {
     "slot": "necklace",
@@ -3025,35 +2895,6 @@
     "roster_id": "eq_shen_yuan_tou_kui",
     "blueprint": "深渊头盔图纸"
   },
-  "rec_shen_yuan_xiang_lian": {
-    "slot": "necklace",
-    "quality": "purple",
-    "lv": 75,
-    "mats": {
-      "mat_shen_yuan_quan_ya": 5,
-      "mat_shen_yuan_e_mo_jiao": 4
-    },
-    "gold": 620,
-    "desc": "幽暗地域的黑曜锻造术",
-    "name": "深渊项链",
-    "roster_id": "eq_shen_yuan_xiang_lian",
-    "blueprint": "深渊项链图纸"
-  },
-  "rec_shen_yuan_zhan_ren": {
-    "slot": "weapon",
-    "quality": "purple",
-    "lv": 75,
-    "weapon_type": "sword",
-    "mats": {
-      "mat_mi_yin_ding": 20,
-      "mat_hei_an_jing_ling_ren": 2
-    },
-    "gold": 620,
-    "desc": "幽暗地域的黑曜锻造术",
-    "name": "深渊战刃",
-    "roster_id": "eq_shen_yuan_zhan_ren",
-    "blueprint": "深渊战刃图纸"
-  },
   "rec_shen_yuan_zhi_mao": {
     "slot": "ring",
     "quality": "purple",
@@ -3739,20 +3580,6 @@
     "roster_id": "eq_shuang_lang_bing_jia",
     "blueprint": "霜狼冰甲图纸"
   },
-  "rec_shuang_lang_hu_tui": {
-    "slot": "legs",
-    "quality": "purple",
-    "lv": 62,
-    "mats": {
-      "mat_hei_tie_ding": 20,
-      "mat_xue_lang_pi": 2
-    },
-    "gold": 516,
-    "desc": "北境霜狼部族的御寒战具",
-    "name": "霜狼护腿",
-    "roster_id": "eq_shuang_lang_hu_tui",
-    "blueprint": "霜狼护腿图纸"
-  },
   "rec_shuang_lang_lie_gong": {
     "slot": "weapon",
     "quality": "blue",
@@ -4217,21 +4044,6 @@
     "name": "铁砧胸甲",
     "roster_id": "eq_tie_zhen_xiong_jia",
     "blueprint": "铁砧胸甲图纸"
-  },
-  "rec_tie_zhen_zhan_chui": {
-    "slot": "weapon",
-    "quality": "purple",
-    "lv": 68,
-    "weapon_type": "mace",
-    "mats": {
-      "mat_mi_yin_ding": 20,
-      "mat_rong_huo_jing_tie": 2
-    },
-    "gold": 564,
-    "desc": "北境霜狼部族的御寒战具",
-    "name": "铁砧战锤",
-    "roster_id": "eq_tie_zhen_zhan_chui",
-    "blueprint": "铁砧战锤图纸"
   },
   "rec_tiepichangjian": {
     "slot": "weapon",

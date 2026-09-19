@@ -108,6 +108,7 @@ from content.flow import instance_battle as _IB  # ★ 改绑到包内实现：�
 from _engine_harness import Main as _CmdHostBase  # noqa: E402
 from content.instance_cmds import InstanceImpl as _InstImpl  # noqa: E402  （打桩落点：包内实现类）
 from _check import bind_check
+from _econ_text_intent import ECONOMY_TEXT_INTENT
 
 
 # `_PD` = 旧插件根语义（见上 `_paths.HOST_ROOT`）；宿主各扫描根（`game/**`）按插件根拼。
@@ -4603,7 +4604,7 @@ ECONOMY_DB_SHA = {
 #: （同期实测：142 例 `ECONOMY_FROZEN` 文本逐字全同、文本差异集 = 空）。
 #: 口径**不放宽**：本表是「旧值 → 重采值」的显式登记；`t13` 仍逐例精确比对
 #: （`_e_expected_db()`），任何第 4 例差异照旧判红，且登记表自身受自洽断言约束
-#: （旧值必须 = 迁移前冻结基准、新值必须 ≠ 旧值、条数恒 3）。
+#: （旧值必须 = 迁移前冻结基准、新值必须 ≠ 旧值、条数恒 4）。
 #: ★ 2026-09-18 再重采（仍只这 3 例）：`mining/normal` 的 DB 摘要二次变化 —— 挖矿疲劳
 #:   tick 接回（审计 #4/#13：`_mining_fatigue_tick` 随 v126.4b 连删后悬空，本次按 ef95d7f
 #:   原语义接回）后该例落库多写疲劳计数行；**玩家可见文本逐字未变**（同期实测：142 例
@@ -4613,6 +4614,10 @@ _ECONOMY_DB_SHA_INTENT = {
     'fishing/normal': ('c8f905a27be2f649', '6147b8f7f079f4bd'),
     'gather/normal': ('764e38fd11a4da67', '6dd6e62e77307c0c'),
     'mining/normal': ('b67a44311ed157b0', 'b8c793088058b227'),
+    # ★ 2026-09-20：第 4 例 —— 「配方唯一性」清理删 13 条同图纸不可达配方后，
+    #   本例「列出全部配方（426→413）」的落库行随之变；**玩家可见文本已另在
+    #   `_econ_text_intent` 登记**（标题件数/页码），本条只登记 DB 摘要。
+    'craft/boundary_all': ('8225fc9708cf9d62', 'a1af004926bd5098'),
 }
 
 
@@ -4622,22 +4627,32 @@ def _e_expected_db(k):
     return intent[1] if intent else ECONOMY_DB_SHA[k]
 
 
+def _e_expected_text(k):
+    """该例「当前口径」的文本：有意差异登记优先，其余 = 迁移前冻结基准（口径不放宽）。"""
+    return ECONOMY_TEXT_INTENT.get(k) or ECONOMY_FROZEN[k]
+
+
 def t13_economy_frozen():
     print("\n[13] 经济域逐字冻结：迁移前 142 例（45 条命令 × 正常/边界/失败 + 追加边界）复跑比对")
     check("冻结基准已内嵌（142 例）", len(ECONOMY_FROZEN) == 142, len(ECONOMY_FROZEN))
     check("用例表覆盖 45 条命令", len({h for _c, h, _q, _m, _p in _E_CASES}) == 45,
           sorted({h for _c, h, _q, _m, _p in _E_CASES}))
-    check("★ 有意差异登记自洽（旧值 = 迁移前基准 · 新值 = 换机制后重采 · 条数恒 3）",
-          len(_ECONOMY_DB_SHA_INTENT) == 3
+    check("★ 有意差异登记自洽（旧值 = 迁移前基准 · 新值 = 换机制后重采 · 条数恒 4）",
+          len(_ECONOMY_DB_SHA_INTENT) == 4
           and all(ECONOMY_DB_SHA[k] == old and new != old
                   for k, (old, new) in _ECONOMY_DB_SHA_INTENT.items()),
           _ECONOMY_DB_SHA_INTENT)
+    check("★ 文本有意差异登记自洽（登记项 ∈ 冻结面 · 新值 ≠ 旧值 · 条数恒 2）",
+          len(ECONOMY_TEXT_INTENT) == 2
+          and all(k in ECONOMY_FROZEN and v != ECONOMY_FROZEN[k]
+                  for k, v in ECONOMY_TEXT_INTENT.items()),
+          list(ECONOMY_TEXT_INTENT))
     now = _e_scenarios()
     bad = [k for k in ECONOMY_FROZEN
-           if ECONOMY_FROZEN[k] != (now.get(k) or {}).get("out")]
+           if _e_expected_text(k) != (now.get(k) or {}).get("out")]
     for k in bad:
         print("     · %s 现=%r" % (k, ((now.get(k) or {}).get("out") or "")[:160]))
-    check("★ 经济域 142 例文本与迁移前**逐字一致**", not bad, bad)
+    check("★ 经济域 142 例文本与迁移前**逐字一致**（唯 2 例列表类按 `_econ_text_intent` 登记）", not bad, bad)
     bad_db = [k for k in ECONOMY_DB_SHA
               if _e_expected_db(k) != (now.get(k) or {}).get("db")]
     for k in bad_db[:6]:

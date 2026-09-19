@@ -73,7 +73,10 @@ EXPECT_ITEMS = 900               # 合表后唯一物品数（不是 1704）
 EXPECT_KEY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 FROZEN_COUNTS = {
     "items": 900, "equip_roster": 687, "subareas": 628, "exploration": 628,
-    "drop_pools": 596, "pois": 457, "npcs": 431, "craft": 426, "monster_roster": 380,
+    # ★ 2026-09-20：craft **426 → 413** —— 删 13 条「同图纸不可达配方」（同一件装备两条配方、
+    #   mats/gold 差 1.4~12 倍；解析路径只命中其中一条 ⇒ 另一条永不可达 = 死数据，仅删死数据那条，
+    #   玩家可见行为不变）。防复发门禁 = `tests/test_craft_recipe_unique.py`。
+    "drop_pools": 596, "pois": 457, "npcs": 431, "craft": 413, "monster_roster": 380,
     "monsters": 330, "skills": 305, "skill_up": 305, "quests": 238,
     # ★ D2（数据进表）：`texts` = 文案真源的导出投影 —— 武器特效域（`weapon_effects`）的 51 条
     #   玩家可见文案随域迁移进 `text_specs.json`，投影同步 + 51 ⇒ 233 → 284。
