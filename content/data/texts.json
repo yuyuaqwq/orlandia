@@ -5768,6 +5768,33 @@
     "category": "GM指令",
     "desc": "搬自 content/gm.py:broadcast（B 批 C 档）"
   },
+  "gm.bind_no_openid": {
+    "value": "⚠️ 当前事件 sender={openid!r} 不是 openid，可能不在官方 bot 平台。\n请在官方 bot 的会话里执行本指令。",
+    "params": [
+      "openid"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_bind_identity（B 批 C 档）"
+  },
+  "gm.bind_ok": {
+    "value": "✅ 已把 openid {pre}…{suf} 绑定到 QQ {qq}。\n该玩家现在会以 QQ {qq2} 的身份游玩（老角色自动续接）～",
+    "params": [
+      "pre",
+      "suf",
+      "qq",
+      "qq2"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_bind_identity（B 批 C 档）"
+  },
+  "gm.bind_overwrite": {
+    "value": "\n(原绑定 QQ {old} 已覆盖)",
+    "params": [
+      "old"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_bind_identity（B 批 C 档）"
+  },
   "gm.boss_cur": {
     "value": "⚔️ 你当前的世界 Boss 伤害倍率：×{cur}(默认 1)\n『gm_伤害 <倍率>』修改(0.1－100)",
     "params": [
@@ -5851,6 +5878,24 @@
     "category": "GM指令",
     "desc": "搬自 content/gm.py:help_text（B 批 C 档）"
   },
+  "gm.idtab_empty": {
+    "value": "📋 当前无任何 openid 绑定。",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_identity_table（B 批 C 档）"
+  },
+  "gm.idtab_fail": {
+    "value": "⚠️ identity_map 查询失败（表可能未初始化）",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_identity_table（B 批 C 档）"
+  },
+  "gm.idtab_head": {
+    "value": "📋 身份映射表（共 {n} 条）：",
+    "params": [
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_identity_table（B 批 C 档）"
+  },
   "gm.item_missing": {
     "value": "❌ 找不到物品『{name}』(材料/消耗品)，试试更精确的名字～",
     "params": [
@@ -5924,6 +5969,16 @@
     "value": "✅ 服务器已开服！所有玩家可以正常游玩啦～",
     "category": "GM指令",
     "desc": "搬自 content/gm.py:open_server（B 批 C 档）"
+  },
+  "gm.play_self": {
+    "value": "⛔ 不能转发 GM 指令至自身（防递归）～",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_play（B 批 C 档）"
+  },
+  "gm.play_usage": {
+    "value": "🎮 用法：gm_play <指令>",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_play（B 批 C 档）"
   },
   "gm.players_kw": {
     "value": "，关键词『{kw}』",
@@ -6162,6 +6217,11 @@
     "value": "格式：gm_加GM <QQ号>",
     "category": "GM指令",
     "desc": "搬自 content/gm.py:add_gm（B 批 C 档）"
+  },
+  "gm.usage_bind": {
+    "value": "格式：gm_绑身份 <QQ号>\n说明：把当前私聊/群内发送者的 openid 绑定到指定 QQ 号，\n绑定后该玩家在新 bot 上报到老 QQ 号，老角色/GM 权限直接续接。",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_bind_identity（B 批 C 档）"
   },
   "gm.usage_boss_dmg": {
     "value": "格式：gm_伤害 <倍率>，如 『gm_伤害 10』(10 倍)",

@@ -272,7 +272,11 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          # ★ C 档 32a（B-2 第 19 片）：gm.py 余量「GM 指令回执族」——
          #   权限/目标解析/停服开服/广播/发金币发物品发经验/设等级/传送/体力/改名/
          #   白名单/世界Boss伤害/资料表重载/帮助 全部句壳（玩家列表四行归既有 GM面板）
-         "GM指令": os.path.join(PKG_CONTENT, "gm.py"),
+         # ★ C 档 32b（B-2 第 20 片）：cmds_gm.py 的「平台例外 gm_play + 身份族」
+         #   （gm_play 2 · gm_bind_identity 5 · gm_identity_table 3；bind.bad_qq 与既有键同值复用）
+         #   ⇒ 同分类两文件，值改用文件列表（`_wired_paths` 支持）。
+         "GM指令": [os.path.join(PKG_CONTENT, "gm.py"),
+                   os.path.join(PKG_CONTENT, "cmds_gm.py")],
          "公会面板": os.path.join(PKG_CONTENT, "social_guild.py"),
          "修炼塔": os.path.join(PKG_CONTENT, "cmds_tower.py"),
          # C 档 10：player_cmds 的八个面板分类（同文件多分类，引用面 = 直接调用点）

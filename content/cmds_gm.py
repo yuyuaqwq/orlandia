@@ -49,6 +49,7 @@ import time
 from saintess_engine.records import RecordsReloadError, reload_all_sets
 
 from . import gm as _G
+from . import texts as _T                 # 文案表（C 档 32b）
 from .commands import register
 from .panel import player_final_stats as _player_final_stats
 from .persistence.handles import _HostMod as _HostMod
@@ -245,23 +246,19 @@ def gm_bind_identity(env) -> list:
     idm = _cap(_shell(env), "_identity_ops")()
     raw = env.arg_text("gm_绑身份")
     if not raw:
-        return ["格式：gm_绑身份 <QQ号>\n"
-                "说明：把当前私聊/群内发送者的 openid 绑定到指定 QQ 号，\n"
-                "绑定后该玩家在新 bot 上报到老 QQ 号，老角色/GM 权限直接续接。"]
+        return [_T.static("gm.usage_bind")]
     qq_target = raw.split()[0].strip()
     if not idm.is_qq_id(qq_target):
-        return [f"❌ {qq_target} 不是合法 QQ 号～"]
+        return [_T.text("bind.bad_qq", qq=qq_target)]
     openid = env.raw.get_sender_id() or ""
     if not openid or not idm.is_openid(openid):
         # 非官方平台（如测试/旧链）没有 openid，直接提示无法绑定
-        return [f"⚠️ 当前事件 sender={openid!r} 不是 openid，可能不在官方 bot 平台。\n"
-                "请在官方 bot 的会话里执行本指令。"]
+        return [_T.text("gm.bind_no_openid", openid=openid)]
     idm.bind(openid, qq_target)
     old = idm.openid_to_qq(openid)
     return [
-        f"✅ 已把 openid {openid[:8]}…{openid[-6:]} 绑定到 QQ {qq_target}。\n"
-        f"该玩家现在会以 QQ {qq_target} 的身份游玩（老角色自动续接）～"
-        + (f"\n(原绑定 QQ {old} 已覆盖)" if old and old != qq_target else "")
+        _T.text("gm.bind_ok", pre=openid[:8], suf=openid[-6:], qq=qq_target, qq2=qq_target)
+        + (_T.text("gm.bind_overwrite", old=old) if old and old != qq_target else "")
     ]
 
 
@@ -272,10 +269,10 @@ def gm_identity_table(env) -> list:
     try:
         rows = idm.query_all()
     except Exception:                    # noqa: BLE001
-        return ["⚠️ identity_map 查询失败（表可能未初始化）"]
+        return [_T.static("gm.idtab_fail")]
     if not rows:
-        return ["📋 当前无任何 openid 绑定。"]
-    lines = [f"📋 身份映射表（共 {len(rows)} 条）："]
+        return [_T.static("gm.idtab_empty")]
+    lines = [_T.text("gm.idtab_head", n=len(rows))]
     for r in rows[:30]:
         oid = r.get("openid", "")
         lines.append(f"{oid[:8]}…{oid[-6:]} → QQ {r.get('qq_id')} ({r.get('platform')})")
@@ -370,10 +367,10 @@ async def gm_play(shell, event, group_id, qq_id):
         return
     raw = shell._strip_cmd(event, "gm_play").strip()
     if not raw:
-        yield event.plain_result("🎮 用法：gm_play <指令>")
+        yield event.plain_result(_T.static("gm.play_usage"))
         return
     if raw.startswith("gm_"):
-        yield event.plain_result("⛔ 不能转发 GM 指令至自身（防递归）～")
+        yield event.plain_result(_T.static("gm.play_self"))
         return
     async for r in shell._run_shortcut(event, raw):
         yield r
