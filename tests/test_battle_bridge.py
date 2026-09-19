@@ -9,6 +9,7 @@
 
 跑法（w1 内）：python tests/test_battle_bridge.py
 """
+import ast
 import os
 import sys
 import tempfile
@@ -217,6 +218,105 @@ check("回写 hp", _p4.get("hp") == 77)
 check("回写 mp", _p4.get("mp") == 12)
 check("回写 effects", (_p4.get("effects") or {}).get("atk_up", {}).get("stacks") == 2)
 check("空 actor 安全", BR.sync_player_from_actor(_p4, {}) is _p4)
+
+# ============================================================
+# 🔒 T6⑨（2026-09-20）：引擎 Battle「构造 / 恢复」出口唯一性（防复发门禁）
+#
+# 背景（T6 第 1 轮实测教训）：`content/world_cmds.py::move` 的撞怪兜底分支经
+# `from saintess_engine import Battle as B2` **裸造 Battle**（不带 `text=`）⇒ 绕过
+# 「玩家可见文案唯一真源」。★ 该分支按字面量 grep `Battle(` 扫不出来（走的别名）⇒
+# 本门禁按 **import 绑定**扫：别名（`Battle as B2`）与模块别名（`import saintess_engine as SE`
+# → `SE.Battle(...)`）两条绕行路都盯。
+#
+# 判据：`content/**` 里除 `content/bridge.py::{make_battle,restore_battle}`（唯一出口本身）
+#       外零处构造 / 恢复；白名单两处必须**确实被扫到**（防「扫描器整体失灵」的假绿）；
+#       三条反证：改前段（别名裸造）必命中 · 模块别名裸造必命中 · 正路（`BR.make_battle`）必不命中。
+# ============================================================
+_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_ALLOWED_OUTLETS = {
+    ("content/bridge.py", "make_battle", "construct"),
+    ("content/bridge.py", "restore_battle", "restore"),
+}
+
+
+def _scan_tree(rel, src):
+    """返回 [(rel, 所在函数, 行号, 绑定全名, construct/restore)]。"""
+    out = []
+    tree = ast.parse(src)
+    parents = {}
+    for _node in ast.walk(tree):
+        for _child in ast.iter_child_nodes(_node):
+            parents[_child] = _node
+    alias, mod_alias = {}, set()
+    for _node in ast.walk(tree):
+        if isinstance(_node, ast.ImportFrom) and "saintess_engine" in (_node.module or ""):
+            for _a in _node.names:
+                if _a.name == "Battle":
+                    alias[_a.asname or _a.name] = "%s.Battle" % _node.module
+        elif isinstance(_node, ast.Import):
+            for _a in _node.names:
+                if _a.name.startswith("saintess_engine"):
+                    mod_alias.add(_a.asname or _a.name)
+
+    def _enclosing(node):
+        _cur = parents.get(node)
+        while _cur is not None:
+            if isinstance(_cur, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                return _cur.name
+            _cur = parents.get(_cur)
+        return "<模块级>"
+
+    for _node in ast.walk(tree):
+        if not isinstance(_node, ast.Call):
+            continue
+        _f = _node.func
+        _bound = _kind = None
+        if isinstance(_f, ast.Name) and _f.id in alias:
+            _bound, _kind = alias[_f.id], "construct"
+        elif (isinstance(_f, ast.Attribute) and _f.attr == "Battle"
+              and isinstance(_f.value, ast.Name) and _f.value.id in mod_alias):
+            _bound, _kind = "%s.Battle" % _f.value.id, "construct"
+        elif (isinstance(_f, ast.Attribute) and _f.attr == "from_state"
+              and isinstance(_f.value, ast.Name) and _f.value.id in alias):
+            _bound, _kind = alias[_f.value.id], "restore"
+        if _bound:
+            out.append((rel, _enclosing(_node), _node.lineno, _bound, _kind))
+    return out
+
+
+def _scan_battle_outlets(root):
+    found = []
+    for _dirpath, _dirs, _files in os.walk(root):
+        for _name in sorted(_files):
+            if not _name.endswith(".py"):
+                continue
+            _path = os.path.join(_dirpath, _name)
+            _rel = os.path.relpath(_path, _PKG_ROOT).replace(os.sep, "/")
+            found += _scan_tree(_rel, open(_path, encoding="utf-8").read())
+    return found
+
+
+section("T6⑨ 构造出口唯一性：content/** 禁绕过 content/bridge.py 出口")
+_hits = _scan_battle_outlets(os.path.join(_PKG_ROOT, "content"))
+_bad = [h for h in _hits if (h[0], h[1], h[4]) not in _ALLOWED_OUTLETS]
+check("content/** 零处绕过 bridge 出口的 Battle 构造/恢复", not _bad, _bad[:4])
+check("白名单两处（bridge.make_battle / bridge.restore_battle）确实被扫到",
+      {(h[0], h[1], h[4]) for h in _hits} >= _ALLOWED_OUTLETS,
+      sorted({(h[0], h[1], h[4]) for h in _hits}))
+_neg1 = _scan_tree("<反证:改前段>", 'from saintess_engine import Battle as B2\n'
+                                      'def f(self):\n'
+                                      '    return B2("monster", sides={})\n')
+check("反证①：改前那段（别名 B2 裸造）必被扫到",
+      len(_neg1) == 1 and _neg1[0][4] == "construct", _neg1)
+_neg2 = _scan_tree("<反证:模块别名>", 'import saintess_engine as SE\n'
+                                       'def f():\n'
+                                       '    return SE.Battle("monster", sides={})\n')
+check("反证②：模块别名（SE.Battle）裸造必被扫到",
+      len(_neg2) == 1 and _neg2[0][4] == "construct", _neg2)
+_neg3 = _scan_tree("<反证:正路>", 'from . import bridge as BR\n'
+                                   'def f():\n'
+                                   '    return BR.make_battle("monster", sides={})\n')
+check("反证③：正路（BR.make_battle）必不命中", not _neg3, _neg3)
 
 print("\n=== 结果 PASS=%d FAIL=%d ===" % (PASS, FAIL))
 sys.exit(1 if FAIL else 0)
