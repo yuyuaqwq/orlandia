@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import importlib
 import sqlite3
-import sys
 import threading
 import time as _time
 
@@ -191,8 +190,7 @@ def _connect():
 from saintess_engine.wire import Wire, WireMissing
 
 #: 宿主模块在 `sys.modules` 里的两个候选全名（运行时包路径 + 测试路径）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from .._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_wire_module  # 宿主包名常量单源（P0-3）
 
 #: 注入句柄面（引擎 wire 形状：`bind_host()` 写；`None` = 没给）
 _WIRE = Wire()
@@ -203,22 +201,7 @@ def bind_host(**objs):
     _WIRE.bind(**objs)
 
 
-def _wire_module(name: str):
-    if name in _WIRE.handles():
-        return _WIRE.handle(name)
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                    # noqa: BLE001
-            last = exc
-    raise WireMissing("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last),
-                      name=name)
+_wire_module = make_wire_module(_WIRE, __name__, exc=WireMissing, named=True)
 
 
 def _wire_attr(mod: str, attr: str):

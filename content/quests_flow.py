@@ -51,7 +51,6 @@ B14-2：序表**单点移入门面** `content/catalog_quests.py`（那里带集�
 """
 from __future__ import annotations
 
-import sys
 from collections.abc import Mapping
 
 # ★ B14-2（2026-09-14）：数据名改从**包内门面**直取 —— 宿主 `game/data` 删掉后本模块仍能活；
@@ -80,7 +79,7 @@ SIDE_QUEST_ORDER = [q["id"] for q in _cq.SIDE_QUESTS]
 # ============================================================
 # 宿主替身口（存储层 / 内容聚合层 / 同级服务 / 发放与结算）—— 引擎 wire 形状
 # ============================================================
-from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.wire import Wire
 
 # ★ U1-D2 L4（2026-09-17）：任务块的**三件形状**（账本状态机 / 目标进度折叠 / 目标行）
 #   改走引擎 `saintess_engine/quest/`：`QuestLog`（读口 + 状态迁移）、`Objective`/`Objectives`
@@ -94,8 +93,7 @@ _WIRE = Wire()
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` / `content/talk_actions.py` 同口径（B8.2 线1 立的规矩）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 # `C` 上**未进包**的符号 → 转宿主聚合层：W6 后只剩函数名 `resolve`（见下面 `_Dom`）
 
@@ -107,20 +105,7 @@ def bind_host(db=None, c=None, level_up=None, stat_bonus_fn=None,
                grant_reward_fn=grant_reward_fn, quests_svc=quests_svc)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise WireMissing(
-        "quests_flow：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
-
+_bound_host = make_bound_host(_WIRE, "quests_flow")
 
 
 class _HostDB:

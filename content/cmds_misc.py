@@ -53,8 +53,7 @@ __all__ = ["help_cmd", "game_tip", "signin", "achievements", "feedback_cmd"]
 # 未落地则回退宿主 `game.core.drops`（与宿主聚合层 `C.generate_equip` **同一对象**，
 # 证据 `out/evidence/identity_map.txt`）。两侧都取不到 → 抛（不静默空跑）。
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 _DROPS = None
 
 

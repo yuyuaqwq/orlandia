@@ -51,13 +51,10 @@ db 等依赖一律函数体内惰性 import（防 data/_assembly 加载期循环
 
 from __future__ import annotations
 
-import sys
-
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_wire_module  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
@@ -67,23 +64,7 @@ def bind_host(**objs):
     _WIRE.bind(**objs)
 
 
-def _wire_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身，真源 `from .. import X` 那一类）。"""
-    if name in _WIRE.handles():
-        return _WIRE.handle(name)
-    import importlib
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        full = prefix if not name else "%s.%s" % (prefix, name)
-        m = sys.modules.get(full)
-        if m is not None:
-            return m
-    last = None
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module(prefix if not name else "%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("party：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
+_wire_module = make_wire_module(_WIRE, "party")
 
 
 def _wire_attr(mod: str, attr: str):

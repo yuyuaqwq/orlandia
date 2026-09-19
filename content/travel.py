@@ -36,8 +36,6 @@
 """
 from __future__ import annotations
 
-import sys
-
 import random  # noqa: F401  （真源模块级 `import random`；`move_stamina_cost` / `travel_ambush` 用）
 
 # ★ B14-2 L6：数据表切包内门面（宿主 `game/data` 删掉后本模块仍能活）
@@ -49,15 +47,14 @@ from . import catalog_b143 as _cb143     # ★ W4：LEGACY_MAP_ALIAS / HIDDEN_MA
 # ============================================================
 # 宿主替身口 —— 引擎 wire 形状
 # ============================================================
-from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.wire import Wire
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` / `content/talk_actions.py` 同口径（B8.2 线1 立的规矩）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 # `C` 上**未进包**的符号 → 转宿主聚合层（理由见模块 docstring 的逐符号归属表）
 _HOST_FALLBACK = (
@@ -72,20 +69,7 @@ def bind_host(db=None, c=None) -> None:
     _WIRE.bind(db=db, c=c)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise WireMissing(
-        "travel：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
-
+_bound_host = make_bound_host(_WIRE, "travel")
 
 
 class _HostDB:

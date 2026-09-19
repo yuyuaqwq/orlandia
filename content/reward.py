@@ -73,8 +73,7 @@ _STAT_CN = _T.names(_STAT_KEYS, prefix="stat_name")
 #   本文件 B2 读点：LOG → `content/obs.py`；tlog → `content/obs.py::emit`；`C.<名>` → 包内直取；
 #   残留只剩 `core.drops` 面（B2-C2 待落地 `content/drops.py`，见 `_drops()`）。
 # ============================================================
-_HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-_HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 _INJECTED = {}
 
 
@@ -153,13 +152,13 @@ def _drops():
             _DROPS = importlib.import_module(_DROPS_PKG)
         except ImportError:
             last = None
-            for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                 m = sys.modules.get("%s.core.drops" % prefix)
                 if m is not None:
                     _DROPS = m
                     break
             if _DROPS is None:
-                for prefix in (_HOST_PKG, _HOST_PKG_FALLBACK):
+                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
                     try:
                         _DROPS = importlib.import_module("%s.core.drops" % prefix)
                         break

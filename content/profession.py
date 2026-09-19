@@ -112,7 +112,7 @@ class _PkgFace(object):
         # ① 已加载的宿主聚合层优先 —— ★ 旧写法 `_HostMod("content")` 的语义就是这样：
         #    属性访问时 `getattr(game.content, 名)`。保留它 = 保留 tests/* 里
         #    `C.roll_fish = lambda …`（conftest.C = game.content）这类运行期猴补的可见性。
-        for _n in (_HOST_PKG + ".content", _HOST_PKG_FALLBACK + ".content"):
+        for _n in (HOST_PKG + ".content", HOST_PKG_FALLBACK + ".content"):
             _m = sys.modules.get(_n)
             if _m is not None:
                 return getattr(_m, name)
@@ -147,8 +147,7 @@ _HOST_DB = None            # 宿主存储层（真源 `from .. import db`）
 _HOST_EXPAND = None        # 宿主产出池展开函数（真源 `from ..drop_engine import expand_pool`）
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）
-_HOST_PKG = "data.plugins.dragonfall.game"
-_HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 
 
 def bind_host(db=None, content=None, timed=None, log=None, expand_pool=None):
@@ -177,7 +176,7 @@ def lazy_module(getter):
 def _resolve_host(mod: str):
     """取宿主子模块：**已加载**的宿主模块（`sys.modules`，绝不 import）。"""
     import sys
-    for name in ("%s.%s" % (_HOST_PKG, mod), "%s.%s" % (_HOST_PKG_FALLBACK, mod)):
+    for name in ("%s.%s" % (HOST_PKG, mod), "%s.%s" % (HOST_PKG_FALLBACK, mod)):
         m = sys.modules.get(name)
         if m is not None:
             return m

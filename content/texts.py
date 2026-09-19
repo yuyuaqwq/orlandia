@@ -45,8 +45,7 @@ from collections.abc import Mapping
 
 from saintess_engine.text import TextTable
 
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 # 包内真源：本模块自己定位（宿主 `game/data/text_specs.json` 只是构建期镜像）

@@ -93,8 +93,7 @@ from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（�
 #    · `_drops()`：`core.drops` 面（B2-C2 线待落 `content/drops.py`，未落则回退宿主同对象）
 #    · 兼容面两个旧替身口名（`content/cmds_world.py:49` 的 F401 再导出用，**零调用点**，见头注 ⚠️）
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 

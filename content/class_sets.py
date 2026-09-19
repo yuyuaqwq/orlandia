@@ -20,16 +20,12 @@
 本线保宿主真源（写入语义所系）。
 """
 
-import importlib
-import sys
-
 # ============================================================
 # `data` 句柄取件口（**接口表第 9 行冻结的机制 = 注入句柄 `data`**；真源裁定属决策项 U1）
 #   注入面 = 宿主薄壳 `game/core/class_sets.py:47-49` 的 `bind_host(data=…)`（本文件既有口）
 #   解析：注入优先 → `sys.modules` 已加载的宿主模块（**不 import** 之外的模块树）→ importlib → 抛
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_host_mod  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
@@ -39,21 +35,7 @@ def bind_host(**objs):
     _WIRE.bind(**objs)
 
 
-def _host_mod(name: str):
-    """取宿主子模块（注入优先 → `sys.modules` → importlib；**绝不静默空跑**）。"""
-    if name in _WIRE.handles():
-        return _WIRE.handle(name)
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module("%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
+_host_mod = make_host_mod(_WIRE, __name__)
 
 
 # ★ B2-W2 已收口：宿主薄壳 `game/core/class_sets.py:72/75` 改口为 `_host_mod`，本兼容别名删除。

@@ -119,8 +119,7 @@ from .catalog_rules import (INSTANCE_BOSS_EQUIP_DROP as _INSTANCE_BOSS_EQUIP_DRO
 from ._pkgref import DB as db                          # 包内存储层句柄（B1 起既有）
 from . import texts as T                               # 文案表（B11-L1 起既有）
 
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 # ★ U1-I4 L6：副本层节点取用 → 引擎多表首命中形状（单表真值链）
 from saintess_engine.presence import Lookup

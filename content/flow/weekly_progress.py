@@ -67,8 +67,7 @@ from saintess_engine.wire import Wire
 _WIRE = Wire()
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from .._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 
 class HostInjectionMissing(RuntimeError):
@@ -87,19 +86,7 @@ def bind_host(db=None, grant_reward=None):
     _WIRE.bind(db=db, grant_reward=grant_reward)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise HostInjectionMissing(
-        f"weekly_progress：宿主模块 {name} 不可用（未 bind_host 且未加载）—— 拒绝静默空跑")
+_bound_host = make_bound_host(_WIRE, "weekly_progress", exc=HostInjectionMissing, named=False)
 
 
 def selfcheck():

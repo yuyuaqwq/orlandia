@@ -49,15 +49,12 @@ from __future__ import annotations
 import json
 import os
 import random
-import sys
-
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _DATA_DIR = os.path.join(_HERE, "data")
 
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/talk_actions.py` 同口径（B8.2 线1 立的规矩）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 
 def _read_json(path: str, default):
@@ -72,7 +69,7 @@ def _read_json(path: str, default):
 # ============================================================
 # 宿主替身口（存储层）—— 引擎 wire 形状
 # ============================================================
-from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.wire import Wire
 from saintess_engine.collect import CLAIMED, LOCKED, READY, Tally, TierBoard
 from saintess_engine.periodic import Cooldown
 from . import texts as _T                       # 文案表（B 批 B-1 B 档：帮助面板）
@@ -86,19 +83,7 @@ def bind_host(db=None) -> None:
     _WIRE.bind(db=db)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise WireMissing(
-        "misc_cmds：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
+_bound_host = make_bound_host(_WIRE, "misc_cmds")
 
 
 class _HostDB:

@@ -55,8 +55,6 @@
 """
 from __future__ import annotations
 
-import importlib
-import sys
 from typing import Optional
 
 from saintess_engine import make_actor  # 只读 saintess_engine 工厂，不改 saintess_engine
@@ -69,8 +67,7 @@ from saintess_engine import make_actor  # 只读 saintess_engine 工厂，不改
 # 的实现体（读 `game/tlog_setup` 开关 + `game/services/battle_tlog.py` 采集 sink，属平台件），
 # 按宿主壳同款约定取：`bind_host(attach_tlog=…)` 注入 → `sys.modules` 已加载 → import。
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（AstrBot 插件加载路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_host_mod  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
@@ -80,22 +77,7 @@ def bind_host(**objs):
     _WIRE.bind(**objs)
 
 
-def _host_mod(name: str):
-    """取宿主子模块：注入优先 → `sys.modules` → importlib；取不到抛（拒绝静默空跑）。"""
-    m = _WIRE.handles().get(name)
-    if m is not None:
-        return m
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        mod = sys.modules.get("%s.%s" % (prefix, name))
-        if mod is not None:
-            return mod
-    last = None
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module("%s.%s" % (prefix, name))
-        except Exception as exc:                                  # noqa: BLE001
-            last = exc
-    raise RuntimeError("bridge：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (name, last))
+_host_mod = make_host_mod(_WIRE, "bridge")
 
 
 # ============================================================

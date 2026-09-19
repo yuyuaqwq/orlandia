@@ -64,8 +64,7 @@ HOST_LOGGER_ATTR = "LOG"
 
 #: 宿主模块在 sys.modules 里的两个候选全名（与既有包内替身同口径：
 #: `content/reward.py:44-45` / `content/talk_actions.py:75-76`：运行时包路径 + 测试路径）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 
 #: 注入句柄面（引擎 wire 形状：`bind()` 写；取不到 → `WireMissing` 点名）
 _WIRE = Wire()

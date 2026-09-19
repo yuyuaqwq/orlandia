@@ -160,8 +160,7 @@ from .flow import instance_run as _IR                  # poi `dom` 替身：livi
 from ._pkgref import DB as db
 from .constants import ACT_TICK
 
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 

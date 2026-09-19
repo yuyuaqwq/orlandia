@@ -42,8 +42,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
-
 from .skills import branch_skill_owner, skill_info  # noqa: F401  (包内端口，不是宿主)
 
 # ★ B14-2 L6：数据表切包内门面（宿主 `game/data` 删掉后本文件仍能活）
@@ -68,7 +66,7 @@ def _read_domain(domain: str, sub: str = "data", default=None):
 # ============================================================
 # 宿主替身口（存储层 + 发放函数）—— 引擎 wire 形状
 # ============================================================
-from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.wire import Wire
 # ★ S1：文本收集替身 + async generator 收集循环 = **引擎通用件**（原先这里有一份本地 `_Sink`）
 from saintess_engine.command import TextSink, collect_messages
 
@@ -76,8 +74,7 @@ from saintess_engine.command import TextSink, collect_messages
 _WIRE = Wire()
 # 宿主模块名（运行时 `main.py` 的模块路径 = `data.plugins.dragonfall`；测试同样）—— 与
 # `content/flow/weekly_progress.py` 同口径（B8.2 线1 立的规矩）
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 
 def bind_host(db=None, grant_reward=None) -> None:
@@ -89,20 +86,7 @@ def bind_host(db=None, grant_reward=None) -> None:
     _WIRE.bind(db=db, grant_reward=grant_reward)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise WireMissing(
-        "talk_actions：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
-
+_bound_host = make_bound_host(_WIRE, "talk_actions")
 
 
 class _HostDB:

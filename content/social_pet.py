@@ -48,13 +48,12 @@ from . import texts as _T                 # C 档 20d（2026-09-19）：文案�
 # ============================================================
 # ① 宿主替身口（存储层 / 读表口 / 品质色表）
 # ============================================================
-from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.wire import Wire
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
 
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 
 def bind_host(db=None, content=None, quality=None):
@@ -62,20 +61,7 @@ def bind_host(db=None, content=None, quality=None):
     _WIRE.bind(db=db, content=content, quality=quality)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise WireMissing(
-        "social_pet：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
-
+_bound_host = make_bound_host(_WIRE, "social_pet")
 
 
 class _HostDB:

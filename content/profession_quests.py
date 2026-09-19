@@ -47,7 +47,7 @@ from ._pkgref import PkgModule as _PkgModule
 # ============================================================
 # 宿主替身口（全部对应真源的**函数体内**惰性 import → 包内改模块级惰性代理）
 # ============================================================
-from saintess_engine.wire import Wire, WireMissing
+from saintess_engine.wire import Wire
 
 # ★ U1-D2 L4：每日 lane 的**进度容器形态（int）与达标数**改问引擎目标注册表
 #   （`quests_flow` 是那套注入面的唯一落点：字段名/状态词/目标类型/需求数口径都注册在
@@ -58,8 +58,7 @@ from . import quests_flow as _qf
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()
 
-HOST_PKG = "data.plugins.dragonfall.game"
-HOST_PKG_FALLBACK = "game"
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_bound_host  # 宿主包名常量单源（P0-3）
 
 
 def bind_host(db=None, content=None, texts=None, level_up=None, stat_bonus=None):
@@ -73,20 +72,7 @@ def bind_host(db=None, content=None, texts=None, level_up=None, stat_bonus=None)
     _WIRE.bind(db=db, content=content, level_up=level_up, stat_bonus=stat_bonus)
 
 
-def _bound_host(key: str, mod: str = None):
-    """取宿主件：注入句柄面（wire）优先 → 已加载的宿主模块（`sys.modules`，**不 import**）→ 点名报错。"""
-    import sys
-    h = _WIRE.handles()
-    if key in h:
-        return h[key]
-    name = mod or key
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    raise WireMissing(
-        "quests：宿主模块 %s 不可用（未 bind_host 且未加载）—— 拒绝静默空跑" % name, name=name)
-
+_bound_host = make_bound_host(_WIRE, "quests")
 
 
 class _HostDB(object):

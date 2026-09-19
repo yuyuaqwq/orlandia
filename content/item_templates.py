@@ -32,15 +32,11 @@
   若要「域即真相源」得先在导出器侧定形状（登记，未做）。
 """
 
-import importlib
-import sys
-
 # ============================================================
 # 宿主替身口（`content/index.py` / `content/world_cmds.py` 同款：注入优先 → sys.modules →
 # importlib；**绝不静默空跑**）
 # ============================================================
-HOST_PKG = "data.plugins.dragonfall.game"      # 运行时（main.py 的模块路径）
-HOST_PKG_FALLBACK = "game"                     # 测试/工具按 `game.xxx` 直接 import 时
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, make_wire_module  # 宿主包名常量单源（P0-3）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
 
@@ -50,21 +46,7 @@ def bind_host(**objs):
     _WIRE.bind(**objs)
 
 
-def _wire_module(name: str):
-    """取宿主子模块（`name` 为空 = 宿主 `game` 包本身）。"""
-    if name in _WIRE.handles():
-        return _WIRE.handle(name)
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        m = sys.modules.get("%s.%s" % (prefix, name))
-        if m is not None:
-            return m
-    last = None
-    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-        try:
-            return importlib.import_module("%s.%s" % (prefix, name))
-        except Exception as exc:                # noqa: BLE001
-            last = exc
-    raise RuntimeError("%s：宿主模块 %s 取不到（%s）——拒绝静默空跑" % (__name__, name, last))
+_wire_module = make_wire_module(_WIRE, __name__)
 
 
 class _HostMod:
