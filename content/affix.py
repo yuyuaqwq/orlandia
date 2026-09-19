@@ -49,16 +49,12 @@ def bind_host(**objs):
 - 触发型词条（on_hit/on_taken/turn_start/battle_start/passive）由 battle.py 消费
 """
 
-import os
 import random
 
 from saintess_engine.loot import count_for, draw_slots
-from saintess_engine.records import records_from_domain
 
 from .apply import _read_json
 
-_HERE = os.path.dirname(os.path.abspath(__file__))     # <pkg>/content
-_PKG_ROOT = os.path.dirname(_HERE)                     # <pkg>（域声明 = <pkg>/editor/domains.json）
 
 # ---- 包内域读口（B10-L1 已证逐条 deep-equal；本线复核见报告 §3）----
 AFFIXES: dict = _read_json("affixes.json", {})
@@ -68,6 +64,7 @@ LEGENDARY_EFFECTS: dict = _read_json("legendary_effects.json", {})
 from .catalog_b143 import AFFIX_POOL_BY_QUALITY              # `game_config.affixes` 域
 from .catalog_rules import (AFFIX_FALLBACK, AFFIX_COUNT,     # 包内无域 → dump 字面量
                             SERIES_FIXED_AFFIX)              # （登记 NOT_YET_DOMAINED）
+from ._domainio import read_seq_domain        # P0-4 域读口单源
 
 # 词条触发时机分组（battle 挂点用）
 TRIGGER_TYPES = {"stat", "on_hit", "on_taken", "turn_start", "battle_start", "passive"}
@@ -88,50 +85,10 @@ def _affix_base_value(slot: str, lv: int, stat: str) -> int:
 # `seq` 带出（与 `fishing_pool` / `titles` / `weekly_quests` / `gather_pools` 域**同形**）。
 # 标量表（`_REQ_STAT_BY_SLOT`）的条目必须是 dict —— 域条目形状约定（旧 75 域无一例外：
 # 顶层值非 dict 的条目 `list_entries` 不计入 count，会踩「条数 > 0」门禁）⇒ 值收在 `pool` 字段里。
-def _read_seq_domain(name: str, field: str | None = None) -> dict:
-    """读包内「带 seq 的映射域」→ `{键: 条目}`，按 `seq` 还原源插入序（给了 field 就取单字段）。
-
-    表体走引擎 records 读数口 `records_from_domain`（D-BATCH §5 许可的既有口）：
-    域**声明缺项 / kind 无落点 / 文件不在盘上 / 声明与磁盘不符** → `RecordsDeclarationError`
-    点名（**不静默空表**）；再叠本线自己的 fail-closed（D6 判据 4）：条目不是 dict / 缺 seq /
-    seq 重复 / seq 不是 1..N 连续 / 取字段时条目没这个字段 → `raise` 点名。
-    """
-    rec = records_from_domain(_PKG_ROOT, name)
-    tbl = rec.all()
-    if rec.missing or not tbl:
-        raise RuntimeError("content/affix.py：域 %r 读不到（%s）—— 拒绝静默空表"
-                           % (name, "；".join(rec.problems[:2]) or "空表"))
-    rows: dict = {}
-    for key, ent in tbl.items():
-        if not isinstance(ent, dict):
-            raise RuntimeError("content/affix.py：域 %s 条目 %r 不是 dict（是 %s）"
-                               % (name, key, type(ent).__name__))
-        seq = ent.get("seq")
-        if isinstance(seq, bool) or not isinstance(seq, int):
-            raise RuntimeError("content/affix.py：域 %s 条目 %r 缺 seq（= 源插入序）"
-                               "—— 拒绝静默按字典序改序" % (name, key))
-        if seq in rows:
-            raise RuntimeError("content/affix.py：域 %s 的 seq=%r 重复 —— 拒绝静默取首个"
-                               % (name, seq))
-        rows[seq] = (key, ent)
-    if sorted(rows) != list(range(1, len(rows) + 1)):
-        raise RuntimeError("content/affix.py：域 %s 的 seq 不是 1..%d 连续整数 —— 拒绝按错序消费"
-                           % (name, len(rows)))
-    out: dict = {}
-    for seq in sorted(rows):
-        key, ent = rows[seq]
-        if field is None:
-            out[key] = {fk: fv for fk, fv in ent.items() if fk != "seq"}
-        elif field in ent:
-            out[key] = ent[field]
-        else:
-            raise RuntimeError("content/affix.py：域 %s 条目 %r 缺字段 %r —— 拒绝静默取空"
-                               % (name, key, field))
-    return out
 
 
 # 随机装备属性需求估算：按部位/武器类型 → 主属性
-_REQ_STAT_BY_SLOT: dict = _read_seq_domain("req_stat_by_slot", field="pool")
+_REQ_STAT_BY_SLOT: dict = read_seq_domain("req_stat_by_slot", field="pool", where="content/affix.py")
 
 # 常驻属性词条 → 折算方式（生成时并入装备 stats）
 # crit/dodge/precise/pene_phys/pene_magi/tenacity/luck 为小数概率直接加；hp/spd 按装备基础值百分比折算
@@ -144,7 +101,7 @@ _REQ_STAT_BY_SLOT: dict = _read_seq_domain("req_stat_by_slot", field="pool")
 #   v106.2：治疗强度/护盾强度词条
 #   v106.3：吸血/暴击伤害/格挡词条折算（lifesteal/block 由触发特效改属性，crit_dmg 补折算）
 #   v106.4：反伤/物魔免/物法吸词条折算（thorns 由触发特效改属性）
-_STAT_AFFIX_FX: dict = _read_seq_domain("stat_affix_fx")
+_STAT_AFFIX_FX: dict = read_seq_domain("stat_affix_fx", where="content/affix.py")
 
 
 def roll_affixes(slot: str, lv: int, quality: str) -> list:

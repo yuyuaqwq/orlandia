@@ -10,7 +10,6 @@
 消费端：宿主壳 `game/services/shop.py`（一行转发 + 再导出）与包内 `content/economy_cmds.py`
 （`_shop_svc.*` 调用点照原样）。
 """
-import os
 
 from . import obs
 from .economy_host import _HostRef, _h  # noqa: F401
@@ -22,14 +21,12 @@ from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（QUALITY/WEAPON_FLAVOR）
 from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
-from saintess_engine.records import records_from_domain
 from saintess_engine.trade import apply_rate
 
-_HERE = os.path.dirname(os.path.abspath(__file__))     # <pkg>/content
-_PKG_ROOT = os.path.dirname(_HERE)                     # <pkg>（域声明 = <pkg>/editor/domains.json）
 # ★ U1-I4 L6：节点取用 → 引擎对话形状 `Dialogue.node`（注入面 = 包内 `dialogue._CFG`，
 #   与对外适配层 `C.dialogue_node` **同一实现**：未知节点回退 `start`、键在值为 `None` 原样返回）
 from . import dialogue as _dlg
+from ._domainio import read_seq_domain        # P0-4 域读口单源
 # ---- B14-2 L5 读点切换（2026-09-14）----
 # 数据名读点（SHOP_EQUIP/SHOP_WEAPONS/PAWN_RATES/ECON_CONFIG/FISH_POOL/MOUNT_BY_KEY ·
 # EQUIP_ROSTER/EQUIP_ROSTER_BY_NAME/MATERIALS/MATERIALS_BY_NAME/ITEMS · MAP_BY_ID ·
@@ -68,49 +65,9 @@ for _shop_list in _cl.SHOP_EQUIP.values():
 # （与 `fishing_pool` / `titles` / `weekly_quests` / `gather_pools` 域**同形**；标量收在
 # `facility` 字段里 = 域条目必须是 dict 的形状约定）。读口与 `content/affix.py::_read_seq_domain`
 # **同口径**（本包多处小工具按此惯例各自持一份，如 `_int_keys`）。
-def _read_seq_domain(name: str, field: str | None = None) -> dict:
-    """读包内「带 seq 的映射域」→ `{键: 条目}`，按 `seq` 还原源插入序（给了 field 就取单字段）。
-
-    表体走引擎 records 读数口 `records_from_domain`（D-BATCH §5 许可的既有口）：
-    域**声明缺项 / kind 无落点 / 文件不在盘上 / 声明与磁盘不符** → `RecordsDeclarationError`
-    点名（**不静默空表**）；再叠本线自己的 fail-closed（D6 判据 4）：条目不是 dict / 缺 seq /
-    seq 重复 / seq 不是 1..N 连续 / 取字段时条目没这个字段 → `raise` 点名。
-    """
-    rec = records_from_domain(_PKG_ROOT, name)
-    tbl = rec.all()
-    if rec.missing or not tbl:
-        raise RuntimeError("content/shop.py：域 %r 读不到（%s）—— 拒绝静默空表"
-                           % (name, "；".join(rec.problems[:2]) or "空表"))
-    rows: dict = {}
-    for key, ent in tbl.items():
-        if not isinstance(ent, dict):
-            raise RuntimeError("content/shop.py：域 %s 条目 %r 不是 dict（是 %s）"
-                               % (name, key, type(ent).__name__))
-        seq = ent.get("seq")
-        if isinstance(seq, bool) or not isinstance(seq, int):
-            raise RuntimeError("content/shop.py：域 %s 条目 %r 缺 seq（= 源插入序）"
-                               "—— 拒绝静默按字典序改序" % (name, key))
-        if seq in rows:
-            raise RuntimeError("content/shop.py：域 %s 的 seq=%r 重复 —— 拒绝静默取首个"
-                               % (name, seq))
-        rows[seq] = (key, ent)
-    if sorted(rows) != list(range(1, len(rows) + 1)):
-        raise RuntimeError("content/shop.py：域 %s 的 seq 不是 1..%d 连续整数 —— 拒绝按错序消费"
-                           % (name, len(rows)))
-    out: dict = {}
-    for seq in sorted(rows):
-        key, ent = rows[seq]
-        if field is None:
-            out[key] = {fk: fv for fk, fv in ent.items() if fk != "seq"}
-        elif field in ent:
-            out[key] = ent[field]
-        else:
-            raise RuntimeError("content/shop.py：域 %s 条目 %r 缺字段 %r —— 拒绝静默取空"
-                               % (name, key, field))
-    return out
 
 
-_MAT_FACILITY: dict = _read_seq_domain("mat_facility", field="facility")
+_MAT_FACILITY: dict = read_seq_domain("mat_facility", field="facility", where="content/shop.py")
 
 # q7-8：材料回收品类提示（新手按类型去对应柜台，防跑错店）——集中一处维护，出售提示复用
 _MAT_FACILITY_HINT = ("材料按类型分店回收：矿石/木材/兽材/宝石→铁匠铺、"

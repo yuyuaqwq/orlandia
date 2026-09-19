@@ -45,7 +45,7 @@ from __future__ import annotations
 import json
 import os
 
-from saintess_engine.records import orders_of
+from saintess_engine.records import orders_of, records_from_domain
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -124,3 +124,47 @@ def read_data_json_strict(name: str, label: str, hint: str) -> dict:
     if not isinstance(tbl, dict) or not tbl:
         raise RuntimeError("%s 域文件不可用（%s）—— 空表 = %s" % (label, path, hint))
     return tbl
+
+
+def read_seq_domain(name: str, field=None, where: str = "") -> dict:
+    """读包内「带 seq 的映射域」→ `{键: 条目}`，按 `seq` 还原源插入序（给了 field 就取单字段）。
+
+    表体走引擎 records 读数口 `records_from_domain`（D-BATCH §5 许可的既有口）：
+    域**声明缺项 / kind 无落点 / 文件不在盘上 / 声明与磁盘不符** → `RecordsDeclarationError`
+    点名（**不静默空表**）；再叠本线自己的 fail-closed（D6 判据 4）：条目不是 dict / 缺 seq /
+    seq 重复 / seq 不是 1..N 连续 / 取字段时条目没这个字段 → `raise` 点名。
+
+    `where` = 调用方模块名，只用于错误消息前缀（各原地读口的措辞**逐字保留**）。
+    """
+    rec = records_from_domain(_PKG_ROOT, name)
+    tbl = rec.all()
+    if rec.missing or not tbl:
+        raise RuntimeError("%s：域 %r 读不到（%s）—— 拒绝静默空表"
+                           % (where, name, "；".join(rec.problems[:2]) or "空表"))
+    rows: dict = {}
+    for key, ent in tbl.items():
+        if not isinstance(ent, dict):
+            raise RuntimeError("%s：域 %s 条目 %r 不是 dict（是 %s）"
+                               % (where, name, key, type(ent).__name__))
+        seq = ent.get("seq")
+        if isinstance(seq, bool) or not isinstance(seq, int):
+            raise RuntimeError("%s：域 %s 条目 %r 缺 seq（= 源插入序）"
+                               "—— 拒绝静默按字典序改序" % (where, name, key))
+        if seq in rows:
+            raise RuntimeError("%s：域 %s 的 seq=%r 重复 —— 拒绝静默取首个"
+                               % (where, name, seq))
+        rows[seq] = (key, ent)
+    if sorted(rows) != list(range(1, len(rows) + 1)):
+        raise RuntimeError("%s：域 %s 的 seq 不是 1..%d 连续整数 —— 拒绝按错序消费"
+                           % (where, name, len(rows)))
+    out: dict = {}
+    for seq in sorted(rows):
+        key, ent = rows[seq]
+        if field is None:
+            out[key] = {fk: fv for fk, fv in ent.items() if fk != "seq"}
+        elif field in ent:
+            out[key] = ent[field]
+        else:
+            raise RuntimeError("%s：域 %s 条目 %r 缺字段 %r —— 拒绝静默取空"
+                               % (where, name, key, field))
+    return out
