@@ -1131,15 +1131,42 @@ def _aux_fingerprints():
     return out
 
 
+#: ★ **有意差异登记**（`_PIN["aux"]` 里的**文件级 sha** 项）—— 与 `test_texts_table._ECONOMY_DB_SHA_INTENT`
+#: 同构（登记表自身受自洽断言约束）。**口径不放宽**：只登记本 1 项，其余 8 项 aux 与
+#: 将来任何**第 2 项**差异照旧判红。
+#:
+#: 2026-09-20 T4 第 4 轮（W8 ②）：包内 13 个模块的域读口样板收进引擎 ——
+#: `_HERE/_PKG_ROOT + set_from_domains(_PKG_ROOT, …)` → `set_from_module(__file__, …)`；
+#: `content/catalog_quests.py` 净 −5 行 ⇒ **文件 sha 必变**（本项只是「文件 sha」，与语义无关）。
+#: U1-D2 真正盯的东西**一字未动**：28 段冻结文本 sha 与 28 段活实现 sha 全等（同轮实测），
+#: 落盘 JSON 指纹 / U1-I4 frozen 侧 / persistence/quests.py 全部照旧。
+#: ⚠ 若将来合法重采（`_u1d2_quest_gen.py --emit-aux`），本登记须同步移除或改值。
+_AUX_SHA_INTENT = {
+    'catalog_quests_sha': ('a01253296243131a3d740442c0d336158a42019f2e82995f99bd77f095f38d37',
+                           'b67002499bfe09aae8c0a2366e032834c13244051244b456a847ad9f90929c4d'),
+}
+
+
+def _aux_expected(k):
+    """该 aux 项「当前口径」的值：有意差异登记优先，其余 = `_PIN["aux"]` 冻结基准。"""
+    it = _AUX_SHA_INTENT.get(k)
+    return it[1] if it else _PIN["aux"][k]
+
+
 def test_aux():
     print("【4. aux 指纹：quests 表落盘 JSON 原文 + 零改动 + U1-I4 frozen 侧】")
     now = _aux_fingerprints()
     for k in sorted(_PIN["aux"]):
-        check("aux[%s] 全等 _PIN" % k, now.get(k) == _PIN["aux"][k],
-              "%r != %r" % (str(now.get(k))[:60], str(_PIN["aux"][k])[:60]))
+        check("aux[%s] 全等 _PIN（有意差异登记优先）" % k, now.get(k) == _aux_expected(k),
+              "%r != %r" % (str(now.get(k))[:60], str(_aux_expected(k))[:60]))
+    check("★ 有意差异登记自洽（旧值 = 冻结基准 · 新值 != 旧值 · 条数恒 1）",
+          len(_AUX_SHA_INTENT) == 1
+          and all(k in _PIN["aux"] and old == _PIN["aux"][k] and new != old
+                  for k, (old, new) in _AUX_SHA_INTENT.items()),
+          _AUX_SHA_INTENT)
     check("aux 条数 == 9", len(_PIN["aux"]) == 9, sorted(_PIN["aux"]))
     check("零改动证明：catalog_quests.py / persistence/quests.py sha256 未变",
-          _file_sha("content/catalog_quests.py") == _PIN["aux"].get("catalog_quests_sha")
+          _file_sha("content/catalog_quests.py") == _aux_expected("catalog_quests_sha")
           and _file_sha("content/persistence/quests.py")
           == _PIN["aux"].get("persistence_quests_sha"))
 
