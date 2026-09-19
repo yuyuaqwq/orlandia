@@ -60,6 +60,98 @@
     "category": "注销",
     "desc": "搬自 content/player_cmds.py:delete_account（B 批 C 档）"
   },
+  "ach.claim_gold": {
+    "value": " 金币 +{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "ach.claim_head": {
+    "value": "🎁 成就奖励领取！经验 +{exp}",
+    "params": [
+      "exp"
+    ],
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "ach.claim_hint": {
+    "value": "（『成就 领取』领取）",
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:check_achievements（B 批 C 档）"
+  },
+  "ach.exp_part": {
+    "value": "经验+{exp}",
+    "params": [
+      "exp"
+    ],
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:check_achievements（B 批 C 档）"
+  },
+  "ach.fail": {
+    "value": "领取失败，稍后再试试～",
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "ach.gold_part": {
+    "value": "金币+{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:check_achievements（B 批 C 档）"
+  },
+  "ach.items_head": {
+    "value": "🎒 获得物品：",
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "ach.items_partial_fail": {
+    "value": "(部分物品发放失败，可联系管理)",
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "ach.need_register": {
+    "value": "请先注册角色～",
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "ach.none": {
+    "value": "没有待领取的成就奖励～",
+    "category": "成就面板",
+    "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
+  },
+  "achp.cat_progress": {
+    "value": "解锁 %d/%d 个",
+    "category": "成就面板",
+    "desc": "搬自 content/misc_cmds.py:achievement_panel（B 批 C 档）"
+  },
+  "achp.cat_row": {
+    "value": "%s %s：%d/%d(『成就 %s』查看明细)",
+    "category": "成就面板",
+    "desc": "搬自 content/misc_cmds.py:achievement_panel（B 批 C 档）"
+  },
+  "achp.pending": {
+    "value": "🎁 %d 个成就奖励待领取！『成就 领取』一键领取",
+    "category": "成就面板",
+    "desc": "搬自 content/misc_cmds.py:achievement_panel（B 批 C 档）"
+  },
+  "achp.title": {
+    "value": "🏅 【成就】",
+    "category": "成就面板",
+    "desc": "搬自 content/misc_cmds.py:achievement_panel（B 批 C 档）"
+  },
+  "achp.title_cat": {
+    "value": "🏅 【成就·%s】",
+    "category": "成就面板",
+    "desc": "搬自 content/misc_cmds.py:achievement_panel（B 批 C 档）"
+  },
+  "achp.total": {
+    "value": "总进度：%d/%d　🏆 成就点：%s",
+    "category": "成就面板",
+    "desc": "搬自 content/misc_cmds.py:achievement_panel（B 批 C 档）"
+  },
   "adv.col_cnt": {
     "value": " ×{n}",
     "params": [
@@ -5419,6 +5511,11 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_facilities（B 批 C 档）"
   },
+  "fb.receipt": {
+    "value": "📮 收到你的意见啦！(编号 #%s)\n「%s」\n\n我会整理给鱼鱼看的，感谢你让这个世界变得更好✂️",
+    "category": "意见反馈",
+    "desc": "搬自 content/misc_cmds.py:feedback_submit（B 批 C 档）"
+  },
   "find.daily_hint": {
     "value": "📜 输入『每日』领取今日悬赏",
     "category": "NPC查找",
@@ -7380,6 +7477,11 @@
     "value": "🗺️ 【世界】指令\n━━━━━━━━━━━━\n【地图】地图 位置 移动 <名称/序号> 探索 休息 住宿 探索进度（查看全大陆探索度）\n【见闻】见闻录（野外 NPC 见闻收集） 编年史\n【传送】方碑（查看激活列表） 激活（解锁传送点） 传送 <名称/序号>（付费直达）\n【任务】任务 主线 每日 接取 对话 <NPC> 交付任务\n【事件】事件（查看当前世界事件） 讨伐（世界 Boss，需到达指定地点）\n【房产】地契（在售/我的） 买房 <编号> 卖房 回家 出门 拜访 <玩家> 仓库 取出\n【探索】探索进度（区域探索度） 足迹（区域足迹明细） 冒险手册（总览/物品/收藏）\n【声望】声望 百科（查材料/怪物/地图掉落来源）；声望商店 <势力名>（声望等级解锁专属商品）\n【排行】排行 战力\n💡 移动可能撞怪：等级低于地图容易被拦路，高级玩家威慑低级怪不撞",
     "category": "帮助面板",
     "desc": "搬自 content/misc_cmds.py:CMD_HELP_WORLD（B 批 B-1 B 档）"
+  },
+  "help_panel.no_topic": {
+    "value": "没有『%s』帮助主题～可用：%s\n\n%s",
+    "category": "帮助面板",
+    "desc": "搬自 content/misc_cmds.py:help_reply（B 批 C 档）"
   },
   "hn.bad": {
     "value": "⚜️ 兑换失败：商品没有配置 reward 类型！请找 GM 检查数据～",

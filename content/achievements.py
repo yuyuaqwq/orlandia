@@ -82,6 +82,7 @@ from .catalog_space import MAP_BY_ID            # 真源 `C.MAP_BY_ID`
 #   `db` = 包内 `content/_pkgref.DB`（B1 口径）；LOG = `content/obs.py::log()`（包内唯一日志取用口）
 # ============================================================
 from . import obs                          # noqa: E402  包内唯一 LOG/tlog 取用口（fail-closed）
+from . import texts as _T                    # noqa: E402  文案真源取件口（C 档 34c：成就面板/领取）
 from .index import display as _index_display   # noqa: E402  `C.display` → 包内直取（同一对象）
 from ._pkgref import DB as db              # noqa: E402  `from .. import db` 的包内等价物
 from saintess_engine.conditions.declarative import bind_spec   # S4：声明式条目装配
@@ -250,9 +251,9 @@ def check_achievements(group_id, qq_id, player=None, extra=None) -> list:
                 if rw.get("exp") or rw.get("gold") or rw.get("items"):
                     parts = []
                     if rw.get("exp"):
-                        parts.append(f"经验+{rw['exp']}")
+                        parts.append(_T.text("ach.exp_part", exp=rw['exp']))
                     if rw.get("gold"):
-                        parts.append(f"金币+{rw['gold']}")
+                        parts.append(_T.text("ach.gold_part", gold=rw['gold']))
                     # v140 波2：物品奖励进解锁提示（《物品名》×N）
                     if rw.get("items"):
                         for _ik, _ic in rw["items"].items():
@@ -263,7 +264,7 @@ def check_achievements(group_id, qq_id, player=None, extra=None) -> list:
                                 pass
                             parts.append(f"{_nm}×{_ic}")
                     a = dict(a)
-                    a["_reward_txt"] = "、".join(parts) + "（『成就 领取』领取）"
+                    a["_reward_txt"] = "、".join(parts) + _T.static("ach.claim_hint")
                 else:
                     a = dict(a)
                     a["_reward_txt"] = ""
@@ -309,7 +310,7 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
         rows = db.get_achievements(group_id, qq_id) or []
         pending = [r for r in rows if not r.get("claimed")]
         if not pending:
-            return [], "没有待领取的成就奖励～"
+            return [], _T.static("ach.none")
         # 过滤出真正带奖励的待领成就（引擎三态机：READY 才可领，领过/没奖励不再是 READY）
         board = _claim_board(rows, {r["ach_key"] for r in rows if r.get("claimed")})
         claimable = []
@@ -327,10 +328,10 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
                     db.set_achievement(group_id, qq_id, r["ach_key"], r.get("progress", 1), 1)
                 except Exception:
                     pass
-            return [], "没有待领取的成就奖励～"
+            return [], _T.static("ach.none")
         player = db.get_player(group_id, qq_id)
         if not player:
-            return [], "请先注册角色～"
+            return [], _T.static("ach.need_register")
         player = dict(player)
         # K0-A1：复用统一单点 stat_bonus()（含 M18 同名去重 + TITLES 侧 bonus），
         # 不再用轻量 _title_bonus_plain——避免 Lv.10 副业大师称号被当作第二份双算。
@@ -362,12 +363,12 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
                          learned_skills=player.get("learned_skills", []))
         for a in claimable:
             db.set_achievement(group_id, qq_id, a["id"], 1, 1)
-        lines = [f"🎁 成就奖励领取！经验 +{exp_gain}" + (f" 金币 +{gold_gain}" if gold_gain else "")]
+        lines = [_T.text("ach.claim_head", exp=exp_gain) + (_T.text("ach.claim_gold", gold=gold_gain) if gold_gain else "")]
         if item_lines:
-            lines.append("🎒 获得物品：")
+            lines.append(_T.static("ach.items_head"))
             lines += item_lines
             if not _reward_ok:
-                lines.append("(部分物品发放失败，可联系管理)")
+                lines.append(_T.static("ach.items_partial_fail"))
         for a in claimable:
             lines.append(f"🏅 {a['name']}")
         lines.append("")
@@ -375,4 +376,4 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
         return lines, ""
     except Exception as e:
         LOG.warning(f"[dragonfall] 成就领取失败: {e}")
-        return [], "领取失败，稍后再试试～"
+        return [], _T.static("ach.fail")

@@ -162,7 +162,7 @@ def help_reply(arg: str) -> str:
     panel = HELP_MAP.get(arg)
     if panel:
         return panel
-    return "没有『%s』帮助主题～可用：%s\n\n%s" % (arg, HELP_TOPICS, CMD_HELP)
+    return _T.static("help_panel.no_topic") % (arg, HELP_TOPICS, CMD_HELP)
 
 
 # ============================================================
@@ -281,19 +281,19 @@ def achievement_panel(raw: str, table, unlocked, claimed, points: int) -> list:
     cat = raw if raw in ACH_CATS else ""
     achs = [a for a in table if (not cat or a["cat"] == cat)]
     if cat:
-        title = "🏅 【成就·%s】" % cat
+        title = _T.static("achp.title_cat") % cat
     else:
-        title = "🏅 【成就】"
+        title = _T.static("achp.title")
     total_all = len(table)
     got_all = len(unlocked)
     board = _ach_board(table, unlocked, claimed)
     pending_cnt = board.pending()
     lines = [title, "━━━━━━━━━━━━"]
     if pending_cnt:
-        lines.append("🎁 %d 个成就奖励待领取！『成就 领取』一键领取" % pending_cnt)
+        lines.append(_T.static("achp.pending") % pending_cnt)
     if cat:
         got_c, total_c = _ach_tally(achs, unlocked).progress()
-        lines.append("解锁 %d/%d 个" % (got_c, total_c))
+        lines.append(_T.static("achp.cat_progress") % (got_c, total_c))
         for a in achs:
             mark = _TIER_MARK[board.state(a)]
             rw = a.get("reward") or {}
@@ -309,11 +309,11 @@ def achievement_panel(raw: str, table, unlocked, claimed, points: int) -> list:
             rw_txt = "（%s）" % "、".join(rw_parts) if rw_parts else ""
             lines.append("%s %s：%s%s" % (mark, a["name"], a["desc"], rw_txt))
     else:
-        lines.append("总进度：%d/%d　🏆 成就点：%s" % (got_all, total_all, points))
+        lines.append(_T.static("achp.total") % (got_all, total_all, points))
         for c in ACH_CATS:
             sub = [a for a in table if a["cat"] == c]
             got_c, total_c = _ach_tally(sub, unlocked).progress()
-            lines.append("%s %s：%d/%d(『成就 %s』查看明细)"
+            lines.append(_T.static("achp.cat_row")
                          % ("✅" if got_c == total_c else "⬜", c, got_c, total_c, c))
     return lines
 
@@ -370,8 +370,7 @@ def feedback_submit(group_id, qq_id, args: str, now_ts: float) -> dict:
     fid = db.add_feedback(qq_id, group_id, args)
     # 持续成功的频控：仅成功后更新时间戳，避免失败的尝试锁住玩家再次提交
     _fb_cd(qq_id).touch(now_ts)
-    text = ("📮 收到你的意见啦！(编号 #%s)\n「%s」\n\n"
-            "我会整理给鱼鱼看的，感谢你让这个世界变得更好✂️" % (fid, args))
+    text = (_T.static("fb.receipt") % (fid, args))
     return {"fid": fid, "text": text}
 
 
