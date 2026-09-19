@@ -5731,6 +5731,237 @@
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
+  "gm.add_gm_ok": {
+    "value": "👑 已把 QQ {qq} 添加为 GM！({n} 人白名单)",
+    "params": [
+      "qq",
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:add_gm（B 批 C 档）"
+  },
+  "gm.amt_int": {
+    "value": "数量必须是整数！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_gold（B 批 C 档）"
+  },
+  "gm.amt_neg": {
+    "value": "数量不能为负！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_gold（B 批 C 档）"
+  },
+  "gm.auth_deny": {
+    "value": "⛔ GM 指令仅限管理员使用～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:gm_auth（B 批 C 档）"
+  },
+  "gm.auth_unset": {
+    "value": "⛔ GM 未配置：请管理员先在环境变量 GWEN_GM_QQ 中配置 GM QQ～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:gm_auth（B 批 C 档）"
+  },
+  "gm.bc_head": {
+    "value": "📢【全服公告】\n{text}",
+    "params": [
+      "text"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:broadcast（B 批 C 档）"
+  },
+  "gm.boss_cur": {
+    "value": "⚔️ 你当前的世界 Boss 伤害倍率：×{cur}(默认 1)\n『gm_伤害 <倍率>』修改(0.1－100)",
+    "params": [
+      "cur"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:boss_dmg（B 批 C 档）"
+  },
+  "gm.boss_range": {
+    "value": "范围 0.1－100！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:boss_dmg（B 批 C 档）"
+  },
+  "gm.boss_set": {
+    "value": "⚔️ 世界 Boss 伤害倍率已设为 ×{m}(原 ×{cur})！『讨伐』时生效",
+    "params": [
+      "m",
+      "cur"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:boss_dmg（B 批 C 档）"
+  },
+  "gm.broadcast_ok": {
+    "value": "📢 已广播到全服 {n} 个群！",
+    "params": [
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:broadcast（B 批 C 档）"
+  },
+  "gm.del_gm_ok": {
+    "value": "🗑️ 已把 QQ {qq} 移出 GM 名单！({n} 人白名单)",
+    "params": [
+      "qq",
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:del_gm（B 批 C 档）"
+  },
+  "gm.exp_int": {
+    "value": "经验值必须是整数！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_exp（B 批 C 档）"
+  },
+  "gm.exp_neg": {
+    "value": "经验值不能为负！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_exp（B 批 C 档）"
+  },
+  "gm.give_exp_ok": {
+    "value": "✨ 已给 {name} 发放 {n} 经验(下次读档自动结算升级)！",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_exp（B 批 C 档）"
+  },
+  "gm.give_gold_ok": {
+    "value": "💰 已给 {name} 发放 {n} 金币(现在 {gold})！",
+    "params": [
+      "name",
+      "n",
+      "gold"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_gold（B 批 C 档）"
+  },
+  "gm.give_item_ok": {
+    "value": "📦 已给 {name} 发放 {item} ×{n}！",
+    "params": [
+      "name",
+      "item",
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_item（B 批 C 档）"
+  },
+  "gm.help": {
+    "value": "🛠️ 【GM 指令】(运营/调试用，仅管理员)\n━━━━━━━━━━━━\n🏮 服务器\n『gm_停服 [公告]』 停服(玩家无法游玩，自动广播)\n『gm_开服』 开服(自动广播)\n『gm_状态』 服务器状态/玩家数/GM 名单\n『gm_重载』 重载资料表(不停服，按磁盘重读 data/*.json)\n『gm_广播 <内容>』 全服公告\n━━━━━━━━━━━━\n👥 玩家管理\n『gm_玩家 [关键词] [页码]』 玩家列表\n『gm_查询 <QQ/名字>』 玩家详情\n『gm_发金币 <QQ/名字> <数量>』 发金币\n『gm_发物品 <QQ/名字> <物品名> [数量]』 发物品(材料/消耗品)\n『gm_发经验 <QQ/名字> <经验>』 发经验\n『gm_设等级 <QQ/名字> <等级>』 设等级(重算属性回满血)\n『gm_传送 <QQ/名字> <地图名>』 传送\n『gm_体力 <QQ/名字> [数值]』 设体力(默认回满)\n『gm_改名 <QQ/名字> <新名字>』 改名\n━━━━━━━━━━━━\n👑 权限管理\n『gm_加GM <QQ>』『gm_删GM <QQ>』 管理 GM 白名单\n━━━━━━━━━━━━\n🧪 调试\n『gm_伤害 [倍率]』 世界 Boss 伤害倍率(0.1-100)\n『gm_play <指令>』 转发指令给引擎(真实链路体验)\n💡 目标可以是 QQ 号或角色名；白名单存数据库，重启不丢",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:help_text（B 批 C 档）"
+  },
+  "gm.item_missing": {
+    "value": "❌ 找不到物品『{name}』(材料/消耗品)，试试更精确的名字～",
+    "params": [
+      "name"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_item（B 批 C 档）"
+  },
+  "gm.lv_int": {
+    "value": "等级必须是整数！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:set_level（B 批 C 档）"
+  },
+  "gm.lv_range": {
+    "value": "等级范围 1－99！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:set_level（B 批 C 档）"
+  },
+  "gm.lv_recalc_fail": {
+    "value": "⚠️ 属性重算失败，等级未修改～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:set_level（B 批 C 档）"
+  },
+  "gm.maint_bc_head": {
+    "value": "🔧【服务器维护公告】\n服务器已进入维护状态，暂时无法游玩～\n",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:maintenance（B 批 C 档）"
+  },
+  "gm.maint_bc_tail": {
+    "value": "开服后会第一时间广播通知，请耐心等待～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:maintenance（B 批 C 档）"
+  },
+  "gm.maint_head": {
+    "value": "🔧 服务器已停服！\n",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:maintenance（B 批 C 档）"
+  },
+  "gm.maint_tail": {
+    "value": "现在只有 GM 可以操作游戏，玩家指令会被拦截～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:maintenance（B 批 C 档）"
+  },
+  "gm.map_missing": {
+    "value": "❌ 找不到地图『{name}』～",
+    "params": [
+      "name"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:teleport（B 批 C 档）"
+  },
+  "gm.notice_prefix": {
+    "value": "📢 公告：{text}\n",
+    "params": [
+      "text"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:maintenance（B 批 C 档）"
+  },
+  "gm.open_bc": {
+    "value": "✅【服务器公告】\n维护结束，服务器已开服！欢迎回来冒险～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:open_server（B 批 C 档）"
+  },
+  "gm.open_noop": {
+    "value": "ℹ️ 服务器本来就在运行中，无需开服～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:open_server（B 批 C 档）"
+  },
+  "gm.open_ok": {
+    "value": "✅ 服务器已开服！所有玩家可以正常游玩啦～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:open_server（B 批 C 档）"
+  },
+  "gm.players_kw": {
+    "value": "，关键词『{kw}』",
+    "params": [
+      "kw"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:players_text（B 批 C 档）"
+  },
+  "gm.players_page": {
+    "value": "，第{page}/{pages}页)：",
+    "params": [
+      "page",
+      "pages"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:players_text（B 批 C 档）"
+  },
+  "gm.players_row": {
+    "value": "Lv.{lv:>3} {name} 金币{gold} {cls} | {qq}",
+    "params": [
+      "lv",
+      "name",
+      "gold",
+      "cls",
+      "qq"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:players_text（B 批 C 档）"
+  },
+  "gm.players_title": {
+    "value": "👥 玩家列表({n}人",
+    "params": [
+      "n"
+    ],
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:players_text（B 批 C 档）"
+  },
   "gm.query_class": {
     "value": "职业：{cls}｜种族：{race}｜性别：{gender}",
     "params": [
@@ -5780,6 +6011,11 @@
     "category": "GM面板",
     "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
   },
+  "gm.query_missing": {
+    "value": "❌ 目标玩家不存在～",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
   "gm.query_time": {
     "value": "注册于：{created}｜最近活跃：{active}",
     "params": [
@@ -5797,6 +6033,59 @@
     ],
     "category": "GM面板",
     "desc": "搬自 content/gm.py:query_text（B 批 C 档）"
+  },
+  "gm.reload_fail": {
+    "value": "❌ 资料表重载失败：%s",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:reload_tables（B 批 C 档）"
+  },
+  "gm.reload_ok": {
+    "value": "🔄 资料表重载完成（不停服）：共 %d 张表 · %d 个集合 · 重建包内缓存 %d 个模块",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:reload_tables（B 批 C 档）"
+  },
+  "gm.reload_rebuild_fail": {
+    "value": "❌ 资料表已重载，但包内派生缓存重建失败：%s: %s",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:reload_tables（B 批 C 档）"
+  },
+  "gm.rename_len": {
+    "value": "新名字 1－12 个字符！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:rename（B 批 C 档）"
+  },
+  "gm.rename_ok": {
+    "value": "✏️ 已把 {name} 改名为『{new_name}』！",
+    "params": [
+      "name",
+      "new_name"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:rename（B 批 C 档）"
+  },
+  "gm.set_level_ok": {
+    "value": "⬆️ 已把 {name} 设为 Lv.{n}(HP/MP 已按新等级重算回满)！",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:set_level（B 批 C 档）"
+  },
+  "gm.st_int": {
+    "value": "数值必须是整数！",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:stamina（B 批 C 档）"
+  },
+  "gm.stamina_ok": {
+    "value": "⚡ 已把 {name} 的体力设为 {n}/{mx}！",
+    "params": [
+      "name",
+      "n",
+      "mx"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:stamina（B 批 C 档）"
   },
   "gm.status_gm_list": {
     "value": "GM 名单：{names}",
@@ -5843,6 +6132,91 @@
     ],
     "category": "GM面板",
     "desc": "搬自 content/gm.py:status_text（B 批 C 档）"
+  },
+  "gm.target_no_name": {
+    "value": "❌ 没有找到叫『{raw}』的玩家～",
+    "params": [
+      "raw"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:resolve_target（B 批 C 档）"
+  },
+  "gm.target_no_qq": {
+    "value": "❌ 没有找到 QQ {raw} 的角色～",
+    "params": [
+      "raw"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:resolve_target（B 批 C 档）"
+  },
+  "gm.teleport_ok": {
+    "value": "🌀 已把 {name} 传送到【{map}】！",
+    "params": [
+      "name",
+      "map"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:teleport（B 批 C 档）"
+  },
+  "gm.usage_add_gm": {
+    "value": "格式：gm_加GM <QQ号>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:add_gm（B 批 C 档）"
+  },
+  "gm.usage_boss_dmg": {
+    "value": "格式：gm_伤害 <倍率>，如 『gm_伤害 10』(10 倍)",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:boss_dmg（B 批 C 档）"
+  },
+  "gm.usage_broadcast": {
+    "value": "格式：gm_广播 <公告内容>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:broadcast（B 批 C 档）"
+  },
+  "gm.usage_del_gm": {
+    "value": "格式：gm_删GM <QQ号>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:del_gm（B 批 C 档）"
+  },
+  "gm.usage_give_exp": {
+    "value": "格式：gm_发经验 <QQ号/角色名> <经验值>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_exp（B 批 C 档）"
+  },
+  "gm.usage_give_gold": {
+    "value": "格式：gm_发金币 <QQ号/角色名> <数量>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_gold（B 批 C 档）"
+  },
+  "gm.usage_give_item": {
+    "value": "格式：gm_发物品 <QQ号/角色名> <物品名> [数量]",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:give_item（B 批 C 档）"
+  },
+  "gm.usage_rename": {
+    "value": "格式：gm_改名 <QQ号/角色名> <新名字>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:rename（B 批 C 档）"
+  },
+  "gm.usage_set_level": {
+    "value": "格式：gm_设等级 <QQ号/角色名> <等级>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:set_level（B 批 C 档）"
+  },
+  "gm.usage_stamina": {
+    "value": "格式：gm_体力 <QQ号/角色名> [数值](不填=回满)",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:stamina（B 批 C 档）"
+  },
+  "gm.usage_target": {
+    "value": "格式：gm_<指令> <QQ号/角色名> ...",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:resolve_target（B 批 C 档）"
+  },
+  "gm.usage_teleport": {
+    "value": "格式：gm_传送 <QQ号/角色名> <地图名>",
+    "category": "GM指令",
+    "desc": "搬自 content/gm.py:teleport（B 批 C 档）"
   },
   "guild.already": {
     "value": "你已经在一个公会里啦！",

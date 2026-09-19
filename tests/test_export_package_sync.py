@@ -173,7 +173,7 @@ FROZEN_COUNTS = {
     #   ★ C 档 31a（B-2 第 18 片：world_cmds 余量「野外来客未出现提示 / 对话支线菜单 /
     #     编年史」，3 函数 3 处替换 / 3 新键；NPC查找 / NPC对话 沿用既有，编年史 为新分类）
     #     ⇒ 2516 → 2519
-    "texts": 2519,
+    "texts": 2577,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

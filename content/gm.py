@@ -61,8 +61,8 @@ def gm_auth(is_gm, whitelist, qq_id):
     if is_gm(qq_id):
         return True, ""
     if whitelist():
-        return False, "⛔ GM 指令仅限管理员使用～"
-    return False, "⛔ GM 未配置：请管理员先在环境变量 GWEN_GM_QQ 中配置 GM QQ～"
+        return False, _T.static("gm.auth_deny")
+    return False, _T.static("gm.auth_unset")
 
 
 def resolve_target(host, raw: str):
@@ -71,11 +71,11 @@ def resolve_target(host, raw: str):
     db = host.db
     raw = (raw or "").strip()
     if not raw:
-        return None, "格式：gm_<指令> <QQ号/角色名> ..."
+        return None, _T.static("gm.usage_target")
     if raw.isdigit():
         p = db.get_player("", raw)
         if not p:
-            return None, f"❌ 没有找到 QQ {raw} 的角色～"
+            return None, _T.text("gm.target_no_qq", raw=raw)
         return raw, p.get("name") or raw
     hit = db.find_player_by_name(raw)
     if hit:
@@ -84,7 +84,7 @@ def resolve_target(host, raw: str):
     p = db.get_player("", raw)
     if p:
         return raw, p.get("name") or raw
-    return None, f"❌ 没有找到叫『{raw}』的玩家～"
+    return None, _T.text("gm.target_no_name", raw=raw)
 
 
 def find_item(host, name: str):
@@ -131,13 +131,13 @@ def maintenance(host, raw: str):
     db.set_event_state("server_maintenance", "1")
     db.set_event_state("server_maintenance_msg", raw)
     text = (
-        "🔧 服务器已停服！\n" + (f"📢 公告：{raw}\n" if raw else "") +
-        "现在只有 GM 可以操作游戏，玩家指令会被拦截～"
+        _T.static("gm.maint_head") + (_T.text("gm.notice_prefix", text=raw) if raw else "") +
+        _T.static("gm.maint_tail")
     )
     broadcast = (
-        "🔧【服务器维护公告】\n服务器已进入维护状态，暂时无法游玩～\n"
+        _T.static("gm.maint_bc_head")
         + (f"📢 {raw}\n" if raw else "")
-        + "开服后会第一时间广播通知，请耐心等待～"
+        + _T.static("gm.maint_bc_tail")
     )
     return text, broadcast
 
@@ -147,9 +147,9 @@ def open_server(host, was_down: bool):
     db = host.db
     db.delete_event_state("server_maintenance")
     db.delete_event_state("server_maintenance_msg")
-    text = ("✅ 服务器已开服！所有玩家可以正常游玩啦～"
-            if was_down else "ℹ️ 服务器本来就在运行中，无需开服～")
-    return text, ("✅【服务器公告】\n维护结束，服务器已开服！欢迎回来冒险～" if was_down else None)
+    text = (_T.static("gm.open_ok")
+            if was_down else _T.static("gm.open_noop"))
+    return text, (_T.static("gm.open_bc") if was_down else None)
 
 
 def status_text(host, group_id, down: bool, msg: str, gms) -> str:
@@ -175,8 +175,8 @@ def broadcast(host, raw: str):
     """gm_广播：返回 (玩家回执, 全服广播文本或 None)；空内容 → (格式提示, None)。"""
     db = host.db
     if not raw:
-        return "格式：gm_广播 <公告内容>", None
-    return f"📢 已广播到全服 {len(db.get_player_groups())} 个群！", f"📢【全服公告】\n{raw}"
+        return _T.static("gm.usage_broadcast"), None
+    return _T.text("gm.broadcast_ok", n=len(db.get_player_groups())), _T.text("gm.bc_head", text=raw)
 
 
 # ============ 玩家查询 ============
@@ -195,11 +195,13 @@ def players_text(host, group_id, raw: str) -> str:
     if kw:
         players = [p for p in players if kw in (p.get("name") or "") or kw in (p.get("qq_id") or "")]
     page_items_list, pages, page = page_items(players, page, per_page=10)
-    lines = [f"👥 玩家列表({len(players)}人" + (f"，关键词『{kw}』" if kw else "") + f"，第{page}/{pages}页)："]
+    lines = [_T.text("gm.players_title", n=len(players)) + (_T.text("gm.players_kw", kw=kw) if kw else "") + _T.text("gm.players_page", page=page, pages=pages)]
     for p in page_items_list:
         lines.append(
-            f"Lv.{p.get('level', 1):>3} {p.get('name') or '?'} 金币{p.get('gold', 0)} "
-            f"{(host.C.display('classes', p.get('class_name')) if p.get('class_name') else '')} | {p.get('qq_id')}"
+            _T.text("gm.players_row", lv=p.get('level', 1), name=p.get('name') or '?',
+                gold=p.get('gold', 0),
+                cls=host.C.display('classes', p.get('class_name')) if p.get('class_name') else '',
+                qq=p.get('qq_id'))
         )
     return "\n".join(lines)
 
@@ -212,7 +214,7 @@ def query_text(host, raw: str) -> str:
         return terr
     p = db.get_player("", tgt)
     if not p:
-        return "❌ 目标玩家不存在～"
+        return _T.static("gm.query_missing")
     cls = C.display("classes", p.get("class_name") or "") if p.get("class_name") else ""
     sub = p.get("cur_subarea") or ""
     loc = (MAP_BY_ID.get(p.get("cur_map") or "", {}) or {}).get("name") or p.get("cur_map") or "?"
@@ -243,19 +245,19 @@ def give_gold(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if len(parts) < 2:
-        return "格式：gm_发金币 <QQ号/角色名> <数量>"
+        return _T.static("gm.usage_give_gold")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
     try:
         n = int(parts[1])
     except ValueError:
-        return "数量必须是整数！"
+        return _T.static("gm.amt_int")
     if n < 0:
-        return "数量不能为负！"
+        return _T.static("gm.amt_neg")
     p = db.get_player("", tgt)
     db.update_player("", tgt, gold=(p.get("gold") or 0) + n)
-    return f"💰 已给 {p.get('name')} 发放 {n} 金币(现在 {p.get('gold', 0) + n})！"
+    return _T.text("gm.give_gold_ok", name=p.get('name'), n=n, gold=p.get('gold', 0) + n)
 
 
 def give_item(host, raw: str) -> str:
@@ -263,7 +265,7 @@ def give_item(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if len(parts) < 2:
-        return "格式：gm_发物品 <QQ号/角色名> <物品名> [数量]"
+        return _T.static("gm.usage_give_item")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
@@ -273,12 +275,12 @@ def give_item(host, raw: str) -> str:
         try:
             count = max(1, int(parts[2]))
         except ValueError:
-            return "数量必须是整数！"
+            return _T.static("gm.amt_int")
     key, data = find_item(host, item_name)
     if not key:
-        return f"❌ 找不到物品『{item_name}』(材料/消耗品)，试试更精确的名字～"
+        return _T.text("gm.item_missing", name=item_name)
     db.add_item("", tgt, key, data, count)
-    return f"📦 已给 {db.get_player('', tgt)['name']} 发放 {data['name']} ×{count}！"
+    return _T.text("gm.give_item_ok", name=db.get_player('', tgt)['name'], item=data['name'], n=count)
 
 
 def give_exp(host, raw: str) -> str:
@@ -286,20 +288,20 @@ def give_exp(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if len(parts) < 2:
-        return "格式：gm_发经验 <QQ号/角色名> <经验值>"
+        return _T.static("gm.usage_give_exp")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
     try:
         n = int(parts[1])
     except ValueError:
-        return "经验值必须是整数！"
+        return _T.static("gm.exp_int")
     if n < 0:
-        return "经验值不能为负！"
+        return _T.static("gm.exp_neg")
     p = db.get_player("", tgt)
     db.update_player("", tgt, exp=(p.get("exp") or 0) + n)
     # 读档惰性升级会在下次 get_player 时结算
-    return f"✨ 已给 {p.get('name')} 发放 {n} 经验(下次读档自动结算升级)！"
+    return _T.text("gm.give_exp_ok", name=p.get('name'), n=n)
 
 
 def set_level(host, raw: str) -> str:
@@ -307,16 +309,16 @@ def set_level(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if len(parts) < 2:
-        return "格式：gm_设等级 <QQ号/角色名> <等级>"
+        return _T.static("gm.usage_set_level")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
     try:
         n = int(parts[1])
     except ValueError:
-        return "等级必须是整数！"
+        return _T.static("gm.lv_int")
     if not 1 <= n <= 99:
-        return "等级范围 1－99！"
+        return _T.static("gm.lv_range")
     p = db.get_player("", tgt)
     try:
         st = host.player_final_stats(
@@ -324,14 +326,14 @@ def set_level(host, raw: str) -> str:
             p.get("attributes"), p.get("evolve_path", 0), host.title_bonus("", tgt),
             p.get("race"))
     except Exception:
-        return "⚠️ 属性重算失败，等级未修改～"
+        return _T.static("gm.lv_recalc_fail")
     # v113.2 QA 修复：GM 造号补属性点/技能点（对齐升级链 每级+3属性点/每级+1技能点），
     # 取 max 保留玩家已用/已有点数，避免"等级到了但没点数"的测试污染
     db.update_player("", tgt, level=n, exp=0, max_hp=st["max_hp"], max_mp=st["max_mp"],
                      hp=st["max_hp"], mp=st["max_mp"],
                      attr_pts=max(p.get("attr_pts", 0), (n - 1) * 3),
                      skill_points=max(p.get("skill_points", 0), n - 1))
-    return f"⬆️ 已把 {p.get('name')} 设为 Lv.{n}(HP/MP 已按新等级重算回满)！"
+    return _T.text("gm.set_level_ok", name=p.get('name'), n=n)
 
 
 def teleport(host, raw: str) -> str:
@@ -339,18 +341,18 @@ def teleport(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if len(parts) < 2:
-        return "格式：gm_传送 <QQ号/角色名> <地图名>"
+        return _T.static("gm.usage_teleport")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
     map_name = " ".join(parts[1:])
     mid = find_map(host, map_name)
     if not mid:
-        return f"❌ 找不到地图『{map_name}』～"
+        return _T.text("gm.map_missing", name=map_name)
     # v101.28p：传送落点设默认子区域（优先广场），否则 cur_subarea 空=卡城镇总览无法进子区域
     db.update_player("", tgt, cur_map=mid, cur_subarea=default_subarea(host, mid))
     p = db.get_player("", tgt)
-    return f"🌀 已把 {p.get('name')} 传送到【{MAP_BY_ID[mid]['name']}】！"
+    return _T.text("gm.teleport_ok", name=p.get('name'), map=MAP_BY_ID[mid]['name'])
 
 
 def stamina(host, raw: str) -> str:
@@ -358,7 +360,7 @@ def stamina(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if not parts:
-        return "格式：gm_体力 <QQ号/角色名> [数值](不填=回满)"
+        return _T.static("gm.usage_stamina")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
@@ -368,12 +370,12 @@ def stamina(host, raw: str) -> str:
         try:
             n = int(parts[1])
         except ValueError:
-            return "数值必须是整数！"
+            return _T.static("gm.st_int")
         n = max(0, min(n, mx))
     else:
         n = mx
     db.update_player("", tgt, stamina=n, stamina_ts=int(time.time()))
-    return f"⚡ 已把 {p.get('name')} 的体力设为 {n}/{mx}！"
+    return _T.text("gm.stamina_ok", name=p.get('name'), n=n, mx=mx)
 
 
 def rename(host, raw: str) -> str:
@@ -381,16 +383,16 @@ def rename(host, raw: str) -> str:
     db = host.db
     parts = raw.split()
     if len(parts) < 2:
-        return "格式：gm_改名 <QQ号/角色名> <新名字>"
+        return _T.static("gm.usage_rename")
     tgt, terr = resolve_target(host, parts[0])
     if not tgt:
         return terr
     new_name = " ".join(parts[1:]).strip()
     if not new_name or len(new_name) > 12:
-        return "新名字 1－12 个字符！"
+        return _T.static("gm.rename_len")
     p = db.get_player("", tgt)
     db.update_player("", tgt, name=new_name)
-    return f"✏️ 已把 {p.get('name')} 改名为『{new_name}』！"
+    return _T.text("gm.rename_ok", name=p.get('name'), new_name=new_name)
 
 
 # ============ GM 白名单管理 ============
@@ -412,23 +414,23 @@ def save_whitelist(host, wl: list) -> None:
 def add_gm(host, raw: str) -> str:
     """gm_加GM <QQ号>"""
     if not raw or not raw.isdigit():
-        return "格式：gm_加GM <QQ号>"
+        return _T.static("gm.usage_add_gm")
     wl = load_whitelist(host)
     if raw not in wl:
         wl.append(raw)
         save_whitelist(host, wl)
-    return f"👑 已把 QQ {raw} 添加为 GM！({len(wl)} 人白名单)"
+    return _T.text("gm.add_gm_ok", qq=raw, n=len(wl))
 
 
 def del_gm(host, raw: str) -> str:
     """gm_删GM <QQ号>"""
     if not raw or not raw.isdigit():
-        return "格式：gm_删GM <QQ号>"
+        return _T.static("gm.usage_del_gm")
     wl = load_whitelist(host)
     if raw in wl:
         wl.remove(raw)
         save_whitelist(host, wl)
-    return f"🗑️ 已把 QQ {raw} 移出 GM 名单！({len(wl)} 人白名单)"
+    return _T.text("gm.del_gm_ok", qq=raw, n=len(wl))
 
 
 # ============ 世界 Boss 伤害倍率 / 帮助 ============
@@ -438,16 +440,16 @@ def boss_dmg(host, qq_id, raw: str) -> str:
     db = host.db
     cur = db.get_boss_dmg_mult(qq_id)
     if not raw:
-        return f"⚔️ 你当前的世界 Boss 伤害倍率：×{cur}(默认 1)\n『gm_伤害 <倍率>』修改(0.1－100)"
+        return _T.text("gm.boss_cur", cur=cur)
     try:
         m = float(raw)
     except ValueError:
-        return "格式：gm_伤害 <倍率>，如 『gm_伤害 10』(10 倍)"
+        return _T.static("gm.usage_boss_dmg")
     if not 0.1 <= m <= 100:
-        return "范围 0.1－100！"
+        return _T.static("gm.boss_range")
     m = round(m, 2)
     db.set_event_state(f"boss_dmg_{qq_id}", m)
-    return f"⚔️ 世界 Boss 伤害倍率已设为 ×{m}(原 ×{cur})！『讨伐』时生效"
+    return _T.text("gm.boss_set", m=m, cur=cur)
 
 
 # ============================================================
@@ -483,16 +485,16 @@ def reload_tables(reload_all_sets, reload_error) -> list:
     try:
         change = reload_all_sets()
     except reload_error as exc:
-        return ["❌ 资料表重载失败：%s" % exc]
+        return [_T.static("gm.reload_fail") % exc]
     try:
         rebuilt = _rebuild_derived_caches()
     except Exception as exc:                                  # noqa: BLE001
-        return ["❌ 资料表已重载，但包内派生缓存重建失败：%s: %s" % (type(exc).__name__, exc)]
+        return [_T.static("gm.reload_rebuild_fail") % (type(exc).__name__, exc)]
     total = sum(len(per) for per in change.values())
     rows = sorted({(domain, row["before"], row["after"])
                    for per in change.values() for domain, row in per.items()
                    if row["before"] != row["after"]})
-    lines = ["🔄 资料表重载完成（不停服）：共 %d 张表 · %d 个集合 · 重建包内缓存 %d 个模块"
+    lines = [_T.static("gm.reload_ok")
              % (total, len(change), rebuilt)]
     if not rows:
         lines.append("无变化")
@@ -505,31 +507,5 @@ def reload_tables(reload_all_sets, reload_error) -> list:
 def help_text() -> str:
     """gm_帮助：GM 指令一览（逐字真源整段）。"""
     return (
-        "🛠️ 【GM 指令】(运营/调试用，仅管理员)\n"
-        "━━━━━━━━━━━━\n"
-        "🏮 服务器\n"
-        "『gm_停服 [公告]』 停服(玩家无法游玩，自动广播)\n"
-        "『gm_开服』 开服(自动广播)\n"
-        "『gm_状态』 服务器状态/玩家数/GM 名单\n"
-        "『gm_重载』 重载资料表(不停服，按磁盘重读 data/*.json)\n"
-        "『gm_广播 <内容>』 全服公告\n"
-        "━━━━━━━━━━━━\n"
-        "👥 玩家管理\n"
-        "『gm_玩家 [关键词] [页码]』 玩家列表\n"
-        "『gm_查询 <QQ/名字>』 玩家详情\n"
-        "『gm_发金币 <QQ/名字> <数量>』 发金币\n"
-        "『gm_发物品 <QQ/名字> <物品名> [数量]』 发物品(材料/消耗品)\n"
-        "『gm_发经验 <QQ/名字> <经验>』 发经验\n"
-        "『gm_设等级 <QQ/名字> <等级>』 设等级(重算属性回满血)\n"
-        "『gm_传送 <QQ/名字> <地图名>』 传送\n"
-        "『gm_体力 <QQ/名字> [数值]』 设体力(默认回满)\n"
-        "『gm_改名 <QQ/名字> <新名字>』 改名\n"
-        "━━━━━━━━━━━━\n"
-        "👑 权限管理\n"
-        "『gm_加GM <QQ>』『gm_删GM <QQ>』 管理 GM 白名单\n"
-        "━━━━━━━━━━━━\n"
-        "🧪 调试\n"
-        "『gm_伤害 [倍率]』 世界 Boss 伤害倍率(0.1-100)\n"
-        "『gm_play <指令>』 转发指令给引擎(真实链路体验)\n"
-        "💡 目标可以是 QQ 号或角色名；白名单存数据库，重启不丢"
+        _T.static("gm.help")
     )
