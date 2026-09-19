@@ -5281,6 +5281,231 @@
     "category": "NPC查找",
     "desc": "搬自 content/world_cmds.py:find_npc（B 批 C 档）"
   },
+  "fish.bait_on": {
+    "value": "\n✨ 鱼饵【{bait}】生效了！",
+    "params": [
+      "bait"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.catch": {
+    "value": "{catch_pre}🎣 你在{spot}钓上来一条【{q_name}】{_size_line}！\n📦 {desc}(可『出售 {fname}』，标价 {price} 金币，实收按店铺 8~9 折){_sv_line}{lv_msg}{_cf_line}{_mount_fish_line}{_master_line}{_pet_egg_line}{_life_line}{bait_line}",
+    "params": [
+      "catch_pre",
+      "spot",
+      "q_name",
+      "_size_line",
+      "desc",
+      "fname",
+      "price",
+      "_sv_line",
+      "lv_msg",
+      "_cf_line",
+      "_mount_fish_line",
+      "_master_line",
+      "_pet_egg_line",
+      "_life_line",
+      "bait_line"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.collect": {
+    "value": "\n🌈 水面忽然泛起奇异的光——【{name}】跃出水面！\n　它美得不像凡物，你小心翼翼地收进了图鉴(彩蛋收藏品，回收仅 1 金币)",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:collect_bonus_line（B 批 C 档）"
+  },
+  "fish.egg_dove": {
+    "value": "\n🥚 水面上漂来一枚【{name}】！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.egg_rabbit": {
+    "value": "\n🥚 咦？鱼肚子里藏着一枚【{name}】！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.egg_star": {
+    "value": "\n🥚 鱼肚子里泛着星光——是【{name}】！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.egg_turtle": {
+    "value": "\n🥚 水草缠着一枚【{name}】！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.king": {
+    "value": "🐉 天啊！你在{spot}钓上了【{q_name}】！！\n鱼王出水，水波震荡，岸边的旅人都看呆了！\n💰 获得 {gold} 金币的赏金！{_sv_line}{lv_msg}\n📜 你的图鉴记下了这传说的一笔……{_cf_line}{bait_line}",
+    "params": [
+      "spot",
+      "q_name",
+      "gold",
+      "_sv_line",
+      "lv_msg",
+      "_cf_line",
+      "bait_line"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.lv_up": {
+    "value": "\n🌟 垂钓等级提升到 Lv.{new_lv}！",
+    "params": [
+      "new_lv"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.master_double": {
+    "value": "\n🐟 渔神出手，一杆双鱼！又一条【{fname}】入网！",
+    "params": [
+      "fname"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.mount_bonus": {
+    "value": "\n🐾 坐骑帮你多叼回一条【{fname}】！",
+    "params": [
+      "fname"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.pre_blue": {
+    "value": "水面泛起奇异的光晕…",
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.pre_orange": {
+    "value": "一道金光破水而出——",
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.pre_purple": {
+    "value": "鱼线猛地绷紧！",
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.rein_camel": {
+    "value": "\n🐫 鱼肚子里卷着一根【{name}】！『使用 缰绳』驯服！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.rein_unicorn": {
+    "value": "\n🦄 传说之鱼口中衔着【{name}】！『使用 缰绳』驯服！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.sv_bp": {
+    "value": "\n🎏 惊喜！鱼肚子里还藏着一张泛黄的纸——【{name}】！(『背包 使用』学习锻造配方)",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.sv_equip": {
+    "value": "\n🎏 惊喜！鱼肚子里卷着一件装备——【{_qmark}{name}】！(已收入背包)",
+    "params": [
+      "_qmark",
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.sv_gem": {
+    "value": "\n💎 惊喜！鱼肚子里嵌着一颗【{name}】——原石入包，可『原石』镶嵌到装备孔位！",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.sv_legend": {
+    "value": "\n🎏 一道金光从鱼腹中迸出——【{_qmark}{name}】静静躺在水草间，传说中的宝物现世了！(已收入背包)",
+    "params": [
+      "_qmark",
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.sv_mat": {
+    "value": "\n🎁 惊喜！水底沉着稀罕的材料——【{name}】！(已收入背包)",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.sv_purple": {
+    "value": "\n🎏 紫光流转——【{_qmark}{name}】夹在鱼鳃里闪闪发亮！(已收入背包)",
+    "params": [
+      "_qmark",
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.sv_rune": {
+    "value": "\n🎏 鱼腹泛起微光——一枚刻着古老铭文的【{name}】随水流漂出！(『背包 使用』附魔到装备)",
+    "params": [
+      "name"
+    ],
+    "category": "垂钓惊喜",
+    "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
+  },
+  "fish.trash": {
+    "value": "🎣 你在{spot}钓上来一个【{q_name}】……唉，今天的运气不太好。{lv_msg}{_cf_line}{bait_line}",
+    "params": [
+      "spot",
+      "q_name",
+      "lv_msg",
+      "_cf_line",
+      "bait_line"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.treasure": {
+    "value": "{catch_pre}🎣 你在{spot}钓上来了一个【{q_name}】！\n打开一看：💰 {gold} 金币！{_sv_line}{_cf_line}{lv_msg}{bait_line}",
+    "params": [
+      "catch_pre",
+      "spot",
+      "q_name",
+      "gold",
+      "_sv_line",
+      "_cf_line",
+      "lv_msg",
+      "bait_line"
+    ],
+    "category": "垂钓结算",
+    "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
   "fl.boss_locked": {
     "value": "👑 Boss 锁定了你，无法逃跑！背水一战吧！",
     "category": "战斗主循环",
@@ -5385,6 +5610,56 @@
     "value": "🌟 今日大吉：经验 +10%！",
     "category": "战斗结算",
     "desc": "搬自 content/settlement.py:fortune_bonus（B 批 C 档）"
+  },
+  "gather.done": {
+    "value": "🌿 采集完成！玩家【{pname}】在【{map_name}】采到了：{got_txt}\n",
+    "params": [
+      "pname",
+      "map_name",
+      "got_txt"
+    ],
+    "category": "采集结算",
+    "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
+  },
+  "gather.egg_rabbit": {
+    "value": "\n🥚 草丛深处有一枚【{name}】！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "采集结算",
+    "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
+  },
+  "gather.lv_up": {
+    "value": "\n🌟 采集等级提升到 Lv.{new_lv}！",
+    "params": [
+      "new_lv"
+    ],
+    "category": "采集结算",
+    "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
+  },
+  "gather.mount_bonus": {
+    "value": "\n🐾 坐骑帮你多叼回一份【{mname}】！",
+    "params": [
+      "mname"
+    ],
+    "category": "采集结算",
+    "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
+  },
+  "gather.rare_hint": {
+    "value": "\n💡 稀有产出需前往产出价≥{price} 材料的区域（高级图）",
+    "params": [
+      "price"
+    ],
+    "category": "采集结算",
+    "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
+  },
+  "gather.rein_reindeer": {
+    "value": "\n🦌 树根下缠着一根【{name}】！『使用 缰绳』驯服！",
+    "params": [
+      "name"
+    ],
+    "category": "采集结算",
+    "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
   },
   "gem.combine_head": {
     "value": "💎 【原石合成】3 个同级原石 → 1 个上级，无失败！",
@@ -9928,6 +10203,47 @@
     "category": "掉落播报",
     "desc": "搬自 content/settlement.py:material_fold（B 批 C 档）"
   },
+  "mining.crit": {
+    "value": "⛏️ 这一锤又准又狠，矿脉整个崩开了！",
+    "category": "挖掘结算",
+    "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
+  },
+  "mining.fatigue": {
+    "value": "\n💤 连续挖掘让你手臂发酸，稀有矿脉更难挖到了……休息 10 分钟（不挖掘）疲劳自会消退！",
+    "category": "挖掘结算",
+    "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
+  },
+  "mining.got": {
+    "value": "{head}\n你获得了 {oname} x{n}！(『背包』查看){lv_msg}{_fat_line}{_rare_hint}",
+    "params": [
+      "head",
+      "oname",
+      "n",
+      "lv_msg",
+      "_fat_line",
+      "_rare_hint"
+    ],
+    "category": "挖掘结算",
+    "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
+  },
+  "mining.lv_up": {
+    "value": "\n🌟 挖掘等级提升到 Lv.{new_lv}！",
+    "params": [
+      "new_lv"
+    ],
+    "category": "挖掘结算",
+    "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
+  },
+  "mining.plain": {
+    "value": "⛏️ 矿脉敲开了！",
+    "category": "挖掘结算",
+    "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
+  },
+  "mining.rare": {
+    "value": "💎 矿脉深处泛起宝光，一锤下去竟是稀有矿脉！",
+    "category": "挖掘结算",
+    "desc": "搬自 content/profession.py:settle_mining（B 批 C 档）"
+  },
   "mount.buy_hint": {
     "value": "去商店『购买 {name}』",
     "params": [
@@ -11650,6 +11966,25 @@
     ],
     "category": "生活副业",
     "desc": "搬自 content/economy_cmds.py:_prof_rank_text（B 批 C 档）"
+  },
+  "prof.wait_begin": {
+    "value": "{head}{begin_text}{wait} 秒后完成，自动入包～",
+    "params": [
+      "head",
+      "begin_text",
+      "wait"
+    ],
+    "category": "副业等待",
+    "desc": "搬自 content/profession.py:prof_wait_flow（B 批 C 档）"
+  },
+  "prof.wait_left": {
+    "value": "⏳ 你还在{tname}呢，再有 {left} 秒就完成啦～(完成会自动入包)",
+    "params": [
+      "tname",
+      "left"
+    ],
+    "category": "副业等待",
+    "desc": "搬自 content/profession.py:prof_wait_flow（B 批 C 档）"
   },
   "prof_icon.alchemy": {
     "value": "🧪",

@@ -59,6 +59,7 @@ from . import catalog_b143 as _b143   # B14-3 收口名（FISH_EXP/QUALITY —�
 from .prof_config import price_band  # ★ B15b：宿主函数进包（原 `C.price_band`，宿主已无对象）
 # ★ P4′-W1-B（包侧去 shim）：包内唯一日志取用口 `content/obs.py`。
 from . import obs
+from . import texts as _T          # ★ C 档 33a（2026-09-19）：文案表读口（本文件首次接入）
 # 计时作业队列用引擎 produce 形状（`Jobs` / `Job`；存储面 = event_state 键 `prof_jobs_{qq}`，
 #   时钟 = 墙上时钟整数秒）。
 from saintess_engine.clock import wall
@@ -602,10 +603,10 @@ def prof_wait_flow(group_id, qq_id, prof_type, extra=None, begin_text="", *,
     elif job_st is not None:
         left = int(job_st.get("finish") or 0) - now
         tname = _cl.PROF_WAIT_BASE.get(job_st.get("type"), (0, 0, "副业"))[2]
-        return f"⏳ 你还在{tname}呢，再有 {left} 秒就完成啦～(完成会自动入包)", False
+        return _T.text("prof.wait_left", tname=tname, left=left), False
     wait = _begin(group_id, qq_id, prof_type, extra)
     head = f"{settle_text}\n" if settle_text else ""
-    return f"{head}{begin_text}{wait} 秒后完成，自动入包～", True
+    return _T.text("prof.wait_begin", head=head, begin_text=begin_text, wait=wait), True
 
 
 def settle_fishing(group_id, qq_id, st, *, hooks=None,
@@ -642,7 +643,7 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
         db.set_event_state(f"bait_{qq_id}", "")
         if bait:
             _bait_cn = {"glow": "萤光鱼饵", "dough": "面团鱼饵", "blood": "血饵"}
-            bait_line = f"\n✨ 鱼饵【{_bait_cn.get(bait, bait)}】生效了！"
+            bait_line = _T.text("fish.bait_on", bait=_bait_cn.get(bait, bait))
     # v83 16 章 4.x：彩蛋收藏鱼（独立判定，纯收藏惊喜）
     _cf = C.roll_collect_fish(st.get("spot_map"), C.current_period() == "night")
     # 9.3：钓点差异化（禁出档位 + 品种限定水域），roll_fish 按 16 章五档权重表；v102.3 带鱼饵
@@ -657,9 +658,9 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
     f_exp = _b143.FISH_EXP.get(fq, 1)
     # 出货文案按档位（16 章 2.6）
     _catch_line = {
-        "blue": "水面泛起奇异的光晕…",
-        "purple": "鱼线猛地绷紧！",
-        "orange": "一道金光破水而出——",
+        "blue": _T.static("fish.pre_blue"),
+        "purple": _T.static("fish.pre_purple"),
+        "orange": _T.static("fish.pre_orange"),
     }.get(fq, "")
     catch_pre = f"{_catch_line}\n" if _catch_line else ""
     # 鱼王：全服公告 + 鱼王计数（v168.2：鱼王/橙档惊喜层统一在下方普通路径收尾判定）
@@ -668,7 +669,7 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
         gold = 300 + player["level"] * 10
         db.update_player(group_id, qq_id, gold=player["gold"] + gold)
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "fishing", f_exp)
-        lv_msg = f"\n🌟 垂钓等级提升到 Lv.{new_lv}！" if leveled else ""
+        lv_msg = _T.text("fish.lv_up", new_lv=new_lv) if leveled else ""
         # v104 M15 修复：鱼王分支同样推进每日副业任务（原漏计）
         if daily_prof_bump is not None:
             _done, _msg = daily_prof_bump(group_id, qq_id, "fishing")
@@ -686,17 +687,15 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
         # 若同杆还中了彩蛋收藏鱼（force_legend）则直接传说档必橙装，不重复 roll）
         _sv_fn = fishing_surprise if fishing_surprise is not None else fishing_surprise_fn
         _sv_line = _sv_fn(group_id, qq_id, player, fish, force_legend=bool(_cf))
-        return (f"🐉 天啊！你在{spot}钓上了【{q_name}】！！\n"
-                f"鱼王出水，水波震荡，岸边的旅人都看呆了！\n"
-                f"💰 获得 {gold} 金币的赏金！{_sv_line}{lv_msg}\n"
-                f"📜 你的图鉴记下了这传说的一笔……{_cf_line}{bait_line}")
+        return (_T.text("fish.king", spot=spot, q_name=q_name, gold=gold, _sv_line=_sv_line, lv_msg=lv_msg,
+                    _cf_line=_cf_line, bait_line=bait_line))
     # 宝物宝箱：立即开（金币保底；惊喜层由收尾统一判定，v168.2 垂钓盲盒不再独占图纸档）
     # 宝箱本体不入包（type=宝物 无售价，MATERIALS 已登记 price=0）；金币即其固定内容
     if fish["type"] == "宝物":
         gold = random.randint(30, 80) + player["level"] * 3
         db.update_player(group_id, qq_id, gold=player["gold"] + gold)
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "fishing", f_exp)
-        lv_msg = f"\n🌟 垂钓等级提升到 Lv.{new_lv}！" if leveled else ""
+        lv_msg = _T.text("fish.lv_up", new_lv=new_lv) if leveled else ""
         # v104 M15 修复：宝物分支同样推进每日副业任务（原漏计）
         if daily_prof_bump is not None:
             _done, _msg = daily_prof_bump(group_id, qq_id, "fishing")
@@ -710,13 +709,13 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
         # 若同杆还中了彩蛋收藏鱼 force_legend=True → 直接传说档必橙装）
         _sv_fn = fishing_surprise if fishing_surprise is not None else fishing_surprise_fn
         _sv_line = _sv_fn(group_id, qq_id, player, fish, force_legend=bool(_cf))
-        return (f"{catch_pre}🎣 你在{spot}钓上来了一个【{q_name}】！\n"
-                f"打开一看：💰 {gold} 金币！{_sv_line}{_cf_line}{lv_msg}{bait_line}")
+        return (_T.text("fish.treasure", catch_pre=catch_pre, spot=spot, q_name=q_name, gold=gold,
+                    _sv_line=_sv_line, _cf_line=_cf_line, lv_msg=lv_msg, bait_line=bait_line))
     # 垃圾：直接报（type=垃圾 恒 white 档——惊喜触发率 0%，不走收尾惊喜层；
     # 收藏鱼 _cf 彩蛋走 collect_bonus_line 入图鉴，纯收藏不触发惊喜档）
     if fish["type"] == "垃圾":
         new_lv, leveled = db.add_prof_exp(group_id, qq_id, "fishing", f_exp)
-        lv_msg = f"\n🌟 垂钓等级提升到 Lv.{new_lv}！" if leveled else ""
+        lv_msg = _T.text("fish.lv_up", new_lv=new_lv) if leveled else ""
         # v104 M15 修复：垃圾分支同样推进每日副业任务（原漏计）
         if daily_prof_bump is not None:
             _done, _msg = daily_prof_bump(group_id, qq_id, "fishing")
@@ -725,7 +724,8 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
         C.check_achievements(group_id, qq_id, player)
         _cf_fn = collect_bonus if collect_bonus is not None else collect_bonus_line
         _cf_line = _cf_fn(group_id, qq_id, player, _cf)
-        return f"🎣 你在{spot}钓上来一个【{q_name}】……唉，今天的运气不太好。{lv_msg}{_cf_line}{bait_line}"
+        return _T.text("fish.trash", spot=spot, q_name=q_name, lv_msg=lv_msg, _cf_line=_cf_line,
+                   bait_line=bait_line)
     # 鱼/材料入背包（9.3：mat_ ID 入包 + quality 字段，16 章 2.7 禁动态中文 key）
     mat_key = C.resolve("materials", fname)
     # v126.2 个体属性 tags：roll 尺寸/重量 → 随 add_item 入包（tag 存 item_data.tags，
@@ -748,7 +748,7 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
         _sv_fn = fishing_surprise if fishing_surprise is not None else fishing_surprise_fn
         _sv_line = _sv_fn(group_id, qq_id, player, fish, force_legend=bool(_cf))
     new_lv, leveled = db.add_prof_exp(group_id, qq_id, "fishing", f_exp)
-    lv_msg = f"\n🌟 垂钓等级提升到 Lv.{new_lv}！" if leveled else ""
+    lv_msg = _T.text("fish.lv_up", new_lv=new_lv) if leveled else ""
     if daily_prof_bump is not None:
         _done, _msg = daily_prof_bump(group_id, qq_id, "fishing")
         lv_msg += _msg
@@ -767,34 +767,34 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
     if fq == "orange" and random.random() < _cc.PET_EGG_ORANGE_CHANCE:
         egg = C.make_pet_egg("pet_rabbit")
         db.add_item(group_id, qq_id, f"petegg_pet_rabbit", egg)
-        _pet_egg_line = f"\n🥚 咦？鱼肚子里藏着一枚【{egg['name']}】！『使用 宠物蛋』孵化！"
+        _pet_egg_line = _T.text("fish.egg_rabbit", name=egg['name'])
     # v101.15 生活渠道：垂钓品质档特殊产出（稀缺品走生活渠道，不走战斗掉落）
     _life_line = ""
     if fq == "blue":
         if random.random() < 0.08:  # 铁壳龟蛋
             egg = C.make_pet_egg("pet_turtle")
             db.add_item(group_id, qq_id, f"petegg_pet_turtle", egg)
-            _life_line += f"\n🥚 水草缠着一枚【{egg['name']}】！『使用 宠物蛋』孵化！"
+            _life_line += _T.text("fish.egg_turtle", name=egg['name'])
         if random.random() < 0.05:  # 圣光鸽蛋
             egg = C.make_pet_egg("pet_dove")
             db.add_item(group_id, qq_id, f"petegg_pet_dove", egg)
-            _life_line += f"\n🥚 水面上漂来一枚【{egg['name']}】！『使用 宠物蛋』孵化！"
+            _life_line += _T.text("fish.egg_dove", name=egg['name'])
         # v110 审计修复：驼马缰绳档位对齐 31 章设计（稀有级 blue 垂钓 5%）——
         # 原实现错标 purple 档（史诗档出绿色坐骑缰绳，档位与坐骑品质倒挂）
         if random.random() < 0.05:  # 铁港驼马缰绳
             rein = C.make_mount_rein("mount_camel")
             db.add_item(group_id, qq_id, f"mountrein_mount_camel", rein)
-            _life_line += f"\n🐫 鱼肚子里卷着一根【{rein['name']}】！『使用 缰绳』驯服！"
+            _life_line += _T.text("fish.rein_camel", name=rein['name'])
     # v110 审计修复：purple 档原驼马条目已移入 blue 档（档位对齐 31 章设计），此档暂空
     elif fq == "orange":
         if random.random() < 0.08:  # 森林独角兽缰绳
             rein = C.make_mount_rein("mount_unicorn")
             db.add_item(group_id, qq_id, f"mountrein_mount_unicorn", rein)
-            _life_line += f"\n🦄 传说之鱼口中衔着【{rein['name']}】！『使用 缰绳』驯服！"
+            _life_line += _T.text("fish.rein_unicorn", name=rein['name'])
         if random.random() < 0.08:  # 星灵蝶蛋
             egg = C.make_pet_egg("pet_starbutterfly")
             db.add_item(group_id, qq_id, f"petegg_pet_starbutterfly", egg)
-            _life_line += f"\n🥚 鱼肚子里泛着星光——是【{egg['name']}】！『使用 宠物蛋』孵化！"
+            _life_line += _T.text("fish.egg_star", name=egg['name'])
     # v101.13 坐骑 fish_bonus：概率额外多一条（骑乘钓鱼类坐骑）
     _mount_fish_line = ""
     meff = C.mount_effects(player)
@@ -806,7 +806,7 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
                     {"name": fname, "type": fish["type"], "stackable": True,
                      "price": fish["price"], "quality": fq},
                     tag=_sw2)
-        _mount_fish_line = f"\n🐾 坐骑帮你多叼回一条【{fname}】！"
+        _mount_fish_line = _T.text("fish.mount_bonus", fname=fname)
     # v101.30b Lv.10 深海渔神：一杆双鱼（15% 概率多一条同品质渔获）
     _master_line = ""
     if prof_lv >= 10 and random.random() < 0.15:
@@ -816,10 +816,12 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
                     {"name": fname, "type": fish["type"], "stackable": True,
                      "price": fish["price"], "quality": fq},
                     tag=_sw3)
-        _master_line = f"\n🐟 渔神出手，一杆双鱼！又一条【{fname}】入网！"
-    return (f"{catch_pre}🎣 你在{spot}钓上来一条【{q_name}】{_size_line}！\n"
-            f"📦 {fish['desc']}(可『出售 {fname}』，标价 {fish['price']} 金币，实收按店铺 8~9 折)"
-            f"{_sv_line}{lv_msg}{_cf_line}{_mount_fish_line}{_master_line}{_pet_egg_line}{_life_line}{bait_line}")
+        _master_line = _T.text("fish.master_double", fname=fname)
+    return (_T.text("fish.catch", catch_pre=catch_pre, spot=spot, q_name=q_name, _size_line=_size_line,
+                desc=fish['desc'], fname=fname, price=fish['price'], _sv_line=_sv_line,
+                lv_msg=lv_msg, _cf_line=_cf_line, _mount_fish_line=_mount_fish_line,
+                _master_line=_master_line, _pet_egg_line=_pet_egg_line, _life_line=_life_line,
+                bait_line=bait_line))
 
 
 def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
@@ -853,15 +855,13 @@ def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
         db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", eq)
         _qmark = {"green": "🟢", "blue": "🔵", "purple": "✨🟣", "orange": "🌟🟠"}.get(
             eq.get("quality", ""), "")
-        return (f"\n🎏 一道金光从鱼腹中迸出——【{_qmark}{eq['name']}】静静躺在"
-                f"水草间，传说中的宝物现世了！(已收入背包)")
+        return (_T.text("fish.sv_legend", _qmark=_qmark, name=eq['name']))
     roll = random.random()
     if roll < FISHING_SURPRISE_BP:      # 图纸档 30%
         bp = C.roll_blueprint(lv)
         if bp:
             db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", bp)
-            return (f"\n🎏 惊喜！鱼肚子里还藏着一张泛黄的纸——【{bp['name']}】！"
-                    f"(『背包 使用』学习锻造配方)")
+            return (_T.text("fish.sv_bp", name=bp['name']))
         roll = FISHING_SURPRISE_BP  # 图纸池空（无配方可出）→ 落入装备档，不额外吃随机
     if roll < FISHING_SURPRISE_EQ:      # 装备档 25%
         _q = "blue" if random.random() < 0.50 else (
@@ -875,11 +875,10 @@ def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
         _qmark = {"green": "🟢", "blue": "🔵", "purple": "✨🟣", "orange": "🌟🟠"}.get(
             eq.get("quality", ""), "")
         if eq.get("quality") == "orange":
-            return (f"\n🎏 一道金光从鱼腹中迸出——【{_qmark}{eq['name']}】静静躺在"
-                    f"水草间，传说中的宝物现世了！(已收入背包)")
+            return (_T.text("fish.sv_legend", _qmark=_qmark, name=eq['name']))
         if eq.get("quality") == "purple":
-            return f"\n🎏 紫光流转——【{_qmark}{eq['name']}】夹在鱼鳃里闪闪发亮！(已收入背包)"
-        return f"\n🎏 惊喜！鱼肚子里卷着一件装备——【{_qmark}{eq['name']}】！(已收入背包)"
+            return _T.text("fish.sv_purple", _qmark=_qmark, name=eq['name'])
+        return _T.text("fish.sv_equip", _qmark=_qmark, name=eq['name'])
     if roll < FISHING_SURPRISE_RUNE:    # 稀有符文档 20%（蓝/紫品质符文）
         rare_runes = [k for k, r in _ci.RUNES.items()
                       if (r.get("quality") or "") in ("blue", "purple")]
@@ -891,8 +890,7 @@ def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
                 # key 与战斗掉落一致（rune_<effect>_<lvl>，同键可叠加）
                 db.add_item(group_id, qq_id,
                             f"rune_{r_def['effect']}_{rune_data['lvl']}", rune_data)
-                return (f"\n🎏 鱼腹泛起微光——一枚刻着古老铭文的【{rune_data['name']}】"
-                        f"随水流漂出！(『背包 使用』附魔到装备)")
+                return (_T.text("fish.sv_rune", name=rune_data['name']))
         roll = FISHING_SURPRISE_RUNE  # 蓝紫符文池空 → 落入宝石档，不额外吃随机
     if roll < FISHING_SURPRISE_GEM:     # 原石宝石档 15%（必给 1 颗原石，层数 1-6）
         # roll_gem_drop 带 normal 2% 底率——宝石惊喜档命中了却大概率空手（98% miss 会
@@ -904,7 +902,7 @@ def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
             _gem = C.roll_gem(1, 6)
         if _gem:
             db.add_item(group_id, qq_id, f"gem_{uuid.uuid4().hex[:8]}", _gem)
-            return f"\n💎 惊喜！鱼肚子里嵌着一颗【{_gem['name']}】——原石入包，可『原石』镶嵌到装备孔位！"
+            return _T.text("fish.sv_gem", name=_gem['name'])
     # 罕见材料档 10%（type in 传说/宝石/精华 且 价≥150 的 MATERIALS 池）
     rare_pool = {k: v for k, v in _ci.MATERIALS.items()
                  if v.get("type") in ("传说", "宝石", "精华")
@@ -917,7 +915,7 @@ def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
             "name": _mname, "type": _mdef.get("type", "材料"),
             "stackable": True, "price": _mdef.get("price", 0),
         })
-        return f"\n🎁 惊喜！水底沉着稀罕的材料——【{_mname}】！(已收入背包)"
+        return _T.text("fish.sv_mat", name=_mname)
     return ""  # 罕见材料池意外为空 → 静默（不再造一句假惊喜）
 
 
@@ -929,8 +927,7 @@ def collect_bonus_line(group_id, qq_id, player, cf):
                 {"name": cf["name"], "type": "收藏", "stackable": True, "price": 1})
     db.bump_stats(group_id, qq_id, catch_collect=1)
     C.check_achievements(group_id, qq_id, player, {"collect_fish": cf["id"]})
-    return (f"\n🌈 水面忽然泛起奇异的光——【{cf['name']}】跃出水面！\n"
-            f"　它美得不像凡物，你小心翼翼地收进了图鉴(彩蛋收藏品，回收仅 1 金币)")
+    return (_T.text("fish.collect", name=cf['name']))
 
 
 def settle_gather(group_id, qq_id, st, *, daily_prof_bump=None,
@@ -957,7 +954,7 @@ def settle_gather(group_id, qq_id, st, *, daily_prof_bump=None,
         # v105R3 M14 P3-1：重复材料合并计数（原逐条"草药x1、草药x1"）
         got[mname] = got.get(mname, 0) + 1
     new_lv, leveled = db.add_prof_exp(group_id, qq_id, "gather", 1)
-    lv_msg = f"\n🌟 采集等级提升到 Lv.{new_lv}！" if leveled else ""
+    lv_msg = _T.text("gather.lv_up", new_lv=new_lv) if leveled else ""
     if daily_prof_bump is not None:
         _done, _msg = daily_prof_bump(group_id, qq_id, "gather")
         lv_msg += _msg
@@ -973,7 +970,7 @@ def settle_gather(group_id, qq_id, st, *, daily_prof_bump=None,
             mname = C.display("materials", mat)
             db.add_item(group_id, qq_id, mat, {"name": mname, "type": _ci.MATERIALS[mat].get("type", "材料"), "stackable": True, "price": _ci.MATERIALS[mat]["price"]})
             got[mname] = got.get(mname, 0) + 1
-            _mount_bonus_line = f"\n🐾 坐骑帮你多叼回一份【{mname}】！"
+            _mount_bonus_line = _T.text("gather.mount_bonus", mname=mname)
     # 阶段九：采集次数 + 成就判定
     db.bump_stats(group_id, qq_id, gather_count=1)
     C.check_achievements(group_id, qq_id, player)
@@ -987,7 +984,7 @@ def settle_gather(group_id, qq_id, st, *, daily_prof_bump=None,
     if rare_hit and random.random() < _rare_ch:
         egg = C.make_pet_egg("pet_rabbit")
         db.add_item(group_id, qq_id, "petegg_pet_rabbit", egg)
-        _pet_egg_line = f"\n🥚 草丛深处有一枚【{egg['name']}】！『使用 宠物蛋』孵化！"
+        _pet_egg_line = _T.text("gather.egg_rabbit", name=egg['name'])
     # v101.15 生活渠道：北境采集稀有产出驯鹿缰绳 5%（稀缺品走生活渠道）
     _life_line = ""
     # v101.30b Lv.10：驯鹿缰绳 5%→10%
@@ -998,7 +995,7 @@ def settle_gather(group_id, qq_id, st, *, daily_prof_bump=None,
     if rare_hit and _is_north and random.random() < _rein_ch:
         rein = C.make_mount_rein("mount_reindeer")
         db.add_item(group_id, qq_id, "mountrein_mount_reindeer", rein)
-        _life_line = f"\n🦌 树根下缠着一根【{rein['name']}】！『使用 缰绳』驯服！"
+        _life_line = _T.text("gather.rein_reindeer", name=rein['name'])
     # v104 M20 P1：每日『采集任务』(collect_any) 进度推进——主采集动作接线
     # （此前只有城镇场景元素「交互 草药柜」每日 1 次推进，野外『采集』恒 0/5）
     _daily_lines = []
@@ -1007,14 +1004,14 @@ def settle_gather(group_id, qq_id, st, *, daily_prof_bump=None,
     _daily_txt = "".join(f"\n{l}" for l in _daily_lines) if _daily_lines else ""
     # q7-9：满级采集彩蛋（兔蛋/驯鹿缰绳）只绑稀有产出（价格≥150），低等级图无稀有材料
     # 恒 0%——本次未采到稀有材料时提示去高级图（纯文案，不动数值）
-    _rare_hint = (f"\n💡 稀有产出需前往产出价≥{_cl.RARE_MATERIAL_PRICE} 材料的区域（高级图）" if not rare_hit else "")
+    _rare_hint = (_T.text("gather.rare_hint", price=_cl.RARE_MATERIAL_PRICE) if not rare_hit else "")
     # v105R3 M14 P3-2：材料每项单独一行（对齐物品详情排版规范 v101.21）
     _got_txt = "".join(f"\n{m}x{c}" for m, c in got.items())
     # v169.x 意见#101：采集完成消息顶部加玩家名（同文件 791 行『玩家 {pname}』口径：
     # player.name 优先，缺省回退 qq_id）
     _pname = (player or {}).get("name") or str(qq_id)
     _tip_txt = tip("gather") if tip is not None else ""
-    return (f"🌿 采集完成！玩家【{_pname}】在【{cur_map.get('name', '？')}】采到了：{_got_txt}\n"
+    return (_T.text("gather.done", pname=_pname, map_name=cur_map.get('name', '？'), got_txt=_got_txt)
             + _tip_txt + f"{lv_msg}{_mount_bonus_line}{_pet_egg_line}{_life_line}{_rare_hint}{_daily_txt}")
 
 
@@ -1118,7 +1115,7 @@ def settle_mining(group_id, qq_id, st, *, daily_prof_bump=None):
     oname = C.display("materials", ore)
     db.add_item(group_id, qq_id, ore, {"name": oname, "type": _ci.MATERIALS[ore].get("type", "材料"), "stackable": True, "price": _ci.MATERIALS[ore]["price"]}, count=n)
     new_lv, leveled = db.add_prof_exp(group_id, qq_id, "mining", 1)
-    lv_msg = f"\n🌟 挖掘等级提升到 Lv.{new_lv}！" if leveled else ""
+    lv_msg = _T.text("mining.lv_up", new_lv=new_lv) if leveled else ""
     if daily_prof_bump is not None:
         _done, _msg = daily_prof_bump(group_id, qq_id, "mining")
         lv_msg += _msg
@@ -1127,15 +1124,16 @@ def settle_mining(group_id, qq_id, st, *, daily_prof_bump=None):
     C.check_achievements(group_id, qq_id, player)
     # v101.28k 挖掘演出：稀有矿脉 / 多份暴击 / 普通
     if is_rare:
-        head = "💎 矿脉深处泛起宝光，一锤下去竟是稀有矿脉！"
+        head = _T.static("mining.rare")
     elif n >= 3:
-        head = "⛏️ 这一锤又准又狠，矿脉整个崩开了！"
+        head = _T.static("mining.crit")
     else:
-        head = "⛏️ 矿脉敲开了！"
+        head = _T.static("mining.plain")
     # v105 疲劳值：结算附疲劳提示（疲劳只降稀有概率，不影响正常产出）
-    _fat_line = ("\n💤 连续挖掘让你手臂发酸，稀有矿脉更难挖到了……休息 10 分钟（不挖掘）疲劳自会消退！"
+    _fat_line = (_T.static("mining.fatigue")
                  if fatigued else "")
     # q7-9：满级挖掘稀有矿脉只绑价格≥150 的矿，低等级图矿池无稀有矿则彩蛋恒 0%——
     # 本次无稀有矿可挖时提示去高级图（纯文案，不动数值）
-    _rare_hint = (f"\n💡 稀有产出需前往产出价≥{_cl.RARE_MATERIAL_PRICE} 材料的区域（高级图）" if not rare else "")
-    return f"{head}\n你获得了 {oname} x{n}！(『背包』查看){lv_msg}{_fat_line}{_rare_hint}"
+    _rare_hint = (_T.text("gather.rare_hint", price=_cl.RARE_MATERIAL_PRICE) if not rare else "")
+    return _T.text("mining.got", head=head, oname=oname, n=n, lv_msg=lv_msg, _fat_line=_fat_line,
+               _rare_hint=_rare_hint)

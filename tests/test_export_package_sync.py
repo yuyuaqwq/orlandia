@@ -173,7 +173,11 @@ FROZEN_COUNTS = {
     #   ★ C 档 31a（B-2 第 18 片：world_cmds 余量「野外来客未出现提示 / 对话支线菜单 /
     #     编年史」，3 函数 3 处替换 / 3 新键；NPC查找 / NPC对话 沿用既有，编年史 为新分类）
     #     ⇒ 2516 → 2519
-    "texts": 2586,
+    #   ★ C 档 33a（B-2 第 21 片：profession「副业结算：等待流/垂钓/惊喜/采集/挖掘」
+    #     6 函数 40 处替换 / 39 新键；副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 /
+    #     挖掘结算 五个新分类；fish.lv_up ×4、fish.sv_legend ×2 同键同值复用，
+    #     gather.rare_hint 跨 settle_gather / settle_mining 共键）⇒ 2586 → 2625
+    "texts": 2625,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

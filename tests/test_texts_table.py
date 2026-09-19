@@ -367,6 +367,14 @@ WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "任务接取": os.path.join(PKG_CONTENT, "quests_flow.py"),
          "任务交付": os.path.join(PKG_CONTENT, "quests_flow.py"),
          "任务进度": os.path.join(PKG_CONTENT, "quests_flow.py"),
+         # ★ C 档 33a（B-2 第 21 片）：profession「副业结算：等待流/垂钓/惊喜/采集/挖掘」
+         #   （content/profession.py 本文件首次接入 `_T`；40 处替换 / 39 新键，
+         #    fish.lv_up ×4 与 fish.sv_legend ×2 同键同值复用，gather.rare_hint 跨两函数共键）
+         "副业等待": os.path.join(PKG_CONTENT, "profession.py"),
+         "垂钓结算": os.path.join(PKG_CONTENT, "profession.py"),
+         "垂钓惊喜": os.path.join(PKG_CONTENT, "profession.py"),
+         "采集结算": os.path.join(PKG_CONTENT, "profession.py"),
+         "挖掘结算": os.path.join(PKG_CONTENT, "profession.py"),
          # ★ C 档 19a（B-2 第 5 片第 1 小片）：combat 战斗域「探索·战斗主循环」
          #   （explore/attack/defend/flee · 摸宝箱 · 战斗状态行/编队/底栏/胜利行）
          "战斗主循环": os.path.join(PKG_CONTENT, "combat_cmds.py"),
@@ -1004,7 +1012,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "副本移动", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -1050,7 +1058,10 @@ def t1_table_selfcheck():
                         "编年史",
                         # ★ C 档 32a（B-2 第 19 片）：gm.py 余量「GM 指令回执族」
                         #   （gm.players_* 四行归既有 GM面板；其余回执/用法/提示为新分类 GM指令）
-                        "GM指令"}, cats)
+                        "GM指令",
+                        # ★ C 档 33a（B-2 第 21 片）：profession「等待流 / 垂钓结算 / 垂钓惊喜 /
+                        #   采集结算 / 挖掘结算」五个新分类（cont/content/profession.py 首次接入 _T）
+                        "副业等待", "垂钓结算", "垂钓惊喜", "采集结算", "挖掘结算"}, cats)
 
 
 def t2_key_and_params_accounting():
