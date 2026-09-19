@@ -1070,9 +1070,9 @@ async def attributes(self, event: AstrMessageEvent, group_id, qq_id, player):
                 # 旧格式无 sides → 回落静态养成面板）
                 _st_src = _bstate["state"]
                 if _st_src.get("sides"):
-                    from saintess_engine import Battle as _B2
+                    from . import bridge as _BR
                     from saintess_engine.battle.stats import actor_stats as _as
-                    _b = _B2.from_state(_st_src)
+                    _b = _BR.restore_battle(_st_src)
                     _my = None
                     for _a in _b.sides_of("player"):
                         if str(_a.get("qq_id") or "") == str(qq_id):

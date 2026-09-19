@@ -4,7 +4,7 @@
 鱼鱼 2026-09-08 拍板：副本战斗不用旧引擎、不在老 instance.py 上打洞——
 本控制器以 saintess_engine state 为战斗权威：
 
-- `st["battle"]` = B2(...).to_state()（sides 全员 actors + now + killed；无镜像）
+- `st["battle"]` = `BR.make_battle(...)` .to_state()（sides 全员 actors + now + killed；无镜像）
 - `build_battle(st)`：遭遇/切怪/Boss 战组 sides → 构造 → 落 st["battle"]
 - `act(...)`：from_state → human_act（副本轮流由玩法壳驱动，此处对指定 actor 出手）
   → to_state 落回；heal/buff 技能 target=None 防奶敌（同 PVP 语义）
@@ -460,6 +460,8 @@ def _attach_instance_hooks(b, st: dict, *, script_api=None, team_heal_text=None)
     saintess_engine 的 Battle 构造参数（target_picker/on_event/action_override）都是运行回调，
     不随 to_state/from_state 序列化——每次 from_state 后必须重挂，否则副本自动怪
     不按仇恨选目标、道具行动回调丢失。
+    （文案表 `text=` 同属「不落盘」那一类，但**不在这里**重挂：`act()` 的恢复走
+    `BR.restore_battle(st)`，由包内唯一出口统一注入，见 `content/bridge.py`。）
 
     :param script_api: Boss 剧本导演实现（模块/对象，需有 `boss_script_cfg` /
         `make_script_event` / `make_script_hook`）；缺省 = 包内端口 `_default_script_api()`
@@ -503,12 +505,11 @@ def _attach_instance_hooks(b, st: dict, *, script_api=None, team_heal_text=None)
 
 
 def build_battle(st: dict, *, script_api=None, team_heal_text=None) -> "object":
-    """遭遇/切怪/Boss 战：组 sides → B2 → st["battle"]=to_state。返回 B2。
+    """遭遇/切怪/Boss 战：组 sides → `BR.make_battle` → st["battle"]=to_state。返回引擎 Battle。
 
     玩家 side = st["members"] 存活者 actor；敌 side = st["enemies"] 单位 actor。
     宠物：当前队长/首成员宠物照传（只存不驱动，宠物批前不参与）。
     """
-    from saintess_engine import Battle as B2
     sides: dict = {"player": [], "enemy": []}
     _roster = IR.roster_of(st)   # v185：名单视图（保序；缺 alive 键 = 存活）
     for kk in _roster.members:
@@ -533,7 +534,7 @@ def build_battle(st: dict, *, script_api=None, team_heal_text=None) -> "object":
             _pet = (st.get("pets") or {}).get(_k0) or {}
     except Exception:
         pass
-    b = B2("instance", sides=sides, title_bonus={}, pet=_pet or {})
+    b = BR.make_battle("instance", sides=sides, title_bonus={}, pet=_pet or {})
     # 5b：构造时注入副本命令层钩子（target_picker 仇恨选目标等）
     _attach_instance_hooks(b, st, script_api=script_api, team_heal_text=team_heal_text)
     st["battle"] = b.to_state()
@@ -582,12 +583,11 @@ def act(st: dict, group_id, qq_id, action: str, skill_name=None,
     副本轮流由玩法壳驱动：调用前已确认轮到 qq_id。
     target：外部解析好的目标 actor（None=自动）；heal/buff 强制 None 防奶敌。
     """
-    from saintess_engine import Battle as B2
     from .. import skills as _SK
     st_battle = st.get("battle") or {}
     if not st_battle.get("sides"):
         return [], True, None, "no_sides"
-    b = B2.from_state(st_battle)
+    b = BR.restore_battle(st_battle)
     # I3：from_state 后注入道具行动回调 + 5b target_picker（action_override/
     # target_picker 不可序列化，恢复必重挂——副本自动怪选目标、道具行动都靠它们）
     _attach_instance_hooks(b, st, script_api=script_api, team_heal_text=team_heal_text)

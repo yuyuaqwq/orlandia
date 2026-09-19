@@ -61,7 +61,7 @@ def replay(records: Iterable[Record], *, seed: Optional[int] = None,
     """按流水**重演**一场战斗，返回 `{result, rounds, p_acts, expected, matched}`。
 
     * 重建口径与生产同源：`prepare_player_for_battle` → `build_sides` →
-      `apply_battle_loadout` → `Battle(sides=…)`（即 `battle_bridge` 的那一套）。
+      `apply_battle_loadout` → `make_battle(sides=…)`（即 `battle_bridge` 的那一套）。
     * **`seed` 的语义 = 「重演起点」**：它必须在**重建完成之后、第一次行动之前**生效
       （重建本身会消耗随机：装备生成/阈值洗牌等）。所以这里先重建、再 `random.seed`，
       最后重演 —— 记录端也要在同一位置取种子（见 `BattleTLog.attach` 的 docstring）。
@@ -76,7 +76,6 @@ def replay(records: Iterable[Record], *, seed: Optional[int] = None,
     if start is None:
         raise ValueError("流水缺少 battle.start —— 无法重建（记录不完整）")
 
-    from saintess_engine import Battle as B2
     _BR = _bridge()
     apply_battle_loadout = _BR.apply_battle_loadout
     build_sides = _BR.build_sides
@@ -98,7 +97,7 @@ def replay(records: Iterable[Record], *, seed: Optional[int] = None,
         for a in sides.get("player", []):
             apply_battle_loadout(a, player.get("title_bonus"))
 
-    b = B2(btype, sides=sides)
+    b = _BR.make_battle(btype, sides=sides)
     by_uid = {}
     for side in b.sides.values():
         for a in side:

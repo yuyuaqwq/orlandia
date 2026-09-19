@@ -1144,9 +1144,8 @@ def _open_battle(self, player: dict, enemies: list, btype: str = "monster",
     # 与数值门禁 tests/numeric_sim.py 同源）
     for _a in sides.get("player", []):
         _BR.apply_battle_loadout(_a, tb)
-    from saintess_engine import Battle as B2
-    b = B2(btype, sides=sides, title_bonus=tb,
-           pet=pet if pet is not None else db.pet_get(qq_id))
+    b = _BR.make_battle(btype, sides=sides, title_bonus=tb,
+                        pet=pet if pet is not None else db.pet_get(qq_id))
     # 流水采集（可拔插：未启用 DRAGONFALL_TLOG / 未 enable 时为 no-op，见 game/tlog_setup.py）
     return _attach_tlog(b, btype=btype, player=player, enemies=enemies)
 
@@ -1154,8 +1153,7 @@ def _restore_battle(self, state: dict) -> "object":
     """恢复 saintess_engine 战斗（from_state）。旧格式（无 sides）→ None（命令层清档重开）。"""
     if not isinstance(state, dict) or not state.get("sides"):
         return None
-    from saintess_engine import Battle as B2
-    return B2.from_state(state)
+    return _BR.restore_battle(state)
 
 def _sync_battle_player(self, player: dict, b) -> None:
     """saintess_engine 行动后回写：actor（副本）→ player dict（命令层读它做 db/展示）。"""
@@ -2751,7 +2749,6 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     for _a in _sides.get("enemy", []):
         if not _a.get("auto_act"):
             _a["auto_act"] = {"act": {"type": "attack"}}
-    from saintess_engine import Battle as B2
     # v2026-09-11：GM 世界 Boss 伤害倍率接回**承伤乘区**（taken_calc 事件）。
     #   引擎 Battle 的 dmg_mult 构造参数只存不读（旧引擎 _boss_dmg_filter 那段没迁过来）
     #   → gm_伤害 曾静默失效；现走内容装配层 battle_worldboss_procs 挂 Boss actor。
@@ -2761,8 +2758,8 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     if _wb_mult != 1.0:
         for _a in _sides.get("enemy", []):
             _WBP.apply_gm_dmg_mult(_a, _wb_mult)
-    nb = B2("worldboss", sides=_sides, title_bonus=_tb)
-    # 敌 actor 技能索引已由 B2 构造建立；给 Boss 配首个技能自动行动（AI 轮换属上层怪 AI 模块）
+    nb = _BR.make_battle("worldboss", sides=_sides, title_bonus=_tb)
+    # 敌 actor 技能索引已由引擎 Battle 构造建立；给 Boss 配首个技能自动行动（AI 轮换属上层怪 AI 模块）
     try:
         _boss_a = next((u for u in nb.sides_of("enemy") if u.get("is_boss")), None)
         if _boss_a:
@@ -3186,7 +3183,6 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     #   title_bonus 战斗级单份无法区分双人——各自外部增幅（core/stat_bonus.py 聚合）
     #   塞 actor["bonus"]["panel"]，stats 读 actor 优先，双方面板各自精确；
     #   battle 级传 {} 仅兜底。
-    from saintess_engine import Battle as B2
     # 0. 双方各自外部增幅聚合（core 直调 + 已 load 的 player dict，避免 _title_bonus
     #    内部再读档；失败降级空 dict）
     from .stat_bonus import stat_bonus as _core_tb
@@ -3223,8 +3219,8 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     #（v181.M-bonus 统一数值容器；序列收敛于 BR.apply_battle_loadout，随 actor 落盘/恢复）
     _BR.apply_battle_loadout(_my_actor, _tb_me)
     _BR.apply_battle_loadout(_opp_actor, _tb_opp)
-    _b2 = B2("pvp", sides={"player": [_my_actor], "enemy": [_opp_actor]},
-             title_bonus={}, pet=db.pet_get(qq_id))
+    _b2 = _BR.make_battle("pvp", sides={"player": [_my_actor], "enemy": [_opp_actor]},
+                         title_bonus={}, pet=db.pet_get(qq_id))
     state = _b2.to_state()
     # meta 外壳（saintess_engine from_state 忽略未知键 → 只给命令层读）
     state["meta"] = {"pvp": True, "attacker_qq": str(qq_id), "actor": "attacker"}
@@ -3258,8 +3254,7 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
         db.clear_battle(group_id, qq_id)
         yield event.plain_result(_T.static("pv.stale1"))
         return
-    from saintess_engine import Battle as B2
-    b = B2.from_state(state)
+    b = _BR.restore_battle(state)
     if b is None:
         self._unlock_battle(group_id, qq_id)
         db.clear_battle(group_id, qq_id)

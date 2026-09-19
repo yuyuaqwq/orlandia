@@ -15,6 +15,11 @@
 普通 dict（player 档 / 怪组），本模块把它们翻译成引擎的 `sides` actors，并做开战装配序列。
 方向只有一个：**内容 → 引擎**（本文件只 `import saintess_engine`，引擎零游戏知识）。
 
+★ **引擎构造出口（v186 文案注入 · 台账 T2）**：包内构造/恢复引擎 `Battle` 一律走
+`make_battle(...)` / `restore_battle(state)` —— 两个口子替调用方把包内文案表注入进去
+（`Battle(text=…)`）。散在各命令层直接 `Battle(...)` 会让「玩家可见文案唯一真源」出现缺口，
+且续战路径（`from_state`）每刻重建、漏一处就整场退回兜底模板。
+
 ① import 层改动（与真源逐行对拍见 `overnight/d3_bridge_verify.py` A1 节）
 | 真源写法 | 包内写法 | 说明 |
 |---|---|---|
@@ -529,8 +534,41 @@ def attach_tlog(b, *, btype: str = "monster", player=None, enemies=None, seed=No
     return b
 
 
+# ============================================================
+# 引擎「Battle 构造 / 恢复」统一出口（v186 文案表注入 · 台账 T2）
+# ============================================================
+
+def _text_table():
+    """包内文案表单例（延迟取件 = `content/texts.py::table()`；唯一真源在数据文件里）。"""
+    from . import texts as _T
+    return _T.table()
+
+
+def make_battle(btype: str, **kwargs):
+    """引擎 `Battle` 构造的**唯一出口**：注入包内文案表（玩家可见文案唯一真源）。
+
+    引擎只认「key + 兜底模板 + 槽位」（`Battle(text=…)`，鸭子类型 `render_or`）：
+    表里有该 key ⇒ 取表；没有 ⇒ 引擎调用点兜底模板逐字输出（= 迁移前文案）。
+    所以「表未收录该 key」与「整个未注入」两条路径输出**逐字节相同**（T2 判据①/⑤）。
+    """
+    from saintess_engine import Battle as _B
+    return _B(btype, text=_text_table(), **kwargs)
+
+
+def restore_battle(state: dict):
+    """引擎 `Battle.from_state` 的**唯一出口**（续战 / 实时面板）：同口径注入文案表。
+
+    文案表不可 JSON 化 ⇒ 不随 `to_state` 落盘，恢复方**每次重新注入**（与 `target_picker`
+    一类运行回调同款）。实例副本「每刻 from_state → human_act → to_state」的循环全靠这里
+    把表接回来 —— 否则首战之后每一刻的日志都会退回兜底模板。
+    """
+    from saintess_engine import Battle as _B
+    return _B.from_state(state, text=_text_table())
+
+
 __all__ = [
     "player_to_actor", "monster_to_actor", "enemies_to_actors", "build_sides",
     "apply_battle_loadout", "prepare_player_for_battle",
     "sync_player_from_actor", "attach_tlog", "bind_host",
+    "make_battle", "restore_battle",
 ]
