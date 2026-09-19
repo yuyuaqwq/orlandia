@@ -259,7 +259,8 @@ def _sub_boss_dex(ctx):
     if not mid or str(monster.get("role", "")) != "boss":
         return []
     dex = _read_domain("boss_dex") or {}
-    line = dex.get(mid) if isinstance(dex, dict) else None
+    entry = dex.get(mid) if isinstance(dex, dict) else None
+    line = (entry or {}).get("text") if isinstance(entry, dict) else None
     return [line] if line else []
 
 
