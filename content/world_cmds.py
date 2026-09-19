@@ -1735,7 +1735,7 @@ def _subarea_arrive(self, player: dict, cur_map: dict, sa: dict, group_id=None, 
 
     # v128 赶路模式：移动落点统一提示（回复 0 结束），替代『前往结束』
     if group_id is not None and qq_id is not None and db.get_event_state(f"move_mode:{qq_id}"):
-        out += "\n🚶 赶路模式中：回复序号直接赶路，回复 0 结束"
+        out += _T.static("move.mode_hint")
     return out
 
 
@@ -1755,18 +1755,18 @@ async def _instance_dungeon_move(self, event, group_id, qq_id, player, inst_row,
     """
     st = inst_row["state"]
     if st.get("cleared"):
-        yield event.plain_result("副本已通关，没有敌人了！『副本地图』看看战利品堆，或『离开副本』传出～")
+        yield event.plain_result(_T.static("inst_move.cleared"))
         return
     # 战斗进行中（mode != map）→ 不能移动（与野外战斗中禁止移动同规则）
     if st.get("mode") != "map":
-        yield event.plain_result("你正在战斗中！先解决眼前的敌人再说～")
+        yield event.plain_result(_T.static("inst_move.in_battle"))
         return
     # 队长带队：仅队长可移动
     members = st.get("members") or []
     if str(qq_id) != str(st.get("leader")):
         _lead = self._player(group_id, st.get("leader")) or {}
         yield event.plain_result(
-            f"⏳ 副本内由队长【{_lead.get('name', st.get('leader'))}】带队移动！等待队长『移动 <房间>』～")
+            _T.text("inst_move.not_leader", name=_lead.get('name', st.get('leader'))))
         return
     # 目标房间解析：序号（本图连通表）优先，其次房间名/id
     cur_sa = player.get("cur_subarea") or ""
@@ -1794,15 +1794,14 @@ async def _instance_dungeon_move(self, event, group_id, qq_id, player, inst_row,
             for i, lid in enumerate(links)
         ) or "（无）"
         yield event.plain_result(
-            f"🧭 从当前房间可前往：{names}。输入『移动 <房间名/序号>』～"
-            f"（『副本地图』查看全景）")
+            _T.text("inst_move.room_list", names=names))
         return
     if target_sa["id"] == cur_sa:
-        yield event.plain_result(f"你已经在这里了({cur_map.get('name', '')}·{target_sa['name']})～")
+        yield event.plain_result(_T.text("move.same_sa", map=cur_map.get('name', ''), sa=target_sa['name']))
         return
     if target_sa["id"] not in links:
         yield event.plain_result(
-            f"🧭 【{target_sa['name']}】与当前房间不相连！副本内只能移动到相邻房间（『副本地图』查看可前往）～")
+            _T.text("inst_move.not_linked", sa=target_sa['name']))
         return
     # 目标房间：rooms 存档（怪物池/资源池）——波次 3a 未实现则只做移动/展示
     rooms = st.get("rooms") or {}
@@ -1829,12 +1828,9 @@ async def _instance_dungeon_move(self, event, group_id, qq_id, player, inst_row,
         db.save_battle(group_id, st["leader"], st)
         _mon = st.get("boss") or {}
         yield event.plain_result(
-            f"{arrive_view}\n"
-            f"━━━━━━━━━━━━\n"
-            f"🍃 刚踏进【{target_sa['name']}】，{_mon.get('name', '怪物')} 就扑了上来！\n"
-            f"━━━━━━━━━━━━\n"
-            f"{self._instance_battle_footer(st, group_id)}\n"
-            f"⏳ 轮到 {self._instance_turn_player_name(st, group_id)} 行动！『攻击』『技能 <名称>』『防御』"
+            _T.text("inst_move.ambush", arrive=arrive_view, name=target_sa['name'],
+                     mon=_mon.get('name', '怪物'), footer=self._instance_battle_footer(st, group_id),
+                     who=self._instance_turn_player_name(st, group_id))
         )
         return
     # Boss 房 + boss_alive → 触发 Boss 战（不消耗普通怪池）
@@ -1849,12 +1845,9 @@ async def _instance_dungeon_move(self, event, group_id, qq_id, player, inst_row,
             db.save_battle(group_id, st["leader"], st)
             _mon = st.get("boss") or {}
             yield event.plain_result(
-                f"{arrive_view}\n"
-                f"━━━━━━━━━━━━\n"
-                f"👑 踏入【{target_sa['name']}】，Boss【{_mon.get('name', '')}】Lv.{_mon.get('lv', '?')} 拦在面前！\n"
-                f"━━━━━━━━━━━━\n"
-                f"{self._instance_battle_footer(st, group_id)}\n"
-                f"⏳ 轮到 {self._instance_turn_player_name(st, group_id)} 行动！『攻击』『技能 <名称>』『防御』"
+                _T.text("inst_move.boss", arrive=arrive_view, name=target_sa['name'], boss=_mon.get('name', ''),
+                         lv=_mon.get('lv', '?'), footer=self._instance_battle_footer(st, group_id),
+                         who=self._instance_turn_player_name(st, group_id))
             )
             return
     # 无事到达

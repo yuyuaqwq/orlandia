@@ -6700,6 +6700,65 @@
     "category": "营地休息",
     "desc": "搬自 content/world_cmds.py:rest（B 批 C 档）"
   },
+  "inst_move.ambush": {
+    "value": "{arrive}\n━━━━━━━━━━━━\n🍃 刚踏进【{name}】，{mon} 就扑了上来！\n━━━━━━━━━━━━\n{footer}\n⏳ 轮到 {who} 行动！『攻击』『技能 <名称>』『防御』",
+    "params": [
+      "arrive",
+      "name",
+      "mon",
+      "footer",
+      "who"
+    ],
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
+  "inst_move.boss": {
+    "value": "{arrive}\n━━━━━━━━━━━━\n👑 踏入【{name}】，Boss【{boss}】Lv.{lv} 拦在面前！\n━━━━━━━━━━━━\n{footer}\n⏳ 轮到 {who} 行动！『攻击』『技能 <名称>』『防御』",
+    "params": [
+      "arrive",
+      "name",
+      "boss",
+      "lv",
+      "footer",
+      "who"
+    ],
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
+  "inst_move.cleared": {
+    "value": "副本已通关，没有敌人了！『副本地图』看看战利品堆，或『离开副本』传出～",
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
+  "inst_move.in_battle": {
+    "value": "你正在战斗中！先解决眼前的敌人再说～",
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
+  "inst_move.not_leader": {
+    "value": "⏳ 副本内由队长【{name}】带队移动！等待队长『移动 <房间>』～",
+    "params": [
+      "name"
+    ],
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
+  "inst_move.not_linked": {
+    "value": "🧭 【{sa}】与当前房间不相连！副本内只能移动到相邻房间（『副本地图』查看可前往）～",
+    "params": [
+      "sa"
+    ],
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
+  "inst_move.room_list": {
+    "value": "🧭 从当前房间可前往：{names}。输入『移动 <房间名/序号>』～（『副本地图』查看全景）",
+    "params": [
+      "names"
+    ],
+    "category": "副本移动",
+    "desc": "搬自 content/world_cmds.py:_instance_dungeon_move（B 批 C 档）"
+  },
   "instance.already_in": {
     "value": "你已在战斗中！『攻击』『技能 <名称>』『防御』行动～",
     "category": "副本准入",
@@ -9208,6 +9267,11 @@
     ],
     "category": "移动赶路",
     "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.mode_hint": {
+    "value": "\n🚶 赶路模式中：回复序号直接赶路，回复 0 结束",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_subarea_arrive（B 批 C 档）"
   },
   "move.no_dest": {
     "value": "前往哪？输入『地图』查看～",
