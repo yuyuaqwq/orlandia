@@ -49,6 +49,10 @@ from . import catalog_quests as _cq      # NPCS / SIDE_QUESTS
 # ★ W4（2026-09-14）：`C.ALL_WILD` → 包内读口（真源 `core/wild.py:26` 派生式）
 from . import wild as _wild
 
+# ★ C 档 34a（B-2 第 24 片）：文案真源取件口（对话动作回执照文案表）
+from . import texts as _T
+
+
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _ROOT = os.path.dirname(_HERE)                             # <pkg>
 
@@ -188,14 +192,14 @@ def action_apprentice_check(world, group_id, qq_id, player, npc_id, action):
             # 归因矛盾（小红实测梅尔文交付被抓包）。v167 起仅剩未拜师场景，
             # 提示语已由 _prof_active_check 输出"先去拜师"引导。
             world._talk_route = "__end__"
-            return [_msgp + "（这次考验先不收材料，先去拜师解锁再来吧）"]
+            return [_msgp + _T.static("ta.appr_locked")]
     have = db.count_item(group_id, qq_id, check.get("item", ""))
     need = int(check.get("count", 1))
     if have >= need:
-        world._talk_tail = [f"✅ {_name}满意地点了点头。"]
+        world._talk_tail = [_T.text("ta.appr_ok", name=_name)]
         return []
     world._talk_route = "fail"
-    return [f"{_name}摇头：还差 {need - have} 份{check.get('item', '材料')}，备齐了再来。"]
+    return [_T.text("ta.appr_lack", name=_name, lack=need - have, item=check.get('item', '材料'))]
 
 
 @register("set_flag")
@@ -209,7 +213,7 @@ def action_give_gold(world, group_id, qq_id, player, npc_id, action):
     # v174 统一抽象：走 grant_reward（保持加金币语义）
     gold = int(action["give_gold"])
     lines = grant_reward({"gold": gold}, group_id, qq_id, player=player)
-    return lines or [f"💰 获得金币 ×{gold}"]
+    return lines or [_T.text("ta.gold", gold=gold)]
 
 
 @register("give_exp")
@@ -220,7 +224,7 @@ def action_give_exp(world, group_id, qq_id, player, npc_id, action):
     exp = int(action["give_exp"])
     lines = grant_reward({"exp": exp}, group_id, qq_id, player=player)
     if not lines:
-        lines = [f"✨ 获得经验 +{exp}"]
+        lines = [_T.text("ta.exp", exp=exp)]
     return lines
 
 
@@ -244,14 +248,14 @@ def action_give_item(world, group_id, qq_id, player, npc_id, action):
     lines = grant_reward({"items": [{"item": key, "n": count}]}, group_id, qq_id, player=player)
     if lines:
         return lines
-    return [f"🎒 获得 {key} ×{count}"]
+    return [_T.text("ta.item", item=key, count=count)]
 
 
 @register("open_shop")
 def action_open_shop(world, group_id, qq_id, player, npc_id, action):
     if not action.get("open_shop"):
         return []
-    return ["🏪 输入『商店』可以买东西"]
+    return [_T.static("ta.shop_hint")]
 
 
 @register("hint")
@@ -334,7 +338,7 @@ def action_consume_item(world, group_id, qq_id, player, npc_id, action):
     if not key:
         return []
     db.remove_item(group_id, qq_id, key, count)
-    return [f"🎒 交出 {key} ×{count}"]
+    return [_T.text("ta.consume", item=key, count=count)]
 
 
 @register("unlock_prof")
@@ -342,7 +346,7 @@ def action_unlock_prof(world, group_id, qq_id, player, npc_id, action):
     prof = action["unlock_prof"]
     appr = list(player.get("apprentices", []))
     if prof in appr:
-        return [f"你已经拜过{db.PROF_FIELDS.get(prof, prof)}的导师了。"]
+        return [_T.text("ta.prof_dup", prof=db.PROF_FIELDS.get(prof, prof))]
     ok, act_msg = world._prof_active_check(group_id, qq_id, prof)
     if not ok:
         return [act_msg]
@@ -353,9 +357,9 @@ def action_unlock_prof(world, group_id, qq_id, player, npc_id, action):
     lines = []
     if exp:
         lv, _ = db.add_prof_exp(group_id, qq_id, prof, int(exp))
-        lines.append(f"🎓 拜师成功！解锁副业「{db.PROF_FIELDS.get(prof, prof)}」(副业经验 +{exp})")
+        lines.append(_T.text("ta.prof_ok_exp", prof=db.PROF_FIELDS.get(prof, prof), exp=exp))
     else:
-        lines.append(f"🎓 拜师成功！解锁副业「{db.PROF_FIELDS.get(prof, prof)}」")
+        lines.append(_T.text("ta.prof_ok", prof=db.PROF_FIELDS.get(prof, prof)))
     lines.append(world._tip("profession"))
     return lines
 
@@ -386,10 +390,10 @@ def action_tutor_skill(world, group_id, qq_id, player, npc_id, action):
     cost = int(ts.get("cost", 0))
     info = skill_info(player.get("class_name", ""), sk_id)
     if not info:
-        return ["这位导师似乎还没准备好教你……"]
+        return [_T.static("ta.tut_none")]
     need_lv = int(info.get("lv", ts.get("need_lv", 1)))
     if player.get("level", 0) < need_lv:
-        return [f"导师摇摇头：这套本事要 Lv.{need_lv} 才学得动，你才 Lv.{player.get('level', 1)}，先练练基本功。"]
+        return [_T.text("ta.tut_lv", need_lv=need_lv, my_lv=player.get('level', 1))]
     # v26 分支专属技能门槛：必须先转职到对应分支（与技能点学习同源）
     owner = branch_skill_owner(player.get("class_name", ""), sk_id)
     if owner:
@@ -399,24 +403,25 @@ def action_tutor_skill(world, group_id, qq_id, player, npc_id, action):
         # v130.2f.2 苦修档位展示名映射（与 player.py _BRANCH_KEY_DISPLAY 同源；分支 key 不动）
         _dn = _BRANCH_DISPLAY.get(bname, bname)
         if my_tier < need_tier or not my_path:
-            return [f"导师摇摇头：『{info.get('name', sk_id)}』是 {_dn} 的专属技能，需要先转职为 {_dn} 才能学习！(Lv.30/60/90 可转职)"]
+            return [_T.text("ta.tut_branch", sname=info.get('name', sk_id), branch=_dn, branch2=_dn)]
         branches = _cc.CLASSES[player["class_name"]].get("evolve_branches", {}).get(need_tier, [])
         # v112：多分支索引通用化（攻/守 path=1/2；隐藏流派 path=1/2/3）
         idx = max(0, int(my_path or 0) - 1)
         my_branch = branches[idx] if idx < len(branches) else ""
         if my_branch != bname:
-                return [f"导师摇摇头：『{info.get('name', sk_id)}』是 {_dn} 的专属技能，你走的是 {_BRANCH_DISPLAY.get(my_branch, my_branch)} 路线，学不了～"]
+                return [_T.text("ta.tut_route", sname=info.get('name', sk_id), branch=_dn,
+                            my_branch=_BRANCH_DISPLAY.get(my_branch, my_branch))]
     if (player.get("gold", 0) or 0) < cost:
-        return [f"导师伸出三根手指：学费 {cost} 金币，少一个子儿都不行。(你现在有 {player.get('gold', 0)} 金币)"]
+        return [_T.text("ta.tut_gold", cost=cost, gold=player.get('gold', 0))]
     learned = list(player.get("learned_skills", []))
     sname = info.get("name", sk_id)
     if C.resolve("skills", sname) in [C.resolve("skills", s) for s in learned if s]:
-        return [f"『{sname}』你已经学会了，再多练练吧。"]
+        return [_T.text("ta.tut_known", sname=sname)]
     db.update_player(group_id, qq_id, gold=(player.get("gold", 0) or 0) - cost,
                      learned_skills=learned + [sname])
     return [
-        f"💰 支付学费 {cost} 金币",
-        f"✨ 导师悉心传授，你学会了进阶技能『{sname}』！",
+        _T.text("ta.tut_pay", cost=cost),
+        _T.text("ta.tut_learn", sname=sname),
         f"「{info['desc']}」",
         world._tip("skill_set"),
     ]

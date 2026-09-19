@@ -19,6 +19,10 @@
 # ============================================================
 from . import obs                                 # noqa: E402
 
+# ★ C 档 34a（B-2 第 24 片）：文案真源取件口（种族天赋展示行照文案表）
+from . import texts as _T                         # noqa: E402
+
+
 # -*- coding: utf-8 -*-
 """奥兰迪亚·余烬纪年核心层 - race_talent_display.py（v98.3：种族天赋展示格式化注册表）
 
@@ -62,49 +66,49 @@ def format_talent(k, v, name):
 def _d_hp_mult(v, name):
     pct = int((v - 1) * 100)
     # v113.6 描述补全：明确"最大生命"（此前只有 ±% 看不出是血量）
-    return f"{'🔻' if v < 1 else ''}{name} 最大生命{pct:+d}%"
+    return _T.text("rt.hp_mult", pre='🔻' if v < 1 else '', name=name, pct=pct)
 
 
 @register("growth_mult")
 def _d_growth_mult(v, name):
     pct = int((v - 1) * 100)
     # v113.6 描述补全：明确"全属性成长"
-    return f"{'🔻' if v < 1 else ''}{name} 全属性成长{pct:+d}%"
+    return _T.text("rt.growth_mult", pre='🔻' if v < 1 else '', name=name, pct=pct)
 
 
 @register("spd_mult")
 def _d_spd_mult(v, name):
     pct = int((v - 1) * 100)
     # v113.6 描述补全：明确"先手速度"
-    return f"{'🔻' if v < 1 else ''}{name} 先手速度{pct:+d}%"
+    return _T.text("rt.spd_mult", pre='🔻' if v < 1 else '', name=name, pct=pct)
 
 
 @register("crit_add")
 def _d_crit_add(v, name):
-    return f"{name} 暴击+{int(v*100)}%"
+    return _T.text("rt.crit_add", name=name, pct=int(v*100))
 
 
 @register("phys_reduce")
 def _d_phys_reduce(v, name):
     if v > 0:
         # v113.6 描述补全：明确"受物理伤害"
-        return f"{name} 受物理伤害-{int(v*100)}%"
-    return f"🔻{name} 受物理伤害+{int(-v*100)}%"
+        return _T.text("rt.phys_minus", name=name, pct=int(v*100))
+    return _T.text("rt.phys_plus", name=name, pct=int(-v*100))
 
 
 @register("magic_reduce")
 def _d_magic_reduce(v, name):
     if v > 0:
         # v113.6 描述补全：明确"受魔法伤害"
-        return f"{name} 受魔法伤害-{int(v*100)}%"
-    return f"🔻{name} 受魔法伤害+{int(-v*100)}%"
+        return _T.text("rt.magic_minus", name=name, pct=int(v*100))
+    return _T.text("rt.magic_plus", name=name, pct=int(-v*100))
 
 
 @register("heal_received")
 def _d_heal_received(v, name):
     if v > 0:
-        return f"{name} 受疗+{int(v*100)}%"
-    return f"🔻{name} 受疗{int(v*100)}%"
+        return _T.text("rt.heal_plus", name=name, pct=int(v*100))
+    return _T.text("rt.heal_minus", name=name, pct=int(v*100))
 
 
 @register("berserk_hp")
@@ -113,7 +117,7 @@ def _d_berserk_hp(v, name):
     # 随 battle 常量下沉改读数据单源；调值只改 races.py，本展示与 battle 结算自动同步）
     from .catalog_rules import RACE_ATTACK_MULT   # ★ B16-W11b：包内门面（真源 game/data/races.py:115）
     pct = round((RACE_ATTACK_MULT["berserk"] - 1) * 100)
-    return f"{name} 残血攻＋{pct}%"
+    return _T.text("rt.berserk_hp", name=name, pct=pct)
 
 
 @register("timid_hp")
@@ -122,17 +126,17 @@ def _d_timid_hp(v, name):
     # 随 battle 常量下沉改读数据单源；调值只改 races.py，本展示与 battle 结算自动同步）
     from .catalog_rules import RACE_ATTACK_MULT   # ★ B16-W11b：包内门面（真源 game/data/races.py:115）
     pct = round((1 - RACE_ATTACK_MULT["timid"]) * 100)
-    return f"🔻{name} 残血攻－{pct}%"
+    return _T.text("rt.timid_hp", name=name, pct=pct)
 
 
 @register("first_hit")
 def _d_first_hit(v, name):
-    return f"{name} 首击+{int(v*100)}%"
+    return _T.text("rt.first_hit", name=name, pct=int(v*100))
 
 
 @register("learn_discount")
 def _d_learn_discount(v, name):
-    return f"{name} 学习-{int(v*100)}%"
+    return _T.text("rt.learn_discount", name=name, pct=int(v*100))
 
 
 @register("first_upgrade_refund")
@@ -140,13 +144,13 @@ def _d_first_upgrade_refund(v, name):
     # v134.1 人类·博学者：首次升级技能返还 1 技能点（每技能一次）。展示补全（此前缺注册
     # → 人类『种族』一览/注册种族说明里该天赋整条不显示，反馈#50「种族说明模糊」）
     n = int(v or 0)
-    return f"{name} 每技能首次升级返还 {n} 技能点"
+    return _T.text("rt.first_upgrade_refund", name=name, n=n)
 
 
 @register("prof_bonus")
 def _d_prof_bonus(v, name):
     # v134.1 人类·副业亲和：副业经验 +10%（professions.add_prof_exp 消费）
-    return f"{name} 副业经验+{int(v*100)}%"
+    return _T.text("rt.prof_bonus", name=name, pct=int(v*100))
 
 
 # A0-C1 深潜：v106.2 半身人"幸运儿"已由 gold_bonus 改用于 luck（见 data/races.py 半身人
@@ -158,42 +162,42 @@ def _d_prof_bonus(v, name):
 # format_talent 返 None → 『种族』命令静默不显示，仅 stderr 告警）
 @register("exp_bonus")
 def _d_exp_bonus(v, name):
-    return f"{name} 经验+{int(v*100)}%"
+    return _T.text("rt.exp_bonus", name=name, pct=int(v*100))
 
 
 @register("crit_dmg")
 def _d_crit_dmg(v, name):
-    return f"{name} 暴伤+{int(v*100)}%"
+    return _T.text("rt.crit_dmg", name=name, pct=int(v*100))
 
 
 @register("block")
 def _d_block(v, name):
-    return f"{name} 格挡+{int(v*100)}%"
+    return _T.text("rt.block", name=name, pct=int(v*100))
 
 
 @register("lifesteal")
 def _d_lifesteal(v, name):
-    return f"{name} 吸血+{int(v*100)}%"
+    return _T.text("rt.lifesteal", name=name, pct=int(v*100))
 
 
 @register("luck")
 def _d_luck(v, name):
-    return f"{name} 幸运+{int(v*100)}%"
+    return _T.text("rt.luck", name=name, pct=int(v*100))
 
 
 @register("item_effect")
 def _d_item_effect(v, name):
-    return f"{name} 消耗品+{int(v*100)}%"
+    return _T.text("rt.item_effect", name=name, pct=int(v*100))
 
 
 @register("craft_bonus")
 def _d_craft_bonus(v, name):
-    return f"{name} 锻造经验+{int(v*100)}%"
+    return _T.text("rt.craft_bonus", name=name, pct=int(v*100))
 
 
 @register("explore_item")
 def _d_explore_item(v, name):
-    return f"{name} 探索物品+{int(v*100)}%"
+    return _T.text("rt.explore_item", name=name, pct=int(v*100))
 
 
 # ============ v181.D 引擎结算标签键（不参与玩家可见天赋展示） ============

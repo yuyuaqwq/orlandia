@@ -181,7 +181,9 @@ FROZEN_COUNTS = {
     #     36 处替换 / 36 新键；职业速查 / 收藏册 两个新分类；零同值复用）⇒ 2625 → 2661
     #   ★ C 档 33c（B-2 第 23 片：wild_king「野王 / 野王宝箱」+ travel「出行提示」
     #     33 处替换 / 33 新键；野王 / 野王宝箱 / 出行提示 三个新分类）⇒ 2661 → 2694
-    "texts": 2694,
+    # ★ C 档 34a（B-2 第 24 片）：`content/talk_actions.py`「对话动作」19 处替换 +
+    #     `content/race_talent_display.py`「种族天赋」24 处替换（两新分类）⇒ 2694 → 2737
+    "texts": 2737,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

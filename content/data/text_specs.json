@@ -14133,6 +14133,225 @@
     "category": "掉落播报",
     "desc": "搬自 content/settlement.py:roll_rune_drop（B 批 C 档）"
   },
+  "rt.berserk_hp": {
+    "value": "{name} 残血攻＋{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_berserk_hp（B 批 C 档）"
+  },
+  "rt.block": {
+    "value": "{name} 格挡+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_block（B 批 C 档）"
+  },
+  "rt.craft_bonus": {
+    "value": "{name} 锻造经验+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_craft_bonus（B 批 C 档）"
+  },
+  "rt.crit_add": {
+    "value": "{name} 暴击+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_crit_add（B 批 C 档）"
+  },
+  "rt.crit_dmg": {
+    "value": "{name} 暴伤+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_crit_dmg（B 批 C 档）"
+  },
+  "rt.exp_bonus": {
+    "value": "{name} 经验+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_exp_bonus（B 批 C 档）"
+  },
+  "rt.explore_item": {
+    "value": "{name} 探索物品+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_explore_item（B 批 C 档）"
+  },
+  "rt.first_hit": {
+    "value": "{name} 首击+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_first_hit（B 批 C 档）"
+  },
+  "rt.first_upgrade_refund": {
+    "value": "{name} 每技能首次升级返还 {n} 技能点",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_first_upgrade_refund（B 批 C 档）"
+  },
+  "rt.growth_mult": {
+    "value": "{pre}{name} 全属性成长{pct:+d}%",
+    "params": [
+      "pre",
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_growth_mult（B 批 C 档）"
+  },
+  "rt.heal_minus": {
+    "value": "🔻{name} 受疗{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_heal_received（B 批 C 档）"
+  },
+  "rt.heal_plus": {
+    "value": "{name} 受疗+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_heal_received（B 批 C 档）"
+  },
+  "rt.hp_mult": {
+    "value": "{pre}{name} 最大生命{pct:+d}%",
+    "params": [
+      "pre",
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_hp_mult（B 批 C 档）"
+  },
+  "rt.item_effect": {
+    "value": "{name} 消耗品+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_item_effect（B 批 C 档）"
+  },
+  "rt.learn_discount": {
+    "value": "{name} 学习-{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_learn_discount（B 批 C 档）"
+  },
+  "rt.lifesteal": {
+    "value": "{name} 吸血+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_lifesteal（B 批 C 档）"
+  },
+  "rt.luck": {
+    "value": "{name} 幸运+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_luck（B 批 C 档）"
+  },
+  "rt.magic_minus": {
+    "value": "{name} 受魔法伤害-{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_magic_reduce（B 批 C 档）"
+  },
+  "rt.magic_plus": {
+    "value": "🔻{name} 受魔法伤害+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_magic_reduce（B 批 C 档）"
+  },
+  "rt.phys_minus": {
+    "value": "{name} 受物理伤害-{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_phys_reduce（B 批 C 档）"
+  },
+  "rt.phys_plus": {
+    "value": "🔻{name} 受物理伤害+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_phys_reduce（B 批 C 档）"
+  },
+  "rt.prof_bonus": {
+    "value": "{name} 副业经验+{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_prof_bonus（B 批 C 档）"
+  },
+  "rt.spd_mult": {
+    "value": "{pre}{name} 先手速度{pct:+d}%",
+    "params": [
+      "pre",
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_spd_mult（B 批 C 档）"
+  },
+  "rt.timid_hp": {
+    "value": "🔻{name} 残血攻－{pct}%",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "种族天赋",
+    "desc": "搬自 content/race_talent_display.py:_d_timid_hp（B 批 C 档）"
+  },
   "rune.bad_slot": {
     "value": "『{slot}』不是有效孔位！输入『符文拆卸 <装备名> <孔位序号>』，如：符文拆卸 铁剑 1",
     "params": [
@@ -17052,6 +17271,160 @@
     ],
     "category": "补给箱",
     "desc": "周限箱已达上限（/2 的 2 与限额口径同源数据）"
+  },
+  "ta.appr_lack": {
+    "value": "{name}摇头：还差 {lack} 份{item}，备齐了再来。",
+    "params": [
+      "name",
+      "lack",
+      "item"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_apprentice_check（B 批 C 档）"
+  },
+  "ta.appr_locked": {
+    "value": "（这次考验先不收材料，先去拜师解锁再来吧）",
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_apprentice_check（B 批 C 档）"
+  },
+  "ta.appr_ok": {
+    "value": "✅ {name}满意地点了点头。",
+    "params": [
+      "name"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_apprentice_check（B 批 C 档）"
+  },
+  "ta.consume": {
+    "value": "🎒 交出 {item} ×{count}",
+    "params": [
+      "item",
+      "count"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_consume_item（B 批 C 档）"
+  },
+  "ta.exp": {
+    "value": "✨ 获得经验 +{exp}",
+    "params": [
+      "exp"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_give_exp（B 批 C 档）"
+  },
+  "ta.gold": {
+    "value": "💰 获得金币 ×{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_give_gold（B 批 C 档）"
+  },
+  "ta.item": {
+    "value": "🎒 获得 {item} ×{count}",
+    "params": [
+      "item",
+      "count"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_give_item（B 批 C 档）"
+  },
+  "ta.prof_dup": {
+    "value": "你已经拜过{prof}的导师了。",
+    "params": [
+      "prof"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_unlock_prof（B 批 C 档）"
+  },
+  "ta.prof_ok": {
+    "value": "🎓 拜师成功！解锁副业「{prof}」",
+    "params": [
+      "prof"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_unlock_prof（B 批 C 档）"
+  },
+  "ta.prof_ok_exp": {
+    "value": "🎓 拜师成功！解锁副业「{prof}」(副业经验 +{exp})",
+    "params": [
+      "prof",
+      "exp"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_unlock_prof（B 批 C 档）"
+  },
+  "ta.shop_hint": {
+    "value": "🏪 输入『商店』可以买东西",
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_open_shop（B 批 C 档）"
+  },
+  "ta.tut_branch": {
+    "value": "导师摇摇头：『{sname}』是 {branch} 的专属技能，需要先转职为 {branch2} 才能学习！(Lv.30/60/90 可转职)",
+    "params": [
+      "sname",
+      "branch",
+      "branch2"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_gold": {
+    "value": "导师伸出三根手指：学费 {cost} 金币，少一个子儿都不行。(你现在有 {gold} 金币)",
+    "params": [
+      "cost",
+      "gold"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_known": {
+    "value": "『{sname}』你已经学会了，再多练练吧。",
+    "params": [
+      "sname"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_learn": {
+    "value": "✨ 导师悉心传授，你学会了进阶技能『{sname}』！",
+    "params": [
+      "sname"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_lv": {
+    "value": "导师摇摇头：这套本事要 Lv.{need_lv} 才学得动，你才 Lv.{my_lv}，先练练基本功。",
+    "params": [
+      "need_lv",
+      "my_lv"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_none": {
+    "value": "这位导师似乎还没准备好教你……",
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_pay": {
+    "value": "💰 支付学费 {cost} 金币",
+    "params": [
+      "cost"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
+  },
+  "ta.tut_route": {
+    "value": "导师摇摇头：『{sname}』是 {branch} 的专属技能，你走的是 {my_branch} 路线，学不了～",
+    "params": [
+      "sname",
+      "branch",
+      "my_branch"
+    ],
+    "category": "对话动作",
+    "desc": "搬自 content/talk_actions.py:action_tutor_skill（B 批 C 档）"
   },
   "talk.auto_quest_opt": {
     "value": "📜 有活儿要交给我吗？",
