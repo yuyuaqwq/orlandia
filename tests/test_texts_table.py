@@ -416,8 +416,11 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 34c（B-2 第 26 片）：misc_cmds「成就面板/意见反馈」+ achievements
          #   「成就判定与领取」—— 同域两文件 ⇒ 成就面板 的引用面 = 文件列表；
          #   `帮助面板` 沿用既有 WIRED（help_reply 兜底行同文件 misc_cmds.py）。
+         # ★ C 档 38a（收尾慢磨）：成就解锁播报行在**战斗日志订阅方** player_events.py
+         #   （_ach_lines 主行 + 奖励片段）⇒ 成就面板 的引用面再加一个文件。
          "成就面板": [os.path.join(PKG_CONTENT, "misc_cmds.py"),
-                   os.path.join(PKG_CONTENT, "achievements.py")],
+                   os.path.join(PKG_CONTENT, "achievements.py"),
+                   os.path.join(PKG_CONTENT, "player_events.py")],
          "意见反馈": os.path.join(PKG_CONTENT, "misc_cmds.py"),
          # ★ C 档 19a（B-2 第 5 片第 1 小片）：combat 战斗域「探索·战斗主循环」
          #   （explore/attack/defend/flee · 摸宝箱 · 战斗状态行/编队/底栏/胜利行）

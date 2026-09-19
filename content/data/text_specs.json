@@ -168,6 +168,24 @@
     "category": "成就面板",
     "desc": "搬自 content/achievements.py:claim_achievement_rewards（B 批 C 档）"
   },
+  "ach.unlock": {
+    "value": "🏆 成就解锁：{name}！({desc}){reward}",
+    "params": [
+      "name",
+      "desc",
+      "reward"
+    ],
+    "category": "成就面板",
+    "desc": "搬自 content/player_events.py:_ach_lines（B 批 C 档）"
+  },
+  "ach.unlock_reward": {
+    "value": "\n      🎁 {txt}",
+    "params": [
+      "txt"
+    ],
+    "category": "成就面板",
+    "desc": "搬自 content/player_events.py:_ach_lines（B 批 C 档）"
+  },
   "achp.cat_progress": {
     "value": "解锁 %d/%d 个",
     "category": "成就面板",
@@ -8016,6 +8034,71 @@
     "value": "格式：gm_传送 <QQ号/角色名> <地图名>",
     "category": "GM指令",
     "desc": "搬自 content/gm.py:teleport（B 批 C 档）"
+  },
+  "gmspy.all_fail": {
+    "value": "❌ {n} 张角色卡全部投递失败，详见 AstrBot 日志～",
+    "params": [
+      "n"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
+  },
+  "gmspy.card_head": {
+    "value": "📡 {name} · {title}（本轮完整战况，点开查看）",
+    "params": [
+      "name",
+      "title"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:_spy_to_role_cards（B 批 C 档）"
+  },
+  "gmspy.card_more": {
+    "value": "…(后续交互见插件目录 scripts/{label})",
+    "params": [
+      "label"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:_spy_to_role_cards（B 批 C 档）"
+  },
+  "gmspy.empty": {
+    "value": "📡 实录文件是空的～",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
+  },
+  "gmspy.none": {
+    "value": "📡 暂无 playtest 交互实录（playtest_spy_round*.md 不存在）～",
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
+  },
+  "gmspy.read_fail": {
+    "value": "❌ 读取 {file} 失败: {err}",
+    "params": [
+      "file",
+      "err"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
+  },
+  "gmspy.round_missing": {
+    "value": "❌ 没有第 {round} 轮实录～（现有：最新 {latest}）",
+    "params": [
+      "round",
+      "latest"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
+  },
+  "gmspy.sent": {
+    "value": "✅ 已把 {file} 拆成 {n} 张角色卡合并转发（成功 {ok} / 失败 {fail}）{where}～",
+    "params": [
+      "file",
+      "n",
+      "ok",
+      "fail",
+      "where"
+    ],
+    "category": "GM指令",
+    "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
   },
   "guild.already": {
     "value": "你已经在一个公会里啦！",

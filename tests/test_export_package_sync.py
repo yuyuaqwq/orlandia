@@ -188,7 +188,10 @@ FROZEN_COUNTS = {
     # ★ C 档 34c（B-2 第 26 片）：`content/misc_cmds.py`「帮助兜底/成就面板/意见反馈」
     #     8 处替换 + `content/achievements.py`「成就」11 处替换（两新分类）⇒ 2774 → 2792
     #   ★ C 档 37a（B-2 第 31 片 · C 档收口片：economy 货架行/孤品行/体力恢复 hook + combat 荣誉行/双形态可用行 + pets 宠物蛋 desc + instance_gate 人数措辞；10 处替换 / 10 新键，零同值复用）⇒ 3136 → 3146
-    "texts": 3172,
+    # ★ C 档 38a（收尾慢磨）：`content/cmds_gm.py`「gm_窥探 平台例外族」（8 处替换 / 8 新键，
+    #     归既有 GM指令）+ `content/player_events.py`「成就解锁播报」（2 处替换 / 2 新键，
+    #     归既有 成就面板；本文件首次接入 `_T`）⇒ 3172 → 3182
+    "texts": 3182,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

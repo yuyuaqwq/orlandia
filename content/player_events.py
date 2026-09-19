@@ -91,6 +91,7 @@ def bind_host(**objs):
 
 
 from . import obs                                                        # noqa: E402
+from . import texts as _T                                          # noqa: E402
 from ._pkgref import DB as db                                            # noqa: E402
 from .achievements import check_achievements                             # noqa: E402  真源 `core.achievements`
 from .flow.tower_progress import tower_guard_on_kill                     # noqa: E402  真源 `services.tower_progress`
@@ -253,8 +254,8 @@ def _sub_tower_guard(ctx):
 def _ach_lines(achs) -> list:
     lines = []
     for a in achs or []:
-        rw_txt = f"\n      🎁 {a['_reward_txt']}" if a.get("_reward_txt") else ""
-        lines.append(f"🏆 成就解锁：{a['name']}！({a['desc']}){rw_txt}")
+        rw_txt = _T.text("ach.unlock_reward", txt=a['_reward_txt']) if a.get("_reward_txt") else ""
+        lines.append(_T.text("ach.unlock", name=a['name'], desc=a['desc'], reward=rw_txt))
     return lines
 
 

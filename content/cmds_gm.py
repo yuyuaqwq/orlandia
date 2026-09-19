@@ -334,7 +334,7 @@ def _spy_to_role_cards(md_text: str, label: str, bot_qq: str, ops: dict) -> list
             Node(
                 uin=bot_qq,
                 name=name,
-                content=[Plain("📡 {} · {}（本轮完整战况，点开查看）".format(name, title))],
+                content=[Plain(_T.text("gmspy.card_head", name=name, title=title))],
             )
         ]
         segs = re.split(r"(?=▶)", body)
@@ -345,7 +345,7 @@ def _spy_to_role_cards(md_text: str, label: str, bot_qq: str, ops: dict) -> list
                 total_bytes += len(chunk.encode("utf-8"))
                 if total_bytes > 13500:
                     nodes.append(Node(uin=bot_qq, name=name, content=[
-                        Plain("…(后续交互见插件目录 scripts/{})".format(label))]))
+                        Plain(_T.text("gmspy.card_more", label=label))]))
                     break
                 nodes.append(Node(uin=bot_qq, name=name, content=[Plain(chunk)]))
             else:
@@ -397,7 +397,7 @@ async def gm_spy(shell, event, group_id, qq_id):
         key=lambda p: int(re.search(r"round(\d+)\.md$", p).group(1)),
     )
     if not files:
-        yield event.plain_result("📡 暂无 playtest 交互实录（playtest_spy_round*.md 不存在）～")
+        yield event.plain_result(_T.static("gmspy.none"))
         return
     to_group = "群" in raw
     round_raw = raw.replace("群", "").strip()
@@ -405,8 +405,7 @@ async def gm_spy(shell, event, group_id, qq_id):
         want = os.path.join(ops["dir"], "playtest_spy_round{}.md".format(round_raw))
         if want not in files:
             yield event.plain_result(
-                "❌ 没有第 {} 轮实录～（现有：最新 {}）".format(
-                    round_raw, os.path.basename(files[-1])))
+                _T.text("gmspy.round_missing", round=round_raw, latest=os.path.basename(files[-1])))
             return
         path = want
     else:
@@ -415,10 +414,10 @@ async def gm_spy(shell, event, group_id, qq_id):
         with open(path, "r", encoding="utf-8") as f:
             md_text = f.read().strip()
     except OSError as e:
-        yield event.plain_result("❌ 读取 {} 失败: {}".format(os.path.basename(path), e))
+        yield event.plain_result(_T.text("gmspy.read_fail", file=os.path.basename(path), err=e))
         return
     if not md_text:
-        yield event.plain_result("📡 实录文件是空的～")
+        yield event.plain_result(_T.static("gmspy.empty"))
         return
     cards = _spy_to_role_cards(md_text, os.path.basename(path), event.get_self_id(), ops)
     # 只发私聊（鱼鱼要求"群聊别发了"）；`--群` 变体发到游戏群（私聊被拦截时的 fallback）
@@ -456,9 +455,8 @@ async def gm_spy(shell, event, group_id, qq_id):
             log.warning("[dragonfall] gm_窥探 state 同步失败: %s", _e)
     if sent_ok == 0:
         yield event.plain_result(
-            "❌ {} 张角色卡全部投递失败，详见 AstrBot 日志～".format(len(cards)))
+            _T.text("gmspy.all_fail", n=len(cards)))
         return
     yield event.plain_result(
-        "✅ 已把 {} 拆成 {} 张角色卡合并转发（成功 {} / 失败 {}）{}～".format(
-            os.path.basename(path), len(cards), sent_ok, sent_fail,
-            "投递到游戏群 1095961596" if to_group else "私聊投递到鱼鱼 QQ"))
+        _T.text("gmspy.sent", file=os.path.basename(path), n=len(cards), ok=sent_ok, fail=sent_fail,
+            where="投递到游戏群 1095961596" if to_group else "私聊投递到鱼鱼 QQ"))
