@@ -22249,6 +22249,14 @@
     "category": "战斗日志",
     "desc": "搬自 content/we_procs.py:we_affix_dot（B 批 C 档）"
   },
+  "we.affix_bleed_hit": {
+    "value": "🩸 流血！{tgt} 伤口裂开，将持续失血！",
+    "params": [
+      "tgt"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:_AFFIX_HIT_LOG（B 批 C 档 44）"
+  },
   "we.affix_counter_fallback": {
     "value": "⚔️ 反击！",
     "category": "战斗日志",
@@ -22258,6 +22266,15 @@
     "value": "🛡️ 目标防御下降！",
     "category": "战斗日志",
     "desc": "搬自 content/we_procs.py:we_affix_defdown（B 批 C 档）"
+  },
+  "we.affix_defdown_hit": {
+    "value": "🛡️ 破甲！{tgt} 防御下降 {pct}%！",
+    "params": [
+      "tgt",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:_AFFIX_HIT_LOG（B 批 C 档 44）"
   },
   "we.affix_element_hit": {
     "value": "{tag} {name}！造成 {dmg} 点{element}属性伤害！",
@@ -22385,6 +22402,22 @@
     "category": "武器特效",
     "desc": "武器特效『divine_execution』乘区标记（域 weapon_effects → 条目 divine_execution 的 tag 字段）"
   },
+  "we.dot_blood_trace": {
+    "value": "🩸 败血：目标 {turns} 刻内每刻损失当前生命！",
+    "params": [
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:_DOT_LOG（B 批 C 档 44）"
+  },
+  "we.dot_ember_burn": {
+    "value": "🔥 烬燃：目标每刻燃烧（{turns} 刻）！",
+    "params": [
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:_DOT_LOG（B 批 C 档 44）"
+  },
   "we.dot_fallback": {
     "value": "🔥 {dot_key}：目标持续掉血（{turns} 刻）！",
     "params": [
@@ -22393,6 +22426,22 @@
     ],
     "category": "战斗日志",
     "desc": "搬自 content/we_procs.py:we_dot（B 批 C 档）"
+  },
+  "we.dot_rong_lu_yu_wen": {
+    "value": "🔥 熔炉余温：目标每刻灼烧（{turns} 刻）！",
+    "params": [
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:_DOT_LOG（B 批 C 档 44）"
+  },
+  "we.dot_smith_blaze_wound": {
+    "value": "🔥 裂伤：目标每刻损失生命（{turns} 刻）！",
+    "params": [
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:_DOT_LOG（B 批 C 档 44）"
   },
   "we.dragon_annihilation.tag": {
     "value": "🐉灭龙",

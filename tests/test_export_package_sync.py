@@ -201,7 +201,9 @@ FROZEN_COUNTS = {
     #      门禁原文「判定/累乘/文案部分必须逐字节保留」；撤销该子项，不在本片削验收环节）
     # ★ C 档 42a（2026-09-19）：怪物命名 3 键（monster.cub_name / monster.minion_name /
     #   monster.sub_name；键名全 ASCII，中文键数锚点不变）⇒ 3194 → 3197
-    "texts": 3197,
+    # ★ C 档 44（2026-09-19）：模块级 dict 盲区 6 键（we.dot_* 4 + we.affix_*_hit 2；键名全 ASCII
+    #   ⇒ 中文键数锚点不变）⇒ 3197 → 3203
+    "texts": 3203,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

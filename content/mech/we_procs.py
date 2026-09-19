@@ -135,11 +135,14 @@ def _add_stacks(actor, key: str, amount: int, cap: int | None = None,
 # proc_dot（4 key：命中挂限时 DOT）
 # ============================================================
 
-_DOT_LOG = {
-    "smith_blaze_wound": "🔥 裂伤：目标每刻损失生命（{turns} 刻）！",
-    "rong_lu_yu_wen": "🔥 熔炉余温：目标每刻灼烧（{turns} 刻）！",
-    "ember_burn": "🔥 烬燃：目标每刻燃烧（{turns} 刻）！",
-    "blood_trace": "🩸 败血：目标 {turns} 刻内每刻损失当前生命！",
+# ★ C 档 44（模块级 dict 盲区）：值由「播报文案」改为**文案 key** —— 本表在模块级（import 期），
+#   直接写文案会把渲染在 import 期定稿、texts.reload() 热更失效；故「dict 存 key、调用点
+#   _T.text(key, turns=...) 渲染」（与 poi_effects._MECHANISM_ACTIONS 同口径）。
+_DOT_LOG_KEYS = {
+    "smith_blaze_wound": "we.dot_smith_blaze_wound",
+    "rong_lu_yu_wen": "we.dot_rong_lu_yu_wen",
+    "ember_burn": "we.dot_ember_burn",
+    "blood_trace": "we.dot_blood_trace",
 }
 
 
@@ -160,11 +163,11 @@ def we_dot(battle, caster, target, params, logs):
     _add_stacks(tgt, dot_key, int(params.get("amount", 1) or 1), cap=cap,
                 battle=battle, caster=caster)   # v181 批D：施法者快照（DOT 公式 atk/matk 段）
     turns = int(params.get("turns") or 0) or 3
-    # ★ 2026-09-13 文案修复（改前既有）：`_DOT_LOG` 的表文案带 `{turns}` 占位符，此前**从不
-    #   `.format()`** → 玩家会看到「目标 {turns} 刻内每刻损失当前生命！」（占位符裸露）。
-    #   这里统一 `.format(turns=…)`；缺 key 时的兜底文案是 f-string（已填好），故加 `{` 守卫。
-    _dtxt = _DOT_LOG.get(params.get("key")) or _T.text("we.dot_fallback", dot_key=dot_key, turns=turns)
-    logs.append(_dtxt.format(turns=turns) if "{" in _dtxt else _dtxt)
+    # ★ 2026-09-13 文案修复（改前既有）：DOT 播报文案带 {turns} 占位符，此前**从不渲染** →
+    #   玩家会看到「目标 {turns} 刻内每刻损失当前生命！」（占位符裸露）。C 档 44 起统一走
+    #   _T.text(key, turns=...)（缺 key → we.dot_fallback），不再有二段 .format 与 { 守卫。
+    logs.append(_T.text(_DOT_LOG_KEYS.get(params.get("key")) or "we.dot_fallback",
+                        dot_key=dot_key, turns=turns))
 
 
 # ============================================================
@@ -1195,9 +1198,10 @@ def we_act_done_slow(battle, caster, target, params, logs):
 # 做"本击百分比"类附加。affix 词条 = 通用伤害词条（非职业专属），装配层按 AFFIXES
 # 表翻译后挂 hit（展开 attack_hit+skill_hit）。
 
-_AFFIX_HIT_LOG = {
-    "bleed": "🩸 流血！{tgt} 伤口裂开，将持续失血！",
-    "armor_break": "🛡️ 破甲！{tgt} 防御下降 {pct}%！",
+# ★ C 档 44（模块级 dict 盲区）：值改存文案 key（渲染在调用点 _T.text，同 _DOT_LOG_KEYS 口径）。
+_AFFIX_HIT_LOG_KEYS = {
+    "bleed": "we.affix_bleed_hit",
+    "armor_break": "we.affix_defdown_hit",
 }
 
 
@@ -1217,8 +1221,8 @@ def we_affix_dot(battle, caster, target, params, logs):
     cap = int((state_def(sk) or {}).get("cap") or 3)
     n = _add_stacks(tgt, sk, int(params.get("stacks") or 1), cap=cap,
                     battle=battle, caster=caster)   # v181 批D：施法者快照
-    logs.append(_AFFIX_HIT_LOG.get(params.get("key"), _T.static("we.affix_bleed_fallback")).format(
-        tgt=tgt.get("name", "目标")))
+    logs.append(_T.text(_AFFIX_HIT_LOG_KEYS.get(params.get("key")) or "we.affix_bleed_fallback",
+                        tgt=tgt.get("name", "目标")))
     return n
 
 
@@ -1235,9 +1239,9 @@ def we_affix_defdown(battle, caster, target, params, logs):
              {"type": "apply", "key": "def_down", "stat": "def", "op": "mul",
               "mult": 1.0 - float(params.get("pct") or 0.15),
               "turns": int(params.get("turns") or 2), "on": "target"}, logs)
-    logs.append(_AFFIX_HIT_LOG.get(params.get("key"), _T.static("we.affix_defdown_fallback")).format(
-        tgt=tgt.get("name", "目标"),
-        pct=int(float(params.get("pct") or 0.15) * 100)))
+    logs.append(_T.text(_AFFIX_HIT_LOG_KEYS.get(params.get("key")) or "we.affix_defdown_fallback",
+                        tgt=tgt.get("name", "目标"),
+                        pct=int(float(params.get("pct") or 0.15) * 100)))
 
 
 @register_action("we_affix_element")

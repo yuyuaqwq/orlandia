@@ -51,9 +51,10 @@ def job_guide(env) -> list:
     if isinstance(hit, str):
         return _jg_detail(hit).split("\n")
     if isinstance(hit, list):
-        return [
-            _T.text("job.multi", raw=raw, names="、".join(f"『职业 {JOB_GUIDE[c]['name']}』" for c in hit)).format(
-                raw, "、".join(f"『职业 {JOB_GUIDE[c]['name']}』" for c in hit))]
+        # ★ C 档 44：去掉「对已渲染结果再做 .format(raw, names)」的死代码 —— _T.text 已完成渲染，
+        #   二次 .format 是空操作；且 raw 来自玩家输入，含 {...} 时二次格式化直接 KeyError 崩命令。
+        names = "、".join(f"『职业 {JOB_GUIDE[c]['name']}』" for c in hit)
+        return [_T.text("job.multi", raw=raw, names=names)]
     return [_T.text("job.not_found", raw=raw)]
 
 
