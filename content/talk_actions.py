@@ -51,6 +51,8 @@ from . import wild as _wild
 
 # ★ C 档 34a（B-2 第 24 片）：文案真源取件口（对话动作回执照文案表）
 from . import texts as _T
+from .player_cmds import _BRANCH_KEY_DISPLAY as _BRANCH_DISPLAY  # ★ 2026-09-19 单源化（P0-10 续）：本文件与 combat_cmds 原先各持一份同值副本
+
 
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
@@ -132,8 +134,9 @@ class _Dom:
 
 C = _Dom()
 
-# v130.2f.2 苦修档位展示名映射（分支 key 不动，仅展示层；与 player.py _BRANCH_KEY_DISPLAY 同源）
-_BRANCH_DISPLAY = {"武僧": "淬势者", "大地武僧": "锻势行者"}
+# v130.2f.2 苦修档位展示名映射（分支 key 不动，仅展示层）
+# ★ 2026-09-19 单源化（P0-10 续）：本文件原先持一份与 `player_cmds._BRANCH_KEY_DISPLAY`
+#   同值的副本（注释当年已自称"同源"却未合并）；现统一取顶部 import 的那份，不再各留。
 
 ACTIONS = {}
 

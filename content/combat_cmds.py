@@ -103,6 +103,8 @@ from saintess_engine.battle.formulas import skill_buff_turns, skill_cond_mult, s
 from saintess_engine.formation import formation_view
 
 from . import texts as _T          # 文案表（B 批 B-1：效果名等）
+from .player_cmds import _BRANCH_KEY_DISPLAY as _BRANCH_DISPLAY  # ★ 2026-09-19 单源化（P0-10 续）：本文件与 combat_cmds 原先各持一份同值副本
+
 from .mech.kinds import K_PHYS, K_MAGI, K_HEAL, K_BUFF, K_PASSIVE, K_TAUNT  # v176 去魔法字符串
 from .panel import passive_skills_learned, player_final_stats, skill_learn_cost_for
 from .skills import _sk_table, branch_skill_owner, is_skill_learned, skill_info, skill_level_of
@@ -2034,7 +2036,8 @@ def _skill_list_page(self, player: dict, page: int = 1) -> str:
     skill_items = list(skills.items())
     learned = player.get("learned_skills", [])
     # 分支技能名 → 分支名标记（v130.2f.2：苦修档位展示名映射，分支 key 不动）
-    _BRANCH_DISPLAY = {"武僧": "淬势者", "大地武僧": "锻势行者"}
+    # ★ 2026-09-19 单源化（P0-10 续）：原为**函数内局部副本**（每次调用重建 dict）；
+    #   现取顶部 import 的 `player_cmds._BRANCH_KEY_DISPLAY`（三处同值副本 → 一处真源）。
     branch_tags = {}
     for sname in skills:
         owner = branch_skill_owner(player["class_name"], sname)
