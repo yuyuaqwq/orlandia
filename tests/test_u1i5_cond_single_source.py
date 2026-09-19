@@ -202,7 +202,10 @@ FROZEN_TEXT_SHA256 = "613371ee5c33c548e9ec62764c94229cb639cc0aced6e8b6f85da15c54
 #: 活实现 sha256 —— `inspect.getsource`（5 谓词按声明序拼接，含装饰器行）
 LIVE_PREDS_SHA256 = "5a6da1cafabb335de47aaeddb5fccbee07df01e7e7857108dd30c224c9a43224"
 #: 活实现 sha256 —— `inspect.getsource(skill_cond_mult_act)`（含装饰器行）
-LIVE_ACTION_SHA256 = "ecdc36508b0d61b102db9e78d9336db08d5bb9a5f6fbd1874bf7f7f4a1c5fe29"
+# ★ 2026-09-19（39b）重钉：动作体里的「条件达成播报行」由硬编码改为 `_T.text("cmech.cond_mult_line", …)`
+#   入表 ⇒ getsource 必变；冻结面已同步收窄（`audit_predicate_bytes` 的 needle ① 移出）。
+#   ★ 判定 / 累乘 / 异常三样**一字未动**（另两个 needle 仍逐字节冻结）。
+LIVE_ACTION_SHA256 = "8d7c66aeec3f1ce7a40e90f8e034c659287370d39101d4ddcfa45d5c7fa1e40b"
 
 PRED_ORDER = ("player_first", "enemy_debuff", "enemy_broken", "melody_buff", "melody_stacks")
 COND_KEYS = frozenset(PRED_ORDER)
@@ -318,7 +321,9 @@ def audit_predicate_bytes():
             v.append("谓词 %s 的函数体不再是旧实现的逐字节拷贝" % k)
     # 动作体：本次只许动「查表那几行」；判定/累乘/文案部分必须逐字节保留
     live_a = inspect.getsource(CP.skill_cond_mult_act)
-    for needle in ('logs.append(f"✨ 条件达成【{cond.get(\'type\')}】×{mult:g}")',
+    # ★ 2026-09-19 收窄：原 needle ① 「logs.append(f"✨ 条件达成…")」是**展示文案**、
+    #   属文案表迁移面（已入表 `cmech.cond_mult_line`），移出本冻结面；②③ 仍逐字节冻结。
+    for needle in (
                    'ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult',
                    'except Exception:\n        return  # 判定异常不阻断战斗'):
         if needle not in live_a:

@@ -1152,6 +1152,12 @@
     "category": "身份绑定",
     "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
   },
+  "bind.no_platform": {
+    "value": "⚠️ 身份映射是平台能力，当前运行面未提供（编辑器试玩等脱宿主场景）",
+    "params": [],
+    "category": "身份绑定",
+    "desc": "P0-7 单源化新增：无平台面时 fail-closed（不留本地兜底实现）"
+  },
   "bind.occupied": {
     "value": "⚠️ QQ {qq} 已被另一个 openid（{oid}…）绑定。\n如果你就是本人（换设备/重复绑定），找 GM 确认后处理，防止误绑。",
     "params": [
@@ -2434,6 +2440,15 @@
     ],
     "category": "职业机制",
     "desc": "搬自 content/class_mech.py:passive_cc_clear（B 批 C 档）"
+  },
+  "cmech.cond_mult_line": {
+    "value": "✨ 条件达成【{type}】×{mult:g}",
+    "params": [
+      "type",
+      "mult"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/mech/cond_procs.py:skill_cond_mult_act（39a 撤销子项重做 · 门禁冻结面收窄后）"
   },
   "cmech.counter_hit": {
     "value": "⚔️ 反击！对【{name}】造成 {dmg} 点伤害！",

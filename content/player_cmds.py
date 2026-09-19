@@ -17,7 +17,8 @@
 正文改动面（**只有五类，全部登记**；差异面自检 `overnight/w1213_l3_check.py`）
 ------------------------------------------------------------------------
 1. 函数体内**宿主 import** → **包内直取/同位置惰性取件**（B2-C4 收口）：
-   `from . import _identity`（包内 `content/_identity.py`，B2-C4 真搬）；
+   `shell._identity_ops()` 能力口（P0-7 单源化 2026-09-19：包内 `content/_identity.py`
+   副本已删除，真源唯一 = 宿主 `host/_identity.py`）；
    `from .combat import CombatCmds` → ★ L7（2026-09-15）起直接 `from . import combat_cmds`
    （常量表已**正位**为模块级，读 `combat_cmds._EFFECT_CN`；原宿主类取件口 `_combat_cmds_cls()` 已删）；
    `from ..core.race_talent_display import format_talent`（2 处）→ 包内 `content/race_talent_display.py`；
@@ -535,7 +536,19 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
     )
 
 async def bind_identity(self, event: AstrMessageEvent):
-    from . import _identity
+    # ★ 2026-09-19 P0-7（单源化）：身份映射是**平台能力**（openid 正则 / QQ 号规则），
+    #   真源唯一 = 宿主 `host/_identity.py`。包内那份 `content/_identity.py`（B2-C4「真搬」副本，
+    #   132 行、函数面与宿主逐一同签名、差量只有取件口）已删除 —— 属同实现双份。
+    #   取件走宿主能力口 `shell._identity_ops()`（与 `cmds_gm` 同一姿势；`cmds_env.shell()`
+    #   是包内取宿主面的**唯一口**）；**无平台面 ⇒ fail-closed**，不留本地兜底实现
+    #   （留兜底 = 第二份实现 = 没收敛）。
+    from . import cmds_env as _ce
+    _shell = _ce.shell(event)
+    _ops_getter = getattr(_shell, "_identity_ops", None) if _shell is not None else None
+    if _ops_getter is None:
+        yield event.plain_result(_T.static("bind.no_platform"))
+        return
+    _identity = _ops_getter()
     raw_sender = event.get_sender_id() or ""
     # 已经是 QQ 号（旧平台或已映射）→ 无需绑定
     if not _identity.is_openid(raw_sender):

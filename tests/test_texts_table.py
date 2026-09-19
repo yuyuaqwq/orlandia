@@ -219,7 +219,9 @@ INSTANCE_BATTLE_SRC = PKG_FLOW_INSTANCE_BATTLE_SRC
 #   「宿主侧退化为 0 调用点」「两侧扫到 0 个调用点」），删壳后宿主路径整体 FileNotFoundError。
 #   ⇒ 扫描面（真实调用点集合 / 字面量集合）与双向对账判定**逐条不变**，只是不再扫那份空壳。
 WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
-         "职业机制": PKG_CLASS_MECH_SRC,
+         #  ★ 2026-09-19（39b）：`cond_procs.py` 的 skill_cond_mult_act 播报行入表（cmech.cond_mult_line）
+        "职业机制": [PKG_CLASS_MECH_SRC,
+                     os.path.join(PKG_CONTENT, "mech", "cond_procs.py")],
          "副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "副本日志": PKG_INSTANCE_SRC,
          "副本战斗日志": PKG_FLOW_INSTANCE_BATTLE_SRC,

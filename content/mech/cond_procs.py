@@ -53,6 +53,7 @@ from saintess_engine.battle.effects import register_action
 from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.conditions import Conditions        # ★ U1-I5：条件注册表 = 引擎 conditions.Conditions
+from .. import texts as _T                    # 文案表（39b：条件达成播报行）
 from .._domainio import read_data_json as _read_json
 
 
@@ -201,7 +202,9 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
     if mult == 1.0:
         return
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
-    logs.append(f"✨ 条件达成【{cond.get('type')}】×{mult:g}")
+    # ★ 2026-09-19：本行原被 `audit_predicate_bytes` 的 needle ① 冻结；该门禁冻结面已收窄为
+    #   「判定 / 累乘 / 异常」三样（展示文案属文案表迁移面，不该由它冻结）⇒ 本行入表。
+    logs.append(_T.text("cmech.cond_mult_line", type=cond.get("type"), mult=mult))
 
 
 #: 对外名字 **4 名一字不变**（仍可从本路径 import）；前 2 名现在指向引擎对象 ——
