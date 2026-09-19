@@ -104,11 +104,6 @@ def _tupled_rows(rows):
 # ============================================================
 # ① 序声明（`content/data/key_order.json`：本模块 26 条 / 443 键，按名取用）
 # ============================================================
-def _grp(group: str) -> dict:
-    """`game_config` 的一组常量（缺组 → `{}`）。"""
-    g = _CFG.get(group)
-    return g if isinstance(g, dict) else {}
-
 _ORDERS = placeholder("_ORDERS")
 _CFG = placeholder("_CFG")
 PET_MAX_LEVEL = placeholder("PET_MAX_LEVEL")
@@ -171,11 +166,6 @@ def _order(name: str):
 # ============================================================
 # ② 42 个名字（域 → 值；含两处类型还原）
 # ============================================================
-def _grp(group: str) -> dict:
-    """`game_config` 的一组常量（缺组 → `{}`）。"""
-    g = _CFG.get(group)
-    return g if isinstance(g, dict) else {}
-
 _ORDERS = placeholder("_ORDERS")
 _CFG = placeholder("_CFG")
 PET_MAX_LEVEL = placeholder("PET_MAX_LEVEL")

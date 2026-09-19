@@ -125,66 +125,6 @@ class _ChestCtx:
     def plain_result(self, text):
         return text
 
-
-# 3a. 模板消费 CHEST_BP_CHANCE（源代码引用验证）
-tpl_src = inspect.getsource(IT.tpl_open_chest)
-check("open_chest 模板消费 CHEST_BP_CHANCE",
-      bool(re.search(r"\.CHEST_BP_CHANCE\b", tpl_src)),
-      )
-# 3b. CHEST_BP_CHANCE=1.0 时开箱必得图纸
-clean_db()
-make_player("g1", "q1", "宝箱测试", "战士", level=20)
-with _patched(_CC, "CHEST_BP_CHANCE", 1.0):
-    check("打桩生效（打到实现读点 content.catalog_core 上）", _CC.CHEST_BP_CHANCE == 1.0)
-    ctx = _ChestCtx(db, C, "g1", "q1", 20)
-    try:
-        for _ in IT.tpl_open_chest(ctx):
-            pass
-    except TypeError:
-        pass
-    inv = db.get_inventory("g1", "q1")
-    check("CHEST_BP_CHANCE=1.0 时开箱必得图纸", any(it["data"].get("type") == "图纸" for it in inv))
-# 3c. CHEST_BP_CHANCE=0.0 时开箱不得图纸
-with _patched(_CC, "CHEST_BP_CHANCE", 0.0):
-    clean_db()
-    make_player("g1", "q1", "宝箱测试", "战士", level=20)
-    ctx = _ChestCtx(db, C, "g1", "q1", 20)
-    try:
-        for _ in IT.tpl_open_chest(ctx):
-            pass
-    except TypeError:
-        pass
-    inv = db.get_inventory("g1", "q1")
-    check("CHEST_BP_CHANCE=0.0 时开箱不得图纸", not any(it["data"].get("type") == "图纸" for it in inv))
-
-
-class _ChestCtx:
-    """tpl_open_chest 最小上下文替身（只暴露模板用到的字段）。"""
-
-    def __init__(self, dbm, Cm, gid, qid, lv):
-        self.group_id = gid
-        self.qq_id = qid
-        self.lv = lv
-        self._focus = dbm.get_player(gid, qid)
-        self._dbm = dbm
-        self._Cm = Cm
-
-    def _db(self):
-        return self._dbm
-
-    def _C(self):
-        return self._Cm
-
-    def item_name(self):
-        return "陈旧宝箱"
-
-    def hook(self, name):
-        # 真实 ItemContext 在此执行命名钩子（如 remove_item 消耗物品）；测试替身 no-op
-        return None
-
-    def plain_result(self, text):
-        return text
-
 # ============ 4. 垂钓惊喜层（v168.2 取代宝物箱 60% 图纸） ============
 print("【4. 垂钓惊喜层（v168.2 _fishing_surprise）】")
 clean_db()
