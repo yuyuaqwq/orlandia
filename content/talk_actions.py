@@ -56,7 +56,6 @@ from .player_cmds import _BRANCH_KEY_DISPLAY as _BRANCH_DISPLAY  # ★ 2026-09-1
 
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_ROOT = os.path.dirname(_HERE)                             # <pkg>
 
 
 # ============================================================

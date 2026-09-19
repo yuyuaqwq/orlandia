@@ -281,13 +281,6 @@ def abort_text(code) -> str:
 # 缺省解析要用模块级那一只；它与宿主壳传入的 `_IB.team_heal_text` 是**同一函数对象**）。
 _TEAM_HEAL_RENDERER = team_heal_text
 
-# 玩家快照/玩法壳视图需要同步回的每玩家键（actor → snap 或 st per-player 键）
-# V 系列：战斗状态权威 = effects（snap 由 sync_player_from_actor 回写），
-# p_buffs/p_hot 等玩法壳视图键的折算由显示层按需读 effects（N5b4-1 双引擎通用）
-_VIEW_SNAP_KEYS = (
-    "hp", "mp", "max_hp", "max_mp", "effects", "shields", "defending", "charging",
-    "ct", "cooldown", "food_effects",
-)
 _VIEW_ST_KEYS = {
     "effects": "p_effects", "shields": "p_shields", "food_effects": "p_food_effects",
     "defending": "p_defending", "charging": "charging", "cooldown": "cooldown",

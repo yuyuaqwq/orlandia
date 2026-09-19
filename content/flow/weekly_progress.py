@@ -132,12 +132,6 @@ def _host_grant_reward():
     return getattr(_bound_host("grant_reward", "reward"), "grant_reward")
 
 
-# ============================================================
-# ② 读表口：包内 `weekly_quests` 域（真源 `game/data/weekly_quests.py`）
-# ============================================================
-_QUEST_SRC = "game/data/weekly_quests.py:22 WEEKLY_QUESTS"
-WEEKLY_PICK_SRC = "game/data/weekly_quests.py:152 WEEKLY_PICK"
-WEEKLY_MIN_LV_SRC = "game/data/weekly_quests.py:155 WEEKLY_MIN_LV"
 
 # 每周自动发布条数 / 悬赏板解锁等级 —— ★ B9-L7 起**读域**（`game_config` 域的 `weekly_quests` 组，
 # 由 `scripts/export_domains/b9_l7_domains.py:derive_game_config` 从真源单向导出）：

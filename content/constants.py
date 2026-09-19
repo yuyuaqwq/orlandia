@@ -83,19 +83,8 @@ DEFAULT_STAMINA = 100
 # ================= v99.3 战斗/流程概率常量 =================
 # （原散落各文件的裸数字，集中后改平衡参数只动这里）
 FLEE_CHANCE = 0.75             # battle.py:538 战斗逃跑成功率
-# v130.7 意见#28：逃跑成功率随等级差/速度差修正（battle.py _do_flee：
-# 基础 FLEE_CHANCE ± 等级差×FLEE_LEVEL_STEP ± 速度差×FLEE_SPD_STEP，clamp 到 [FLEE_MIN, FLEE_MAX]）
-FLEE_LEVEL_STEP = 0.05         # 每 1 级等级差（玩家-敌）修正 ±5%
-FLEE_SPD_STEP = 0.01           # 每 1 点速度差（玩家-敌）修正 ±1%
-FLEE_MIN = 0.15                # 逃跑成功率下限（敌高我低保底，防完全跑不掉）
-FLEE_MAX = 0.95                # 逃跑成功率上限（不保 100% 脱身）
-MON_SKILL_CHANCE = 0.3         # battle.py:1294 怪物技能使用概率
-MON_SKILL_CRIT = 0.1           # battle.py:1308 怪物技能暴击率
-SHIELD_COUNTER_CHANCE = 0.6    # battle.py:1597 v51 盾牌反击概率（反击 120% 伤害）
-REFLECT_CHANCE = 0.25          # battle.py:1605 龙鳞套反弹概率（反弹 25% 伤害）
 ENCOUNTER_EVENT_CHANCE = 0.35  # combat.py:95 探索随机事件概率（野外/外郊/核心区）
 SA_BOSS_CHANCE = 0.05          # combat.py:125/202 子区域 Boss 出现概率
-ENCOUNTER_LOW_CHANCE = 0.5     # combat.py:144 普通怪低概率（新手保护）
 FISH_RARE_CHANCE = 0.6         # economy.py:785 垂钓宝物箱图纸概率（v135：50% → 60%）
 PET_EGG_ORANGE_CHANCE = 0.15   # economy.py:240 月光兔蛋（垂钓传说档）概率
 RARE_MAT_CHANCE = 0.10         # economy.py:280 稀有材料额外掉落概率
@@ -106,8 +95,6 @@ INST_EVENT_CHANCE = 0.5        # instance.py:278 副本探索事件概率（v141
                                # encounter_chance(map_dict, default=0.85)，本常量保留勿删；
                                # 代码默认值只维护在 encounter.py，不在此新增副本遇怪默认值）
 MOVE_ENCOUNTER_CHANCE = 0.25   # world.py:2026 移动撞怪概率（world._travel_ambush 用，保留）
-# v101.5 新增
-STARFALL_STUN_CHANCE = 0.20    # battle_mech.py:258 星陨斩眩晕概率
 BOSS_BP_DROP_CHANCE = 0.10    # drops.py:69 Boss 图纸惊喜掉率（v135：5% → 10%，×（1+幸运≤50%）最高 15%）
 TRADER_DEAL_CHANCE = 0.5       # event_templates.py:253 流浪商人成交概率
 CHEST_BP_CHANCE = 0.85         # item_templates.py:611 探索宝箱图纸概率（v135：50% → 85%）
@@ -125,7 +112,6 @@ RECIPE_LV_TIERS = (10, 30, 50, 70, 90)
 MAP_TYPE_TOWN = "城镇区域"       # 安全区：可触发 POI，无怪
 MAP_TYPE_FIELD = "野外"
 MAP_TYPE_INSTANCE = "副本"
-MAP_TYPE_HIDDEN = "隐藏区域"
 # 子区域 type（data/subareas.py）
 SUB_TYPE_TOWN = "城镇"           # 中心广场（首个子区域）
 SUB_TYPE_STREET = "城镇街道"     # 如东大街：连广场 + 城镇出口
@@ -269,7 +255,6 @@ DOT_MAX_TRIGGER: dict = _dot_max_trigger_load()   # 律二：每场上限（达�
 #     腐蚀 corros（真伤轴）同样 5 次，与伤害类对齐
 #     控制类 freeze/stun/sleep 2 次：Boss 每场最多被控 2 次，永不被锁死
 DOT_PRESERVE_PCT = 0.5                     # 律三：跨阶段保留比例（层数保留 50%，向下取整）
-DOT_PRESERVE_THRESHOLD_BONUS = 0.15        # 律三：跨阶段阈值 +15%（新阶段对同一异常略微更抗）
 DOT_SATURATE_MULT = 0.8                    # 律五：饱和后乘区收敛倍率（逐次 ×0.8，指数衰减防叠爆）
 
 
