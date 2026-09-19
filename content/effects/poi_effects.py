@@ -64,6 +64,7 @@ import uuid
 #   门禁逐名 OK · 不等 0，含键序）。其余 `ctx.dom` 接口 = 缺口（函数名/无域），见文末读点现状。
 from .. import catalog_items as _ci
 from .. import catalog_b143 as _b143     # CAMPFIRE_FOOD_POOL / HERB_POOL（W5）
+from .. import texts as _T               # ★ C 档 PRE-effects（2026-09-19）：文案表读口（本文件首次接入）
 # ⚠️ 真源 `from ..log_setup import LOG` + `_logger = LOG` **不搬**：宿主日志层，
 #    且 `_logger` 在真源里零读点（全文件仅此一处赋值）。
 
@@ -179,9 +180,8 @@ def poi_recover(ctx):
                     {"name": C.display("materials", mid), "type": "材料",
                      "stackable": True, "price": _ci.MATERIALS[mid]["price"]})
         got = C.display("materials", mid)
-    return (f"{ctx.icon} 【{ctx.pname}】你在{ctx.loc}的篝火旁坐下烤火。\n"
-            f"❤️ 恢复 {hp_gain} 生命！💙 恢复 {mp_gain} 魔力！\n"
-            f"🍖 篝火上还烤着一份{got}，顺手带走了。")
+    return (_T.text("poi.recover", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, hp=hp_gain, mp=mp_gain,
+                item=got))
 
 
 @register("buff")
@@ -196,8 +196,7 @@ def poi_buff(ctx):
     db.set_event_state(f"poi_buff_{ctx.qq_id}",
                        json.dumps({"stat": bkey, "mult": 1.10, "left": 5, "name": bname},
                                   ensure_ascii=False))
-    return (f"{ctx.icon} 【{ctx.pname}】你向{ctx.loc}的神龛虔诚祈愿，石像仿佛亮了一瞬。\n"
-            f"✨ 获得祝福：{bname}+10%(持续 5 次战斗)！")
+    return (_T.text("poi.buff", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, buff=bname))
 
 
 @register("merchant")
@@ -210,8 +209,7 @@ def poi_merchant(ctx):
     if random.random() < 0.5:
         gold = random.randint(map_lv * 5, map_lv * 10)
         db.update_player(ctx.group_id, ctx.qq_id, gold=player["gold"] + gold)
-        return (f"{ctx.icon} 【{ctx.pname}】行商在你的{ctx.loc}支起货摊，见你面善，低价收走了一批旧货。\n"
-                f"💰 获得 {gold} 金币！(图级 Lv.{map_lv})")
+        return (_T.text("poi.merchant_gold", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, gold=gold, lv=map_lv))
     bp = C.roll_blueprint(max(1, player["level"]))
     _learned = player.get("learned_blueprints") or []
     if bp.get("blueprint_for") in _learned:
@@ -219,11 +217,9 @@ def poi_merchant(ctx):
         _pages = {"white": 1, "green": 1, "blue": 2, "purple": 4, "orange": 6}.get(_bpq, 1)
         db.add_item(ctx.group_id, ctx.qq_id, "mat_tu_zhi_can_ye", {
             "name": "图纸残页", "type": "材料", "stackable": True, "price": 10}, count=_pages)
-        return (f"{ctx.icon} 【{ctx.pname}】行商神秘地掏出一卷图纸：{bp['name']}！\n"
-                f"📜 可惜你已经学会了，化作 {_pages} 张图纸残页（『出售 图纸残页』变现）")
+        return (_T.text("poi.merchant_learned", icon=ctx.icon, name=ctx.pname, bp=bp['name'], pages=_pages))
     db.add_item(ctx.group_id, ctx.qq_id, f"eq_{uuid.uuid4().hex[:8]}", bp)
-    return (f"{ctx.icon} 【{ctx.pname}】行商神秘地掏出一卷图纸：{bp['name']}！\n"
-            f"📜 他称这是从远方古墓里『顺』来的，你赶紧收好。")
+    return (_T.text("poi.merchant_blueprint", icon=ctx.icon, name=ctx.pname, bp=bp['name']))
 
 
 @register("herb")
@@ -240,8 +236,7 @@ def poi_herb(ctx):
                         {"name": C.display("materials", mid), "type": "材料",
                          "stackable": True, "price": _ci.MATERIALS[mid]["price"]})
             got.append(C.display("materials", mid))
-    return (f"{ctx.icon} 【{ctx.pname}】你在{ctx.loc}的草丛里仔细翻找，采到了一些好材料。\n"
-            f"🎒 获得：{'、'.join(got)}！")
+    return (_T.text("poi.herb", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, got='、'.join(got)))
 
 
 @register("loot")
@@ -254,8 +249,7 @@ def poi_loot(ctx):
     if r < 0.6:
         gold = random.randint(20, 80) + player["level"] * 3
         db.update_player(ctx.group_id, ctx.qq_id, gold=player["gold"] + gold)
-        return (f"{ctx.icon} 【{ctx.pname}】你打开{ctx.loc}路边的可疑包裹——里面是金币！\n"
-                f"💰 获得 {gold} 金币！")
+        return (_T.text("poi.loot_gold", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, gold=gold))
     if r < 0.85:
         bp = C.roll_blueprint(max(1, player["level"]))
         # v101.25 #293：探索掉落已学图纸不再重复入包——与战斗掉落同款折算
@@ -265,17 +259,14 @@ def poi_loot(ctx):
             _pages = {"white": 1, "green": 1, "blue": 2, "purple": 4, "orange": 6}.get(_bpq, 1)
             db.add_item(ctx.group_id, ctx.qq_id, "mat_tu_zhi_can_ye", {
                 "name": "图纸残页", "type": "材料", "stackable": True, "price": 10}, count=_pages)
-            return (f"{ctx.icon} 【{ctx.pname}】包裹里卷着一张泛黄的图纸……{bp['name']}！\n"
-                    f"📜 这张图纸你已经学会了，化作 {_pages} 张图纸残页（『出售 图纸残页』变现）")
+            return (_T.text("poi.loot_learned", icon=ctx.icon, name=ctx.pname, bp=bp['name'], pages=_pages))
         db.add_item(ctx.group_id, ctx.qq_id, f"eq_{uuid.uuid4().hex[:8]}", bp)
-        return (f"{ctx.icon} 【{ctx.pname}】包裹里卷着一张泛黄的图纸：{bp['name']}！\n"
-                f"📜 看来是某位锻造师遗失的手稿。")
+        return (_T.text("poi.loot_blueprint", icon=ctx.icon, name=ctx.pname, bp=bp['name']))
     dmg = int(player["max_hp"] * 0.10) + 5
     new_hp = max(1, player["hp"] - dmg)
     db.update_player(ctx.group_id, ctx.qq_id, hp=new_hp)
     # #256: 陷阱触发文案带先兆（包裹缝隙的寒光）——此前无任何提示直接扣血
-    return (f"💥 【{ctx.pname}】包裹的缝隙里隐约闪过一道金属寒光——你还没来得及缩手，一只发条咬人夹弹了出来！\n"
-            f"你被夹了一下，损失 {dmg} 生命(当前 ❤️ {new_hp}/{player['max_hp']})")
+    return (_T.text("poi.loot_trap", name=ctx.pname, dmg=dmg, hp=new_hp, max_hp=player['max_hp']))
 
 
 @register("rune")
@@ -285,8 +276,7 @@ def poi_rune(ctx):
     # 真源 `from ..data.pois import RUNE_POOL`（宿主数据域）→ 调用方接口 dom
     txt = random.choice(ctx.dom.pools("RUNE_POOL"))
     db.set_talk_flag(ctx.group_id, ctx.qq_id, "poi_rune_read", "read_rune")
-    return (f"{ctx.icon} 【{ctx.pname}】你伸手轻触{ctx.loc}的符文石，碑面泛起幽光。\n"
-            f"📖 {txt}")
+    return (_T.text("poi.rune", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, txt=txt))
 
 
 @register("fish")
@@ -297,8 +287,7 @@ def poi_fish(ctx):
     db = ctx._db()
     db.set_event_state(f"poi_fish_{ctx.group_id}_{ctx.qq_id}",
                        json.dumps({"ts": time.time(), "window": 1800}))
-    return (f"{ctx.icon} 【{ctx.pname}】水面泛起细密的涟漪，鱼群正聚在{ctx.loc}的水面下！\n"
-            f"🎣 你赶紧甩杆——『垂钓』吧，这次垂钓不消耗体力(30 分钟内有效)！")
+    return (_T.text("poi.fish", icon=ctx.icon, name=ctx.pname, loc=ctx.loc))
 
 
 @register("note")
@@ -310,16 +299,13 @@ def poi_note(ctx):
         _gkey = f"grave_{(ctx.cur_map or {}).get('id', '')}_{ctx.qq_id}"
         if not db.get_event_state(_gkey):
             db.set_event_state(_gkey, "1")
-            return (f"{ctx.icon} 【{ctx.pname}】你在{ctx.loc}见到一座无名的旅者之墓，苔痕斑驳的碑上刻着几行字。\n"
-                    f"🪦 \"{ctx._focus['name']}，愿你的旅途有人记得。\"\n"
-                    f"🕯️ 你郑重祭拜，于墓前放下一朵野花。")
-        return (f"{ctx.icon} 【{ctx.pname}】你再次路过{ctx.loc}的旅者之墓，碑前的野花还开着。\n"
-                f"🪦 你默默驻足片刻，为这位先行的旅人献上沉默的敬意。")
+            return (_T.text("poi.grave_first", icon=ctx.icon, name=ctx.pname, loc=ctx.loc,
+                        player=ctx._focus['name']))
+        return (_T.text("poi.grave_again", icon=ctx.icon, name=ctx.pname, loc=ctx.loc))
     # 真源 `from ..data.pois import NOTE_POOL`（宿主数据域）→ 调用方接口 dom
     txt = random.choice(ctx.dom.pools("NOTE_POOL"))
     db.set_talk_flag(ctx.group_id, ctx.qq_id, "poi_note_found", "found_note")
-    return (f"{ctx.icon} 【{ctx.pname}】你摘下{ctx.loc}树干上的字条，墨迹已有些褪色。\n"
-            f"📜 {txt}")
+    return (_T.text("poi.note", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, txt=txt))
 
 
 @register("sight")
@@ -327,8 +313,7 @@ def poi_sight(ctx):
     """v87.9 风景 POI：纯氛围观景（无数值收益）。"""
     # 真源 `from ..data.pois import SIGHT_POOL`（宿主数据域）→ 调用方接口 dom
     txt = random.choice(ctx.dom.pools("SIGHT_POOL"))
-    return (f"{ctx.icon} 【{ctx.pname}】你停住脚步，抬头望向{ctx.loc}的风景。\n"
-            f"🌄 {txt}")
+    return (_T.text("poi.sight", icon=ctx.icon, name=ctx.pname, loc=ctx.loc, txt=txt))
 
 
 # ================= 副本内联 POI（inst:<type> 键） =================
@@ -339,9 +324,9 @@ def _need_block(ctx):
     if need:
         unlocks = (ctx.st or {}).get("poi_unlocks", {})
         if need.get("poi_read") and not unlocks.get(need["poi_read"]):
-            return f"🔒 {ctx.pname}纹丝不动——需要先找到某种启示/线索。"
+            return _T.text("poi.locked_clue", name=ctx.pname)
         if need.get("unlock") and not unlocks.get(need["unlock"]):
-            return f"🔒 {ctx.pname}还没准备好——似乎缺少某样东西。"
+            return _T.text("poi.locked_item", name=ctx.pname)
     return None
 
 
@@ -395,7 +380,7 @@ def inst_loot(ctx):
     p = ctx.db_player()
     if gold > 0 and p:
         db.update_player(ctx.group_id, ctx.qq_id, gold=p["gold"] + gold)
-        logs.append(f"💰 你从{ctx.pname}里摸出了 {gold} 金币！")
+        logs.append(_T.text("poi.inst_gold", name=ctx.pname, gold=gold))
     for mn in mats:
         mid = C.resolve("materials", mn)
         if mid in _ci.MATERIALS:
@@ -404,7 +389,7 @@ def inst_loot(ctx):
                 "name": mname, "type": "材料", "stackable": True,
                 "price": _ci.MATERIALS[mid]["price"],
             })
-            logs.append(f"🎒 拾取：{mname}")
+            logs.append(_T.text("poi.inst_pickup", item=mname))
     # v168 副本宝箱低品质装备档（鱼鱼拍板：非 Boss 房宝箱也开得出装备，不再只有图纸）：
     # 副本房间内宝箱/补给/遗骸约 12% 概率额外翻出一件装备——先 roll 品质
     # （白 40% / 绿 35% / 蓝 25%，仅低品质三档），再按玩家等级就近随机部位生成
@@ -424,9 +409,9 @@ def inst_loot(ctx):
         db.add_item(ctx.group_id, ctx.qq_id, f"eq_{uuid.uuid4().hex[:8]}", eq)
         # 白 🎒 / 绿 🟢 / 蓝 🔵：品质色块 + 装备名（与 QUALITY 档位色一致 —— 宿主聚合层同名表）
         _emoji = {"white": "🎒", "green": "🟢", "blue": "🔵"}.get(eq.get("quality", "white"), "🎒")
-        logs.append(f"{_emoji} 你从{ctx.pname}里翻出一件装备：【{eq['name']}】！")
+        logs.append(_T.text("poi.inst_equip", emoji=_emoji, name=ctx.pname, equip=eq['name']))
     ctx.mark_used()
-    head = f"💀 你蹲下搜刮{ctx.pname}……" if ctx.poi.get("type") == "corpse" else f"📦 {ctx.pname}："
+    head = _T.text("poi.inst_corpse_head", name=ctx.pname) if ctx.poi.get("type") == "corpse" else f"📦 {ctx.pname}："
     return "\n".join([head] + logs)
 
 
@@ -448,7 +433,7 @@ def inst_campfire(ctx):
             _pct = (ctx.poi.get("effect") or {}).get("heal_pct", 0.2)
             heal = max(1, int(snap.get("max_hp", snap["hp"]) * _pct))
             snap["hp"] = min(snap.get("max_hp", snap["hp"]), snap["hp"] + heal)
-            logs.append(f"🔥 {snap.get('name', m)} 在{ctx.pname}旁烤火，恢复 {heal} 点生命！")
+            logs.append(_T.text("poi.inst_campfire", name=snap.get('name', m), poi=ctx.pname, heal=heal))
     ctx.mark_used()
     return "\n".join(logs)
 
@@ -458,8 +443,8 @@ def inst_rune_stone(ctx):
     """副本石碑：读 lore（可反复读，不标 used）；effect 子键解锁/避陷阱/Boss 祝福。"""
     logs = []
     st = ctx.st
-    lore = ctx.poi.get("lore", "碑文模糊不清，似乎被岁月磨平了。")
-    logs.append(f"🗿 你阅读{ctx.pname}：")
+    lore = ctx.poi.get("lore", _T.static("poi.rune_lore_default"))
+    logs.append(_T.text("poi.inst_rune_read", name=ctx.pname))
     logs.append(f"  “{lore}”")
     eff = ctx.poi.get("effect") or {}
     # R3 P1-1：读取石碑即记录自身 poi id——need.poi_read 机关（旧王陵王座机关
@@ -481,7 +466,7 @@ def inst_mechanism(ctx):
         return block
     logs = []
     st = ctx.st
-    desc = ctx.poi.get("desc", f"你扳动了{ctx.pname}。")
+    desc = ctx.poi.get("desc", _T.text("poi.inst_mech_desc", name=ctx.pname))
     logs.append(f"⚙️ {desc}")
     eff = ctx.poi.get("effect") or {}
     for key, (act, line) in _MECHANISM_ACTIONS.items():
@@ -501,8 +486,8 @@ def inst_trap(ctx):
     st = ctx.st
     if st.get("poi_unlocks", {}).get(f"avoid_{ctx.poi_id}"):
         ctx.mark_used()
-        return f"⚠️ 你记得石碑上的提示，小心地拆除了{ctx.pname}！"
-    logs = [f"⚠️ 你触发了{ctx.pname}！全队受到 10% 最大生命的伤害！"]
+        return _T.text("poi.trap_disarmed", name=ctx.pname)
+    logs = [_T.text("poi.trap_triggered", name=ctx.pname)]
     # v185：名单视图（存活者；缺 alive 键 = 存活）——真源 `from . import instance_run as IR`，
     # 包内副本运行态未进包 → 走调用方接口 ctx.dom（见文件头 ②）
     for m in ctx.dom.living_members(st):
@@ -512,9 +497,9 @@ def inst_trap(ctx):
             snap["hp"] = max(0, snap["hp"] - dmg)
             if snap["hp"] <= 0:
                 ctx.dom.set_alive(st, m, False)
-                logs.append(f"💀 {snap.get('name', m)} 被陷阱击倒了！")
+                logs.append(_T.text("poi.trap_down", name=snap.get('name', m)))
             else:
-                logs.append(f"❤️ {snap.get('name', m)} 剩余 {snap['hp']}/{snap['max_hp']}")
+                logs.append(_T.text("poi.trap_hp", name=snap.get('name', m), hp=snap['hp'], max_hp=snap['max_hp']))
     ctx.mark_used()
     return "\n".join(logs)
 

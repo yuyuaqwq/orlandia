@@ -1992,6 +1992,40 @@
     "category": "编年史",
     "desc": "搬自 content/world_cmds.py:chronicle（B 批 C 档）"
   },
+  "cmech.finale_buff_all": {
+    "value": "💥 终章！全队获得爆发增益（{turns} 刻）！",
+    "params": [
+      "turns"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:_melody_finale（B 批 C 档）"
+  },
+  "cmech.finale_ctrl_all": {
+    "value": "💥 终章！敌方全体被【{ctrl}】{turns} 刻！",
+    "params": [
+      "ctrl",
+      "turns"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:_melody_finale（B 批 C 档）"
+  },
+  "cmech.finale_debuff_all": {
+    "value": "💥 终章！敌方全体受到减益（{pct}%，{turns} 刻）！",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:_melody_finale（B 批 C 档）"
+  },
+  "cmech.res_clear_zero": {
+    "value": "🔗 {keys} 归零",
+    "params": [
+      "keys"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:_clear_actor（B 批 C 档）"
+  },
   "collect.claim_done": {
     "value": "📖 {name} 集齐奖励已经领取过啦，不能重复领取～",
     "params": [
@@ -11982,6 +12016,17 @@
     "category": "战斗结算",
     "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
   },
+  "poi.buff": {
+    "value": "{icon} 【{name}】你向{loc}的神龛虔诚祈愿，石像仿佛亮了一瞬。\n✨ 获得祝福：{buff}+10%(持续 5 次战斗)！",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "buff"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_buff（B 批 C 档）"
+  },
   "poi.check_plain": {
     "value": "你检查了{name}，没发现特别之处。",
     "params": [
@@ -11989,6 +12034,125 @@
     ],
     "category": "探索事件",
     "desc": "搬自 content/combat_cmds.py:_handle_poi（B 批 C 档）"
+  },
+  "poi.fish": {
+    "value": "{icon} 【{name}】水面泛起细密的涟漪，鱼群正聚在{loc}的水面下！\n🎣 你赶紧甩杆——『垂钓』吧，这次垂钓不消耗体力(30 分钟内有效)！",
+    "params": [
+      "icon",
+      "name",
+      "loc"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_fish（B 批 C 档）"
+  },
+  "poi.grave_again": {
+    "value": "{icon} 【{name}】你再次路过{loc}的旅者之墓，碑前的野花还开着。\n🪦 你默默驻足片刻，为这位先行的旅人献上沉默的敬意。",
+    "params": [
+      "icon",
+      "name",
+      "loc"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_note（B 批 C 档）"
+  },
+  "poi.grave_first": {
+    "value": "{icon} 【{name}】你在{loc}见到一座无名的旅者之墓，苔痕斑驳的碑上刻着几行字。\n🪦 \"{player}，愿你的旅途有人记得。\"\n🕯️ 你郑重祭拜，于墓前放下一朵野花。",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "player"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_note（B 批 C 档）"
+  },
+  "poi.herb": {
+    "value": "{icon} 【{name}】你在{loc}的草丛里仔细翻找，采到了一些好材料。\n🎒 获得：{got}！",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "got"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_herb（B 批 C 档）"
+  },
+  "poi.inst_campfire": {
+    "value": "🔥 {name} 在{poi}旁烤火，恢复 {heal} 点生命！",
+    "params": [
+      "name",
+      "poi",
+      "heal"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_campfire（B 批 C 档）"
+  },
+  "poi.inst_corpse_head": {
+    "value": "💀 你蹲下搜刮{name}……",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_loot（B 批 C 档）"
+  },
+  "poi.inst_equip": {
+    "value": "{emoji} 你从{name}里翻出一件装备：【{equip}】！",
+    "params": [
+      "emoji",
+      "name",
+      "equip"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_loot（B 批 C 档）"
+  },
+  "poi.inst_gold": {
+    "value": "💰 你从{name}里摸出了 {gold} 金币！",
+    "params": [
+      "name",
+      "gold"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_loot（B 批 C 档）"
+  },
+  "poi.inst_mech_desc": {
+    "value": "你扳动了{name}。",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_mechanism（B 批 C 档）"
+  },
+  "poi.inst_pickup": {
+    "value": "🎒 拾取：{item}",
+    "params": [
+      "item"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_loot（B 批 C 档）"
+  },
+  "poi.inst_rune_read": {
+    "value": "🗿 你阅读{name}：",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_rune_stone（B 批 C 档）"
+  },
+  "poi.locked_clue": {
+    "value": "🔒 {name}纹丝不动——需要先找到某种启示/线索。",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:_need_block（B 批 C 档）"
+  },
+  "poi.locked_item": {
+    "value": "🔒 {name}还没准备好——似乎缺少某样东西。",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:_need_block（B 批 C 档）"
   },
   "poi.look": {
     "value": "{icon} 【{name}】你打量了一下{loc}的{desc}，似乎没什么特别的。",
@@ -12000,6 +12164,167 @@
     ],
     "category": "探索事件",
     "desc": "搬自 content/combat_cmds.py:_handle_poi（B 批 C 档）"
+  },
+  "poi.loot_blueprint": {
+    "value": "{icon} 【{name}】包裹里卷着一张泛黄的图纸：{bp}！\n📜 看来是某位锻造师遗失的手稿。",
+    "params": [
+      "icon",
+      "name",
+      "bp"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_loot（B 批 C 档）"
+  },
+  "poi.loot_gold": {
+    "value": "{icon} 【{name}】你打开{loc}路边的可疑包裹——里面是金币！\n💰 获得 {gold} 金币！",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "gold"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_loot（B 批 C 档）"
+  },
+  "poi.loot_learned": {
+    "value": "{icon} 【{name}】包裹里卷着一张泛黄的图纸……{bp}！\n📜 这张图纸你已经学会了，化作 {pages} 张图纸残页（『出售 图纸残页』变现）",
+    "params": [
+      "icon",
+      "name",
+      "bp",
+      "pages"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_loot（B 批 C 档）"
+  },
+  "poi.loot_trap": {
+    "value": "💥 【{name}】包裹的缝隙里隐约闪过一道金属寒光——你还没来得及缩手，一只发条咬人夹弹了出来！\n你被夹了一下，损失 {dmg} 生命(当前 ❤️ {hp}/{max_hp})",
+    "params": [
+      "name",
+      "dmg",
+      "hp",
+      "max_hp"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_loot（B 批 C 档）"
+  },
+  "poi.merchant_blueprint": {
+    "value": "{icon} 【{name}】行商神秘地掏出一卷图纸：{bp}！\n📜 他称这是从远方古墓里『顺』来的，你赶紧收好。",
+    "params": [
+      "icon",
+      "name",
+      "bp"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_merchant（B 批 C 档）"
+  },
+  "poi.merchant_gold": {
+    "value": "{icon} 【{name}】行商在你的{loc}支起货摊，见你面善，低价收走了一批旧货。\n💰 获得 {gold} 金币！(图级 Lv.{lv})",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "gold",
+      "lv"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_merchant（B 批 C 档）"
+  },
+  "poi.merchant_learned": {
+    "value": "{icon} 【{name}】行商神秘地掏出一卷图纸：{bp}！\n📜 可惜你已经学会了，化作 {pages} 张图纸残页（『出售 图纸残页』变现）",
+    "params": [
+      "icon",
+      "name",
+      "bp",
+      "pages"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_merchant（B 批 C 档）"
+  },
+  "poi.note": {
+    "value": "{icon} 【{name}】你摘下{loc}树干上的字条，墨迹已有些褪色。\n📜 {txt}",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "txt"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_note（B 批 C 档）"
+  },
+  "poi.recover": {
+    "value": "{icon} 【{name}】你在{loc}的篝火旁坐下烤火。\n❤️ 恢复 {hp} 生命！💙 恢复 {mp} 魔力！\n🍖 篝火上还烤着一份{item}，顺手带走了。",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "hp",
+      "mp",
+      "item"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_recover（B 批 C 档）"
+  },
+  "poi.rune": {
+    "value": "{icon} 【{name}】你伸手轻触{loc}的符文石，碑面泛起幽光。\n📖 {txt}",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "txt"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_rune（B 批 C 档）"
+  },
+  "poi.rune_lore_default": {
+    "value": "碑文模糊不清，似乎被岁月磨平了。",
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_rune_stone（B 批 C 档）"
+  },
+  "poi.sight": {
+    "value": "{icon} 【{name}】你停住脚步，抬头望向{loc}的风景。\n🌄 {txt}",
+    "params": [
+      "icon",
+      "name",
+      "loc",
+      "txt"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:poi_sight（B 批 C 档）"
+  },
+  "poi.trap_disarmed": {
+    "value": "⚠️ 你记得石碑上的提示，小心地拆除了{name}！",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_trap（B 批 C 档）"
+  },
+  "poi.trap_down": {
+    "value": "💀 {name} 被陷阱击倒了！",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_trap（B 批 C 档）"
+  },
+  "poi.trap_hp": {
+    "value": "❤️ {name} 剩余 {hp}/{max_hp}",
+    "params": [
+      "name",
+      "hp",
+      "max_hp"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_trap（B 批 C 档）"
+  },
+  "poi.trap_triggered": {
+    "value": "⚠️ 你触发了{name}！全队受到 10% 最大生命的伤害！",
+    "params": [
+      "name"
+    ],
+    "category": "场景触发",
+    "desc": "搬自 content/poi_effects.py:inst_trap（B 批 C 档）"
   },
   "points.attr_drop": {
     "value": "\n⚔️ 属性不足，以下装备自动卸下回背包：{names}\n（『加点』后可用『装备 <名称>』重新穿上）",
@@ -12195,6 +12520,529 @@
     ],
     "category": "传送方碑",
     "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
+  },
+  "potion.amp_hits": {
+    "value": "⚡ 接下来 {hits} 次出手命中时 {name} +{amount}！",
+    "params": [
+      "hits",
+      "name",
+      "amount"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_resource_amp（B 批 C 档）"
+  },
+  "potion.amp_turns": {
+    "value": "⚡ {turns} 刻内（{trigger}触发）{name} +{amount}！",
+    "params": [
+      "turns",
+      "trigger",
+      "name",
+      "amount"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_resource_amp（B 批 C 档）"
+  },
+  "potion.block_pot": {
+    "value": "🛡️ 岩壁药剂！格挡 +{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_block_pot（B 批 C 档）"
+  },
+  "potion.buff_extend": {
+    "value": "⏳ 时之延香燃尽，你身上的 {n} 个增益延长 {turns} 刻！",
+    "params": [
+      "n",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_buff_extend（B 批 C 档）"
+  },
+  "potion.buff_phys_next": {
+    "value": "🥊 引气入体！下一次物理/气力技伤害 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_buff_phys_next（B 批 C 档）"
+  },
+  "potion.cc_immune": {
+    "value": "🗿 不动如山！免疫眩晕/冻结/减速！(3 刻)",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_cc_immune（B 批 C 档）"
+  },
+  "potion.cd_reduce": {
+    "value": "全部技能冷却 -{cd} 刻",
+    "params": [
+      "cd"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_resource_charge（B 批 C 档）"
+  },
+  "potion.cd_waiting": {
+    "value": "⏳ 药剂还在冷却中(剩余 {left} 刻)！",
+    "params": [
+      "left"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource（B 批 C 档）"
+  },
+  "potion.cfg_error": {
+    "value": "🧪 药剂效果配置异常，没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource（B 批 C 档）"
+  },
+  "potion.cfg_error_short": {
+    "value": "🧪 效果配置异常，没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_battle_start_resource（B 批 C 档）"
+  },
+  "potion.charm_unimpl": {
+    "value": "🧪 魅惑魔粉尚未接入魅惑结算，没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.crit_dmg_pot": {
+    "value": "💥 狂暴药剂！暴击伤害 +{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_crit_dmg_pot（B 批 C 档）"
+  },
+  "potion.def_down": {
+    "value": "🛡️ 破甲！敌人防御下降 {pct}%！({turns} 刻)",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_def_down（B 批 C 档）"
+  },
+  "potion.dodge_pot": {
+    "value": "💨 身法飘忽！{pct}% 概率闪避攻击！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_dodge_pot（B 批 C 档）"
+  },
+  "potion.dot_amp": {
+    "value": "🎨 连携增幅墨生效！{turns} 刻内每次命中使异常层数 +{per}",
+    "params": [
+      "turns",
+      "per"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_dot_amp（B 批 C 档）"
+  },
+  "potion.dot_amp_layers": {
+    "value": "（已为目标 {n} 种异常各 +{per} 层）",
+    "params": [
+      "n",
+      "per"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_dot_amp（B 批 C 档）"
+  },
+  "potion.execute_pot": {
+    "value": "💀 死神凝视！对生命<{hp_th}%的敌人+{pct}%伤害！(3 刻)",
+    "params": [
+      "hp_th",
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_execute_pot（B 批 C 档）"
+  },
+  "potion.full_tension": {
+    "value": "🏹 满弦烈酒入喉，弓弦绷满！进入满弦状态 {turns} 刻！",
+    "params": [
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_full_tension（B 批 C 档）"
+  },
+  "potion.full_tension_wrong_class": {
+    "value": "🏹 满弦是守线·风行者专属状态，这瓶烈酒没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_full_tension（B 批 C 档）"
+  },
+  "potion.heal_up": {
+    "value": "✨ 治疗增幅！治疗技能效果+{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_heal_up（B 批 C 档）"
+  },
+  "potion.invuln": {
+    "value": "🌀 次元门扉展开，你遁入虚数空间——本刻免疫一切伤害！(下刻将僵直)",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_invuln（B 批 C 档）"
+  },
+  "potion.invuln_used": {
+    "value": "⛔ 次元门扉符每场战斗只能使用 1 次，已经用过了！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_invuln（B 批 C 档）"
+  },
+  "potion.lifesteal_pot": {
+    "value": "🩸 嗜血药剂！吸血 +{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_lifesteal_pot（B 批 C 档）"
+  },
+  "potion.magic_resist": {
+    "value": "🛡️ 魔鳞护体！受到魔法伤害－{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_magic_resist（B 批 C 档）"
+  },
+  "potion.mana_cost_down": {
+    "value": "🔮 元素亲和！技能魔力消耗 -{pct}%！({turns} 刻)",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_mana_cost_down（B 批 C 档）"
+  },
+  "potion.mana_cost_line": {
+    "value": "技能消耗 -{pct}%（{turns} 刻）",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_mana_restore（B 批 C 档）"
+  },
+  "potion.mana_gain": {
+    "value": "回复 {gain} 点魔力！({cur}/{cap})",
+    "params": [
+      "gain",
+      "cur",
+      "cap"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_mana_restore（B 批 C 档）"
+  },
+  "potion.mark_apply": {
+    "value": "✦ 目标被施加 {stacks} 层{elem}印记(当前 {cur} 层)！",
+    "params": [
+      "stacks",
+      "elem",
+      "cur"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_apply_mark（B 批 C 档）"
+  },
+  "potion.mark_cfg_error": {
+    "value": "🧪 元素印记类型配置异常，没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_apply_mark（B 批 C 档）"
+  },
+  "potion.mark_react_bonus": {
+    "value": " 下次元素反应倍率 ×{mult}！",
+    "params": [
+      "mult"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_apply_mark（B 批 C 档）"
+  },
+  "potion.morph": {
+    "value": "🐉 龙血沸腾，你进入龙人形态 {turns} 刻！攻击/魔攻+30%，但受击伤害+{pct}%！",
+    "params": [
+      "turns",
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_morph（B 批 C 档）"
+  },
+  "potion.morph_used": {
+    "value": "⛔ 变身药剂每场战斗只能使用 1 次，已经用过了！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_morph（B 批 C 档）"
+  },
+  "potion.next_atk_up": {
+    "value": "⚔️ 你蓄势待发！下一次攻击+{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_next_atk_up（B 批 C 档）"
+  },
+  "potion.next_heal_up": {
+    "value": " 下一次治疗技能效果 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource（B 批 C 档）"
+  },
+  "potion.no_core_resource": {
+    "value": "🧪 你的职业没有核心资源，充能没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_resource_charge（B 批 C 档）"
+  },
+  "potion.no_effect": {
+    "value": "🧪 效果未触发！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_battle_start_resource（B 批 C 档）"
+  },
+  "potion.nucleus_full": {
+    "value": "🔥 {name} 瞬间充满！({cur}/{cap})",
+    "params": [
+      "name",
+      "cur",
+      "cap"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource_full（B 批 C 档）"
+  },
+  "potion.nucleus_full_cost": {
+    "value": "🔥 熔核之心爆发！{name}充满({cur}/{cap})！代价：{turns} 刻内 全减伤 -{pct}%（受损加重）",
+    "params": [
+      "name",
+      "cur",
+      "cap",
+      "turns",
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource_full（B 批 C 档）"
+  },
+  "potion.once_used_potion": {
+    "value": "⏳ 这瓶药剂每场战斗只能使用 1 次，已经用过了！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource（B 批 C 档）"
+  },
+  "potion.pene_magi_pot": {
+    "value": "🔮 破法附魔！法穿 +{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_pene_magi_pot（B 批 C 档）"
+  },
+  "potion.pene_pot": {
+    "value": "🗡️ 穿甲附刃！物穿 +{pct}%！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_pene_pot（B 批 C 档）"
+  },
+  "potion.phoenix": {
+    "value": "🪶 不死鸟之羽泛起辉光——你获得 1 次濒死复活（{pct}% 生命）！",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_phoenix（B 批 C 档）"
+  },
+  "potion.phoenix_used": {
+    "value": "⛔ 不死鸟之羽每场战斗只能使用 1 次，已经用过了！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_phoenix（B 批 C 档）"
+  },
+  "potion.phys_up_buff": {
+    "value": "物理伤害 +{pct}%({turns} 刻)",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_battle_start_resource（B 批 C 档）"
+  },
+  "potion.prebattle_ok": {
+    "value": "⚡ 战前准备生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_battle_start_resource（B 批 C 档）"
+  },
+  "potion.purify_done": {
+    "value": " 已净化！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_purify_immune（B 批 C 档）"
+  },
+  "potion.purify_head": {
+    "value": "✨ 圣光涤荡，",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_purify_immune（B 批 C 档）"
+  },
+  "potion.purify_immune_suffix": {
+    "value": "({turns} 刻免疫沉默/眩晕)",
+    "params": [
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_purify_immune（B 批 C 档）"
+  },
+  "potion.purify_none": {
+    "value": "身上没有负面状态～",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_purify_immune（B 批 C 档）"
+  },
+  "potion.reaction_boom": {
+    "value": "💥 元素共鸣石引爆！{log}",
+    "params": [
+      "log"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_reaction（B 批 C 档）"
+  },
+  "potion.reaction_chain": {
+    "value": " 追加一次攻击！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_reaction（B 批 C 档）"
+  },
+  "potion.reaction_fallback": {
+    "value": "⚡ 目标没有可引爆的印记，共鸣石化为 {pct}% 魔攻冲击，造成 {dmg} 点伤害！",
+    "params": [
+      "pct",
+      "dmg"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_reaction（B 批 C 档）"
+  },
+  "potion.res_gain": {
+    "value": "⚡ 你使用药剂，{name} +{amount}({cur}/{cap})！",
+    "params": [
+      "name",
+      "amount",
+      "cur",
+      "cap"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource（B 批 C 档）"
+  },
+  "potion.shield_big": {
+    "value": "🛡️ 圣盾护体！获得 {gain} 点护盾！(3 刻)",
+    "params": [
+      "gain"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_shield_big（B 批 C 档）"
+  },
+  "potion.shield_small": {
+    "value": "🛡️ 岩盾护体！获得 {gain} 点护盾！(3 刻)",
+    "params": [
+      "gain"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_shield_small（B 批 C 档）"
+  },
+  "potion.steal_none": {
+    "value": "🧪 敌方没有可偷取的增益！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_steal_buff（B 批 C 档）"
+  },
+  "potion.steal_ok": {
+    "value": "🕳️ 你偷取了敌方的增益【{buff}】转给自己 {turns} 刻！",
+    "params": [
+      "buff",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_steal_buff（B 批 C 档）"
+  },
+  "potion.summon_unimpl": {
+    "value": "🧪 召唤类消耗品尚未接入战斗结算，没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_summon（B 批 C 档）"
+  },
+  "potion.thorns_pot": {
+    "value": "🌵 荆棘附体！受击反弹 {pct}% 伤害！(3 刻)",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_thorns_pot（B 批 C 档）"
+  },
+  "potion.trap_boss_downgrade": {
+    "value": "Boss 免疫冻结，降级为减速 {turns} 刻！",
+    "params": [
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_boss_resist": {
+    "value": "Boss 抵抗了控制（成功率 {pct}%）！",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_cfg_error": {
+    "value": "🧪 陷阱控制类型配置异常，没有生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_ctrl_ok": {
+    "value": "控制成功！Boss 被{who} {turns} 刻！",
+    "params": [
+      "who",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_ctrl_plain": {
+    "value": "控制生效！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_disarm": {
+    "value": "缴械：敌方普攻伤害 -{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_enemy_ctrl": {
+    "value": "敌方被{who} {turns} 刻！",
+    "params": [
+      "who",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.trap_no_effect": {
+    "value": "🧪 陷阱效果未触发！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_trap（B 批 C 档）"
+  },
+  "potion.vuln": {
+    "value": "🎯 弱点击破！目标当前 {neg} 种负面状态，你对其伤害 +{pct}%({turns} 刻)！",
+    "params": [
+      "neg",
+      "pct",
+      "turns"
+    ],
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_vuln（B 批 C 档）"
+  },
+  "potion.wrong_class_drink": {
+    "value": "🧪 这杯饮品对你的职业没有效果！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_battle_start_resource（B 批 C 档）"
+  },
+  "potion.wrong_class_potion": {
+    "value": "🧪 这瓶药剂对你的职业没有效果！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource（B 批 C 档）"
+  },
+  "potion.wrong_class_supply": {
+    "value": "🧪 这份物资对你的职业没有效果！",
+    "category": "药水效果",
+    "desc": "搬自 content/potion_effects.py:eff_restore_resource_full（B 批 C 档）"
   },
   "power.panel": {
     "value": "⚡ 【战力】{name}({title} Lv.{level})\n战斗力：{pw:,}\n━━━━━━━━━━━━\n❤️ {hp} ｜ ⚔️ {atk} ｜ 🔮 {matk} ｜ 🛡️ {dfn} ｜ 💨 {spd}\n💡 升级、装备、转职、加点都能提升战力！",

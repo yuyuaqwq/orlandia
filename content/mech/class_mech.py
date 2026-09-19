@@ -106,6 +106,10 @@ from .class_data import (  # noqa: F401
     MECH_CFG,
 )
 
+# 包内文案表读口（C 档：本族动作/助手的玩家可见日志句壳 → 单源 content/data/text_specs.json；
+# 同 content/mech/we_procs.py 写法：`_T.text(key, 槽位=…)` / `_T.static(key)`）
+from .. import texts as _T            # noqa: E402
+
 
 # ============================================================
 # 声明编译器（U1-D2 L7）：本文件 **6 处挂载点 / 5 种去重口径**（逐处显式选编译器 + merge）
@@ -309,7 +313,7 @@ def _clear_actor(actor, key, logs):
         entry = (actor.get("effects") or {}).get(k)
         if isinstance(entry, dict):
             entry["stacks"] = 0
-    logs.append(f"🔗 {'、'.join(_key_list(key))} 归零")
+    logs.append(_T.text("cmech.res_clear_zero", keys='、'.join(_key_list(key))))
 
 
 def _faith_tiers() -> list:
@@ -467,7 +471,7 @@ def _melody_finale(battle, actor, state, logs):
         for _a in _melody_side_actors(battle, actor, False):
             _a.setdefault("effects", {})[fkey] = {
                 "stacks": float(state.get("fin_pct") or 0), "expire": _now + _turns}
-        logs.append(f"💥 终章！全队获得爆发增益（{_turns} 刻）！")
+        logs.append(_T.text("cmech.finale_buff_all", turns=_turns))
         return
     # ---- 挽歌系终章：敌方限时减益 ----
     ekey = _MELODY_ENEMY_FIN_MAP.get(fin)
@@ -483,7 +487,7 @@ def _melody_finale(battle, actor, state, logs):
             _oexp = float(_of.get("expire", 0) or 0) if isinstance(_of, dict) else 0.0
             _foe["effects"][ekey] = {"stacks": _pct,
                                      "expire": max(_oexp, _now + _turns)}
-        logs.append(f"💥 终章！敌方全体受到减益（{int(_pct)}%，{_turns} 刻）！")
+        logs.append(_T.text("cmech.finale_debuff_all", pct=int(_pct), turns=_turns))
         return
     # ---- 控制系终章：敌方全体控制 ----
     ckey = _MELODY_FIN_CTRL_MAP.get(fin)
@@ -493,7 +497,7 @@ def _melody_finale(battle, actor, state, logs):
             return  # 缺字段 = 无此行为（零默认值铁律）
         for _foe in _melody_side_actors(battle, actor, True):
             _melody_ctrl_apply(battle, actor, _foe, ckey, _turns, logs)
-        logs.append(f"💥 终章！敌方全体被【{ckey}】{int(_turns)} 刻！")
+        logs.append(_T.text("cmech.finale_ctrl_all", ctrl=ckey, turns=int(_turns)))
 
 # ============================================================
 # 39 个战斗内动作（原 install() 闭包 → 模块级 + @register_action，逐字）

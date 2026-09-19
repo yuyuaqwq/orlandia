@@ -43,6 +43,8 @@
 import json
 import os
 
+from .. import texts as _T       # ★ C 档 PRE-effects（2026-09-19）：文案表读口（本文件首次接入）
+
 # ============================================================
 # 包内域读取（真源 `from ..data.items import ITEMS` / `from ..data.battle_rules import
 # EFFECT_RULES` 的等价物）—— 只读包内 JSON，不 import 任何宿主模块
@@ -152,7 +154,7 @@ def eff_next_atk_up(battle, player, value):
     v = _resolve(value, "next_atk_up")
     pct = float(v.get("pct", 0.5))
     player.setdefault('buffs', {})["next_atk_up"] = int(v.get("turns", 1))
-    return f"⚔️ 你蓄势待发！下一次攻击+{int(pct * 100)}%！"
+    return _T.text("potion.next_atk_up", pct=int(pct * 100))
 
 
 @register("heal_up")
@@ -161,7 +163,7 @@ def eff_heal_up(battle, player, value):
     v = _resolve(value, "heal_up")
     pct = float(v.get("pct", 0.2))
     player.setdefault('buffs', {})["heal_up"] = int(v.get("turns", 3))
-    return f"✨ 治疗增幅！治疗技能效果+{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.heal_up", pct=int(pct * 100))
 
 
 @register("magic_resist")
@@ -170,7 +172,7 @@ def eff_magic_resist(battle, player, value):
     v = _resolve(value, "magic_resist")
     pct = float(v.get("pct", 0.15))
     player.setdefault('buffs', {})["magic_resist"] = int(v.get("turns", 3))
-    return f"🛡️ 魔鳞护体！受到魔法伤害－{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.magic_resist", pct=int(pct * 100))
 
 
 @register("thorns_pot")
@@ -179,7 +181,7 @@ def eff_thorns_pot(battle, player, value):
     v = _resolve(value, "thorns_pot")
     pct = float(v.get("pct", 0.30))
     player.setdefault('buffs', {})["thorns_pot"] = int(v.get("turns", 3))
-    return f"🌵 荆棘附体！受击反弹 {int(pct * 100)}% 伤害！(3 刻)"
+    return _T.text("potion.thorns_pot", pct=int(pct * 100))
 
 
 @register("dodge_pot")
@@ -188,7 +190,7 @@ def eff_dodge_pot(battle, player, value):
     v = _resolve(value, "dodge_pot")
     pct = float(v.get("pct", 0.15))
     player.setdefault('buffs', {})["dodge_pot"] = int(v.get("turns", 3))
-    return f"💨 身法飘忽！{int(pct * 100)}% 概率闪避攻击！(3 刻)"
+    return _T.text("potion.dodge_pot", pct=int(pct * 100))
 
 
 @register("cc_immune")
@@ -196,7 +198,7 @@ def eff_cc_immune(battle, player, value):
     """不动药剂：免疫眩晕/冻结/减速（3 刻）。"""
     v = _resolve(value, "cc_immune")
     player.setdefault('buffs', {})["cc_immune"] = int(v.get("turns", 3))
-    return "🗿 不动如山！免疫眩晕/冻结/减速！(3 刻)"
+    return _T.static("potion.cc_immune")
 
 
 @register("execute_pot")
@@ -206,7 +208,7 @@ def eff_execute_pot(battle, player, value):
     pct = float(v.get("pct", 0.30))
     th = float(v.get("hp_threshold", 0.30))
     player.setdefault('buffs', {})["execute_pot"] = int(v.get("turns", 3))
-    return f"💀 死神凝视！对生命<{int(th * 100)}%的敌人+{int(pct * 100)}%伤害！(3 刻)"
+    return _T.text("potion.execute_pot", hp_th=int(th * 100), pct=int(pct * 100))
 
 
 @register("def_down")
@@ -223,7 +225,7 @@ def eff_def_down(battle, player, value):
     # 包内该模块未进包，改走调用方传入的战斗替身接口 battle.action_def_down（见文件头 ③）
     _scratch = []
     battle.action_def_down(_scratch, turns=turns, pct=pct, target=battle._hit_tgt())
-    return f"🛡️ 破甲！敌人防御下降 {int(pct * 100)}%！({turns} 刻)"
+    return _T.text("potion.def_down", pct=int(pct * 100), turns=turns)
 
 
 @register("pene_pot")
@@ -232,7 +234,7 @@ def eff_pene_pot(battle, player, value):
     v = _resolve(value, "pene_pot")
     pct = float(v.get("pct", 0.15))
     player.setdefault('buffs', {})["pene_pot"] = int(v.get("turns", 3))
-    return f"🗡️ 穿甲附刃！物穿 +{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.pene_pot", pct=int(pct * 100))
 
 
 @register("pene_magi_pot")
@@ -241,7 +243,7 @@ def eff_pene_magi_pot(battle, player, value):
     v = _resolve(value, "pene_magi_pot")
     pct = float(v.get("pct", 0.15))
     player.setdefault('buffs', {})["pene_magi_pot"] = int(v.get("turns", 3))
-    return f"🔮 破法附魔！法穿 +{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.pene_magi_pot", pct=int(pct * 100))
 
 
 @register("lifesteal_pot")
@@ -250,7 +252,7 @@ def eff_lifesteal_pot(battle, player, value):
     v = _resolve(value, "lifesteal_pot")
     pct = float(v.get("pct", 0.15))
     player.setdefault('buffs', {})["lifesteal_pot"] = int(v.get("turns", 3))
-    return f"🩸 嗜血药剂！吸血 +{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.lifesteal_pot", pct=int(pct * 100))
 
 
 @register("crit_dmg_pot")
@@ -259,7 +261,7 @@ def eff_crit_dmg_pot(battle, player, value):
     v = _resolve(value, "crit_dmg_pot")
     pct = float(v.get("pct", 0.25))
     player.setdefault('buffs', {})["crit_dmg_pot"] = int(v.get("turns", 3))
-    return f"💥 狂暴药剂！暴击伤害 +{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.crit_dmg_pot", pct=int(pct * 100))
 
 
 @register("block_pot")
@@ -268,7 +270,7 @@ def eff_block_pot(battle, player, value):
     v = _resolve(value, "block_pot")
     pct = float(v.get("pct", 0.15))
     player.setdefault('buffs', {})["block_pot"] = int(v.get("turns", 3))
-    return f"🛡️ 岩壁药剂！格挡 +{int(pct * 100)}%！(3 刻)"
+    return _T.text("potion.block_pot", pct=int(pct * 100))
 
 
 @register("shield_small")
@@ -278,7 +280,7 @@ def eff_shield_small(battle, player, value):
     pct = float(v.get("pct", 0.10))
     gain = int(player.get("max_hp", 100) * pct)
     battle._add_shield("potion", gain, int(v.get("turns", 3)))
-    return f"🛡️ 岩盾护体！获得 {gain} 点护盾！(3 刻)"
+    return _T.text("potion.shield_small", gain=gain)
 
 
 @register("shield_big")
@@ -288,7 +290,7 @@ def eff_shield_big(battle, player, value):
     pct = float(v.get("pct", 0.15))
     gain = int(player.get("max_hp", 100) * pct)
     battle._add_shield("potion", gain, int(v.get("turns", 3)))
-    return f"🛡️ 圣盾护体！获得 {gain} 点护盾！(3 刻)"
+    return _T.text("potion.shield_big", gain=gain)
 
 
 # ================= v130.2 资源联动消耗品（7 类新 effect handler） =================
@@ -329,32 +331,33 @@ def eff_restore_resource(battle, player, value):
     key = v.get("key", "")
     amount = int(v.get("amount", 0) or 0)
     if not key or amount <= 0:
-        return "🧪 药剂效果配置异常，没有生效！"
+        return _T.static("potion.cfg_error")
     if not _res_mine(battle, player, key):
-        return "🧪 这瓶药剂对你的职业没有效果！"
+        return _T.static("potion.wrong_class_potion")
     # once_per_battle：每场限 1 次（战斗内资源 key 作标记，key 唯一性保证不重复）
     once = bool(v.get("once_per_battle"))
     if once:
         _used = player.setdefault('eff', {}).setdefault("once_restore", [])
         if key in _used:
-            return "⏳ 这瓶药剂每场战斗只能使用 1 次，已经用过了！"
+            return _T.static("potion.once_used_potion")
     # cooldown：叠加冷却（同资源位独占）
     cd = int(v.get("cooldown", 0) or 0)
     _cdk = "item_cd_" + key
     if cd > 0 and int(player.setdefault('cooldown', {}).get(_cdk, 0) or 0) > 0:
-        return f"⏳ 药剂还在冷却中(剩余 {int(player.setdefault('cooldown', {}).get(_cdk, 0) or 0)} 刻)！"
+        return _T.text("potion.cd_waiting", left=int(player.setdefault('cooldown', {}).get(_cdk, 0) or 0))
     rd = _item_res_def(key)
     new = battle._res_gain(player, key, amount)
     if once:
         player.setdefault('eff', {}).setdefault("once_restore", []).append(key)
     if cd > 0:
         player.setdefault('cooldown', {})[_cdk] = cd
-    msg = f"⚡ 你使用药剂，{rd.get('name', key)} +{amount}({new}/{rd.get('max', '?')})！"
+    msg = _T.text("potion.res_gain", name=rd.get('name', key), amount=amount, cur=new,
+              cap=rd.get('max', '?'))
     nh = v.get("next_heal_pct")
     if nh:
         pn = float(nh)
         player.setdefault('eff', {})["next_heal_up"] = pn
-        msg += f" 下一次治疗技能效果 +{int(pn * 100)}%！"
+        msg += _T.text("potion.next_heal_up", pct=int(pn * 100))
     return msg
 
 
@@ -365,7 +368,7 @@ def eff_restore_resource_full(battle, player, value):
     v = _resolve(value, "restore_resource_full")
     key = v.get("key", "")
     if not _res_mine(battle, player, key):
-        return "🧪 这份物资对你的职业没有效果！"
+        return _T.static("potion.wrong_class_supply")
     rd = _item_res_def(key)
     cap = int(rd.get("max", 0))
     battle._res_gain(player, key, cap)  # 充满到 max（_res_gain 自带封顶）
@@ -375,9 +378,9 @@ def eff_restore_resource_full(battle, player, value):
         # 战损交易：全减伤 -penalty%（负值 reduce_all → _damage_actor 受击 +X%）
         player.setdefault('buffs', {})["reduce_all"] = -penalty
         player['reduce_all_left'] = turns
-        return (f"🔥 熔核之心爆发！{rd.get('name', key)}充满({cap}/{cap})！"
-                f"代价：{turns} 刻内 全减伤 -{int(penalty * 100)}%（受损加重）")
-    return f"🔥 {rd.get('name', key)} 瞬间充满！({cap}/{cap})"
+        return (_T.text("potion.nucleus_full_cost", name=rd.get('name', key), cur=cap, cap=cap, turns=turns,
+                    pct=int(penalty * 100)))
+    return _T.text("potion.nucleus_full", name=rd.get('name', key), cur=cap, cap=cap)
 
 
 @register("resource_amp")
@@ -395,9 +398,9 @@ def eff_resource_amp(battle, player, value):
     turns = int(v.get("turns", 0) or 0)
     hits = int(v.get("hits", 0) or 0)
     if not key or amount <= 0 or not trigger:
-        return "🧪 药剂效果配置异常，没有生效！"
+        return _T.static("potion.cfg_error")
     if not _res_mine(battle, player, key):
-        return "🧪 这瓶药剂对你的职业没有效果！"
+        return _T.static("potion.wrong_class_potion")
     amps = player.setdefault('eff', {}).setdefault("amps", {})
     prev = amps.get(key) or {}
     amps[key] = {
@@ -408,8 +411,8 @@ def eff_resource_amp(battle, player, value):
     rd = _item_res_def(key)
     _tcn = {"on_hit": "受击/出手", "on_heal": "治疗", "regen": "自然回复"}.get(trigger, trigger)
     if hits:
-        return f"⚡ 接下来 {hits} 次出手命中时 {rd.get('name', key)} +{amount}！"
-    return f"⚡ {turns} 刻内（{_tcn}触发）{rd.get('name', key)} +{amount}！"
+        return _T.text("potion.amp_hits", hits=hits, name=rd.get('name', key), amount=amount)
+    return _T.text("potion.amp_turns", turns=turns, trigger=_tcn, name=rd.get('name', key), amount=amount)
 
 
 @register("mana_cost_down")
@@ -420,10 +423,10 @@ def eff_mana_cost_down(battle, player, value):
     pct = float(v.get("pct", 0.0) or 0)
     turns = int(v.get("turns", 3) or 3)
     if pct <= 0:
-        return "🧪 药剂效果配置异常，没有生效！"
+        return _T.static("potion.cfg_error")
     player.setdefault('buffs', {})["mana_cost_down"] = max(int(player.setdefault('buffs', {}).get("mana_cost_down", 0) or 0), turns)
     player.setdefault('eff', {})["mana_cost_down"] = pct
-    return f"🔮 元素亲和！技能魔力消耗 -{int(pct * 100)}%！({turns} 刻)"
+    return _T.text("potion.mana_cost_down", pct=int(pct * 100), turns=turns)
 
 
 @register("buff_phys_next")
@@ -433,10 +436,10 @@ def eff_buff_phys_next(battle, player, value):
     v = _resolve(value, "buff_phys_next")
     pct = float(v.get("pct", 0.0) or 0)
     if pct <= 0:
-        return "🧪 药剂效果配置异常，没有生效！"
+        return _T.static("potion.cfg_error")
     player.setdefault('buffs', {})["buff_phys_next"] = 1
     player.setdefault('eff', {})["buff_phys_next"] = pct
-    return f"🥊 引气入体！下一次物理/气力技伤害 +{int(pct * 100)}%！"
+    return _T.text("potion.buff_phys_next", pct=int(pct * 100))
 
 
 @register("full_tension")
@@ -447,9 +450,9 @@ def eff_full_tension(battle, player, value):
     v = _resolve(value, "full_tension")
     turns = int(v.get("turns", 1) or 1)
     if not battle._is_branch_of(player, "风行者", "疾风射手", "疾风猎手"):
-        return "🏹 满弦是守线·风行者专属状态，这瓶烈酒没有生效！"
+        return _T.static("potion.full_tension_wrong_class")
     player.setdefault('buffs', {})["full_tension"] = max(int(player.setdefault('buffs', {}).get("full_tension", 0) or 0), turns)
-    return f"🏹 满弦烈酒入喉，弓弦绷满！进入满弦状态 {turns} 刻！"
+    return _T.text("potion.full_tension", turns=turns)
 
 
 @register("battle_start_resource")
@@ -462,9 +465,9 @@ def eff_battle_start_resource(battle, player, value):
     key = v.get("key", "")
     amount = int(v.get("amount", 0) or 0)
     if not key or amount < 0:
-        return "🧪 效果配置异常，没有生效！"
+        return _T.static("potion.cfg_error_short")
     if not _res_mine(battle, player, key):
-        return "🧪 这杯饮品对你的职业没有效果！"
+        return _T.static("potion.wrong_class_drink")
     msgs = []
     if amount > 0:
         rd = _item_res_def(key)
@@ -476,10 +479,10 @@ def eff_battle_start_resource(battle, player, value):
         _t = int(bf.get("turns", 3) or 3)
         player.setdefault('buffs', {})["phys_up"] = max(int(player.setdefault('buffs', {}).get("phys_up", 0) or 0), _t)
         player.setdefault('eff', {})["phys_up"] = max(float(player.setdefault('eff', {}).get("phys_up", 0) or 0), _pct)
-        msgs.append(f"物理伤害 +{int(_pct * 100)}%({_t} 刻)")
+        msgs.append(_T.text("potion.phys_up_buff", pct=int(_pct * 100), turns=_t))
     if not msgs:
-        return "🧪 效果未触发！"
-    return "⚡ 战前准备生效！" + "、".join(msgs) + "！"
+        return _T.static("potion.no_effect")
+    return _T.static("potion.prebattle_ok") + "、".join(msgs) + "！"
 
 
 # ================= v140 战斗机制道具（20 件）效果 handler =================
@@ -506,7 +509,7 @@ def eff_summon(battle, player, value):
     「战斗内效果未迁移」。复活路径见 docs/archive/REFACTOR_v181_GAP_CLOSURE_PLAN.md
     §2（随从线）与 §5（收尾项）。
     """
-    return "🧪 召唤类消耗品尚未接入战斗结算，没有生效！"
+    return _T.static("potion.summon_unimpl")
 
 
 @register("trap")
@@ -519,39 +522,41 @@ def eff_trap(battle, player, value):
     ctrl = v.get("ctrl", "")
     turns = max(1, int(v.get("turns", 1) or 1))
     if ctrl not in ("stun", "freeze", "silence"):
-        return "🧪 陷阱控制类型配置异常，没有生效！"
+        return _T.static("potion.trap_cfg_error")
     e = battle._hit_tgt() or {}
     is_boss = bool(e.get("is_boss") or e.get("role") == "boss")
     eb = e.setdefault("buffs", {})
     msgs = []
     # 魅惑魔粉：Boss 免疫（降级为降攻 boss_downgrade）；普通怪按原控制生效
     if ctrl == "charm":
-        return "🧪 魅惑魔粉尚未接入魅惑结算，没有生效！"
+        return _T.static("potion.charm_unimpl")
     if is_boss:
         dg = v.get("boss_downgrade")
         if isinstance(dg, str):  # 霜寒捕兽夹：Boss 冻结降级为减速
             eb["spd_down"] = max(int(eb.get("spd_down", 0) or 0), turns)
-            msgs.append(f"Boss 免疫冻结，降级为减速 {turns} 刻！")
+            msgs.append(_T.text("potion.trap_boss_downgrade", turns=turns))
         elif isinstance(dg, (int, float)):  # 沉默封咒蜡/魅惑：Boss 成功率
             if random.random() < float(dg):
                 eb[ctrl] = max(int(eb.get(ctrl, 0) or 0), turns)
-                msgs.append(f"控制成功！Boss 被{'冻结' if ctrl == 'freeze' else '沉默'} {turns} 刻！")
+                msgs.append(_T.text("potion.trap_ctrl_ok", who='冻结' if ctrl == 'freeze' else '沉默', turns=turns))
             else:
-                msgs.append(f"Boss 抵抗了控制（成功率 {int(float(dg) * 100)}%）！")
+                msgs.append(_T.text("potion.trap_boss_resist", pct=int(float(dg) * 100)))
         else:
             eb[ctrl] = max(int(eb.get(ctrl, 0) or 0), turns)
-            msgs.append("控制生效！")
+            msgs.append(_T.static("potion.trap_ctrl_plain"))
     else:
         eb[ctrl] = max(int(eb.get(ctrl, 0) or 0), turns)
-        msgs.append(f"敌方被{'冻结' if ctrl == 'freeze' else '眩晕' if ctrl == 'stun' else '沉默'} {turns} 刻！")
+        msgs.append(_T.text("potion.trap_enemy_ctrl",
+                        who='冻结' if ctrl == 'freeze' else '眩晕' if ctrl == 'stun' else '沉默',
+                        turns=turns))
     # 缴械绳网：普攻伤害 -atk_reduce%（mon_atk_down 槽 + _weaken_val 数值）
     ar = float(v.get("atk_reduce", 0) or 0)
     if ar > 0:
         eb["mon_atk_down"] = max(int(eb.get("mon_atk_down", 0) or 0), 1)
         eb["_weaken_val"] = min(0.9, ar)
-        msgs.append(f"缴械：敌方普攻伤害 -{int(ar * 100)}%！")
+        msgs.append(_T.text("potion.trap_disarm", pct=int(ar * 100)))
     if not msgs:
-        return "🧪 陷阱效果未触发！"
+        return _T.static("potion.trap_no_effect")
     return "⚔️ " + "，".join(msgs)
 
 
@@ -564,13 +569,14 @@ def eff_mana_restore(battle, player, value):
     gain = int(player.get("max_mp", 0) * mp_pct)
     before = player.get("mp", 0)
     player["mp"] = min(player.get("max_mp", player["mp"]), before + gain)
-    msgs = [f"回复 {player['mp'] - before} 点魔力！({player['mp']}/{player.get('max_mp', '?')})"]
+    msgs = [_T.text("potion.mana_gain", gain=player['mp'] - before, cur=player['mp'],
+                cap=player.get('max_mp', '?'))]
     cr = float(v.get("cost_reduce", 0) or 0)
     if cr > 0:
         turns = max(1, int(v.get("turns", 2) or 2))
         player.setdefault('buffs', {})["mana_cost_down"] = max(int(player.setdefault('buffs', {}).get("mana_cost_down", 0) or 0), turns)
         player.setdefault('eff', {})["mana_cost_down"] = max(float(player.setdefault('eff', {}).get("mana_cost_down", 0) or 0), cr)
-        msgs.append(f"技能消耗 -{int(cr * 100)}%（{turns} 刻）")
+        msgs.append(_T.text("potion.mana_cost_line", pct=int(cr * 100), turns=turns))
     return "💙 " + "，".join(msgs)
 
 
@@ -605,9 +611,9 @@ def eff_resource_charge(battle, player, value):
     if cd > 0 and player.setdefault('cooldown', {}):
         for k in list(player.setdefault('cooldown', {})):
             player.setdefault('cooldown', {})[k] = max(0, int(player.setdefault('cooldown', {})[k] or 0) - cd)
-        msgs.append(f"全部技能冷却 -{cd} 刻")
+        msgs.append(_T.text("potion.cd_reduce", cd=cd))
     if not msgs:
-        return "🧪 你的职业没有核心资源，充能没有生效！"
+        return _T.static("potion.no_core_resource")
     return "⚡ " + "，".join(msgs) + "！"
 
 
@@ -622,12 +628,12 @@ def eff_steal_buff(battle, player, value):
     cand = [k for k in eb if k not in ("stun", "freeze", "silence", "sleep")
             and int(eb.get(k, 0) or 0) > 0]
     if not cand:
-        return "🧪 敌方没有可偷取的增益！"
+        return _T.static("potion.steal_none")
     k = cand[0]
     turns = max(1, int(v.get("turns", 2) or 2))
     t = eb.pop(k)
     player.setdefault('buffs', {})[k] = max(int(player.setdefault('buffs', {}).get(k, 0) or 0), int(t or turns))
-    return f"🕳️ 你偷取了敌方的增益【{k}】转给自己 {int(t or turns)} 刻！"
+    return _T.text("potion.steal_ok", buff=k, turns=int(t or turns))
 
 
 @register("buff_extend")
@@ -642,7 +648,7 @@ def eff_buff_extend(battle, player, value):
             continue
         player.setdefault('buffs', {})[k] = int(player.setdefault('buffs', {}).get(k, 0) or 0) + ext
         n += 1
-    return f"⏳ 时之延香燃尽，你身上的 {n} 个增益延长 {ext} 刻！"
+    return _T.text("potion.buff_extend", n=n, turns=ext)
 
 
 @register("phoenix")
@@ -652,14 +658,14 @@ def eff_phoenix(battle, player, value):
     本版按 v140 收口先挂标记，消费端接线属引擎批次）。"""
     v = _resolve(value, "phoenix")
     if player.setdefault('eff', {}).get("phoenix_used"):
-        return "⛔ 不死鸟之羽每场战斗只能使用 1 次，已经用过了！"
+        return _T.static("potion.phoenix_used")
     player.setdefault('eff', {})["phoenix_used"] = True
     player.setdefault('eff', {})["phoenix_revive"] = {
         "hp": float(v.get("revive_hp", 0.30) or 0.30),
         "dmg_reduce": float(v.get("dmg_reduce", 0.20) or 0.20),
         "turns": max(1, int(v.get("turns", 3) or 3)),
     }
-    return f"🪶 不死鸟之羽泛起辉光——你获得 1 次濒死复活（{int(float(v.get('revive_hp', 0.30)) * 100)}% 生命）！"
+    return _T.text("potion.phoenix", pct=int(float(v.get('revive_hp', 0.30)) * 100))
 
 
 @register("purify_immune")
@@ -675,8 +681,8 @@ def eff_purify_immune(battle, player, value):
     if "reduce_all" in cleared:
         player['reduce_all_left'] = 0
     player.setdefault('buffs', {})["cc_immune"] = max(int(player.setdefault('buffs', {}).get("cc_immune", 0) or 0), turns)
-    msg = "✨ 圣光涤荡，" + ("、".join(cleared) + " 已净化！" if cleared else "身上没有负面状态～")
-    return msg + f"({turns} 刻免疫沉默/眩晕)"
+    msg = _T.static("potion.purify_head") + ("、".join(cleared) + _T.static("potion.purify_done") if cleared else _T.static("potion.purify_none"))
+    return msg + _T.text("potion.purify_immune_suffix", turns=turns)
 
 
 @register("morph")
@@ -686,12 +692,12 @@ def eff_morph(battle, player, value):
     v = _resolve(value, "morph")
     turns = max(1, int(v.get("turns", 3) or 3))
     if player.setdefault('eff', {}).get("morph_used"):
-        return "⛔ 变身药剂每场战斗只能使用 1 次，已经用过了！"
+        return _T.static("potion.morph_used")
     player.setdefault('eff', {})["morph_used"] = True
     player.setdefault('buffs', {})["atk_up"] = max(int(player.setdefault('buffs', {}).get("atk_up", 0) or 0), turns)
     player.setdefault('buffs', {})["matk_up_pot"] = max(int(player.setdefault('buffs', {}).get("matk_up_pot", 0) or 0), turns)
     player.setdefault('eff', {})["morph_dmg_taken"] = float(v.get("dmg_taken_up", 0.15) or 0.15)
-    return f"🐉 龙血沸腾，你进入龙人形态 {turns} 刻！攻击/魔攻+30%，但受击伤害+{int(float(v.get('dmg_taken_up', 0.15)) * 100)}%！"
+    return _T.text("potion.morph", turns=turns, pct=int(float(v.get('dmg_taken_up', 0.15)) * 100))
 
 
 @register("invuln")
@@ -700,11 +706,11 @@ def eff_invuln(battle, player, value):
     下刻无法行动僵直 stun_after 一并登记）。"""
     v = _resolve(value, "invuln")
     if player.setdefault('eff', {}).get("invuln_used"):
-        return "⛔ 次元门扉符每场战斗只能使用 1 次，已经用过了！"
+        return _T.static("potion.invuln_used")
     player.setdefault('eff', {})["invuln_used"] = True
     player.setdefault('eff', {})["invuln"] = {"turns": max(1, int(v.get("turns", 1) or 1)),
                               "stun_after": int(v.get("stun_after", 1) or 1)}
-    return "🌀 次元门扉展开，你遁入虚数空间——本刻免疫一切伤害！(下刻将僵直)"
+    return _T.static("potion.invuln")
 
 
 @register("apply_mark")
@@ -716,15 +722,15 @@ def eff_apply_mark(battle, player, value):
     mark = v.get("mark", "")
     stacks = max(1, int(v.get("stacks", 1) or 1))
     if mark not in ("fire", "ice", "thunder"):
-        return "🧪 元素印记类型配置异常，没有生效！"
+        return _T.static("potion.mark_cfg_error")
     new = battle._elem_mark_apply(mark, layers=stacks, player=player)
     rb = float(v.get("react_bonus", 0) or 0)
     if rb > 0:
         battle._elem_reaction_boost = max(float(getattr(battle, "_elem_reaction_boost", 1.0) or 1.0), rb)
     cn = {"fire": "火", "ice": "冰", "thunder": "雷"}[mark]
-    msg = f"✦ 目标被施加 {stacks} 层{cn}印记(当前 {new} 层)！"
+    msg = _T.text("potion.mark_apply", stacks=stacks, elem=cn, cur=new)
     if rb > 0:
-        msg += f" 下次元素反应倍率 ×{rb}！"
+        msg += _T.text("potion.mark_react_bonus", mult=rb)
     return msg
 
 
@@ -744,9 +750,9 @@ def eff_dot_amp(battle, player, value):
             d = deb.setdefault(k, {"n": 0, "mult": 1.0})
             d["n"] = int(d.get("n", 0) or 0) + per
             n += 1
-    msg = f"🎨 连携增幅墨生效！{turns} 刻内每次命中使异常层数 +{per}"
+    msg = _T.text("potion.dot_amp", turns=turns, per=per)
     if n:
-        msg += f"（已为目标 {n} 种异常各 +{per} 层）"
+        msg += _T.text("potion.dot_amp_layers", n=n, per=per)
     return msg + "！"
 
 
@@ -766,15 +772,15 @@ def eff_reaction(battle, player, value):
         rr = battle._reaction_table_resolve(player, hit[0], battle._player_stats(player), [])
         if rr is not None:
             rmult, rlog, chain = rr
-            msg = f"💥 元素共鸣石引爆！{rlog}"
+            msg = _T.text("potion.reaction_boom", log=rlog)
             if chain:
-                msg += " 追加一次攻击！"
+                msg += _T.static("potion.reaction_chain")
             return msg
     fb = float(v.get("fallback_matk", 0.90) or 0.90)
     st = battle._player_stats(player)
     dmg = max(1, int(st.get("matk", 0) * fb))
     battle._deal_damage(dmg, [])
-    return f"⚡ 目标没有可引爆的印记，共鸣石化为 {int(fb * 100)}% 魔攻冲击，造成 {dmg} 点伤害！"
+    return _T.text("potion.reaction_fallback", pct=int(fb * 100), dmg=dmg)
 
 
 @register("vuln")
@@ -801,5 +807,5 @@ def eff_vuln(battle, player, value):
     bonus = min(cap, per * cnt)
     player.setdefault('eff', {})["vuln"] = {"per_debuff": per, "count": cnt, "bonus": bonus, "turns_left": turns}
     player.setdefault('buffs', {})["vuln"] = max(int(player.setdefault('buffs', {}).get("vuln", 0) or 0), turns)
-    return f"🎯 弱点击破！目标当前 {neg} 种负面状态，你对其伤害 +{int(bonus * 100)}%({turns} 刻)！"
+    return _T.text("potion.vuln", neg=neg, pct=int(bonus * 100), turns=turns)
 

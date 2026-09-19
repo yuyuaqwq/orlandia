@@ -125,6 +125,10 @@ QUESTS_SRC = os.path.join(_PD, "game", "services", "quests.py")
 #   下面 `PKG_*` 一族早已按「宿主 + 包内」两侧登记，本域只是把宿主那一侧换成包内侧）。
 #   判据（key ↔ 调用点双向对账 / 槽位校验 / dead key）与条数**一条未变**。
 GATE_SRC = os.path.join(PKG_ROOT, "content", "flow", "instance_gate.py")
+# ★ C 档 PRE（2026-09-19 并行 worker 片）：effects / mech 两域首次接入文案表
+PKG_POTION_SRC = os.path.join(PKG_ROOT, "content", "effects", "potion_effects.py")
+PKG_POI_EFFECTS_SRC = os.path.join(PKG_ROOT, "content", "effects", "poi_effects.py")
+PKG_CLASS_MECH_SRC = os.path.join(PKG_ROOT, "content", "mech", "class_mech.py")
 INSTANCE_ROUTER_SRC = os.path.join(_PD, "game", "commands", "instance_router.py")
 INSTANCE_SRC = os.path.join(_PD, "game", "commands", "instance.py")
 INSTANCE_BATTLE_SRC = os.path.join(_PD, "game", "commands", "instance_battle.py")
@@ -214,7 +218,9 @@ INSTANCE_BATTLE_SRC = PKG_FLOW_INSTANCE_BATTLE_SRC
 #   这些域在 B18 系列里都已「整块进包」——宿主侧当时就退化为壳（调用点 0 个，见各段原注释
 #   「宿主侧退化为 0 调用点」「两侧扫到 0 个调用点」），删壳后宿主路径整体 FileNotFoundError。
 #   ⇒ 扫描面（真实调用点集合 / 字面量集合）与双向对账判定**逐条不变**，只是不再扫那份空壳。
-WIRED = {"副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
+WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
+         "职业机制": PKG_CLASS_MECH_SRC,
+         "副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "副本日志": PKG_INSTANCE_SRC,
          "副本战斗日志": PKG_FLOW_INSTANCE_BATTLE_SRC,
          "周常": PKG_WEEKLY_SRC,
@@ -1037,7 +1043,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "副本移动", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -1098,7 +1104,12 @@ def t1_table_selfcheck():
                         "今日事件", "奖励发放",
                         # ★ C 档 34c（B-2 第 26 片）：misc_cmds「成就面板」+
                         #   achievements.py「成就面板」同域两文件；「意见反馈」
-                        "成就面板", "意见反馈"}, cats)
+                        "成就面板", "意见反馈",
+                        # ★ C 档 PRE（2026-09-19 并行 worker 片）：effects / mech 两域首次接入文案表
+                        #   （药水效果 = potion_effects.py 36 个 handler · 场景触发 = poi_effects.py 15 函数 ·
+                        #    职业机制 = class_mech.py 的 _clear_actor / _melody_finale；其余 40 处被
+                        #    test_u1d2_triggers_extra_frozen.py 的逐段 sha 冻结挡住，另案）
+                        "药水效果", "场景触发", "职业机制"}, cats)
 
 
 def t2_key_and_params_accounting():
