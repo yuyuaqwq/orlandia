@@ -636,7 +636,10 @@ def test_15_multi_death_alive_sync():
     try:
         guard = 0
         died = False
-        while guard < 60:
+        # 上限 = 安全阀，不是断言：本场「一死一活→活人单刷刷穿 Boss」的所需轮数**随 RNG 浮动**
+        # （实测 6 次：43 / 43 / 60 / 59 / 43 / 60 —— 原值 60 正好压在分布边缘，故全量并发跑会偶发红，
+        #  见台账 T6⑦）。终局判据在循环后单独断言（cleared / 奖励隔离），这里只给足余量（≈3×）。
+        while guard < 200:
             guard += 1
             if st.get("over") or st.get("cleared"):
                 break
@@ -683,7 +686,8 @@ def test_15_multi_death_alive_sync():
                 check("next_actor_key 跳过死者", str(nxt2) != "70131", f"nxt={nxt2}")
         # 活人单刷 Boss → 通关
         check("活人 70132 单刷通关", st.get("cleared") is True,
-              f"cleared={st.get('cleared')} over={st.get('over')}")
+              f"cleared={st.get('cleared')} over={st.get('over')} guard={guard} "
+              f"enemy_hp_left={sum(int(u.get('hp', 0) or 0) for u in (st.get('enemies') or []))}")
         p1 = db.get_player(GID, 70131) or {}
         p2 = db.get_player(GID, 70132) or {}
         check("通关文案含阵亡提示（💀 未获奖励）", "阵亡" in joined or "已阵亡" in joined,
