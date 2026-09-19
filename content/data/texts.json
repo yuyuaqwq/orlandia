@@ -34,6 +34,14 @@
     "category": "任务委托",
     "desc": "搬自 content/world_cmds.py:quest_abandon（B 批 C 档）"
   },
+  "account.confirm": {
+    "value": "⚠️ 真的要注销角色【{name}】吗？\n删除后将失去：等级/装备/背包/金币/技能/副业/宠物/公会 全部数据！\n━━━━━━━━━━━━\n确认请回复：『注销 确认』(10 分钟内有效)\n想切职业也可以直接注销后重新注册～",
+    "params": [
+      "name"
+    ],
+    "category": "注销",
+    "desc": "搬自 content/player_cmds.py:delete_account（B 批 C 档）"
+  },
   "account.done": {
     "value": "🗡️ 冒险者 {name} 的故事就此落幕……\n所有角色数据已删除，可以重新『注册 <名字> <性别>』开始新旅程！",
     "params": [
@@ -4704,6 +4712,31 @@
     "category": "转职",
     "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
   },
+  "evolve.panel_locked": {
+    "value": "{cls} 的进化之路：\n━━━━━━━━━━━━\n{evo_lines}\n\n🔒 达到 {need_lv} 级可转职，当前 Lv.{level}，继续加油！\n🍃 传闻大陆深处还藏着古老传承，若有缘自会相遇……",
+    "params": [
+      "cls",
+      "evo_lines",
+      "need_lv",
+      "level"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve（B 批 C 档）"
+  },
+  "evolve.panel_ready": {
+    "value": "🌟 {icon}{cls} 达到了 {need_lv} 级，可以转职！\n━━━━━━━━━━━━\n🔀 可选路线：{branches}\n\n🧭 去 {tloc} 找 {tname}，由导师为你举行转职仪式吧！\n(『对话 {tname2}』→ 对话选择转职路线)\n🍃 传闻大陆深处还藏着古老传承，若有缘自会相遇……",
+    "params": [
+      "icon",
+      "cls",
+      "need_lv",
+      "branches",
+      "tloc",
+      "tname",
+      "tname2"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve（B 批 C 档）"
+  },
   "evolve.path_atk": {
     "value": "⚔️ 进攻路线",
     "category": "转职",
@@ -4726,6 +4759,29 @@
   },
   "evolve.reset_none": {
     "value": "你还没有转职过，无需重置～『转职』查看路线。",
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve_reset（B 批 C 档）"
+  },
+  "evolve.reset_ok_base": {
+    "value": "🔄 转职重置成功！(花费 {cost} 金币)\n━━━━━━━━━━━━\n{title} → 回到基础职业\n✨ 等级与基础技能保留，分支技能已清除({removed})\n💡 到 30/60/90 级可重新『转职』选择新分支！",
+    "params": [
+      "cost",
+      "title",
+      "removed"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/player_cmds.py:evolve_reset（B 批 C 档）"
+  },
+  "evolve.reset_ok_hidden": {
+    "value": "🔄 转职重置成功！(花费 {cost} 金币)\n━━━━━━━━━━━━\n{title} → 回到根基职业【{icon} {base}】\n✨ 等级保留，{cls} 的传承已散去\n💡 已解锁的传承仍在：『转职 {cname}』可再次接受传承！",
+    "params": [
+      "cost",
+      "title",
+      "icon",
+      "base",
+      "cls",
+      "cname"
+    ],
     "category": "转职",
     "desc": "搬自 content/player_cmds.py:evolve_reset（B 批 C 档）"
   },
@@ -10834,6 +10890,22 @@
     "category": "传送方碑",
     "desc": "搬自 content/world_cmds.py:portal_view（B 批 C 档）"
   },
+  "power.panel": {
+    "value": "⚡ 【战力】{name}({title} Lv.{level})\n战斗力：{pw:,}\n━━━━━━━━━━━━\n❤️ {hp} ｜ ⚔️ {atk} ｜ 🔮 {matk} ｜ 🛡️ {dfn} ｜ 💨 {spd}\n💡 升级、装备、转职、加点都能提升战力！",
+    "params": [
+      "name",
+      "title",
+      "level",
+      "pw",
+      "hp",
+      "atk",
+      "matk",
+      "dfn",
+      "spd"
+    ],
+    "category": "战力面板",
+    "desc": "搬自 content/player_cmds.py:power（B 批 C 档）"
+  },
   "prof.activated": {
     "value": "\n🔓 你选择了「{prof_name}」作为副业(当前已激活 {n} 条)！",
     "params": [
@@ -12599,6 +12671,30 @@
     "params": [
       "tok",
       "avail"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.welcome_class": {
+    "value": "✨ 欢迎来到奥兰迪亚大陆，{name}！\n职业：{icon} {cls}\n{race_line}{gender_line}『{desc}』\n━━━━━━━━━━━━\n📍 出生点：橡木镇·冒险者广场\n　· 『前往 镇长办公处』→『对话 镇长』接取第一个任务\n　· 『地图』查看周边\n━━━━━━━━━━━━\n🌅 广场中央的【橡木方碑】已为你激活！\n　· 『方碑』查看详情\n　· 『传送』可前往各地路标\n━━━━━━━━━━━━\n⚔️ 已学会初始技能：{skills}\n　· 升级获得技能点，『技能学习 <技能名>』学新技能\n　· 各城职业导师可学进阶技能，Lv.30/60/90 可转职\n━━━━━━━━━━━━\n🔨 副业系统\n　· 『副业』查看状态；找导师『对话 <导师名>』拜师解锁（附近：橡木镇·草药师·艾琳 教采集）\n━━━━━━━━━━━━\n冒险者，你的故事开始了！",
+    "params": [
+      "name",
+      "icon",
+      "cls",
+      "race_line",
+      "gender_line",
+      "desc",
+      "skills"
+    ],
+    "category": "注册",
+    "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"
+  },
+  "register.welcome_novice": {
+    "value": "✨ 欢迎来到奥兰迪亚大陆，{name}！\n职业：🧭 见习冒险者\n{race_line}{gender_line}你还没有正式职业，先四处走走、熟悉一下这个世界吧。\n━━━━━━━━━━━━\n📍 出生点：橡木镇·冒险者广场\n　· 『前往 镇长办公处』→『对话 镇长』接取第一个任务\n　· 『地图』查看周边\n━━━━━━━━━━━━\n🌅 广场中央的【橡木方碑】已为你激活！\n　· 『方碑』查看详情\n　· 『传送』可前往各地路标\n━━━━━━━━━━━━\n⚔️ 见习冒险者无法学习职业技能，就职后解锁！\n　· 去广场找『行会接待员·小艾』就职职业（战士/法师/游侠/牧师/刺客/拳师）\n　· 各城还藏着职业导师，可学进阶技能与转职\n━━━━━━━━━━━━\n🔨 副业系统\n　· 『副业』查看状态；找导师『对话 <导师名>』拜师解锁（附近：橡木镇·草药师·艾琳 教采集）\n━━━━━━━━━━━━\n冒险者，你的故事开始了！",
+    "params": [
+      "name",
+      "race_line",
+      "gender_line"
     ],
     "category": "注册",
     "desc": "搬自 content/player_cmds.py:register（B 批 C 档）"

@@ -537,51 +537,13 @@ async def register(self, event: AstrMessageEvent, group_id, qq_id):
     if cls_id == CLASS_NOVICE:
         # v95.23 见习冒险者：无职业技能，引导去行会/导师就职
         yield event.plain_result(
-            trunc_hint + f"✨ 欢迎来到奥兰迪亚大陆，{name}！\n"
-            f"职业：🧭 见习冒险者\n"
-            f"{race_line}{gender_line}"
-            f"你还没有正式职业，先四处走走、熟悉一下这个世界吧。\n"
-            f"━━━━━━━━━━━━\n"
-            f"📍 出生点：橡木镇·冒险者广场\n"
-            f"　· 『前往 镇长办公处』→『对话 镇长』接取第一个任务\n"
-            f"　· 『地图』查看周边\n"
-            f"━━━━━━━━━━━━\n"
-            f"🌅 广场中央的【橡木方碑】已为你激活！\n"
-            f"　· 『方碑』查看详情\n"
-            f"　· 『传送』可前往各地路标\n"
-            f"━━━━━━━━━━━━\n"
-            f"⚔️ 见习冒险者无法学习职业技能，就职后解锁！\n"
-            f"　· 去广场找『行会接待员·小艾』就职职业（战士/法师/游侠/牧师/刺客/拳师）\n"
-            f"　· 各城还藏着职业导师，可学进阶技能与转职\n"
-            f"━━━━━━━━━━━━\n"
-            f"🔨 副业系统\n"
-            f"　· 『副业』查看状态；找导师『对话 <导师名>』拜师解锁（附近：橡木镇·草药师·艾琳 教采集）\n"
-            f"━━━━━━━━━━━━\n"
-            f"冒险者，你的故事开始了！"
+            trunc_hint + _T.text("register.welcome_novice", name=name, race_line=race_line, gender_line=gender_line)
         )
         return
     yield event.plain_result(
-        trunc_hint + f"✨ 欢迎来到奥兰迪亚大陆，{name}！\n"
-        f"职业：{cls['icon']} {cls_display}\n"
-        f"{race_line}{gender_line}"
-        f"『{cls['desc']}』\n"
-        f"━━━━━━━━━━━━\n"
-        f"📍 出生点：橡木镇·冒险者广场\n"
-        f"　· 『前往 镇长办公处』→『对话 镇长』接取第一个任务\n"
-        f"　· 『地图』查看周边\n"
-        f"━━━━━━━━━━━━\n"
-        f"🌅 广场中央的【橡木方碑】已为你激活！\n"
-        f"　· 『方碑』查看详情\n"
-        f"　· 『传送』可前往各地路标\n"
-        f"━━━━━━━━━━━━\n"
-        f"⚔️ 已学会初始技能：{init_display}\n"
-        f"　· 升级获得技能点，『技能学习 <技能名>』学新技能\n"
-        f"　· 各城职业导师可学进阶技能，Lv.30/60/90 可转职\n"
-        f"━━━━━━━━━━━━\n"
-        f"🔨 副业系统\n"
-        f"　· 『副业』查看状态；找导师『对话 <导师名>』拜师解锁（附近：橡木镇·草药师·艾琳 教采集）\n"
-        f"━━━━━━━━━━━━\n"
-        f"冒险者，你的故事开始了！"
+        trunc_hint + _T.text("register.welcome_class", name=name, icon=cls['icon'], cls=cls_display,
+                         race_line=race_line, gender_line=gender_line, desc=cls['desc'],
+                         skills=init_display)
     )
 
 async def bind_identity(self, event: AstrMessageEvent):
@@ -861,11 +823,8 @@ async def evolve(self, event: AstrMessageEvent, group_id, qq_id, player):
                 tagged.append(f"{_BRANCH_KEY_DISPLAY.get(b, b)}({tag})")
             evo_lines.append(f"Lv.{lv} → {' / '.join(tagged)}")
         yield event.plain_result(
-            f"{line} 的进化之路：\n"
-            f"━━━━━━━━━━━━\n"
-            f"{chr(10).join(evo_lines)}\n\n"
-            f"🔒 达到 {need_lv} 级可转职，当前 Lv.{player['level']}，继续加油！\n"
-            f"🍃 传闻大陆深处还藏着古老传承，若有缘自会相遇……"
+            _T.text("evolve.panel_locked", cls=line, evo_lines=chr(10).join(evo_lines), need_lv=need_lv,
+                level=player['level'])
         )
         return
     # 可以转职：v95.23 改为找职业导师 NPC 转职（不再直接指令转职）
@@ -874,12 +833,8 @@ async def evolve(self, event: AstrMessageEvent, group_id, qq_id, player):
     # v130.2f.2 苦修改名收尾：分支 key → 展示名（武僧→淬势者、大地武僧→锻势行者）
     branch_names = " / ".join(_BRANCH_KEY_DISPLAY.get(b, b) for b in branches) if branches else "对应分支"
     yield event.plain_result(
-        f"🌟 {cls['icon']}{display('classes', player['class_name'])} 达到了 {need_lv} 级，可以转职！\n"
-        f"━━━━━━━━━━━━\n"
-        f"🔀 可选路线：{branch_names}\n\n"
-        f"🧭 去 {tloc} 找 {tname}，由导师为你举行转职仪式吧！\n"
-        f"(『对话 {tname}』→ 对话选择转职路线)\n"
-        f"🍃 传闻大陆深处还藏着古老传承，若有缘自会相遇……"
+        _T.text("evolve.panel_ready", icon=cls['icon'], cls=display('classes', player['class_name']),
+            need_lv=need_lv, branches=branch_names, tloc=tloc, tname=tname, tname2=tname)
     )
     return
 
@@ -1298,11 +1253,8 @@ async def evolve_reset(self, event: AstrMessageEvent, group_id, qq_id, player):
         old_title = self._tier_title(cls, tier, player.get("evolve_path", 0))
         cname = cls_meta.get("name", cls)
         yield event.plain_result(
-            f"🔄 转职重置成功！(花费 {cost} 金币)\n"
-            f"━━━━━━━━━━━━\n"
-            f"{old_title} → 回到根基职业【{src_cls.get('icon', '')} {src_cls.get('name', src)}】\n"
-            f"✨ 等级保留，{cls_meta.get('name', cls)} 的传承已散去\n"
-            f"💡 已解锁的传承仍在：『转职 {cname}』可再次接受传承！"
+            _T.text("evolve.reset_ok_hidden", cost=cost, title=old_title, icon=src_cls.get('icon', ''),
+                base=src_cls.get('name', src), cls=cls_meta.get('name', cls), cname=cname)
         )
         return
     learned = list(player.get("learned_skills", []))
@@ -1341,11 +1293,7 @@ async def evolve_reset(self, event: AstrMessageEvent, group_id, qq_id, player):
         pass
     old_title = self._tier_title(cls, tier, player.get("evolve_path", 0))
     yield event.plain_result(
-        f"🔄 转职重置成功！(花费 {cost} 金币)\n"
-        f"━━━━━━━━━━━━\n"
-        f"{old_title} → 回到基础职业\n"
-        f"✨ 等级与基础技能保留，分支技能已清除({'、'.join(removed) or '无'})\n"
-        f"💡 到 30/60/90 级可重新『转职』选择新分支！"
+        _T.text("evolve.reset_ok_base", cost=cost, title=old_title, removed='、'.join(removed) or '无')
     )
 
 async def reset_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1419,11 +1367,8 @@ async def power(self, event: AstrMessageEvent, group_id, qq_id, player):
     tier = player.get("class_tier", 0)
     title = self._tier_title(player["class_name"], tier)
     yield event.plain_result(
-        f"⚡ 【战力】{player['name']}({title} Lv.{player['level']})\n"
-        f"战斗力：{pw:,}\n"
-        f"━━━━━━━━━━━━\n"
-        f"❤️ {st['max_hp']} ｜ ⚔️ {st['atk']} ｜ 🔮 {st['matk']} ｜ 🛡️ {st['def']} ｜ 💨 {st['spd']}\n"
-        f"💡 升级、装备、转职、加点都能提升战力！"
+        _T.text("power.panel", name=player['name'], title=title, level=player['level'], pw=pw,
+            hp=st['max_hp'], atk=st['atk'], matk=st['matk'], dfn=st['def'], spd=st['spd'])
     )
 
 async def skill_detail(self, event: AstrMessageEvent, group_id, qq_id, player):
@@ -1936,11 +1881,7 @@ async def delete_account(self, event: AstrMessageEvent, group_id, qq_id, player)
     # 发起注销：写确认状态（10 分钟有效）
     db.set_event_state(f"del_confirm_{qq_id}", int(time.time()))
     yield event.plain_result(
-        f"⚠️ 真的要注销角色【{player['name']}】吗？\n"
-        f"删除后将失去：等级/装备/背包/金币/技能/副业/宠物/公会 全部数据！\n"
-        f"━━━━━━━━━━━━\n"
-        f"确认请回复：『注销 确认』(10 分钟内有效)\n"
-        f"想切职业也可以直接注销后重新注册～"
+        _T.text("account.confirm", name=player['name'])
     )
 
 __all__ = ["_tutor_mentor", "_RES_CN", "_BRANCH_KEY_DISPLAY", "shortcut", "shortcut_trigger", "page_flip", "register", "bind_identity", "profile", "leaderboard", "races", "evolve", "_branch_title", "_hidden_alias_map", "_hidden_class_routes", "_hidden_tier_levels", "_evolve_hidden_status", "_evolve_hidden_generic", "_evolve_auto_skills", "_tier_title", "attributes", "add_attr", "reset_skill", "evolve_reset", "reset_attr", "power", "skill_detail", "_skill_detail_message", "skill_learn", "_skill_learn_msg", "_skill_cast_text", "_skill_formula_text", "_skill_upgrade_gains", "skill_upgrade", "skill_bar_view", "skill_bar_set", "build_view", "delete_account"]

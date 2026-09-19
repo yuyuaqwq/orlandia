@@ -167,7 +167,10 @@ FROZEN_COUNTS = {
     #     9 新键 = victory_settle 3 + defeat_settle 6）⇒ 2457 → 2466
     #   ★ C 档 29a（B-2 第 16 片：quests_flow 全文件「任务列表/接取/交付/进度」
     #     42 新键，6 处与 27a 的 objline.* 同值幂等复用）⇒ 2466 → 2508
-    "texts": 2508,
+    #   ★ C 档 30a（B-2 第 17 片：player_cmds 余量「注册欢迎面板 / 转职面板 /
+    #     转职重置 / 战力 / 注销确认」，5 函数 8 处替换 / 8 新键；注册 / 转职 /
+    #     注销 沿用既有分类，战力面板 为新分类）⇒ 2508 → 2516
+    "texts": 2516,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）
