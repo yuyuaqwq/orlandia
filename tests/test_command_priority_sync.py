@@ -49,6 +49,8 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 import _paths                                                            # noqa: E402
+from _check import bind_check
+
 
 # ★ 搬迁适配（T8 ③）：旧 `PLUGIN_DIR = dirname(dirname(__file__))` 在宿主布局 = 宿主插件根；
 #   文件搬到 `pkg/tests/` 后那是**包根**。宿主专属的部署期镜像走 `_paths.HOST_ROOT`，
@@ -71,16 +73,9 @@ FAIL = 0
 FAILURES: list = []
 
 
-def check(name, cond, detail="", red_keys=()):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print("  ✅ %s" % name)
-    else:
-        FAIL += 1
-        ks = sorted({str(k) for k in red_keys})
-        FAILURES.append("%s: %s" % (name, detail))
-        print("  ❌ %s  红 key: %s  %s" % (name, ks, detail))
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
 
 # ============================================================ 读

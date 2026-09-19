@@ -17,11 +17,13 @@ from _engine_harness import C, run, FakeEvent, clean_db
 from _engine_harness import db
 from _engine_harness import Main
 from content.catalog_items import EQUIP_ROSTER
+from _check import bind_check
 
 
-def check(name, cond, detail=""):
-    print(("  ✅ " if cond else "  ❌ ") + name + (f" | {detail}" if detail else ""))
-    return cond
+
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals())
 
 
 async def main():

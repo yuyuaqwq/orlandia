@@ -14,13 +14,14 @@ os.environ.setdefault("GWEN_GAME_DB", "test_game_data_v140_cmds.db")
 from _engine_harness import FakeEvent, run, clean_db, make_player, new_main
 from _engine_harness import C, db
 from content.gameplay_rules import check_player_level_up
+from _check import bind_check
+
 
 passed = 0
-def check(name, cond, detail=""):
-    global passed
-    assert cond, f"{name}: {detail}"
-    passed += 1
-    print(f"  ✓ {name}")
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), ok="passed", strict=True)
+
 
 def test_chapter_pack():
     print("【1. 章节礼包（每 10 级发一次）】")

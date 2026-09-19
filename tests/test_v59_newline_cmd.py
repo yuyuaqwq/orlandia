@@ -6,15 +6,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # 装饰器扫描：统一走 tests/_cmd_registry.py（@filter.regex 字面量 + @declared 声明都认）
 from _cmd_registry import pattern_map  # noqa: E402
+from _check import bind_check
+
 
 handlers = [(pat, name) for name, pat in pattern_map().items()]
 
 passed = 0
-def check(name, cond, detail=""):
-    global passed
-    assert cond, f"{name}: {detail}"
-    passed += 1
-    print(f"  ✓ {name}")
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), ok="passed", strict=True)
+
 
 def test_no_dotstar():
     print("【正则库无 .* 收尾（换行杀手）】")

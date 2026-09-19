@@ -22,16 +22,16 @@ from _engine_harness import Main as EconomyCmds  # 原 game.commands.economy.Eco
 # `game/services/profession.py` 注入；终态无该薄壳）。REPOINT_MAP: game.drop_engine → content.loot。
 from content.loot import expand_pool as _expand_pool
 from content import profession as _profession_mod
+from _check import bind_check
+
 _profession_mod.bind_host(expand_pool=_expand_pool)
 
 FAILS = []
 
-def check(name, cond, detail=""):
-    if cond:
-        print(f"  ✓ {name}")
-    else:
-        FAILS.append(name)
-        print(f"  ✗ {name} {detail}")
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), failures="FAILS")
+
 
 def main():
     e = EconomyCmds(None)

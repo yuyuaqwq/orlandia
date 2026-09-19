@@ -56,6 +56,8 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 import _paths                                                            # noqa: E402
+from _check import bind_check
+
 
 #: 宿主插件根（旧 `PLUGIN_DIR` 语义：宿主镜像 `game/**`、读点 `host/**` 等宿主专属面）。
 #: ★ 搬迁适配（T8 ③）：文件现在住在 `pkg/tests/`，`dirname(dirname(__file__))` 已是**包根**，
@@ -83,17 +85,10 @@ FAILURES: list = []
 RED_MARKERS: set = set()      # 非 kind 的报红标记（<mirror>/<count>/<readpoint>…），进汇总行
 
 
-def check(name, cond, detail="", red_keys=()):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print("  ✅ %s" % name)
-    else:
-        FAIL += 1
-        ks = sorted({str(k) for k in red_keys})
-        RED_MARKERS.update(ks)
-        FAILURES.append("%s: %s" % (name, detail))
-        print("  ❌ %s  红 kind: %s  %s" % (name, ks, detail))
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), "PASS", "FAIL", "FAILURES",
+            markers="RED_MARKERS", marker_label="红 kind")
 
 
 # ============================================================ 读 / 规范化

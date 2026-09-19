@@ -20,15 +20,15 @@ import asyncio
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from conftest import C, db, clean_db, make_player, Main, run
+from _check import bind_check
+
 
 FAILS = []
 
-def check(name, cond, detail=""):
-    if cond:
-        print(f"  ✓ {name}")
-    else:
-        FAILS.append(name)
-        print(f"  ✗ {name} {detail}")
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), failures="FAILS")
+
 
 async def cmd(m, handler_name, gid, qid, msg):
     from conftest import FakeEvent

@@ -21,6 +21,8 @@ from _engine_harness import Main as CommandBase  # 原 game.commands.base.Comman
 # `_tip` 的提示池经 `HostShell._tip_pool_map()` → 包内 `cmds_base_rules.TIP_POOL`
 # 取件，必须有已装配的包对象（`HostShell.__new__` 的裸实例没有 `_pkg` ⇒ AttributeError）。
 from _engine_harness import harness as _harness  # noqa: E402
+from _check import bind_check
+
 _h = _harness()
 # 终态扫描根：命令实现体在包内 `content/**`（旧 `game/commands/**` 已薄壳化）
 PKG_ROOT = os.path.dirname(os.path.abspath(_h.facade.__file__))
@@ -28,12 +30,9 @@ PKG_ROOT = os.path.dirname(os.path.abspath(_h.facade.__file__))
 FAILS = []
 
 
-def check(name, cond, detail=""):
-    if not cond:
-        FAILS.append(f"{name}: {detail}")
-        print(f"❌ {name}: {detail}")
-    else:
-        print(f"✅ {name}")
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), failures="FAILS")
 
 
 def _scan_multi_tip():

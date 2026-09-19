@@ -107,6 +107,8 @@ from content.flow import instance_battle as _IB  # ★ 改绑到包内实现：�
                                                  #   （宿主壳取件面变化后，打在壳上会静默失效 → 文案门禁 61/63）
 from _engine_harness import Main as _CmdHostBase  # noqa: E402
 from content.instance_cmds import InstanceImpl as _InstImpl  # noqa: E402  （打桩落点：包内实现类）
+from _check import bind_check
+
 
 # `_PD` = 旧插件根语义（见上 `_paths.HOST_ROOT`）；宿主各扫描根（`game/**`）按插件根拼。
 WEEKLY_SRC = os.path.join(_PD, "game", "commands", "weekly.py")
@@ -521,14 +523,9 @@ def _wired_paths(path):
 passed = failed = 0
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print("  ✅ %s" % name)
-    else:
-        failed += 1
-        print("  ❌ %s %s" % (name, str(detail)[:400]))
+# ★ 审计 P0-1 单源化：断言助手唯一实现 = tests/_check.py
+#   （原先本文件手抄一份 def check；差异项已作为 bind_check 参数写出）
+check = bind_check(globals(), "passed", "failed", limit=400)
 
 
 # ══════════════════════════════════════════════════════════════════════════
