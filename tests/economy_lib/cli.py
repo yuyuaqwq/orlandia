@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """economy_lib.cli —— 经济模型命令行入口
-用法（cd 插件目录）:
-  python scripts/economy_lib/cli.py scan          # 全阶段经济扫描 + 健康检查
-  python scripts/economy_lib/cli.py prof          # 副业(炼金/烹饪)成本-价值扫描
-  python scripts/economy_lib/cli.py drop [lv]     # 指定等级掉落仿真（默认全阶段）
-  python scripts/economy_lib/cli.py json          # 输出全量 JSON
+用法（真源 = 包仓 tests/economy_lib/；宿主仓不持副本，部署面 = <插件>/framework/games/<包>/tests/economy_lib/）:
+  python tests/economy_lib/cli.py scan          # 全阶段经济扫描 + 健康检查
+  python tests/economy_lib/cli.py prof          # 副业(炼金/烹饪)成本-价值扫描
+  python tests/economy_lib/cli.py drop [lv]     # 指定等级掉落仿真（默认全阶段）
+  python tests/economy_lib/cli.py json          # 输出全量 JSON
 """
 import sys
 import json
