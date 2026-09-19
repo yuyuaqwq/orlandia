@@ -701,15 +701,12 @@ def audit_all() -> dict:
 
 
 def audit_pretty() -> str:
-    """人类可读审计报告。"""
-    rep = audit_all()
-    lines = [f"DROP_POOLS 审计: {rep['pool_count']} 池 / {rep['entry_count']} 条目"]
-    if not rep["issues"]:
-        lines.append("✅ 0 问题")
-    else:
-        for lvl, key, msg in rep["issues"]:
-            lines.append(f"  ⚠️ [{lvl}] {key}: {msg}")
-    return "\n".join(lines)
+    """人类可读审计报告。
+
+    v184-尾：版式**只有一份**（引擎 `LootTable.audit_pretty`）—— 本函数只把本游戏的说法
+    （`DROP_POOLS 审计`）当 `header` 传进去；引擎侧不持任何池名知识。
+    """
+    return _TABLE.audit_pretty(resolvable=_resolvable, header="DROP_POOLS 审计")
 
 
 __all__ = [

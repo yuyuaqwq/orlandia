@@ -41,10 +41,7 @@
 """
 from __future__ import annotations
 
-import random
 from typing import Iterable, Optional
-
-from saintess_engine.tlog import Record
 
 # 引擎事件 → 流水 kind（框架不认，映射表在内容侧）
 EVENT_KINDS = {

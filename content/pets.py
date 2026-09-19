@@ -37,8 +37,7 @@ def bind_host(pets=None):
 # ============================================================
 from . import catalog_life as _cl                                          # noqa: E402
 from . import texts as _T                       # 文案表（B 批 B-1 B 档：宠物技能描述）
-from .catalog_b143 import (PET_MAX_LEVEL, PET_SKILL_UNLOCK_LV,             # noqa: E402
-                           QUALITY)
+from .catalog_b143 import PET_MAX_LEVEL, QUALITY                          # noqa: E402
 from .catalog_rules import _PET_EGG_PRICE, PET_EXP_GRADE                   # noqa: E402
 
 PET_POOL = _cl.PET_POOL              # 域 `pets`（16 品种，插入序 = 真源）—— 不复制，同一对象
