@@ -6336,6 +6336,24 @@
     "category": "探索事件",
     "desc": "搬自 content/combat_cmds.py:_roll_find_quest_events（B 批 C 档）"
   },
+  "explore.first_visit": {
+    "value": "首次探索（{lv} 级区域）！获得经验 +{exp}、金币 +{gold}",
+    "params": [
+      "lv",
+      "exp",
+      "gold"
+    ],
+    "category": "探索事件",
+    "desc": "搬自 content/exploration.py:record_visit（B 批 C 档）"
+  },
+  "explore.first_visit_mat": {
+    "value": "，并拾得 {mat}",
+    "params": [
+      "mat"
+    ],
+    "category": "探索事件",
+    "desc": "搬自 content/exploration.py:record_visit（B 批 C 档）"
+  },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
     "category": "战斗日志",
@@ -6731,6 +6749,26 @@
     ],
     "category": "垂钓结算",
     "desc": "搬自 content/profession.py:settle_fishing（B 批 C 档）"
+  },
+  "fish.season_tag_autumn": {
+    "value": "🍂限定",
+    "category": "垂钓结算",
+    "desc": "搬自 content/fishing.py:_roll_fish_legacy（B 批 C 档）"
+  },
+  "fish.season_tag_spring": {
+    "value": "🌸限定",
+    "category": "垂钓结算",
+    "desc": "搬自 content/fishing.py:_roll_fish_legacy（B 批 C 档）"
+  },
+  "fish.season_tag_summer": {
+    "value": "☀️限定",
+    "category": "垂钓结算",
+    "desc": "搬自 content/fishing.py:_roll_fish_legacy（B 批 C 档）"
+  },
+  "fish.season_tag_winter": {
+    "value": "❄️限定",
+    "category": "垂钓结算",
+    "desc": "搬自 content/fishing.py:_roll_fish_legacy（B 批 C 档）"
   },
   "fish.sv_bp": {
     "value": "\n🎏 惊喜！鱼肚子里还藏着一张泛黄的纸——【{name}】！(『背包 使用』学习锻造配方)",
@@ -8275,6 +8313,14 @@
     "category": "社交公会",
     "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
   },
+  "guild.shop_cost": {
+    "value": "{cost} 积分",
+    "params": [
+      "cost"
+    ],
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_lines（B 批 C 档）"
+  },
   "guild.shop_limit_daily": {
     "value": "每日限购 {n}",
     "params": [
@@ -8309,6 +8355,11 @@
     ],
     "category": "社交公会",
     "desc": "搬自 content/social_guild.py:guild_shop_buy（B 批 C 档）"
+  },
+  "guild.shop_no_limit": {
+    "value": "不限购",
+    "category": "社交公会",
+    "desc": "搬自 content/social_guild.py:guild_shop_lines（B 批 C 档）"
   },
   "guild.shop_points_low": {
     "value": "公会积分不足！购买【{name}】需要 {need} 积分，你只有 {have}。",
@@ -12013,6 +12064,14 @@
     "category": "坐骑面板",
     "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
   },
+  "mount.rein_desc": {
+    "value": "使用后可获得坐骑『{name}』",
+    "params": [
+      "name"
+    ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/mounts.py:make_mount_rein（B 批 C 档）"
+  },
   "mount.ride_ok": {
     "value": "{icon} 你骑上了【{name}】！{desc}",
     "params": [
@@ -12020,6 +12079,11 @@
       "name",
       "desc"
     ],
+    "category": "坐骑面板",
+    "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "mount.riding_mark": {
+    "value": " 🟢 骑乘中",
     "category": "坐骑面板",
     "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
   },
@@ -12498,6 +12562,11 @@
     ],
     "category": "社交队伍",
     "desc": "搬自 content/party.py:party_join（B 批 C 档）"
+  },
+  "party.leader_mark": {
+    "value": "(队长)",
+    "category": "社交队伍",
+    "desc": "搬自 content/party.py:party_view_lines（B 批 C 档）"
   },
   "party.leave_none": {
     "value": "你还没有队伍～",
@@ -14508,6 +14577,16 @@
     ],
     "category": "副业等待",
     "desc": "搬自 content/profession.py:prof_wait_flow（B 批 C 档）"
+  },
+  "prof.wait_guard": {
+    "value": "⏳ 你还在{tname}呢，再有 {left} 秒完成！(完成后自动入包)\n💡 等待期间可以『背包』『属性』『任务』，但移动/探索/战斗要等{tname2}结束～",
+    "params": [
+      "tname",
+      "left",
+      "tname2"
+    ],
+    "category": "副业等待",
+    "desc": "搬自 content/guards.py:no_prof_waiting（B 批 C 档）"
   },
   "prof.wait_left": {
     "value": "⏳ 你还在{tname}呢，再有 {left} 秒就完成啦～(完成会自动入包)",
@@ -16746,6 +16825,31 @@
     ],
     "category": "种族天赋",
     "desc": "搬自 content/race_talent_display.py:_d_timid_hp（B 批 C 档）"
+  },
+  "rule.fac_hint_head": {
+    "value": "去 ",
+    "category": "公共规则",
+    "desc": "搬自 content/cmds_base_rules.py:facility_hint（B 批 C 档）"
+  },
+  "rule.fac_hint_sep": {
+    "value": " 或 ",
+    "category": "公共规则",
+    "desc": "搬自 content/cmds_base_rules.py:facility_hint（B 批 C 档）"
+  },
+  "rule.fac_hint_tail": {
+    "value": " 看看",
+    "category": "公共规则",
+    "desc": "搬自 content/cmds_base_rules.py:facility_hint（B 批 C 档）"
+  },
+  "rule.stamina_bar": {
+    "value": "⚡ 体力{sep}{cur}/{cap}",
+    "params": [
+      "sep",
+      "cur",
+      "cap"
+    ],
+    "category": "公共规则",
+    "desc": "搬自 content/cmds_base_rules.py:stamina_bar（B 批 C 档）"
   },
   "rune.bad_slot": {
     "value": "『{slot}』不是有效孔位！输入『符文拆卸 <装备名> <孔位序号>』，如：符文拆卸 铁剑 1",
@@ -19211,10 +19315,28 @@
     "category": "社交市场",
     "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
   },
+  "stall.home_map": {
+    "value": "家里",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
   "stall.home_no_slot": {
     "value": "🏠 木屋没有铺面挂机位！『地契 升级』到石屋解锁 1 个挂机位～",
     "category": "社交市场",
     "desc": "搬自 content/social_stall.py:stall_place（B 批 C 档）"
+  },
+  "stall.label_pawn": {
+    "value": "🔄 换",
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_label（B 批 C 档）"
+  },
+  "stall.label_price": {
+    "value": "{price} 金币",
+    "params": [
+      "price"
+    ],
+    "category": "社交市场",
+    "desc": "搬自 content/social_stall.py:stall_label（B 批 C 档）"
   },
   "stall.mkt_empty": {
     "value": "🏪 市场空空如也。『上架 <物品> <价格>』寄售你的宝贝！",

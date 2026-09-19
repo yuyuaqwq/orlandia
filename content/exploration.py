@@ -144,6 +144,8 @@ C = PkgModule("content.index")
 # ★ B14-2 L8（2026-09-14）：`C.MATERIALS`（材料价）→ 包内物品门面直取
 #   （门禁 `b14_catalog_gate.py` 逐值+键序 OK；`C` 仍有残余 `resolve`/`display`）
 from . import catalog_items as _ci      # noqa: E402
+# ★ C 档 PRE4-b：文案表读口（首访奖励播报挂 `explore.first_visit*`；本文件首次接入）
+from . import texts as _T               # noqa: E402
 
 
 def _map_by_id(map_id: str) -> dict:
@@ -220,9 +222,9 @@ def record_visit(group_id, qq_id, map_id, sa_id):
 
     # v115 协作契约：reward 为给命令层拼接展示的友好文案（world.py _subarea_arrive/传送
     # 读取 rv["reward"] → 追加 "🎉 {reward}"）。隐藏房间首访附材料，普通首访仅经验/金币。
-    _reward = f"首次探索（{lv} 级区域）！获得经验 +{exp}、金币 +{gold}"
+    _reward = _T.text("explore.first_visit", lv=lv, exp=exp, gold=gold)
     if mat:
-        _reward += f"，并拾得 {mat}"
+        _reward += _T.text("explore.first_visit_mat", mat=mat)
     return {"first": True, "exp": exp, "gold": gold, "mat": mat, "reward": _reward}
 
 

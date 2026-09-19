@@ -17,6 +17,7 @@ import random
 # ---- 包内门面读口（W12 收口：真源顶层 `from ..data import MOUNT_*`）----
 from . import catalog_life as _cl                                  # noqa: E402  MOUNT_BY_KEY（派生索引）
 from .catalog_b143 import MOUNT_DROP_BOSS, MOUNT_DROP_ELITE        # noqa: E402  两张掉落表
+from . import texts as _T                                          # noqa: E402  C 档 PRE4-a（2026-09-19）：文案表读口（本文件首次接入）
 
 from saintess_engine.wire import Wire
 from ._domainio import read_data_json as _read_json
@@ -38,7 +39,7 @@ def make_mount_rein(mount_key):
     MOUNT_BY_KEY, _drop_boss, _drop_elite = _tables()
     m = MOUNT_BY_KEY[mount_key]
     return {"name": f"{m['name']}缰绳", "type": "坐骑", "mount_key": mount_key, "stackable": True,
-            "price": 300, "desc": f"使用后可获得坐骑『{m['name']}』"}
+            "price": 300, "desc": _T.text("mount.rein_desc", name=m['name'])}
 
 
 def roll_mount_drop(role: str):

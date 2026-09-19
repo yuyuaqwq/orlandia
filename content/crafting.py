@@ -27,6 +27,7 @@ enhance 命令调用）· `tests/test_services_crafting.py`。
 from __future__ import annotations
 
 from .config import const as _cfg_const, int_keys as _cfg_int_keys
+from . import texts as _T                # C 档 PRE4-c（2026-09-19）：文案表读口（本文件首次接入）
 
 
 # 数据读口（I1）：真源 `C.ENHANCE_FAIL_DROP`（宿主 `game/data/enhance.py:24`，1 个读点）
@@ -67,7 +68,7 @@ def compute_enhance_rate(base_rate, prof_lv, *, boost=False,
     _craft_line = ""
     if _rate_bonus > 0:
         rate = min(1.0, rate + _rate_bonus)
-        _craft_line = f"\n🛠️ 强化师 Lv.{prof_lv} 的手艺：成功率 +{_rate_bonus*100:.1f}%！"
+        _craft_line = _T.text("strengthen.master_bonus", lv=prof_lv, pct=_rate_bonus*100)
     # v105 M11 P2：星铁必成(_boost)或成功率已 100% 时不再消耗精炼强化石（+25% 纯浪费）
     stones_used = []
     if not boost and rate < 1.0 and has_refine:

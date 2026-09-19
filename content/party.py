@@ -234,7 +234,7 @@ def party_view_lines(group_id, members, get_player=None, final_stats=None, displ
             if p else ""
         )
         pos_str = _T.text("party.row_spd", spd=_spdmap.get(str(m), '?')) if len(roster) > 1 else ""
-        lines.append(_T.text("party.row", i=i, name=p['name'] if p else m, cls=cls_str, pos=pos_str) + ("(队长)" if m == roster.leader else ""))
+        lines.append(_T.text("party.row", i=i, name=p['name'] if p else m, cls=cls_str, pos=pos_str) + (_T.static("party.leader_mark") if m == roster.leader else ""))
     lines.append(_T.static("party.tip"))
     return lines
 

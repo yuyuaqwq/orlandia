@@ -448,9 +448,9 @@ def guild_shop_lines(g, member):
     lines = [_T.text("guild.shop_title", lv=g['level'], points=contribute), "━━━━━━━━━━━━"]
     for i, it in guild_shop_items().items():
         locked = g["level"] < it["min_level"]
-        tag = "🔒" if locked else f"{it['cost']} 积分"
+        tag = "🔒" if locked else _T.text("guild.shop_cost", cost=it['cost'])
         lines.append(_T.text("guild.shop_row", i=i, name=it['name'], tag=tag))
-        limit = _T.text("guild.shop_limit_daily", n=it['daily_limit']) if it.get("daily_limit") else "不限购"
+        limit = _T.text("guild.shop_limit_daily", n=it['daily_limit']) if it.get("daily_limit") else _T.static("guild.shop_no_limit")
         lines.append(_T.text("guild.shop_row2", desc=it['item_data'].get('desc', ''), lv=it['min_level'],
                          limit=limit))
     lines.append("━━━━━━━━━━━━")

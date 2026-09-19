@@ -189,7 +189,7 @@ def stall_place(group_id, qq_id, player, item_name, price, count):
     if not map_obj and not cur_map.startswith("home_"):
         return False, _T.static("stall.no_map")
     if cur_map.startswith("home_"):
-        map_name = "家里"
+        map_name = _T.static("stall.home_map")
     else:
         map_name = map_obj.get("name", cur_map)
     old = [s for s in db.market_list_by_seller(group_id, qq_id) if s.get("map_id")]
@@ -215,7 +215,7 @@ def stall_place(group_id, qq_id, player, item_name, price, count):
 def stall_label(s):
     """摊位价格标签：price>0 → 'N 金币'；price=0 → '🔄 换'(以物换物)"""
     price = s.get("price") or 0
-    return f"{price} 金币" if price > 0 else "🔄 换"
+    return _T.text("stall.label_price", price=price) if price > 0 else _T.static("stall.label_pawn")
 
 
 # ============================================================

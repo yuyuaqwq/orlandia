@@ -63,6 +63,7 @@ from .catalog_b143 import QUALITY_ORDER as FISH_QUALITY_ORDER   # ★ B16-W11d�
 #   `F.current_season = lambda …` 打桩语义也不变（仍是**模块级同名对象**）。
 from .quality_tiers import FISH_TIERS as FISH_TIERS
 from .time_weather import current_season as current_season
+from . import texts as _T       # C 档 PRE4-a（2026-09-19）：文案表读口（本文件首次接入）
 
 
 def _quality_weights(prof_lv: int) -> list:
@@ -161,8 +162,8 @@ def _roll_fish_legacy(prof_lv: int = 1, spot_id: str | None = None, bait: str | 
     # （不直接在共享 FISH_POOL 上写字段，避免污染数据）
     if pick.get("season") == season or pick.get("season_boost") == season:
         pick = dict(pick)
-        pick["_season_prefix"] = {"spring": "🌸限定", "summer": "☀️限定",
-                                  "autumn": "🍂限定", "winter": "❄️限定"}[season]
+        pick["_season_prefix"] = {"spring": _T.static("fish.season_tag_spring"), "summer": _T.static("fish.season_tag_summer"),
+                                  "autumn": _T.static("fish.season_tag_autumn"), "winter": _T.static("fish.season_tag_winter")}[season]
     return pick
 
 def roll_fish_size_weight(fish: dict):

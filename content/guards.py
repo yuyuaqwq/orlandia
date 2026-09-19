@@ -23,6 +23,8 @@ __all__ = ["GUARDS", "NO_PLAYER_HINT", "player"]
 
 #: ★ S1：宿主面键名的**唯一出处** = `content/cmds_env.py`（本模块不再自写一份取件）
 from .cmds_env import shell as _shell
+#: 文案表读口（C 档 PRE4-b 起：等待型副业互斥回话挂 `prof.wait_guard`；本文件首次接入）
+from . import texts as _T
 
 #: 「玩家档不存在」的拦截回话（逐字 = 宿主 `base.REGISTER_HINT`）
 NO_PLAYER_HINT = "你还没有角色！输入『注册 <名字> <性别> [种族]』创建吧～"
@@ -95,8 +97,7 @@ def no_prof_waiting(env, player=None):
         left = st["finish"] - _now(env)
         tname = PROF_WAIT_BASE.get(st["type"], (0, 0, "副业"))[2]
         # v101.25 #307：等待期互斥是设计使然（防结算错乱），提示说清等待期能做什么
-        return (f"⏳ 你还在{tname}呢，再有 {left} 秒完成！(完成后自动入包)\n"
-                f"💡 等待期间可以『背包』『属性』『任务』，但移动/探索/战斗要等{tname}结束～")
+        return (_T.text("prof.wait_guard", tname=tname, left=left, tname2=tname))
     return None
 
 

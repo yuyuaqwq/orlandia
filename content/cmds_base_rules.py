@@ -53,9 +53,10 @@
 行为逐字节不变：证据 = `overnight/b18l7_snap.py` 的 **202 场景**（正常/边界/失败 + 真实副作用）
 改前/改后同 sha256；本线报告 `overnight/W-B18-L7.md`。
 
-文案仍为**包内字面量**（未挂文案表 key）：`battle_none_hint` / 副业等待句 / 体力条 / 属性来源行
-本来就不在 `game/data/text_specs.json` 里（改造前同样是字面量），本波只做搬家不改形状；
-登记见报告「未做与缺口」。
+文案：B18-L7 只做搬家不改形状；**C 档 PRE4-b** 起设施指路句（`facility_hint`）与体力条
+（`stamina_bar`）挂文案表（`rule.*`），副业等待句挂 `prof.wait_guard`（在 `content/guards.py`）——
+三者渲染逐字不变（`_T.static` / `_T.text` 槽位原地透传）。仍留包内字面量的：
+`battle_none_hint`（模块级常量）与 `fmt_stat_src` 的来源行模板（无中文实词）。
 """
 from __future__ import annotations
 
@@ -67,6 +68,7 @@ from . import catalog_items as _cat_items
 from . import catalog_life as _cat_life
 from . import catalog_space as _cat_space
 from . import guards as _guards
+from . import texts as _T  # C 档 PRE4-b（B-2）：文案表读口（本文件首次接入）
 from . import wild as _wild
 from .cmds_env import shell_state as _shell_state
 from .item_templates import TIPS
@@ -307,7 +309,9 @@ def facility_hint(player: dict, kind: str) -> str:
     for n in names:
         if n and n not in uniq:
             uniq.append(n)
-    return "去 " + " 或 ".join(uniq[:3]) + " 看看"
+    return (_T.static("rule.fac_hint_head")
+            + _T.static("rule.fac_hint_sep").join(uniq[:3])
+            + _T.static("rule.fac_hint_tail"))
 
 
 def fmt_stat_src(src: dict) -> str:
@@ -375,4 +379,4 @@ def add_stamina(group_id, qq_id, amount: int, player: dict) -> int:
 def stamina_bar(player: dict, sep: str = " ") -> str:
     """体力显示条：⚡ 82/102（sep 可传『：』统一标签冒号格式）
     ★ B18-L7：逐字 = 宿主旧 `base._stamina_bar`。"""
-    return f"⚡ 体力{sep}{stamina(player)}/{stamina_max(player)}"
+    return _T.text("rule.stamina_bar", sep=sep, cur=stamina(player), cap=stamina_max(player))

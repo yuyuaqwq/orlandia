@@ -368,7 +368,7 @@ def mount_run(group_id, qq_id, player, raw: str, msg: str, cmd: str, tip_fn):
         m = _cl.MOUNT_BY_KEY.get(mk)
         if not m:
             continue
-        mark = " 🟢 骑乘中" if active == mk else ""
+        mark = _T.static("mount.riding_mark") if active == mk else ""
         lines.append(f"{_q_label(m)} {m['icon']} {m['name']}{mark} — {m['desc']}")
     if owned:
         lines.append("")

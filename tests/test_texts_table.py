@@ -385,8 +385,12 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 33a（B-2 第 21 片）：profession「副业结算：等待流/垂钓/惊喜/采集/挖掘」
          #   （content/profession.py 本文件首次接入 `_T`；40 处替换 / 39 新键，
          #    fish.lv_up ×4 与 fish.sv_legend ×2 同键同值复用，gather.rare_hint 跨两函数共键）
-         "副业等待": os.path.join(PKG_CONTENT, "profession.py"),
-         "垂钓结算": os.path.join(PKG_CONTENT, "profession.py"),
+         #  ★ 2026-09-19 PRE4：`guards.py` 首次接入 `_T`（prof.wait_guard 副业等待守卫整句）
+         "副业等待": [os.path.join(PKG_CONTENT, "profession.py"),
+                      os.path.join(PKG_CONTENT, "guards.py")],
+         #  ★ 2026-09-19 PRE4：`fishing.py` 首次接入 `_T`（fish.season_tag_* 四季钓获标签）
+         "垂钓结算": [os.path.join(PKG_CONTENT, "profession.py"),
+                      os.path.join(PKG_CONTENT, "fishing.py")],
          "垂钓惊喜": os.path.join(PKG_CONTENT, "profession.py"),
          "采集结算": os.path.join(PKG_CONTENT, "profession.py"),
          "挖掘结算": os.path.join(PKG_CONTENT, "profession.py"),
@@ -432,7 +436,9 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          #   （双形态预设 · 终结阈值 · 奥术力场 · 战前指令总览）
          "战前设置": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          # ★ C 档 19f（B-2 第 5 片第 7 小片）：combat 散尾（探索点 POI 两分支 + find 型委托「找到目标」）
-         "探索事件": os.path.join(PKG_CONTENT, "combat_cmds.py"),
+         #  ★ 2026-09-19 PRE4：`exploration.py` 首次接入 `_T`（explore.first_visit* 首访播报）
+        "探索事件": [os.path.join(PKG_CONTENT, "combat_cmds.py"),
+                     os.path.join(PKG_CONTENT, "exploration.py")],
          # ★ C 档 20a（B-2 第 6 片第 1 小片）：社交散落「市场·摊位」
          #   （群市场面板/上架下架购入全分支 · 摆卖摆换·收摊·摊位·换 全分支 · 家园铺面门禁）
          # ★ C 档 35b（B-2 第 28 片）：存档层 social.py 的市场交易回执同域 ⇒ 追加第三文件
@@ -457,10 +463,18 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 20d（B-2 第 6 片第 4 小片）：社交「宠物 · 坐骑」
          #   （content/social_pet.py **全 5 函数**首次接入 `_T`：宠物面板全行 · 喂养全分支 ·
          #    改名/放生 · 坐骑面板/骑乘/下马 —— 命令层 cmds_social.py 只做转发，调用点全在本文件）
-         "宠物面板": os.path.join(PKG_CONTENT, "social_pet.py"),
+         #  ★ 2026-09-19 PRE4：`pets.py` 首次接入 `_T`（pet.egg_desc 宠物蛋描述；36b 由 cron 线落链）
+        "宠物面板": [os.path.join(PKG_CONTENT, "social_pet.py"),
+                     os.path.join(PKG_CONTENT, "pets.py")],
          "宠物喂养": os.path.join(PKG_CONTENT, "social_pet.py"),
          "宠物管理": os.path.join(PKG_CONTENT, "social_pet.py"),
-         "坐骑面板": os.path.join(PKG_CONTENT, "social_pet.py"),
+         #  ★ 2026-09-19 PRE4：`mounts.py` 首次接入 `_T`（mount.rein_desc 缰绳描述）
+        "坐骑面板": [os.path.join(PKG_CONTENT, "social_pet.py"),
+                     os.path.join(PKG_CONTENT, "mounts.py")],
+        #  ★ 2026-09-19 PRE4 新增分类：`cmds_base_rules.py` 首次接入 `_T`
+        #     （rule.fac_hint_* 设施提示三段 · rule.stamina_bar 体力条整句；该文件另有
+        #      `wild_trader_here` 被 u1i4 frozen 钉住，本分类不涉该函数）
+        "公共规则": os.path.join(PKG_CONTENT, "cmds_base_rules.py"),
          # ★ C 档 21a（B-2 第 7 片第 1 小片）：生活「商店 · 货架」
          #   （商店面板：红名/无店两分支/货摊标题/六块货行/翻页/底栏 —— 命令层 shop；
          #    货架成交命名 shop.work_name 由 smith_stock.py 与面板共键；序号购买分派在 shop.py；
@@ -1070,7 +1084,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制 / 事件模板 / 装备描述 / 团队机制 / 元素机制 / 升级提示 / 探索进度）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制 / 事件模板 / 装备描述 / 团队机制 / 元素机制 / 升级提示 / 探索进度 / 公共规则）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "副本移动", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -1142,7 +1156,7 @@ def t1_table_selfcheck():
                         # ★ C 档 PRE3（2026-09-19 并行批 3）：mech 两机制族
                         "团队机制", "元素机制",
                         # ★ C 档 35a（B-2 第 27 片）：升级/里程碑播报 + 探索进度面板
-                        "升级提示", "探索进度",
+                        "升级提示", "探索进度", "公共规则",
                         # ★ C 档 36a（B-2 第 29 片）：quest_view 面板（新分类 任务面板）
                         "任务面板"}, cats)
 
