@@ -2608,24 +2608,26 @@ def _obj_text_lines_of(type_key, obj, prog, st):
     if not obj.get(type_key):
         return None
     if type_key == "kill":
-        return f"击败 {obj['kill']} ×{qf._OBJECTIVES.need_of(obj, 'kill')}"
+        return _T.text("objline.kill", name=obj['kill'], n=qf._OBJECTIVES.need_of(obj, 'kill'))
     if type_key == "collect":
         # v125.1 P2：s64 等 collect_count 无 count 的复合目标不再 KeyError
-        return f"收集 {obj['collect']} ×{qf._OBJECTIVES.need_of(obj, 'collect')}"
+        return _T.text("objline.collect", name=obj['collect'], n=qf._OBJECTIVES.need_of(obj, 'collect'))
     if type_key == "explore":
-        return f"前往 {_cat_space.MAP_BY_ID.get(obj['explore'], {}).get('name', '？')}"
+        return _T.text("objline.explore", map=_cat_space.MAP_BY_ID.get(obj['explore'], {}).get('name', '？'))
     if type_key == "find":
         _mname = _cat_space.MAP_BY_ID.get(obj.get("map", ""), {}).get("name", "")
         if st == "ready":
-            return f"{'在 ' + _mname + ' ' if _mname else ''}寻找 {obj['find']}（已找到）"
+            if _mname:
+                return _T.text("objline.find_ready_map", map=_mname, name=obj['find'])
+            return _T.text("objline.find_ready", name=obj['find'])
         if _mname:
-            return f"在 {_mname} 寻找 {obj['find']}(探索有概率遇到)"
-        return f"寻找 {obj['find']}（未找到）"
+            return _T.text("objline.find_elsewhere", map=_mname, name=obj['find'])
+        return _T.text("objline.find_missing", name=obj['find'])
     if type_key == "use":
-        return f"使用 {obj['use']}"
+        return _T.text("objline.use", name=obj['use'])
     if type_key == "talk":
         npc = _cat_quests.NPCS.get(obj["talk"], {})
-        return f"与 {npc.get('name', '？')} 交谈"
+        return _T.text("objline.talk", name=npc.get('name', '？'))
     return None
 
 
@@ -3306,12 +3308,12 @@ def _weapon_pick_choose(self, group_id, qq_id, num) -> str:
     # 0 = 收起（保留道具，下次可再选）
     if num.strip() == "0":
         db.set_event_state(key, "{}")
-        return f"你合上了【{item_name}】，下次想好了再开～（道具保留在背包）"
+        return _T.text("wpick.closed", item=item_name)
     if not num.isdigit():
-        return f"回复数字 1-{len(opts)} 选择武器；回复 0 收起来～"
+        return _T.text("wpick.hint", n=len(opts))
     idx = int(num)
     if idx < 1 or idx > len(opts):
-        return f"没有第 {idx} 项可选～回复 1-{len(opts)} 选择武器；回复 0 收起来"
+        return _T.text("wpick.no_idx", idx=idx, n=len(opts))
     opt = opts[idx - 1]
     eq_name = opt.get("equip") or opt.get("name", "")
     rid = opt.get("rid", "")
@@ -3321,16 +3323,16 @@ def _weapon_pick_choose(self, group_id, qq_id, num) -> str:
         if rid:
             rid_list = [rid]
         if not rid_list:
-            return f"【{opt.get('name', eq_name)}】数据缺失，无法发放……(可回复 0 收起来)"
+            return _T.text("wpick.no_data", name=opt.get('name', eq_name))
         eq = _drops().generate_roster_equip(rid_list[0])
         db.add_item(group_id, qq_id, rid_list[0], eq)
     except Exception:
-        return f"发放【{opt.get('name', eq_name)}】时出错了……(可回复 0 收起来)"
+        return _T.text("wpick.failed", name=opt.get('name', eq_name))
     # 扣除礼包道具（战斗中使用的兜底：此处按事件状态找到礼包名，从背包删 1 个）
     self._remove_one_by_name(group_id, qq_id, item_name)
     # 清挂起
     db.set_event_state(key, "{}")
-    return f"🎉 你选择了【{eq.get('name', opt.get('name', eq_name))}】！已放入背包，『装备 <名称>』穿上它开始冒险吧～"
+    return _T.text("wpick.ok", name=eq.get('name', opt.get('name', eq_name)))
 
 
 def _remove_one_by_name(self, group_id, qq_id, item_name) -> bool:

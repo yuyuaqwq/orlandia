@@ -159,7 +159,9 @@ FROZEN_COUNTS = {
     #   42 处替换 / 36 新键，6 处同值幂等复用（hurry.fac_head/poi_head/prop_head/
     #   monster_head/elite + npclist.head）；新分类 见闻录 / 时间面板 / 时段名，
     #   季节名 / 天气名 为既有分类）⇒ 2369 → 2405
-    "texts": 2405,
+    #   ★ C 档 27a（B-2 第 13 片：world 余量「交付目标行 / 武器自选礼包」
+    #     15 新键 = objline.* 9（含手改拆出的 find_ready / find_ready_map）+ wpick.* 6）⇒ 2405 → 2420
+    "texts": 2420,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

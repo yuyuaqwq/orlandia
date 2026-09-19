@@ -9633,6 +9633,82 @@
     "category": "NPC查找",
     "desc": "搬自 content/world_cmds.py:_npc_direction_hint（B 批 C 档）"
   },
+  "objline.collect": {
+    "value": "收集 {name} ×{n}",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.explore": {
+    "value": "前往 {map}",
+    "params": [
+      "map"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.find_elsewhere": {
+    "value": "在 {map} 寻找 {name}(探索有概率遇到)",
+    "params": [
+      "map",
+      "name"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.find_missing": {
+    "value": "寻找 {name}（未找到）",
+    "params": [
+      "name"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.find_ready": {
+    "value": "寻找 {name}（已找到）",
+    "params": [
+      "name"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.find_ready_map": {
+    "value": "在 {map} 寻找 {name}（已找到）",
+    "params": [
+      "map",
+      "name"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.kill": {
+    "value": "击败 {name} ×{n}",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.talk": {
+    "value": "与 {name} 交谈",
+    "params": [
+      "name"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
+  "objline.use": {
+    "value": "使用 {name}",
+    "params": [
+      "name"
+    ],
+    "category": "任务目标",
+    "desc": "搬自 content/world_cmds.py:_obj_text_lines_of（B 批 C 档）"
+  },
   "pageflip.no_list": {
     "value": "📄 先打开一个列表（『背包』『技能列表』『任务』等）再发翻页快捷键～",
     "category": "快捷指令",
@@ -17202,6 +17278,55 @@
     ],
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:map_view（B 批 C 档）"
+  },
+  "wpick.closed": {
+    "value": "你合上了【{item}】，下次想好了再开～（道具保留在背包）",
+    "params": [
+      "item"
+    ],
+    "category": "武器礼包",
+    "desc": "搬自 content/world_cmds.py:_weapon_pick_choose（B 批 C 档）"
+  },
+  "wpick.failed": {
+    "value": "发放【{name}】时出错了……(可回复 0 收起来)",
+    "params": [
+      "name"
+    ],
+    "category": "武器礼包",
+    "desc": "搬自 content/world_cmds.py:_weapon_pick_choose（B 批 C 档）"
+  },
+  "wpick.hint": {
+    "value": "回复数字 1-{n} 选择武器；回复 0 收起来～",
+    "params": [
+      "n"
+    ],
+    "category": "武器礼包",
+    "desc": "搬自 content/world_cmds.py:_weapon_pick_choose（B 批 C 档）"
+  },
+  "wpick.no_data": {
+    "value": "【{name}】数据缺失，无法发放……(可回复 0 收起来)",
+    "params": [
+      "name"
+    ],
+    "category": "武器礼包",
+    "desc": "搬自 content/world_cmds.py:_weapon_pick_choose（B 批 C 档）"
+  },
+  "wpick.no_idx": {
+    "value": "没有第 {idx} 项可选～回复 1-{n} 选择武器；回复 0 收起来",
+    "params": [
+      "idx",
+      "n"
+    ],
+    "category": "武器礼包",
+    "desc": "搬自 content/world_cmds.py:_weapon_pick_choose（B 批 C 档）"
+  },
+  "wpick.ok": {
+    "value": "🎉 你选择了【{name}】！已放入背包，『装备 <名称>』穿上它开始冒险吧～",
+    "params": [
+      "name"
+    ],
+    "category": "武器礼包",
+    "desc": "搬自 content/world_cmds.py:_weapon_pick_choose（B 批 C 档）"
   },
   "ws.exp": {
     "value": "✨ 流星回应了你的愿望！经验 +{v}{tail}",
