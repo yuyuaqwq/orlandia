@@ -257,9 +257,9 @@ def translate(battle, actor: dict, payload: str,
         # 到期 = 首跳延迟后跳 turns 次：expire 兜底（schedule 用 dot_next 计数，见周期段）
         _desc = []
         if hpct > 0:
-            _desc.append(f"每刻恢复 {int(hpct * 100)}% 生命")
+            _desc.append(_T.text("iu.hot_hp", pct=int(hpct * 100)))
         if mpct > 0:
-            _desc.append(f"每刻恢复 {int(mpct * 100)}% 魔力")
+            _desc.append(_T.text("iu.hot_mp", pct=int(mpct * 100)))
         logs.append(_T.text("iu.food_hot", desc='、'.join(_desc), turns=turns))
         return logs, cast
 
@@ -285,14 +285,14 @@ def translate(battle, actor: dict, payload: str,
             heal_actor(battle, actor, hv, logs)
             _real = int(actor.get("hp", 0) or 0) - before
             if _real > 0:
-                msgs.append(f"恢复 {_real} 点生命")
+                msgs.append(_T.text("item.heal_flat", hp=_real))
         if mv > 0:
             before = int(actor.get("mp", 0) or 0)
             _mx = int(actor.get("max_mp", before) or before)
             actor["mp"] = min(_mx, before + mv)
             _real = int(actor["mp"]) - before
             if _real > 0:
-                msgs.append(f"恢复 {_real} 点魔力")
+                msgs.append(_T.text("item.mana_flat", mp=_real))
         logs.append(_T.text("iu.hm", msgs='、'.join(msgs)))
         return logs, cast
 

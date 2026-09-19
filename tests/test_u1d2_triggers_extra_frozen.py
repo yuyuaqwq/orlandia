@@ -165,7 +165,7 @@ _PIN = {
         'class_mech_action::class_faith_load_tier': '7444f5dda57ac810e3a3a6f2b27cea678a3b7f59d1dc74846560ea9cdfdfb99a',
         'class_mech_action::class_faith_overload': '5cc7a625111150a04bc1e3f37cbe86a40d47d3f947feff9b93e1a9441e2e6368',
         'class_mech_action::class_guard_stance_enter': '9602cb412110358d0ff94b2db7c1507f9c2958902d218727d0c2b94146aca71c',
-        'class_mech_action::class_melody_act': '1f18c1b0c749e28ebd3714b9750bc92e5429aa6827b9d07800413b9b14afea83',
+        'class_mech_action::class_melody_act': 'f0535d951fd2b88bcd9dd03db9f14785600448c5d93b4fc885c93dfbee281877',
         'class_mech_action::class_melody_dirge_tick': 'dcd3132b8c54257d1daf3e2267b9eca3377ff1570bce11ccc3eb4a84a829f8ca',
         'class_mech_action::class_res_channel_gain': '12d2f40c4f9452bd4308ec5ff2ce413f54fed6ca64947b275685694042c86695',
         'class_mech_action::class_shadow_dance_enter': 'bce13cd3f07eb6887750938f03e5b9457594220d8f42e9cf93d3df0b979e3c1e',
@@ -201,8 +201,8 @@ _PIN = {
         'class_mech_action::passive_revive_guard': '94948d0c59d3a364ef59c61503b80038820d0f65ec6ace5e2152f0a7acc1a44f',
         'class_mech_action::passive_shadow_buff': '75d6446c3dee1e07e218d68e6712ad500d2c04f2a5d93f7ea9f66880ea18bc54',
         'class_mech_action::passive_taken_reduce': '6e6e259dece0ede0f1e4ddfe1165e4c96e55a55a7c610e2a5ed1d185427a606e',
-        'class_mech_actions': 'a1c3d3e48b32b334988e2dbb76971d9207b04474c4ac9c2c30300577c3b88e7c',
-        'class_mech_actions_37': '833b9645f7c6d2368af5b87258749af1656cfc0e158b13f957333e22b67bd3c8',
+        'class_mech_actions': '7e2a4ab5ed0fed4846d61db80504be943802a761cfe70894551849e4243fdcc9',
+        'class_mech_actions_37': 'c1a20ec2e7ab0d828272f776171b840c096bd6d405181bf3622fdd908d538966',
     },
     'segments': {
         'E': [

@@ -193,7 +193,13 @@ FROZEN_COUNTS = {
     #     归既有 成就面板；本文件首次接入 `_T`）⇒ 3172 → 3182
     # ★ C 档 38b（收尾慢磨）：`content/mech/we_procs.py` 四张模块级文案表 → `_T.names`
     #     （12 槽位 / 10 同值复用键 + 2 新键）+ 破败之吻内联串 ⇒ 3182 → 3184
-    "texts": 3184,
+    # ★ C 档 39a（收尾慢磨）：`content/mech/item_use.py` hot/hm 片段 4 处（2 新键 iu.hot_hp/
+    #     iu.hot_mp + 2 同值复用 item.heal_flat/item.mana_flat）+ `content/mech/class_mech.py`
+    #     旋律行 2 处（cmech.melody_unknown / cmech.melody_cast）⇒ 3184 → 3188
+    #     （content/mech/cond_procs.py 的条件乘区播报行本片**未动**：该动作的「文案」
+    #      被 test_u1i5_cond_single_source.py::audit_predicate_bytes 显式冻结 ——
+    #      门禁原文「判定/累乘/文案部分必须逐字节保留」；撤销该子项，不在本片削验收环节）
+    "texts": 3188,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

@@ -2558,6 +2558,14 @@
     "category": "职业机制",
     "desc": "搬自 content/class_mech.py:passive_mark_enhance（B 批 C 档）"
   },
+  "cmech.melody_cast": {
+    "value": "🎵 奏响【{name}】！旋律驻留，",
+    "params": [
+      "name"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_melody_act（B 批 C 档）"
+  },
   "cmech.melody_chant": {
     "value": "🎵 吟唱回旋，【{name}】强度 +1（{stacks}/{max}）！",
     "params": [
@@ -2596,6 +2604,14 @@
     ],
     "category": "职业机制",
     "desc": "搬自 content/class_mech.py:class_melody_act（B 批 C 档）"
+  },
+  "cmech.melody_unknown": {
+    "value": "🎵 这首曲式（{kind}）尚未谱成……",
+    "params": [
+      "kind"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_melody_act（B 批 C 档 39a）"
   },
   "cmech.overflow_shield": {
     "value": "🪨 {label}：承伤转化 {val} 点护盾！",
@@ -11380,6 +11396,22 @@
     "value": "💊 你使用了战斗道具，{msgs}！",
     "params": [
       "msgs"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.hot_hp": {
+    "value": "每刻恢复 {pct}% 生命",
+    "params": [
+      "pct"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
+  },
+  "iu.hot_mp": {
+    "value": "每刻恢复 {pct}% 魔力",
+    "params": [
+      "pct"
     ],
     "category": "道具使用",
     "desc": "搬自 content/item_use.py:translate（B 批 C 档）"

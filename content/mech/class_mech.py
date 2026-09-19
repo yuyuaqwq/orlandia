@@ -823,7 +823,7 @@ def class_melody_act(battle, caster, target, params, logs):
     if mech == "melody":
         kind = info.get("melody") or ""
         if kind not in _MELODY_AURA_MAP and kind not in _MELODY_ENEMY_AURA_MAP:
-            logs.append("🎵 这首曲式（" + str(kind) + "）尚未谱成……")
+            logs.append(_T.text("cmech.melody_unknown", kind=str(kind)))
             return
         enemy_dir = kind in _MELODY_ENEMY_AURA_MAP
         ef["melody_state"] = {
@@ -839,7 +839,7 @@ def class_melody_act(battle, caster, target, params, logs):
         }
         _melody_ensure_tick(actor, kind)
         _melody_write_aura(battle, actor, logs)
-        logs.append(f"🎵 奏响【{ef['melody_state']['name']}】！旋律驻留，"
+        logs.append(_T.text("cmech.melody_cast", name=ef['melody_state']['name'])
                     + ("敌方全体受挫！" if enemy_dir else "全队获得光环！"))
         return
     state = ef.get("melody_state")
