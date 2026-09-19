@@ -27,10 +27,11 @@
 from __future__ import annotations
 
 import os
+from functools import partial
 
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
-from ._domainio import order_of as _order                        # P0-4 域读口单源
+from ._domainio import ordered, order_of as _order                        # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -43,27 +44,9 @@ _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 _R = set_from_domains(_PKG_ROOT, ("game_config", "maps", "pois"))
 
 
-def _missing(tbl) -> bool:
-    return not isinstance(tbl, dict) or not tbl
-
-
-def _ordered(tbl, order, where):
-    """按**声明序**排外层键（域是字典序，真源是插入序）。域读不到 → `{}` 不抛；
-    域在但键集与声明不一致 → `raise`（防「源改了、门面静默改序」）。"""
-    if _missing(tbl):
-        return {}
-    keys = list(order)
-    if len(set(keys)) != len(keys):
-        raise ValueError("catalog_legacy：%s 的序声明有重复键 —— 拒绝静默取首个" % where)
-    have = set(tbl)
-    miss = [k for k in keys if k not in have]
-    extra = [k for k in have if k not in set(keys)]
-    if miss or extra:
-        raise ValueError(
-            "catalog_legacy：%s 与序声明不一致（表缺 %d / 声明缺 %d）—— 请重跑 "
-            "overnight/_w13_gen_legacy.py 同步序声明。表缺 %s … 未声明 %s …"
-            % (where, len(miss), len(extra), miss[:5], sorted(extra)[:5]))
-    return {k: tbl[k] for k in keys}
+# 报错文案单源：本文件的口径（`who`/`subject`/`noun`/`hint`）在此绑定 —— 正文只传 (表, 序, 位点)
+_ordered = partial(ordered, who="catalog_legacy", subject="与序声明不一致", noun="表",
+                   hint="请重跑 overnight/_w13_gen_legacy.py 同步序声明")
 
 
 # ---- 序声明读口：**唯一源** = `content/data/key_order.json`（`key_order` 域）----
@@ -309,7 +292,6 @@ __all__ = [
     "missing_domains",
     "missing_names",
 ]
-
 
 
 def _rebuild_view() -> list:

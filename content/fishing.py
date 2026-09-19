@@ -48,6 +48,8 @@ _R = set_from_domains(_PKG_ROOT, ("fishing_spots", "fishing_pool"))
 FISHING_SPOTS = placeholder("FISHING_SPOTS")
 FISH_POOL = placeholder("FISH_POOL")
 
+from ._domainio import seq_rows             # P0-4d 域读口单源
+
 from .catalog_rules import FISH_COLLECT   # ★ B16-W11d：包内门面（无域 → dump）          # v101.25i6 别名：= QUALITY_ORDER
 from .catalog_b143 import QUALITY_ORDER as FISH_QUALITY_ORDER   # ★ B16-W11d：真源 = `QUALITY_ORDER` 别名      # v184：垂钓档位/权重唯一真相源
 # ★ P5E-DELETE（2026-09-15，删壳批）：下面两行原为宿主句柄
@@ -218,8 +220,7 @@ def _rebuild_view() -> list:
     FISHING_SPOTS = _R.fishing_spots.all()
     # 源是 list（插入序参与抽样）→ 域里带注入字段 `seq`（1 基）→ 这里按 seq 还原成 list 并剥掉 seq
     # （剥掉后每条的字段与字段序 = 源条目原样，逐项对拍见 w1213_l5_probe.py P4）
-    FISH_POOL = [{k: v for k, v in _e.items() if k != "seq"}
-                       for _e in sorted(_R.fishing_pool.all().values(), key=lambda x: x["seq"])]
+    FISH_POOL = seq_rows(_R.fishing_pool.all().values())
 
     # ============================================================
     # ③ 宿主取件（模块级名字与真源逐名相同；正文零改动）

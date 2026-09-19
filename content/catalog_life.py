@@ -58,7 +58,7 @@ import os
 
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
-from ._domainio import int_keys as _int_keys, order_of as _order   # P0-4 域读口单源
+from ._domainio import int_keys as _int_keys, order_of as _order, seq_rows   # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -356,11 +356,7 @@ def _rebuild_view() -> list:
 
     # 渔获池 = 源 list 的等价物：域 = {鱼名: 条目 + seq}，按 `seq` 还原成 list 并剥掉 `seq`
     # （源 `FISH_POOL` 是 list、插入序参与 `random.choices` 抽样 → 必须保序；域里已有 `seq`，不需要序声明）
-    FISH_POOL = [
-        {k: v for k, v in ent.items() if k != "seq"}
-        for ent in sorted(_R.fishing_pool.all().values(),
-                          key=lambda x: x["seq"])
-    ]
+    FISH_POOL = seq_rows(_R.fishing_pool.all().values())
 
     # ============================================================
     # ⑤ 商店域 `shop`（data）—— 89 条「六张源表并集」合表，按列拆回各表

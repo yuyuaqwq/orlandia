@@ -57,10 +57,11 @@ B14-3_BRIEF §1 列的 46 个缺口名（42 个数据名 + 派生名 `ALL_WILD` 
 from __future__ import annotations
 
 import os
+from functools import partial
 
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
 
-from ._domainio import int_keys as _int_keys, require_key_order   # P0-4 域读口单源
+from ._domainio import int_keys as _int_keys, num_sorted, ordered, require_key_order   # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -68,7 +69,7 @@ _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 # 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明。
 # **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
 # 落点由声明的 `kind` 派生；声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默）。
-# 本文件的 `_int_keys` / `_ordered` 作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后）：
+# 本文件的 `int_keys` / `num_sorted` / `ordered`（本地按 `_ordered` 绑定）作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后）：
 # 形状的 `key_type` / `order` 只作用于域顶层键，组内键型与组内键序覆盖不到 ⇒ 仍由本文件还原
 # （序声明按名取 `key_order` 域，见 out/DIFF_NOTES.md §C）。
 _R = set_from_domains(_PKG_ROOT, (
@@ -77,34 +78,9 @@ _R = set_from_domains(_PKG_ROOT, (
 ))
 
 
-def _missing(table) -> bool:
-    return not isinstance(table, dict) or not table
-
-
-def _num_sorted(tbl) -> dict:
-    """int 键表 → 按**数值升序**（JSON 是字典序：`"10" < "2"` ⇒ 不排序 = 阶位/等级乱序）。"""
-    ints = {k: v for k, v in (tbl or {}).items() if isinstance(k, int) and not isinstance(k, bool)}
-    rest = {k: v for k, v in (tbl or {}).items() if k not in ints}
-    return {**{k: ints[k] for k in sorted(ints)}, **rest}
-
-
-def _ordered(tbl, order, where: str):
-    """按**声明序**排外层键（域是字典序，真源是插入序）。域读不到 → `{}` 不抛；
-    域在但键集与声明不一致 → `raise`（防「源改了、门面静默改序」）。"""
-    if _missing(tbl):
-        return {}
-    keys = list(order)
-    if len(set(keys)) != len(keys):
-        raise ValueError(f"catalog_b143：{where} 的序声明有重复键 —— 拒绝静默取首个")
-    have = set(tbl)
-    miss = [k for k in keys if k not in have]
-    extra = [k for k in have if k not in set(keys)]
-    if miss or extra:
-        raise ValueError(
-            "catalog_b143：%s 域与序声明不一致（域缺 %d / 声明缺 %d）—— 请同步 "
-            "content/data/key_order.json 的对应条目。域缺 %s … 未声明 %s …"
-            % (where, len(miss), len(extra), miss[:5], sorted(extra)[:5]))
-    return {k: tbl[k] for k in keys}
+# 报错文案单源：本文件的口径（`who`/`subject`/`noun`/`hint`）在此绑定 —— 正文只传 (表, 序, 位点)
+_ordered = partial(ordered, who="catalog_b143", subject="域与序声明不一致", noun="域",
+                   hint="请同步 content/data/key_order.json 的对应条目")
 
 
 def missing_domains() -> list:
@@ -187,7 +163,6 @@ MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
 MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
 
 
-
 def _order(name: str):
     """按名取键序声明（`key_order` 域）—— 缺条目 / 形状不对 → raise（不静默当空序）。"""
     return require_key_order(_ORDERS, name)
@@ -253,7 +228,6 @@ ARMOR_FAMILY_ALIAS = placeholder("ARMOR_FAMILY_ALIAS")
 RULES = placeholder("RULES")
 MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
 MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
-
 
 
 _REQUIRED = (
@@ -332,7 +306,6 @@ MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
 MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
 
 
-
 __all__ = [
     "QUALITY", "EQUIP_SLOTS", "WEAPON_FLAVOR", "QUALITY_ORDER",
     "FACTIONS", "FACTION_ORDER", "AREA_FACTION", "CHRONICLES", "REPUTATION_TIERS",
@@ -361,8 +334,6 @@ __all__ = [
     "MOUNT_DROP_BOSS",
     "MOUNT_DROP_ELITE",
 ]
-
-
 
 
 def _rebuild_view() -> list:
@@ -418,7 +389,7 @@ def _rebuild_view() -> list:
     WORLD_BOSS_POOL = _grp("world").get("WORLD_BOSS_POOL")
     RUNE_CRAFT_SHARDS = _ordered((_grp("runes").get("RUNE_CRAFT_SHARDS") if isinstance(_grp("runes").get("RUNE_CRAFT_SHARDS"), dict) else {}), _order("rune_craft_shards"), "game_config.runes")
     RUNE_DROP = _ordered((_grp("runes").get("RUNE_DROP") if isinstance(_grp("runes").get("RUNE_DROP"), dict) else {}), _order("rune_drop"), "game_config.runes")
-    RUNE_LEVEL_ROMAN = _num_sorted(_ordered(_int_keys((_grp("runes").get("RUNE_LEVEL_ROMAN") if isinstance(_grp("runes").get("RUNE_LEVEL_ROMAN"), dict) else {})), _order("rune_level_roman"), "game_config.runes"))
+    RUNE_LEVEL_ROMAN = num_sorted(_ordered(_int_keys((_grp("runes").get("RUNE_LEVEL_ROMAN") if isinstance(_grp("runes").get("RUNE_LEVEL_ROMAN"), dict) else {})), _order("rune_level_roman"), "game_config.runes"))
     AFFIX_AFFINITY_CN = _ordered((_grp("affixes").get("AFFIX_AFFINITY_CN") if isinstance(_grp("affixes").get("AFFIX_AFFINITY_CN"), dict) else {}), _order("affix_affinity_cn"), "game_config.affixes")
     AFFIX_POOL_BY_QUALITY = _ordered((_grp("affixes").get("AFFIX_POOL_BY_QUALITY") if isinstance(_grp("affixes").get("AFFIX_POOL_BY_QUALITY"), dict) else {}), _order("affix_pool_by_quality"), "game_config.affixes")
     FISH_COLLECT = _grp("fishing").get("FISH_COLLECT")
@@ -442,14 +413,14 @@ def _rebuild_view() -> list:
     CAMPFIRE_FOOD_POOL = _R.poi_pools.get("poi_pools", {}).get("CAMPFIRE_FOOD_POOL")
     HERB_POOL = _R.poi_pools.get("poi_pools", {}).get("HERB_POOL")
     CHAPTER_PACK = _R.chapters.get("quest_add_v140", {}).get("CHAPTER_PACK")
-    GEM_TIERS = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _order("gem_tiers"), "gems"))
-    GEM_TIER_NAMES = _num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _order("gem_tier_names"), "gems"))
+    GEM_TIERS = num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIERS") if isinstance(_R.gems.get("gems", {}).get("GEM_TIERS"), dict) else {})), _order("gem_tiers"), "gems"))
+    GEM_TIER_NAMES = num_sorted(_ordered(_int_keys((_R.gems.get("gems", {}).get("GEM_TIER_NAMES") if isinstance(_R.gems.get("gems", {}).get("GEM_TIER_NAMES"), dict) else {})), _order("gem_tier_names"), "gems"))
     GEM_SOCKETS = _ordered((_R.gems.get("gems", {}).get("GEM_SOCKETS") if isinstance(_R.gems.get("gems", {}).get("GEM_SOCKETS"), dict) else {}), _order("gem_sockets"), "gems")
     GEM_DRILL = _ordered((_R.gems.get("gems", {}).get("GEM_DRILL") if isinstance(_R.gems.get("gems", {}).get("GEM_DRILL"), dict) else {}), _order("gem_drill"), "gems")
     GEM_LEGENDARY_EFFECTS = _R.gems.get("gems", {}).get("GEM_LEGENDARY_EFFECTS")
     RUNE_REMOVE_COST = _R.gems.get("gems", {}).get("RUNE_REMOVE_COST")
     GUILD_CONFIG = _ordered((_R.guild.get("config", {}) if isinstance(_R.guild.get("config", {}), dict) else {}), _order("guild_config"), "guild")
-    HONOR_SHOP = _num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _order("honor_shop"), "shop"))
+    HONOR_SHOP = num_sorted(_ordered(_int_keys((_R.shop.get("honor_shop", {}).get("ranks", {}) if isinstance(_R.shop.get("honor_shop", {}).get("ranks", {}), dict) else {})), _order("honor_shop"), "shop"))
     WT_CN = (_R.equipment.get("equipment", {}).get("WT_CN") or {})
     QUALITY_CN = (_R.equipment.get("equipment", {}).get("QUALITY_CN") or {})
     WEAPON_DIST = (_R.equipment.get("equipment", {}).get("WEAPON_DIST") or {})

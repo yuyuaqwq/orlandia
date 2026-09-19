@@ -17,7 +17,6 @@
 """
 import asyncio
 import json
-import os
 import random
 import re
 import time
@@ -43,8 +42,8 @@ from ._pkgref import HANDLES   # ★ R2（终态补债）：库路径真源 `con
 from . import texts as _T      # ★ B 批 B-1：文案表（属性名）
 # ★ D5（数据进表）：本文件内联字面量表 → 包内域文件（唯一真源 = `editor/domains.json`；
 #   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
-#   读口 = 引擎既有 `records_from_domain`（本包 `catalog_items.py:341` 同款），不新增机制。
-from saintess_engine.records import RecordsDeclarationError, records_from_domain
+#   读口 = `content/_domainio.py::keyed_values`（P0-4d 单源；底层仍是引擎 `records_from_domain`）。
+from ._domainio import keyed_values
 
 # ★ B 批 B-1：属性中文名 → 文案真源（`content/data/text_specs.json` 的 `stat_name.*`）
 #   本文件原有 3 处内联字面量（附魔成功行 7 键 / 套装 bonus_2 9 键 / bonus_4_stats 8 键）已合并到这一张表。
@@ -113,32 +112,6 @@ _TRIG_KEYS = {   # id → 文案键（字面量！文案门禁靠它判「非死
 }
 _TRIG_CN = _T.names(_TRIG_KEYS, prefix="trigger_name")
 
-#: 包根（`editor/domains.json` 的位置 = 域元数据唯一源）
-_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-def _domain_table(domain: str, *, keep_entries: bool = False) -> dict:
-    """读一个包内域（D5 搬入的两张表用）→ 按名查值映射（fail-closed；`keep_entries` 留条目壳）。
-
-    域元数据唯一源 = 包内 `editor/domains.json`；落点由声明的 `kind` 派生（不手抄路径）。
-    D5 四个域的落盘形是编辑器口径的条目表 `{id: {"name": …, "value": …}}`（`affix_feature_rules`
-    的行序由条目 id 的前导序号承载）⇒ 缺省**只剥那一层壳**，值一字不改；`keep_entries=True`
-    返回原条目壳（需要 `name`/行序的读点用）。
-    缺键/形状不符 = 报错点名（空表会让三处部位解析 / 词条特色静默失效，比报错难查得多）。
-    """
-    rec = records_from_domain(_PKG_ROOT, domain)
-    table = rec.all()
-    if rec.missing or rec.problems or not isinstance(table, dict) or not table:
-        raise RecordsDeclarationError(
-            "D5 域 %r 读不到内容（空表/坏 JSON）：missing=%r problems=%r"
-            % (domain, rec.missing, rec.problems[:3]))
-    for k, e in table.items():
-        if not isinstance(e, dict) or "value" not in e:
-            raise RecordsDeclarationError(
-                "D5 域 %r 的条目 %r 形状不是 {name, value}：%r" % (domain, k, e))
-    return table if keep_entries else {k: e["value"] for k, e in table.items()}
-
-
 # ★ R2（终态补债）：`db.DB_PATH` → `HANDLES.db_path()`。`db` 是宿主面 `_HostRef("db")`：
 #   旧路径拿到宿主 `game.db`（有 `DB_PATH` 常量），终态（bind 在位）拿到包内
 #   `content.persistence`（**故意不导出 `DB_PATH`**，真源 = `handles.db_path()`，见该包
@@ -155,9 +128,9 @@ _ALL_WILD_LOOKUP = Lookup(_wild.ALL_WILD)
 # ★ D5：部位中文别名 → 内部 id —— 三处（原 `_slot_map` / `_slot_map_c` / `_slot_map0` 各自内联
 #   一份**逐键逐序相等**的字面量，实测见 `out/raw/02_merge_proof.json`）合为**一张域**。
 #   域文件是编辑器口径的条目表 `{别名: {"name": 别名, "value": 部位 id}}`（外层键升序 = 落盘规范；
-#   别名→id 是**按名查值**，读点只 `.update()`，无迭代 ⇒ 键序不可观测）；`_domain_table` 已剥壳。
+#   别名→id 是**按名查值**，读点只 `.update()`，无迭代 ⇒ 键序不可观测）；`keyed_values` 已剥壳。
 #   三处仍是「按部位名反查的 `_b143.EQUIP_SLOTS` 反表 + 别名合并」。
-_SLOT_ALIASES: dict = _domain_table("slot_aliases")
+_SLOT_ALIASES: dict = keyed_values("slot_aliases")
 
 # ---- 宿主面（宿主壳 bind_host() 注入；顺序铁律见 economy_host 模块头）----
 C = _HostRef("C")
@@ -253,7 +226,6 @@ _STAT_NAMES = STAT_NAMES
 _REQ_NAMES = _ATTR_CN
 
 
-
 # v135 装备特色增强：词条特色标签（装备详情面板展示）
 # 按词条 trigger/effect 关键词归类，让玩家一眼看出这件装备的战斗性格
 # ★ D5：21 行规则表 → 包内 `content/rules/affix_feature_rules.json` 域（读口 = 引擎既有
@@ -263,9 +235,8 @@ _REQ_NAMES = _ATTR_CN
 #   tuple 落盘成 list，读口**还原成元组**（D-BATCH §2.1「tuple/list 之别，不还原 = 静默错值」），
 #   与源逐字等价（消费点只 `for label, keys in …` 迭代）。
 _AFFIX_FEATURE_RULES = [(e.get("name"), tuple(e.get("value") or ()))
-                        for _, e in sorted(_domain_table("affix_feature_rules",
+                        for _, e in sorted(keyed_values("affix_feature_rules",
                                                          keep_entries=True).items())]
-
 
 
 def _equip_affix_features(d: dict) -> list:
@@ -759,7 +730,6 @@ _prof_svc.validate_gather_cond()  # v125.2 fail-fast：economy 模块 import/rel
 
 class EconomyImpl(CommandBase):
     """背包/装备/锻造/强化/商店/采集/垂钓/炼金"""
-
 
 
     def _nearest_town(self, cur_map: str) -> str:

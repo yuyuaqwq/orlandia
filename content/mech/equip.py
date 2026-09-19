@@ -76,7 +76,7 @@ proc_buff 起手 6），验证「读表 → 事件映射 → triggers 装配 →
   · `content/mech/we_procs.py` 27 个 we_* 族扩展动作（本层翻译出的 `type="we_*"` 由它执行）
 
 ★ D7（2026-09-17）「数据进表」：本文件 3 张内联字面量表已搬进包内 json 域，代码只留读口
-  （唯一真源 = 域文件；读口 = `_domain_section()`，引擎 records fail-closed）：
+  （唯一真源 = 域文件；读口 = `domain_section()`，引擎 records fail-closed）：
   · `_EVENT_MAP`          → `content/data/equip_event_map.json`（域 `equip_event_map`；tuple 还原）
   · `_AFFIX_RES_GAIN_ON`  → `content/data/affix_res_gain_on.json`（域 `affix_res_gain_on`；值 = 二元 tuple 还原）
   · `_AFFIX_RES_GAIN_IDS` → `content/data/affix_res_gain_ids.json`（域 `affix_res_gain_ids`；tuple 还原）
@@ -97,31 +97,13 @@ D3 增量（2026-09-13，与真源同一 hunk 逐字镜像；对拍见 `overnigh
 from __future__ import annotations
 
 import logging
-import os
 
 from typing import Optional
 
 from saintess_engine.battle.declarations import Compiler
 from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
-from saintess_engine.records import RecordsDeclarationError, records_from_domain
-
-_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-def _domain_section(domain: str, key: str) -> dict:
-    """读包内域 `<domain>` 的 `<key>` 段（落点由 `editor/domains.json` 的 kind 派生）。
-
-    ★ D7（2026-09-17）「数据进表」读口 —— 引擎 records（fail-closed）：
-      域未声明 / kind 无落点 / 文件不在盘上 / 落点与声明不符 → `RecordsDeclarationError`；
-      读不了 / 坏 JSON / 顶层不是映射 / 段缺 / 段不是非空映射 → 同样点名抛（**不静默给空表**）。
-    """
-    rec = records_from_domain(_PKG_ROOT, domain)
-    section = rec.all().get(key)
-    if not isinstance(section, dict) or not section:
-        raise RecordsDeclarationError(
-            "域 %r 读不到 %r 段（%s）：域文件缺 / 坏 JSON / 形状不符 → problems=%r"
-            % (domain, key, rec.path, rec.problems))
-    return section
+from saintess_engine.records import RecordsDeclarationError
+from .._domainio import domain_section   # P0-4d 域读口单源
 
 
 # ============================================================
@@ -146,7 +128,7 @@ def _domain_section(domain: str, key: str) -> dict:
 #                   当前无数据使用，零行为影响，防将来补数据时又变成「装了不生效」）。
 def _event_map() -> dict:
     out: dict = {}
-    for old, tgt in _domain_section("equip_event_map", "EVENT_MAP").items():
+    for old, tgt in domain_section("equip_event_map", "EVENT_MAP").items():
         if not isinstance(tgt, list) or not tgt or not all(isinstance(t, str) for t in tgt):
             raise RecordsDeclarationError(
                 "equip_event_map 域 %r 的展开目标不是非空字符串数组：%r" % (old, tgt))
@@ -668,7 +650,7 @@ def _af_dragon_aw(aid, actor, eff):
 #   `(事件名, 附加参数 dict)` 二元 tuple（下游 `ev, extra = ...get(t, (None, None))` 解包）。
 def _affix_res_gain_on() -> dict:
     out: dict = {}
-    for on, row in _domain_section("affix_res_gain_on", "AFFIX_RES_GAIN_ON").items():
+    for on, row in domain_section("affix_res_gain_on", "AFFIX_RES_GAIN_ON").items():
         if (not isinstance(row, list) or len(row) != 2
                 or not isinstance(row[0], str) or not isinstance(row[1], dict)):
             raise RecordsDeclarationError(
@@ -695,7 +677,7 @@ _AFFIX_RES_GAIN_ON = _affix_res_gain_on()
 #     rock_rest      磐息：受击 chi+1
 #     opening_stance 起手之势：开战 chi+1
 #     combo_recover  连段回收：连招技命中 chi+1（D3：combo_skill → skill_hit）
-_AFFIX_RES_GAIN_ID_LIST = _domain_section(
+_AFFIX_RES_GAIN_ID_LIST = domain_section(
     "affix_res_gain_ids", "AFFIX_RES_GAIN_IDS").get("ids")
 if (not isinstance(_AFFIX_RES_GAIN_ID_LIST, list) or not _AFFIX_RES_GAIN_ID_LIST
         or not all(isinstance(x, str) for x in _AFFIX_RES_GAIN_ID_LIST)):

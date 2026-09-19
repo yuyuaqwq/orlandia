@@ -44,29 +44,12 @@ import os
 
 from ..gameplay import EFFECT_ACTIONS                      # 名词→动词表单源（content/gameplay.py）
 from .kinds import K_BUFF, K_HEAL, K_MAGI, K_PHYS, K_TRUE   # kind 词表单源（下沉自引擎，见 kinds.py）
-from saintess_engine.records import RecordsDeclarationError, records_from_domain
-from .._domainio import read_json as _read_json
+from saintess_engine.records import RecordsDeclarationError
+from .._domainio import domain_section, read_json as _read_json
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content/mech
 _CONTENT = os.path.dirname(_HERE)                           # <pkg>/content
-_PKG_ROOT = os.path.dirname(_CONTENT)                       # <pkg>
 _RULES_DIR = os.path.join(_CONTENT, "rules")
-
-
-def _domain_section(domain: str, key: str) -> dict:
-    """读包内域 `<domain>` 的 `<key>` 段（落点由 `editor/domains.json` 的 kind 派生）。
-
-    ★ D7（2026-09-17）「数据进表」读口 —— 引擎 records（fail-closed）：
-      域未声明 / kind 无落点 / 文件不在盘上 / 落点与声明不符 → `RecordsDeclarationError`；
-      读不了 / 坏 JSON / 顶层不是映射 / 段缺 / 段不是非空映射 → 同样点名抛（**不静默给空表**）。
-    """
-    rec = records_from_domain(_PKG_ROOT, domain)
-    section = rec.all().get(key)
-    if not isinstance(section, dict) or not section:
-        raise RecordsDeclarationError(
-            "域 %r 读不到 %r 段（%s）：域文件缺 / 坏 JSON / 形状不符 → problems=%r"
-            % (domain, key, rec.path, rec.problems))
-    return section
 
 
 # ============================================================
@@ -107,12 +90,12 @@ BASIC_FALLBACK = {"name": "攻击", "kind": KIND_NAMES["phys"], "exprs": ["atk*1
 #    ★ D7（2026-09-17）「数据进表」：本表已搬出代码 → 包内域
 #      `content/rules/formula_skeleton.json`（域 id = `formula_skeleton`，kind=rules，
 #      已在 `editor/domains.json` 登记）为**唯一真源**；本处只留读口
-#      `_domain_section()`（引擎 records，fail-closed）。段外壳 = `FORMULA_SKELETON`。
+#      `domain_section()`（引擎 records，fail-closed）。段外壳 = `FORMULA_SKELETON`。
 #      值/类型/序与搬前逐名对拍相等（`out/raw/00_before.json` ↔ `out/raw/01_after.json`，diff 空）。
 #      与 `game_config.json` 那份是**两份独立来源**（该测的两处同值关系不因此退化），
 #      故 `pkg/tests/test_v4_formula_skeleton.py` 的两处同值判据仍有牙。
 # ============================================================
-FORMULA_SKELETON = _domain_section("formula_skeleton", "FORMULA_SKELETON")
+FORMULA_SKELETON = domain_section("formula_skeleton", "FORMULA_SKELETON")
 
 # ④ 技能基础值常量 ← game/data/skill_up.py（v156 保底伤害模型）
 SKILL_FLAT = {
@@ -128,7 +111,7 @@ TIER_GROWTH = {0: 1.0, 1: 1.15, 2: 1.30, 3: 1.50}
 #   ★ D7（2026-09-17）「数据进表」：清单已搬出代码 → 包内域
 #   `content/rules/linear_stats.json`（域 id = `linear_stats`，kind=rules；已登记）为唯一真源；
 #   本处只留读口。**tuple 还原**：JSON 只有 array，不还原 = 类型漂成 list（对拍判据 1 会红）。
-_LINEAR_STATS_KEYS = _domain_section("linear_stats", "LINEAR_STATS").get("keys")
+_LINEAR_STATS_KEYS = domain_section("linear_stats", "LINEAR_STATS").get("keys")
 if not isinstance(_LINEAR_STATS_KEYS, list) or not _LINEAR_STATS_KEYS:
     raise RecordsDeclarationError(
         "linear_stats 域的 LINEAR_STATS.keys 缺失 / 不是非空数组：%r" % (_LINEAR_STATS_KEYS,))

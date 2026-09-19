@@ -30,6 +30,16 @@
   `tests/test_u1i4_dialogue_frozen.py` 把这两段源码逐段冻结（E 栏断言 `frozen == live`，
   缺符号直接 `KeyError`）且门禁自哈希 pinned ⇒ 该线收口后才能随冻结基准重采一并并入。
 
+**P0-4d（2026-09-19 续批）** —— 表形状口同样收在这里：`num_sorted`（`catalog_b143` /
+`catalog_items` 各一份，逐字同体）/ `ordered`（`catalog_b143` / `catalog_legacy` 的 `_ordered`，
+报错文案由调用方绑定）/ `keyed_values`（`economy_cmds` / `panel` 的 `_domain_table`）/
+`domain_section`（`mech/equip` / `mech/params`，逐字同体）/ `seq_rows`（`fishing` /
+`catalog_life` / `catalog_quests` 三处内联「按 seq 还原插入序」）。
+
+**有意未收**：`catalog_life` / `catalog_quests` 的 `_ordered`（序名由本模块解析 / 空序宽容 /
+报错口径与前两处不同，硬合会改诊断措辞）；`dialogue.py` / `dialogue_conds.py` 的 `_main_quests`
+（别线冻结门禁持有其字节）。
+
 落点理由（与 `content/_pkgref.py` / `content/_hostref.py` 同一条纪律：**安全依赖面决定落点**）
 ----------------------------------------------------------------------------------
 `tables.py` 在装配最早期被 import，且它派生的表遍布全包 ⇒ 本模块只允许依赖
@@ -45,7 +55,7 @@ from __future__ import annotations
 import json
 import os
 
-from saintess_engine.records import orders_of, records_from_domain
+from saintess_engine.records import RecordsDeclarationError, orders_of, records_from_domain
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -168,3 +178,79 @@ def read_seq_domain(name: str, field=None, where: str = "") -> dict:
             raise RuntimeError("%s：域 %s 条目 %r 缺字段 %r —— 拒绝静默取空"
                                % (where, name, key, field))
     return out
+
+
+# ───────────────────────────────────────────────────────── 表形状口（P0-4d：序 / 段 / 条目壳 / seq 还原）
+def num_sorted(tbl) -> dict:
+    """int 键表 → 按**数值升序**（JSON 是字典序：`"10" < "2"` ⇒ 不排序 = 阶位/等级乱序）。
+
+    非整数键排在后面并保持相对序。
+    """
+    ints = {k: v for k, v in (tbl or {}).items() if isinstance(k, int) and not isinstance(k, bool)}
+    rest = {k: v for k, v in (tbl or {}).items() if k not in ints}
+    return {**{k: ints[k] for k in sorted(ints)}, **rest}
+
+
+def ordered(tbl, order, where: str, *, who: str, subject: str, noun: str, hint: str) -> dict:
+    """按**声明序**排外层键（域是字典序，真源是插入序）。域读不到 → `{}` 不抛；
+    域在但键集与声明不一致 → `raise`（防「源改了、门面静默改序」）。
+
+    `who` / `subject` / `noun` / `hint` 只进报错文案 —— 合并前两处调用点各有各的措辞
+    （`content/catalog_b143.py` / `content/catalog_legacy.py`），**逐字保留**。
+    """
+    if not isinstance(tbl, dict) or not tbl:
+        return {}
+    keys = list(order)
+    if len(set(keys)) != len(keys):
+        raise ValueError("%s：%s 的序声明有重复键 —— 拒绝静默取首个" % (who, where))
+    have = set(tbl)
+    miss = [k for k in keys if k not in have]
+    extra = [k for k in have if k not in set(keys)]
+    if miss or extra:
+        raise ValueError(
+            "%s：%s %s（%s缺 %d / 声明缺 %d）—— %s。%s缺 %s … 未声明 %s …"
+            % (who, where, subject, noun, len(miss), len(extra), hint, noun, miss[:5],
+               sorted(extra)[:5]))
+    return {k: tbl[k] for k in keys}
+
+
+def keyed_values(domain: str, *, keep_entries: bool = False) -> dict:
+    """读包内域 `<domain>` 的**条目表** → 按名查值映射（fail-closed，不静默给空表）。
+
+    域元数据唯一源 = 包内 `editor/domains.json`；落点由声明的 `kind` 派生（不手抄路径）。
+    D5 各域的落盘形是编辑器口径的条目表 `{id: {"name": …, "value": …}}` ⇒ 缺省**只剥那一层壳**；
+    `keep_entries=True` 返回原条目壳（需要 `name`/行序的读点用）。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain)
+    table = rec.all()
+    if rec.missing or rec.problems or not isinstance(table, dict) or not table:
+        raise RecordsDeclarationError(
+            "D5 域 %r 读不到内容（空表/坏 JSON）：missing=%r problems=%r"
+            % (domain, rec.missing, rec.problems[:3]))
+    for k, e in table.items():
+        if not isinstance(e, dict) or "value" not in e:
+            raise RecordsDeclarationError(
+                "D5 域 %r 的条目 %r 形状不是 {name, value}：%r" % (domain, k, e))
+    return table if keep_entries else {k: e["value"] for k, e in table.items()}
+
+
+def domain_section(domain: str, key: str) -> dict:
+    """读包内域 `<domain>` 的 `<key>` 段（落点由 `editor/domains.json` 的 kind 派生）。
+
+    ★ D7（2026-09-17）「数据进表」读口 —— 引擎 records（fail-closed）：
+      域未声明 / kind 无落点 / 文件不在盘上 / 落点与声明不符 → `RecordsDeclarationError`；
+      读不了 / 坏 JSON / 顶层不是映射 / 段缺 / 段不是非空映射 → 同样点名抛（**不静默给空表**）。
+    """
+    rec = records_from_domain(_PKG_ROOT, domain)
+    section = rec.all().get(key)
+    if not isinstance(section, dict) or not section:
+        raise RecordsDeclarationError(
+            "域 %r 读不到 %r 段（%s）：域文件缺 / 坏 JSON / 形状不符 → problems=%r"
+            % (domain, key, rec.path, rec.problems))
+    return section
+
+
+def seq_rows(values) -> list:
+    """域内「带 `seq` 注入字段」的条目 → 按 `seq` 还原源插入序的 list（顺手剥掉 `seq`）。"""
+    return [{k: v for k, v in ent.items() if k != "seq"}
+            for ent in sorted(values, key=lambda x: x["seq"])]

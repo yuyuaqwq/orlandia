@@ -60,7 +60,7 @@ import os
 
 from saintess_engine.records import apply_replacements, placeholder, records_from_domain, register_view, set_from_domains, update_in_place
 
-from ._domainio import int_keys as _int_keys, order_of as _order   # P0-4 域读口单源
+from ._domainio import int_keys as _int_keys, num_sorted, order_of as _order   # P0-4 域读口单源
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
@@ -98,7 +98,7 @@ _ORDER_RUNE_EFFECT_NAMES = _order("rune_effect_names")
 # 声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默给空表）。
 # 下面只留形状覆盖不到的两件**键型**变换：
 #   `_int_keys`   —— 嵌套子表（符文条目 `lvl`、`game_config` 的 `ENHANCE_FAIL_DROP`/`UPGRADE_TABLE`）
-#   `_num_sorted` —— int 键按数值升序（域文件是字典序）
+#   `num_sorted` —— int 键按数值升序（域文件是字典序）
 # ============================================================
 _EQUIP_ROSTER_INJECTED = ("series_set", "fixed_affixes")
 _RUNES_INJECTED = ("craft", "conflicts")
@@ -183,14 +183,6 @@ UPGRADE_MATERIAL_CN = placeholder("UPGRADE_MATERIAL_CN")
 REFINE_RECIPES = placeholder("REFINE_RECIPES")
 _CFG_REFINE_EXCLUSIVE = placeholder("_CFG_REFINE_EXCLUSIVE")
 REFINE_EXCLUSIVE_RECIPES = placeholder("REFINE_EXCLUSIVE_RECIPES")
-
-
-def _num_sorted(tbl) -> dict:
-    """int 键表 → 按**数值升序**（真源是 `for lv in range(...)`/字面量升序；JSON 是字典序，
-    `\"10\" < \"2\"` ⇒ 不排序 = 升级表第 2 行漂到第 10 行后）。非整数键排在后面并保持相对序。"""
-    ints = {k: v for k, v in (tbl or {}).items() if isinstance(k, int) and not isinstance(k, bool)}
-    rest = {k: v for k, v in (tbl or {}).items() if k not in ints}
-    return {**{k: ints[k] for k in sorted(ints)}, **rest}
 
 
 def missing_domains() -> list:
@@ -282,7 +274,6 @@ _CFG_REFINE_EXCLUSIVE = placeholder("_CFG_REFINE_EXCLUSIVE")
 REFINE_EXCLUSIVE_RECIPES = placeholder("REFINE_EXCLUSIVE_RECIPES")
 
 
-
 __all__ = [
     "MATERIALS", "MATERIALS_BY_NAME", "ITEMS",
     "EQUIP_ROSTER", "EQUIP_ROSTER_BY_NAME",
@@ -292,7 +283,6 @@ __all__ = [
     "UPGRADE_TABLE", "UPGRADE_STONE", "UPGRADE_STAMINA", "UPGRADE_MATERIAL_CN",
     "REFINE_RECIPES", "REFINE_EXCLUSIVE_RECIPES", "missing_domains",
 ]
-
 
 
 def _rebuild_view() -> list:
@@ -411,12 +401,12 @@ def _rebuild_view() -> list:
     # 的 `enhance` / `upgrade` / `refine`（导出器「每个模块级常量都有家」硬闸的产物）。
     # 三张数值键表（`ENHANCE_TABLE` / `UPGRADE_TABLE` / `ENHANCE_FAIL_DROP`）都按数值升序还原键型。
     # ============================================================
-    ENHANCE_TABLE = _num_sorted(_R.enhance_table.all())
+    ENHANCE_TABLE = num_sorted(_R.enhance_table.all())
     MAX_ENHANCE = _CFG_ENHANCE.get("MAX_ENHANCE")
-    ENHANCE_FAIL_DROP = _num_sorted(_int_keys(_CFG_ENHANCE.get("ENHANCE_FAIL_DROP")))
+    ENHANCE_FAIL_DROP = num_sorted(_int_keys(_CFG_ENHANCE.get("ENHANCE_FAIL_DROP")))
     ENHANCE_SMITH_MAPS = list(_CFG_ENHANCE.get("ENHANCE_SMITH_MAPS") or [])
 
-    UPGRADE_TABLE = _num_sorted(_int_keys(_CFG_UPGRADE.get("UPGRADE_TABLE")))
+    UPGRADE_TABLE = num_sorted(_int_keys(_CFG_UPGRADE.get("UPGRADE_TABLE")))
     UPGRADE_STONE = _CFG_UPGRADE.get("UPGRADE_STONE")
     UPGRADE_STAMINA = _CFG_UPGRADE.get("UPGRADE_STAMINA")
     UPGRADE_MATERIAL_CN = _CFG_UPGRADE.get("UPGRADE_MATERIAL_CN")
