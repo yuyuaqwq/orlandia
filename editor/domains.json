@@ -86,7 +86,7 @@
     "schema": "text.schema.json",
     "primary": "text_entry",
     "icon": "💬",
-    "owner": "engine",
+    "owner": "package",
     "tier": "fixed"
   },
   "text_specs": {
