@@ -14,46 +14,13 @@
 
 宿主侧：`game/core/craft.py` 现在只剩「加载包 + 模块别名」薄壳，见那边头注。
 """
-import importlib
-import sys
+from ._hostref import drops_module  # 取件样板单源（P0-3/P0-5）
 
 # ============================================================
 # ① 包内取件（B2-C4 收口：`core.index` 已落地 → 包内直取；`core.drops` 待 B2-C2 落地）
 # ============================================================
-#: `core.drops` 面的包内落点（接口表第 5 行冻结：`content/drops.py`，B2-C2 线负责落地）
-_DROPS_PKG = "content.drops"
-_DROPS = None
 
-
-def _drops():
-    """`core.drops` 取件口（B2-C4）—— **包内直取** `content/drops.py`（接口表第 5 行冻结落点，
-    B2-C2 已落地）；宿主 `game.core.drops` 为同对象过渡保险。
-
-    判据 `out/evidence/identity_map.txt`：落地前 `C.generate_equip` / `C.generate_roster_equip`
-    / `C.build_monster_group` / `C.roll_blueprint` 在包内**无同对象**（真源属 B2-C2 线）；
-    C2 落地 `content/drops.py`（提交 `99258b0`）后本口自动切到包内实现。
-    """
-    global _DROPS
-    if _DROPS is None:
-        try:
-            _DROPS = importlib.import_module(_DROPS_PKG)
-        except ImportError:
-            last = None
-            for prefix in ("data.plugins.dragonfall.game", "game"):
-                m = sys.modules.get("%s.core.drops" % prefix)
-                if m is not None:
-                    _DROPS = m
-                    break
-            if _DROPS is None:
-                for prefix in ("data.plugins.dragonfall.game", "game"):
-                    try:
-                        _DROPS = importlib.import_module("%s.core.drops" % prefix)
-                        break
-                    except Exception as exc:                    # noqa: BLE001
-                        last = exc
-            if _DROPS is None:
-                raise RuntimeError("craft：core.drops 取不到（%s）——拒绝静默空跑" % (last,))
-    return _DROPS
+_drops = drops_module("craft")
 
 
 # ============================================================

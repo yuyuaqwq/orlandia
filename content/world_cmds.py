@@ -54,12 +54,10 @@
 """
 from __future__ import annotations
 
-import importlib
 import json
 import os
 import random
 import re
-import sys
 import time
 
 from saintess_engine.dialogue import Cursor
@@ -93,49 +91,16 @@ from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（�
 #    · `_drops()`：`core.drops` 面（B2-C2 线待落 `content/drops.py`，未落则回退宿主同对象）
 #    · 兼容面两个旧替身口名（`content/cmds_world.py:49` 的 F401 再导出用，**零调用点**，见头注 ⚠️）
 # ============================================================
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
+from ._hostref import drops_module  # 宿主取件样板单源（P0-3/P0-5）
 from saintess_engine.wire import Wire
 _WIRE = Wire()
-
-#: `core.drops` 面的包内落点（接口表第 5 行冻结：`content/drops.py`，B2-C2 线负责落地）
-_DROPS_PKG = "content.drops"
-_DROPS = None
 
 
 def bind_host(**objs):
     """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`content` / `db`）。"""
     _WIRE.bind(**objs)
 
-
-def _drops():
-    """`core.drops` 取件口 —— **包内直取**：`content/drops.py`（接口表第 5 行冻结落点）。
-
-    B2-C2 线已落地该模块（框架仓提交 `99258b0`「drops 8 个真函数搬进包」）⇒ 本口实际取到的
-    就是包内实现；宿主 `game.core.drops` 仅作**同对象过渡保险**（落地前的树 / 裸包场景），
-    两侧都取不到 → 抛（不静默空跑）。证据：`out/evidence/identity_map.txt` +
-    `out/evidence/integ_drops.txt`（落地后取件来源实测 = `content.drops`）。
-    """
-    global _DROPS
-    if _DROPS is None:
-        try:
-            _DROPS = importlib.import_module(_DROPS_PKG)
-        except ImportError:
-            last = None
-            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-                m = sys.modules.get("%s.core.drops" % prefix)
-                if m is not None:
-                    _DROPS = m
-                    break
-            if _DROPS is None:
-                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-                    try:
-                        _DROPS = importlib.import_module("%s.core.drops" % prefix)
-                        break
-                    except Exception as exc:                    # noqa: BLE001
-                        last = exc
-            if _DROPS is None:
-                raise RuntimeError("world_cmds：core.drops 取不到（%s）——拒绝静默空跑" % (last,))
-    return _DROPS
+_drops = drops_module("world_cmds")
 
 
 def _check_action_keys(action):
@@ -237,7 +202,6 @@ def _read_domain(name: str) -> dict:
 
 
 PORTALS = _read_domain("portals")
-
 
 
 # ============================================================

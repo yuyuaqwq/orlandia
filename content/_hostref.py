@@ -11,6 +11,14 @@
 本模块把这三件事收成**一处**：常量只有一份；样板函数由**工厂**产出，各模块只声明自己的
 `label`（报错前缀）与异常类 —— 措辞与取件时机**逐字不变**。
 
+P0-5（`_drops` ×6）同住一处
+-------------------------
+`_drops()`（4 处，25~27 行）与 `_drops(name)`（2 处）的形状同样是取件样板：
+「包内 `content.drops` 直取 → 宿主 `game.core.drops` **同对象兜底**（已加载优先 → importlib）
+→ 点名报错」——兜底的半边正是本模块的宿主面 ⇒ 不另立模块，由本文件的两个工厂
+`drops_module(label)` / `drops_ctor(label, ...)` 产出（旧版各文件的 `global _DROPS` 缓存
+改由工厂闭包持有，行为等价）。
+
 为什么是独立模块（而不是并进已自我声明为「包内取宿主面的唯一口」的 `content/cmds_env.py`）
 --------------------------------------------------------------------------------------------
 `cmds_env.py` 是**命令层**的宿主面单点（取 `env.state["shell"]`），import `saintess_engine.command`。
@@ -44,7 +52,8 @@ HOST_PKG = "data.plugins.dragonfall.game"
 HOST_PKG_FALLBACK = "game"
 
 __all__ = ["HOST_PKG", "HOST_PKG_FALLBACK",
-           "make_bound_host", "make_host_mod", "make_wire_module"]
+           "make_bound_host", "make_host_mod", "make_wire_module",
+           "drops_module", "drops_ctor"]
 
 
 def make_bound_host(wire, label, exc=WireMissing, named=True):
@@ -114,3 +123,74 @@ def make_wire_module(wire, label, exc=RuntimeError, named=False):
             raise exc(msg, name=name)
         raise exc(msg)
     return _wire_module
+
+
+# ============================================================
+# P0-5 · `_drops` 取件口工厂（6 处）
+# ------------------------------------------------------------
+# 形状 = 「包内 `content.drops` 直取 → 宿主同对象兜底（已加载优先 → importlib）→ 点名报错」，
+# 兜底的半边正是本模块的宿主面，故与 P0-3 同住一处（不再另立模块）。
+# ============================================================
+
+def drops_module(label, pkg="content.drops"):
+    """工厂：产出模块专属的 `_drops()` —— 缓存**闭合在工厂里**（旧版是各文件的 `global _DROPS`）。
+
+    语义与旧样板逐字等价：包内 `pkg` 直取失败（`ImportError`）→ 宿主 `game.core.drops` 同对象兜底
+    → 两侧都取不到则点名抛（失败**不**入缓存，下次调用照旧重试）。
+    """
+    state = {"mod": None}
+
+    def _drops():
+        """`core.drops` 取件口 —— **包内直取** `content/drops.py`；宿主同对象为过渡保险。"""
+        if state["mod"] is None:
+            try:
+                state["mod"] = importlib.import_module(pkg)
+            except ImportError:
+                state["mod"] = _host_drops_module(label)
+        return state["mod"]
+    return _drops
+
+
+def _host_drops_module(label):
+    """宿主 `game.core.drops` 同对象兜底（已加载优先 → importlib → 点名抛）。"""
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        m = sys.modules.get("%s.core.drops" % prefix)
+        if m is not None:
+            return m
+    last = None
+    for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
+        try:
+            return importlib.import_module("%s.core.drops" % prefix)
+        except Exception as err:                        # noqa: BLE001
+            last = err
+    raise RuntimeError("%s：core.drops 取不到（%s）——拒绝静默空跑" % (label, last))
+
+
+def drops_ctor(label, pkg="content.drops", cands=(".content", ".core.drops")):
+    """工厂：产出模块专属的 `_drops(name)` —— 取 `pkg` 上的**构造器**；缺则按 `cands` 回退宿主面。
+
+    回退候选顺序**逐字保持旧样**：按 `cands` 逐个「运行时包路径 → 测试路径」两两相邻展开
+    （`(pkg.content, fb.content, pkg.core.drops, fb.core.drops)`），先查 `sys.modules` 且要求
+    `hasattr(m, name)`，再 importlib 逐个试。
+    """
+    def _drops(name):
+        """`game.core.drops` 的构造器（包内家 = `content/drops.py`；过渡期回退宿主面）。"""
+        try:
+            mod = importlib.import_module(pkg)
+        except ImportError:
+            mod = None
+        if mod is not None:
+            return getattr(mod, name)
+        full_names = tuple(p + c for c in cands for p in (HOST_PKG, HOST_PKG_FALLBACK))
+        for fn in full_names:
+            m = sys.modules.get(fn)
+            if m is not None and hasattr(m, name):
+                return getattr(m, name)
+        last = None
+        for fn in full_names:
+            try:
+                return getattr(importlib.import_module(fn), name)
+            except Exception as err:                    # noqa: BLE001
+                last = err
+        raise RuntimeError("%s：core.drops.%s 取不到（%s）——拒绝静默空跑" % (label, name, last))
+    return _drops

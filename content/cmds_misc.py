@@ -53,35 +53,9 @@ __all__ = ["help_cmd", "game_tip", "signin", "achievements", "feedback_cmd"]
 # 未落地则回退宿主 `game.core.drops`（与宿主聚合层 `C.generate_equip` **同一对象**，
 # 证据 `out/evidence/identity_map.txt`）。两侧都取不到 → 抛（不静默空跑）。
 # ============================================================
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
-_DROPS = None
+from ._hostref import drops_module  # 宿主取件样板单源（P0-3/P0-5）
 
-
-def _drops():
-    """`core.drops` 面（**包内直取** `content/drops.py`（接口表第 5 行冻结落点，B2-C2 已落地）；宿主同对象为过渡保险）。"""
-    global _DROPS
-    if _DROPS is None:
-        import importlib
-        import sys
-        try:
-            _DROPS = importlib.import_module("content.drops")
-        except ImportError:
-            last = None
-            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-                m = sys.modules.get("%s.core.drops" % prefix)
-                if m is not None:
-                    _DROPS = m
-                    break
-            if _DROPS is None:
-                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-                    try:
-                        _DROPS = importlib.import_module("%s.core.drops" % prefix)
-                        break
-                    except Exception as exc:                    # noqa: BLE001
-                        last = exc
-            if _DROPS is None:
-                raise RuntimeError("cmds_misc：core.drops 取不到（%s）——拒绝静默空跑" % (last,))
-    return _DROPS
+_drops = drops_module("cmds_misc")
 
 
 def _log():

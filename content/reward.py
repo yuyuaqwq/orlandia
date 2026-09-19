@@ -38,9 +38,7 @@
 """
 from __future__ import annotations
 
-import importlib
 import inspect
-import sys
 import uuid
 
 from . import obs                                                        # noqa: E402  B2-C4：LOG/tlog 唯一取用口
@@ -73,7 +71,7 @@ _STAT_CN = _T.names(_STAT_KEYS, prefix="stat_name")
 #   本文件 B2 读点：LOG → `content/obs.py`；tlog → `content/obs.py::emit`；`C.<名>` → 包内直取；
 #   残留只剩 `core.drops` 面（B2-C2 待落地 `content/drops.py`，见 `_drops()`）。
 # ============================================================
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
+from ._hostref import drops_module  # 宿主取件样板单源（P0-3/P0-5）
 _INJECTED = {}
 
 
@@ -138,37 +136,8 @@ class _HostDB:
 
 db = _HostDB()                       # 真源 `from .import db`（两处，函数内）
 
-#: `core.drops` 面的包内落点（接口表第 5 行冻结：`content/drops.py`，B2-C2 线负责落地）
-_DROPS_PKG = "content.drops"
-_DROPS = None
 
-
-def _drops():
-    """`core.drops` 取件口（B2-C4）—— **包内直取** `content/drops.py`（接口表第 5 行冻结落点，
-    B2-C2 已落地）；宿主 `game.core.drops` 为同对象过渡保险。"""
-    global _DROPS
-    if _DROPS is None:
-        try:
-            _DROPS = importlib.import_module(_DROPS_PKG)
-        except ImportError:
-            last = None
-            for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-                m = sys.modules.get("%s.core.drops" % prefix)
-                if m is not None:
-                    _DROPS = m
-                    break
-            if _DROPS is None:
-                for prefix in (HOST_PKG, HOST_PKG_FALLBACK):
-                    try:
-                        _DROPS = importlib.import_module("%s.core.drops" % prefix)
-                        break
-                    except Exception as exc:                    # noqa: BLE001
-                        last = exc
-            if _DROPS is None:
-                raise RuntimeError("reward：core.drops 取不到（%s）——拒绝静默空跑" % (last,))
-    return _DROPS
-
-
+_drops = drops_module("reward")
 
 
 def _log():

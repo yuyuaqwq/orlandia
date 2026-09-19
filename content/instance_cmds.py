@@ -65,7 +65,6 @@
 """
 from __future__ import annotations
 
-import importlib
 import json
 import os
 import random
@@ -119,7 +118,7 @@ from .catalog_rules import (INSTANCE_BOSS_EQUIP_DROP as _INSTANCE_BOSS_EQUIP_DRO
 from ._pkgref import DB as db                          # 包内存储层句柄（B1 起既有）
 from . import texts as T                               # 文案表（B11-L1 起既有）
 
-from ._hostref import HOST_PKG, HOST_PKG_FALLBACK  # 宿主包名常量单源（P0-3）
+from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, drops_ctor  # 宿主取件样板单源（P0-3/P0-5）
 from saintess_engine.wire import Wire
 # ★ U1-I4 L6：副本层节点取用 → 引擎多表首命中形状（单表真值链）
 from saintess_engine.presence import Lookup
@@ -138,34 +137,7 @@ def bind_host(**objs):
 
 # ---- 宿主边界 ①：`game.core.drops` 的 2 个构造器（跨簇缺口，W-B2C1 §6 登记）----
 
-
-def _drops(name):
-    """`game.core.drops` 的构造器（`build_monster` / `roll_blueprint`）。
-
-    包内家 = ☆`content/drops.py`（接口表第 5 行冻结的 **C2** 落点）。⚠️ 跨簇缺口：该文件属 C2 的
-    落地清单，本波（C1）尚未存在 ⇒ 过渡期回退「宿主内容聚合层属性」（= 旧 `C.<名>` 的同一取法；
-    再回落 `game.core.drops`）。C2 落地后回退分支即死，**本文件无需再改**。
-    """
-    try:
-        _mod = importlib.import_module("content.drops")
-    except ImportError:
-        _mod = None
-    if _mod is not None:
-        return getattr(_mod, name)
-    _cands = (HOST_PKG + ".content", HOST_PKG_FALLBACK + ".content",
-              HOST_PKG + ".core.drops", HOST_PKG_FALLBACK + ".core.drops")
-    for _full in _cands:
-        _m = sys.modules.get(_full)
-        if _m is not None and hasattr(_m, name):
-            return getattr(_m, name)
-    _last = None
-    for _full in _cands:
-        try:
-            return getattr(importlib.import_module(_full), name)
-        except Exception as _exc:                       # noqa: BLE001
-            _last = _exc
-    raise RuntimeError("content.instance_cmds：core.drops.%s 取不到（%s）——拒绝静默空跑"
-                       % (name, _last))
+_drops = drops_ctor(__name__)
 
 
 def build_monster(*args, **kwargs):
@@ -306,7 +278,6 @@ AFFIXES = _read_domain("affixes")      # 真源 AFFIXES（宿主聚合层；逐�
 # 本段这三张表仍由**裸名**消费（CLASSES/ITEMS/AFFIXES 的 `C.` 读点本来 0 处，未动）。
 
 __all__ = ["InstanceImpl", "bind_host", "INSTANCE_TIMEOUT", "INVESTIGATE_DAILY_LIMIT"]
-
 
 
 # ============================================================
