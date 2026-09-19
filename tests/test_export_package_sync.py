@@ -191,7 +191,9 @@ FROZEN_COUNTS = {
     # ★ C 档 38a（收尾慢磨）：`content/cmds_gm.py`「gm_窥探 平台例外族」（8 处替换 / 8 新键，
     #     归既有 GM指令）+ `content/player_events.py`「成就解锁播报」（2 处替换 / 2 新键，
     #     归既有 成就面板；本文件首次接入 `_T`）⇒ 3172 → 3182
-    "texts": 3182,
+    # ★ C 档 38b（收尾慢磨）：`content/mech/we_procs.py` 四张模块级文案表 → `_T.names`
+    #     （12 槽位 / 10 同值复用键 + 2 新键）+ 破败之吻内联串 ⇒ 3182 → 3184
+    "texts": 3184,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

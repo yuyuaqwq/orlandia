@@ -22167,6 +22167,14 @@
     "category": "战斗日志",
     "desc": "搬自 content/we_procs.py:we_affix_element（B 批 C 档）"
   },
+  "we.affix_tenacity.log": {
+    "value": "💪 坚韧！免疫了负面效果，回复 {heal} 点生命",
+    "params": [
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:we_affix_tenacity（B 批 C 档 38b）"
+  },
   "we.affix_tenacity_fallback": {
     "value": "💪 坚韧！",
     "category": "战斗日志",
@@ -22415,6 +22423,14 @@
     "value": "❄️ 冰脉寒流：敌人速度 -{pct}%（{n}/{ms} 层）！",
     "category": "武器特效",
     "desc": "武器特效『ice_vein』战斗日志（域 weapon_effects → 条目 ice_vein 的 log 字段）"
+  },
+  "we.iron_echo.log": {
+    "value": "🪨 铁壁回响：反弹 {rd} 点伤害，并回复少量生命！",
+    "params": [
+      "rd"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/mech/we_procs.py:we_reflect（B 批 C 档 38b）"
   },
   "we.mana_once_fallback": {
     "value": "🌅 晨星：回复 {mp} 点魔力！",

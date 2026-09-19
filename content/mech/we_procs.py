@@ -171,13 +171,14 @@ def we_dot(battle, caster, target, params, logs):
 # proc_reflect（5 key：受击反弹；纯反伤 2 + 附赠 3）
 # ============================================================
 
-_REFLECT_LOG = {
-    "thorn_armor": "🌵 荆棘缠绕：反弹 {rd} 点伤害！",
-    "retribution_ring": "⚔️ 复仇之环：反弹 {rd} 点伤害！",
-    "iron_echo": "🪨 铁壁回响：反弹 {rd} 点伤害，并回复少量生命！",
-    "dragon_spine_mail": "🐉 龙脊反噬：反弹 {rd} 点伤害，并施加重伤！",
-    "ember_bulwark": "🔥 烬火燎原：反伤 {rd} 点并叠加灼烧！",
+_REFLECT_LOG_KEYS = {   # ★ B-1：id → 文案键（真源 = text_specs.json 的 we.<id>.log）
+    "thorn_armor": "we.thorn_armor.log",
+    "retribution_ring": "we.retribution_ring.log",
+    "iron_echo": "we.iron_echo.log",
+    "dragon_spine_mail": "we.dragon_spine_mail.log",
+    "ember_bulwark": "we.ember_bulwark.log",
 }
+_REFLECT_LOG = _T.names(_REFLECT_LOG_KEYS, prefix="we")
 
 
 @register_action("we_reflect")
@@ -220,7 +221,10 @@ def we_reflect(battle, caster, target, params, logs):
             cap = int((state_def("burn") or {}).get("cap") or 5)
             _add_stacks(attacker, "burn", int(params.get("burn_stack", 1) or 1), cap=cap,
                         battle=battle, caster=deflector)   # 挂毒者=反弹方（快照语义）
-        logs.append(_REFLECT_LOG.get(key, "").format(rd=rd))
+        # ★ 38b：本键模板（表 `we.ember_bulwark.log`）声明的槽名是 {dmg}（同族 4 键是 {rd}——
+        #   表侧历史漂移，渲染文本一致；改表值会撞两条冻结基线，留专门一片重钉）⇒ 调用点按
+        #   **表的声明**传槽（表 = 真源，代码只传槽）。
+        logs.append(_REFLECT_LOG.get(key, "").format(dmg=rd))
         return
     if params.get("reflect_pct") is not None:
         dmg = int(ctx.get("dmg", 0) or 0)
@@ -258,10 +262,11 @@ def we_hit_slow(battle, caster, target, params, logs):
 # proc_shield taken 概率盾（sentinel/deeprock：chance + cd 冷却）
 # ============================================================
 
-_SHIELD_TAKEN_LOG = {
-    "sentinel_aegis": "🛡️ 哨兵壁垒：获得 {shield} 点护盾！（3 刻）",
-    "deeprock_aegis": "🪨 深岩壁垒：获得护盾！（吸收 8% 最大生命）",
+_SHIELD_TAKEN_LOG_KEYS = {   # ★ B-1：id → 文案键（真源 = text_specs.json 的 we.<id>.log）
+    "sentinel_aegis": "we.sentinel_aegis.log",
+    "deeprock_aegis": "we.deeprock_aegis.log",
 }
+_SHIELD_TAKEN_LOG = _T.names(_SHIELD_TAKEN_LOG_KEYS, prefix="we")
 
 
 @register_action("we_shield_taken")
@@ -599,7 +604,7 @@ def we_extra_dmg(battle, caster, target, params, logs):
             from saintess_engine.battle.landing import deal_damage, heal_actor
             deal_damage(battle, owner, tgt, bonus, logs)
             healed = heal_actor(battle, owner, bonus, logs)
-            logs.append("💜 破败之吻：额外 {bonus} 点伤害，回复 {healed} 点生命！".format(bonus=bonus, healed=healed))
+            logs.append(_T.text("we.soul_eater.log", bonus=bonus, healed=healed))
         return
 
 
@@ -1144,10 +1149,11 @@ def we_death_pool_pay(battle, caster, target, params, logs):
 #   ctx["acted"] = 刚行动的 actor；owner 声明者查 hostile_sides(battle, owner.side)
 #   是否包含 acted.side → 是才给 acted 叠层（state + stat_scale 负值折算减速）。
 
-_ACT_DONE_SLOW_LOG = {
-    "randuin_weary": "🛡️ 兰顿倦意：敌人速度 -{pct}%（{n}/{ms} 层）！",
-    "ice_vein": "❄️ 冰脉寒流：敌人速度 -{pct}%（{n}/{ms} 层）！",
+_ACT_DONE_SLOW_LOG_KEYS = {   # ★ B-1：id → 文案键（真源 = text_specs.json 的 we.<id>.log）
+    "randuin_weary": "we.randuin_weary.log",
+    "ice_vein": "we.ice_vein.log",
 }
+_ACT_DONE_SLOW_LOG = _T.names(_ACT_DONE_SLOW_LOG_KEYS, prefix="we")
 
 
 @register_action("we_act_done_slow")
@@ -1312,10 +1318,11 @@ def we_affix_bonus(battle, caster, target, params, logs):
 # tenacity_cc：受击 20% 免疫/清除自身负面（spd_down/atk_down/def_down）+ 回 3% maxhp
 # dmg_reduce：常驻全减伤 3%（taken_calc 乘区——装配层直接挂 we_taken_mult_cond）
 
-_AFFIX_TAKEN_LOG = {
-    "counter": "⚔️ 反击！对【{tgt}】造成 {dmg} 点伤害！",
-    "tenacity_cc": "💪 坚韧！免疫了负面效果，回复 {heal} 点生命",
+_AFFIX_TAKEN_LOG_KEYS = {   # ★ B-1：id → 文案键（counter 复用职业机制的同一句）
+    "counter": "cmech.counter_hit",
+    "tenacity_cc": "we.affix_tenacity.log",
 }
+_AFFIX_TAKEN_LOG = _T.names(_AFFIX_TAKEN_LOG_KEYS, prefix="we")
 
 
 @register_action("we_affix_counter")
@@ -1336,7 +1343,7 @@ def we_affix_counter(battle, caster, target, params, logs):
     dmg = max(1, int(float(st.get("atk", 0) or 0) * float(params.get("atk_pct") or 0.60)))
     deal_damage(battle, owner, attacker, dmg, logs)
     logs.append(_AFFIX_TAKEN_LOG.get(params.get("key"), _T.static("we.affix_counter_fallback")).format(
-        tgt=attacker.get("name", "敌人"), dmg=dmg))
+        name=attacker.get("name", "敌人"), dmg=dmg))
 
 
 @register_action("we_affix_tenacity")
