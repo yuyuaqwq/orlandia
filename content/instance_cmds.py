@@ -1405,42 +1405,6 @@ class InstanceImpl:
         """v2：敌方阵列存活单位列表。"""
         return [u for u in (st.get("enemies") or []) if u.get("hp", 0) > 0]
 
-    def _instance_enemies_compact(self, st: dict) -> list:
-        """v2：敌方阵列死亡单位移除 + 阵型压缩（formation.compact）。
-        返回被移除（死亡）的单位列表，供击杀奖励/任务统计逐单位结算。
-        st["boss"]/st["enemy"] 兼容键 → 存活首单位；若原 Boss 已死被移除则保留原 dict 引用
-        （供胜利显示/多动按 is_boss 或 uid 判断——_instance_boss_turn 多动按 uid 在存活阵列
-        中定位主 Boss，不依赖 st["boss"] 对象同一性）。"""
-        from saintess_engine import formation as FM
-        enemies = st.setdefault("enemies", [])
-        removed = FM.compact(enemies)
-        # v110 P0（#110 海盗王任务卡死）：击杀账合并——battle._remove_unit 提前移出阵列的
-        # 单位（_instance_act 已把 b.killed_enemies 并入 st["killed_enemies"]）也计入本刻
-        # 死亡，防止 _last_killed 只含压缩残留、漏记 Boss。注意：同一次玩家行动 _instance_act
-        # 内会连续调用本函数多次（行动后压缩 + 全灭分支压缩），第二次调用时阵列已空、
-        # killed_enemies 已清——此时【不覆盖】_last_killed，避免把刚记下的 Boss 击杀冲掉
-        # （旧实现每调用都 st["_last_killed"]=removed，removed=[] 时会把 Boss 账清零）。
-        _bk_prev = st.get("killed_enemies") or []
-        if removed or _bk_prev:
-            merged = list(removed)
-            for _k in _bk_prev:
-                if _k not in merged:
-                    merged.append(_k)
-            st["_last_killed"] = merged  # 记录本刻死亡单位（击杀奖励/任务统计按单位结算）
-            st["killed_enemies"] = []   # 已并入 _last_killed，清累计账（单刻账目语义）
-        # 兼容主目标：仅当原 Boss（按 uid 识别）仍在存活阵列中时，才把 st["boss"]/st["enemy"]
-        # 更新为活着的首单位；若原 Boss 已死/被移除（爪牙存活），保留原 dict 引用，避免
-        # "Boss 先死、爪牙存活"时 st["boss"] 被错误重指向爪牙。
-        if enemies:
-            _orig_uid = (st.get("boss") or {}).get("uid")
-            if _orig_uid and any(u.get("uid") == _orig_uid for u in enemies):
-                st["boss"] = enemies[0]
-                st["enemy"] = enemies[0]
-        else:
-            st.setdefault("boss", st.get("enemy"))
-            st.setdefault("enemy", st.get("boss"))
-        return removed
-
     def _instance_ensure_player_fields(self, st: dict) -> None:
         """v2：确保每玩家快照含站位字段（rank/reach/uid/buffs/stacks/defending/charging），
         老存档恢复时补缺。"""
@@ -1454,49 +1418,6 @@ class InstanceImpl:
             snap.setdefault("charging", None)
             # v121 CTB：玩家快照 ct 缺省 -spd（老存档恢复时兜底；越小越先行动）
             snap.setdefault("ct", -float(snap.get("spd", 0) or 0))
-
-    def _instance_player_units(self, st: dict) -> list:
-        """v2：我方阵列存活玩家单位列表（仅供参考 name/rank/reach）。"""
-        self._instance_ensure_player_fields(st)
-        return [snap for key, snap in (st.get("players") or {}).items()
-                if IR.alive_of(st, key)]
-
-    def _instance_extract_target(self, event, action: str, skill_name: str = None) -> str or None:
-        """v2：从事件消息解析指定目标名（『攻击 <名字>』/『技能 <名> <目标名>』）。
-        无法可靠解析 → 返回 None（引擎自动选择目标）。"""
-        try:
-            msg = event.get_message_str().strip()
-            msg = re.sub(r"^\[At:[^\]]*\]\s*", "", msg)
-            msg = re.sub(r"^\[At:全体成员\]\s*", "", msg)
-            msg = re.sub(r"^\[引用消息[^\]]*\]\s*", "", msg)
-        except Exception:
-            return None
-        if action == "attack":
-            if msg.startswith("攻击"):
-                rest = msg[len("攻击"):].strip()
-                if not rest or "@" in rest or rest.isdigit():
-                    return None
-                return rest
-            return None
-        if action == "skill" and skill_name:
-            # 『技能 <名> [目标名]』：去掉"技能"再尽可能去掉技能名，剩余即目标
-            if not msg.startswith("技能"):
-                return None
-            rest = msg[len("技能"):].strip()
-            # 去掉（前缀匹配的）技能名
-            if rest.startswith(skill_name):
-                rest = rest[len(skill_name):].strip()
-            else:
-                # 技能名未精确前缀命中 → 无法可靠剥离目标，交自动选择
-                return None
-            # v127.3：允许编号目标（a2/b2/纯数字2）——『技能 火球术 a2』
-            if not rest or "@" in rest:
-                return None
-            import re as _re
-            if _re.fullmatch(r"[ab]?\d+", rest.strip().lower()):
-                return rest.strip().lower()
-            return rest
-        return None
 
     def _class_role_label(self, class_name) -> str:
         """职业定位标签：战士·坦克 / 牧师·治疗"""

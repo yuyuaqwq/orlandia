@@ -231,16 +231,6 @@ def passive_skills_learned(class_name: str, learned_skills: list | None = None) 
     return out
 
 
-def is_passive_learned(class_name: str, passive_name: str, learned_skills: list | None = None) -> bool:
-    """指定被动是否已学(v64)。passive_name 为被动技能中文名。"""
-    return passive_name in passive_skills_learned(class_name, learned_skills)
-
-
-# 属性中文名（面板/来源展示用）
-# ★ D5（数据进表 · 去重复拷贝）：本表与 `content/economy_cmds.py:142 _STAT_NAMES` 是**同一张
-#   32 键属性名表的两份拷贝**（逐键逐值相等；仅前 6 键序不同，实测见 `out/raw/02_merge_proof.json`）。
-#   现合为**一份**：单源 = 包内 `content/data/stat_names.json` 域（装载期 fail-closed）；
-#   两处读口（本文件 + economy_cmds 的 `_STAT_NAMES` 别名）取同一对象（`same_object=True` 有留档）。
 STAT_NAMES: dict = keyed_values("stat_names")
 
 
@@ -554,14 +544,6 @@ def set_bonus_2(equipment: dict, class_name: str | None = None) -> dict:
                 if k in tables.PCT_STATS and isinstance(v, (int, float)) and not isinstance(v, bool):
                     bonus[k] = bonus.get(k, 0) + v * _disc
     return bonus
-
-
-def has_set(equipment: dict, set_name: str) -> bool:
-    """装备是否穿戴了指定套装(10 章名册套装按套装名匹配)"""
-    for item in (equipment or {}).values():
-        if item and item.get("set") == set_name:
-            return True
-    return False
 
 
 def set_bonus_4(equipment: dict) -> list:

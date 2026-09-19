@@ -82,12 +82,3 @@ QUALITY_TIERS = _LazyTierTable("QUALITY_TIERS")
 
 FISH_TIERS = _LazyTierTable("FISH_TIERS")
 
-
-def quality_of(word):
-    """玩家输入 → 档位 key（先当 key，再查中文别名）；认不出 → None。"""
-    return QUALITY_TIERS.resolve(word)
-
-
-def quality_up(quality, *, chance=1.0, steps=1, rng=None):
-    """概率升档（封顶）；未知档位 → None。`chance` 与 `rng` 由调用方给（可复现）。"""
-    return QUALITY_TIERS.upgrade(quality, chance=chance, steps=steps, rng=rng)
