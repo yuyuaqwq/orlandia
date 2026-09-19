@@ -820,6 +820,43 @@
     "category": "属性名",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档 5a）"
   },
+  "auc.closed": {
+    "value": "拍卖行已关闭。",
+    "category": "社交拍卖",
+    "desc": "搬自 content/auction.py:settle_auction（B 批 C 档）"
+  },
+  "auc.no_bid": {
+    "value": "💤 【{item}】无人出价，流拍。",
+    "params": [
+      "item"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/auction.py:settle_auction（B 批 C 档）"
+  },
+  "auc.refund": {
+    "value": "↩️ 退还 {name} {amount} 金币",
+    "params": [
+      "name",
+      "amount"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/auction.py:settle_auction（B 批 C 档）"
+  },
+  "auc.settle_note": {
+    "value": "💰 落槌价已由拍卖行收讫(系统回收)，未成交者的出价已全额退还。",
+    "category": "社交拍卖",
+    "desc": "搬自 content/auction.py:settle_auction（B 批 C 档）"
+  },
+  "auc.win": {
+    "value": "🎉 {name} 以 {amount} 金币拍得【{item}】！",
+    "params": [
+      "name",
+      "amount",
+      "item"
+    ],
+    "category": "社交拍卖",
+    "desc": "搬自 content/auction.py:settle_auction（B 批 C 档）"
+  },
   "auction.item_bid_hint": {
     "value": "   『竞拍 {id} <金币>』出价",
     "params": [
@@ -11130,6 +11167,41 @@
     "category": "战斗结算",
     "desc": "搬自 content/settlement.py:lucky_charm（B 批 C 档）"
   },
+  "lvl.chapter": {
+    "value": "🎁 章节里程碑达成！获得【{pack}】：{got}！",
+    "params": [
+      "pack",
+      "got"
+    ],
+    "category": "升级提示",
+    "desc": "搬自 content/gameplay_rules.py:check_player_level_up（B 批 C 档）"
+  },
+  "lvl.evolve": {
+    "value": "🌟 你已达到 {level} 级，可以转职了！(输入『转职』查看)",
+    "params": [
+      "level"
+    ],
+    "category": "升级提示",
+    "desc": "搬自 content/gameplay_rules.py:check_player_level_up（B 批 C 档）"
+  },
+  "lvl.learn": {
+    "value": "📖 有 {count} 个技能可学习（含被动）！『技能学习 <技能名>』消耗技能点学会(『技能列表』查看)",
+    "params": [
+      "count"
+    ],
+    "category": "升级提示",
+    "desc": "搬自 content/gameplay_rules.py:check_player_level_up（B 批 C 档）"
+  },
+  "lvl.up": {
+    "value": "🎉 恭喜升级！现在 {level} 级！(生命上限 +{hp}, 攻击 +{atk})\n📌 属性点 +3、技能点 +1(『属性』加点 / 『技能学习 <名称>』学技能)",
+    "params": [
+      "level",
+      "hp",
+      "atk"
+    ],
+    "category": "升级提示",
+    "desc": "搬自 content/gameplay_rules.py:check_player_level_up（B 批 C 档）"
+  },
   "map.ev_note_encounter": {
     "value": "(遇怪率↑)",
     "category": "地图导航",
@@ -19514,6 +19586,20 @@
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
   },
+  "tower.daily_full": {
+    "value": "🌙 今日修炼已满 3 层，好好消化感悟，明日再来！(失败/逃跑不占次数)",
+    "category": "修炼塔",
+    "desc": "搬自 content/tower_progress.py:tower_guard_on_kill（B 批 C 档）"
+  },
+  "tower.daily_left": {
+    "value": "💡 今日还可突破 {left} 层——回复『爬塔』挑战第 {nxt} 层",
+    "params": [
+      "left",
+      "nxt"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/tower_progress.py:tower_guard_on_kill（B 批 C 档）"
+  },
   "tower.daily_limit": {
     "value": "🌙 今日修炼已通过 {done_n}/{limit} 层，塔灵说该歇息了——明日再来！\n🏯 当前进度：已突破至第 {cur} 层（明日『爬塔』挑战第 {next_floor} 层）",
     "params": [
@@ -19540,6 +19626,23 @@
     ],
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.floor_break": {
+    "value": "🏯 第 {floor} 层【{name}】突破！",
+    "params": [
+      "floor",
+      "name"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/tower_progress.py:tower_guard_on_kill（B 批 C 档）"
+  },
+  "tower.gold_bounty": {
+    "value": "💰 塔层赏金：金币 +{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/tower_progress.py:tower_guard_on_kill（B 批 C 档）"
   },
   "tower.guard": {
     "value": "👤 【{name}】Lv.{lv}（建议 Lv.{suggest}）",
@@ -19574,6 +19677,15 @@
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
   },
+  "tower.next_floor": {
+    "value": "【{name}】(建议 Lv.{lv})",
+    "params": [
+      "name",
+      "lv"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/tower_progress.py:tower_guard_on_kill（B 批 C 档）"
+  },
   "tower.no_floor": {
     "value": "🏯 塔灵正在重构试炼……稍后再来挑战吧～",
     "category": "修炼塔",
@@ -19587,6 +19699,11 @@
     ],
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.summit": {
+    "value": "👑 你已登顶修炼塔之巅——奥兰迪亚的强者之名，当之无愧！",
+    "category": "修炼塔",
+    "desc": "搬自 content/tower_progress.py:tower_guard_on_kill（B 批 C 档）"
   },
   "tower.title": {
     "value": "🏯 【修炼塔·{name}】",
@@ -21593,6 +21710,11 @@
     "category": "天气名",
     "desc": "搬自 time_weather.py:WEATHER_CN（B 批 B-1）"
   },
+  "weekly.all_done": {
+    "value": "🏆 本周悬赏全部完成！下周刷新后再来领新赏金～",
+    "category": "周常",
+    "desc": "搬自 content/weekly_progress.py:weekly_bump_kill（B 批 C 档）"
+  },
   "weekly.item_done": {
     "value": "{i}. 『{tname}』 ✅ 已完成",
     "params": [
@@ -21712,6 +21834,16 @@
     ],
     "category": "周常",
     "desc": "『周常列表』标题"
+  },
+  "weekly.task_done": {
+    "value": "📜 周常『{tname}』完成！奖励：经验 +{exp} 金币 +{gold}",
+    "params": [
+      "tname",
+      "exp",
+      "gold"
+    ],
+    "category": "周常",
+    "desc": "搬自 content/weekly_progress.py:weekly_bump_kill（B 批 C 档）"
   },
   "weekly.tip_new": {
     "value": "💡 击杀自动计数，达标立即发奖！『周常』随时查进度，『周常列表』看全池悬赏",
@@ -22168,5 +22300,29 @@
     "value": "『许愿 经验』『许愿 金币』『许愿 材料』——快选一个吧！",
     "category": "许愿商人",
     "desc": "搬自 content/combat_cmds.py:wish（B 批 C 档）"
+  },
+  "xpl.hidden": {
+    "value": "（隐藏 {found}/{total}）",
+    "params": [
+      "found",
+      "total"
+    ],
+    "category": "探索进度",
+    "desc": "搬自 content/cmds_explore.py:explore_progress（B 批 C 档）"
+  },
+  "xpl.overall": {
+    "value": "全大陆探索度 {pct}%（{visited}/{total}）",
+    "params": [
+      "pct",
+      "visited",
+      "total"
+    ],
+    "category": "探索进度",
+    "desc": "搬自 content/cmds_explore.py:explore_progress（B 批 C 档）"
+  },
+  "xpl.title": {
+    "value": "🗺️ 探索进度",
+    "category": "探索进度",
+    "desc": "搬自 content/cmds_explore.py:explore_progress（B 批 C 档）"
   }
 }

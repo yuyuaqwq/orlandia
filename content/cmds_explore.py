@@ -21,6 +21,7 @@ from . import exploration as _EX
 from .cmds_env import shell as _shell
 from .commands import register
 from .persistence.world import get_visited_subareas
+from . import texts as _T  # C 档 35a：文案真源（探索进度面板）
 
 SEP = "━━━━━━━━━━━━━━"
 
@@ -44,7 +45,7 @@ def explore_progress(env) -> list:
     overall = _EX.overall_progress(visited)
 
     lines = [
-        "🗺️ 探索进度",
+        _T.static("xpl.title"),
         SEP,
     ]
     for r in regions:
@@ -61,12 +62,12 @@ def explore_progress(env) -> list:
             mark = "⚪"
         row = f"{mark} {r['region']}   {visited_n}/{total}"
         if r["hidden_total"] > 0:
-            row += f"（隐藏 {r['hidden_found']}/{r['hidden_total']}）"
+            row += _T.text("xpl.hidden", found=r['hidden_found'], total=r['hidden_total'])
         lines.append(row)
 
     lines.append(SEP)
     lines.append(
-        f"全大陆探索度 {overall['pct']}%（{overall['visited']}/{overall['total']}）"
+        _T.text("xpl.overall", pct=overall['pct'], visited=overall['visited'], total=overall['total'])
     )
     lines.append(_tip(env, "explore"))
     return lines

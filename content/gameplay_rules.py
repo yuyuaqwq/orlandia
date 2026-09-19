@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 from .catalog_b143 import CHAPTER_PACK
+from . import texts as _T  # C 档 35a：文案真源（升级/里程碑播报）
 from .catalog_core import exp_to_next
 from .catalog_items import ITEMS, MATERIALS
 from .constants import EVOLVE_LEVELS
@@ -131,16 +132,15 @@ def check_player_level_up(group_id, qq_id, player: dict) -> tuple[list, dict]:
         learned_now = set(player.get("learned_skills", []))
         can_learn = [s for s in available if s not in learned_now]
         logs.append(
-            f"🎉 恭喜升级！现在 {player['level']} 级！"
-            f"(生命上限 +{new_base['hp'] - prev_base['hp']}, 攻击 +{new_base['atk'] - prev_base['atk']})"
-            f"\n📌 属性点 +3、技能点 +1(『属性』加点 / 『技能学习 <名称>』学技能)"
+            _T.text("lvl.up", level=player['level'], hp=new_base['hp'] - prev_base['hp'],
+                atk=new_base['atk'] - prev_base['atk'])
         )
         if can_learn:
             # v101.30d #O54：提示语修正——可学的含 5 技能点被动（风行步/狩猎咆哮等），
             # 不再叫"新技能"误导（playtest 小蓝：提示与"新技能"概念出入）
-            logs.append(f"📖 有 {len(can_learn)} 个技能可学习（含被动）！『技能学习 <技能名>』消耗技能点学会(『技能列表』查看)")
+            logs.append(_T.text("lvl.learn", count=len(can_learn)))
         if player["level"] == EVOLVE_LEVELS[1]:
-            logs.append(f"🌟 你已达到 {player['level']} 级，可以转职了！(输入『转职』查看)")
+            logs.append(_T.text("lvl.evolve", level=player['level']))
         # v140 波3.3：章节礼包——每 10 级里程碑发放一次（event_state 防重复）
         if player["level"] % 10 == 0:
             try:
@@ -164,7 +164,7 @@ def check_player_level_up(group_id, qq_id, player: dict) -> tuple[list, dict]:
                                     _got.append(_iname)
                         if _got:
                             _db.set_event_state(_ck, "1")
-                            logs.append(f"🎁 章节里程碑达成！获得【{_pack.get('name', '礼包')}】：{'、'.join(_got)}！")
+                            logs.append(_T.text("lvl.chapter", pack=_pack.get('name', '礼包'), got='、'.join(_got)))
             except Exception:
                 pass
     return logs, player

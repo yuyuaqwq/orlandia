@@ -37,6 +37,7 @@ import json
 
 # 塔表（真源整文件逐字搬入：`game/data/trial_tower.py`）—— 常量按真源名 re-export 给宿主命令薄壳
 from . import tower_data as _TD
+from .. import texts as _T  # C 档 35a：文案真源（塔层赏金/突破播报）
 from .tower_data import (  # noqa: F401  (re-export：宿主命令读门槛/上限)
     TRIAL_FLOORS, TRIAL_MIN_LV, TRIAL_MAX_FLOOR, TRIAL_DAILY_LIMIT,
 )
@@ -142,7 +143,7 @@ def tower_guard_on_kill(group_id, qq_id, monster) -> list:
         if gold > 0:
             player = db.get_player(group_id, qq_id) or {}
             db.update_player(group_id, qq_id, gold=int(player.get("gold", 0) or 0) + gold)
-            lines.append(f"💰 塔层赏金：金币 +{gold}")
+            lines.append(_T.text("tower.gold_bounty", gold=gold))
         st = _tower_state(qq_id)
         today_cleared = [int(x) for x in (st.get("cleared_today") or [])]
         # 幂等：同一天同层已结算过不再重复计数
@@ -153,17 +154,17 @@ def tower_guard_on_kill(group_id, qq_id, monster) -> list:
         st["count_today"] = len(today_cleared)
         st["cur"] = max(int(st.get("cur") or 0), floor)
         _save_tower_state(qq_id, st)
-        lines.append(f"🏯 第 {floor} 层【{fd.get('name') or ''}】突破！")
+        lines.append(_T.text("tower.floor_break", floor=floor, name=fd.get('name') or ''))
         left = max(0, int(getattr(_TD, "TRIAL_DAILY_LIMIT", 3) or 3) - st["count_today"])
         if floor >= int(getattr(_TD, "TRIAL_MAX_FLOOR", 30) or 30):
-            lines.append("👑 你已登顶修炼塔之巅——奥兰迪亚的强者之名，当之无愧！")
+            lines.append(_T.static("tower.summit"))
         elif left > 0:
             nxt = floor + 1
             nfd = _floor_def(nxt)
-            lines.append(f"💡 今日还可突破 {left} 层——回复『爬塔』挑战第 {nxt} 层"
-                         + (f"【{nfd.get('name') or ''}】(建议 Lv.{nfd.get('lv')})" if nfd else ""))
+            lines.append(_T.text("tower.daily_left", left=left, nxt=nxt)
+                         + (_T.text("tower.next_floor", name=nfd.get('name') or '', lv=nfd.get('lv')) if nfd else ""))
         else:
-            lines.append("🌙 今日修炼已满 3 层，好好消化感悟，明日再来！(失败/逃跑不占次数)")
+            lines.append(_T.static("tower.daily_full"))
     except Exception:
         pass
     return lines

@@ -223,7 +223,8 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          "副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "副本日志": PKG_INSTANCE_SRC,
          "副本战斗日志": PKG_FLOW_INSTANCE_BATTLE_SRC,
-         "周常": PKG_WEEKLY_SRC,
+         # ★ C 档 35a（B-2 第 27 片）：weekly_progress.py 的达标/全清播报同域 ⇒ 文件列表
+         "周常": [PKG_WEEKLY_SRC, os.path.join(PKG_CONTENT, "flow", "weekly_progress.py")],
          "签到": PKG_MISC_SRC, "补给箱": PKG_EVENT_SRC,
          "每日任务": PKG_WORLD_SRC, "每日命令": PKG_QUESTS_SRC,
          "社交": PKG_SOCIAL_SRC,
@@ -288,7 +289,9 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          "GM指令": [os.path.join(PKG_CONTENT, "gm.py"),
                    os.path.join(PKG_CONTENT, "cmds_gm.py")],
          "公会面板": os.path.join(PKG_CONTENT, "social_guild.py"),
-         "修炼塔": os.path.join(PKG_CONTENT, "cmds_tower.py"),
+         # ★ C 档 35a（B-2 第 27 片）：tower_progress.py 的塔层赏金/突破/登顶播报同域 ⇒ 文件列表
+         "修炼塔": [os.path.join(PKG_CONTENT, "cmds_tower.py"),
+                 os.path.join(PKG_CONTENT, "flow", "tower_progress.py")],
          # C 档 10：player_cmds 的八个面板分类（同文件多分类，引用面 = 直接调用点）
          "角色面板": os.path.join(PKG_CONTENT, "player_cmds.py"),
          "属性面板": os.path.join(PKG_CONTENT, "player_cmds.py"),
@@ -441,7 +444,12 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          # ★ C 档 PRE3（并行批 3）：world_event_templates 的 wevt.* 也属世界事件域（本项已是列表）
          "世界事件": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py"),
                   os.path.join(PKG_CONTENT, "world_event_templates.py")],
-         "社交拍卖": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py")],
+         # ★ C 档 35a（B-2 第 27 片）：auction.py 的到期结算播报同域 ⇒ 追加第三文件
+         "社交拍卖": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_cmds.py"),
+                  os.path.join(PKG_CONTENT, "auction.py")],
+         # ★ C 档 35a（B-2 第 27 片）：两个新域
+         "升级提示": os.path.join(PKG_CONTENT, "gameplay_rules.py"),
+         "探索进度": os.path.join(PKG_CONTENT, "cmds_explore.py"),
          # ★ C 档 20d（B-2 第 6 片第 4 小片）：社交「宠物 · 坐骑」
          #   （content/social_pet.py **全 5 函数**首次接入 `_T`：宠物面板全行 · 喂养全分支 ·
          #    改名/放生 · 坐骑面板/骑乘/下马 —— 命令层 cmds_social.py 只做转发，调用点全在本文件）
@@ -1058,7 +1066,7 @@ def t1_table_selfcheck():
           not [s.key for s in tb if not s.category], [s.key for s in tb if not s.category][:5])
     check("key 无重复", len(tb.keys()) == len(set(tb.keys())))
     cats = sorted({s.category for s in tb})
-    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制 / 事件模板 / 装备描述 / 团队机制 / 元素机制）",
+    check("category 取值符合预期（副本准入 / 副本日志 / 副本面板 / 副本移动 / 签到 / 周常 / 补给箱 / 每日任务 / 武器特效 / 效果名 / 机制名 / 增益名 / 减益名 / 叠层名 / 资源名 / 战斗日志 / 天气名 / 季节名 / 属性名 / 团队特效名 / 条件文案 / 宠物技能描述 / 帮助面板 / 副业图标 / 技能面板 / GM面板 / GM指令 / 公会面板 / 修炼塔 / 角色面板 / 属性面板 / 排行榜 / 种族面板 / 转职 / 技能栏 / 流派 / 技能详情 / 经济面板 / 生活副业 / 炼金 / 烹饪 / 锻造 / 强化 / 宝石 / 符文 / 重锻炼成 / 地图导航 / 任务委托 / 家园地契 / 营地休息 / 声望阵营 / 传送方碑 / 场景交互 / 战斗主循环 / 战斗面板 / 探索事件 / 社交市场 / 社交队伍 / 社交公会 / 世界事件 / 社交拍卖 / 宠物面板 / 宠物喂养 / 宠物管理 / 坐骑面板 / 商店面板 / 商店购买 / 商店出售 / 商店限购 / 背包面板 / 装备面板 / 道具使用 / 称号面板 / NPC面板 / NPC查找 / NPC对话 / 快捷交互 / 移动赶路 / 行会就职 / NPC教习 / 见闻录 / 时间面板 / 时段名 / 任务目标 / 武器礼包 / 战斗结算 / 掉落播报 / 任务列表 / 任务接取 / 任务交付 / 任务进度 / 战力面板 / 编年史 / 副业等待 / 垂钓结算 / 垂钓惊喜 / 采集结算 / 挖掘结算 / 职业速查 / 收藏册 / 野王 / 野王宝箱 / 出行提示 / 对话动作 / 种族天赋 / 今日事件 / 奖励发放 / 成就面板 / 意见反馈 / 药水效果 / 场景触发 / 职业机制 / 事件模板 / 装备描述 / 团队机制 / 元素机制 / 升级提示 / 探索进度）",
           set(cats) == {"副本准入", "副本日志", "副本面板", "副本移动", "签到", "周常", "补给箱", "每日任务",
                         "武器特效", "效果名", "机制名", "增益名", "减益名", "叠层名", "资源名",
                         "战斗日志", "天气名", "季节名",
@@ -1128,7 +1136,9 @@ def t1_table_selfcheck():
                         # ★ C 档 PRE2（2026-09-19 并行批 2）：effects 之外的另两域
                         "事件模板", "装备描述",
                         # ★ C 档 PRE3（2026-09-19 并行批 3）：mech 两机制族
-                        "团队机制", "元素机制"}, cats)
+                        "团队机制", "元素机制",
+                        # ★ C 档 35a（B-2 第 27 片）：升级/里程碑播报 + 探索进度面板
+                        "升级提示", "探索进度"}, cats)
 
 
 def t2_key_and_params_accounting():

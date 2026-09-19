@@ -55,6 +55,7 @@ import json
 
 # 包内常量读口（B9-L7：WEEKLY_PICK / WEEKLY_MIN_LV 改读 `game_config` 常量域，不再自带副本）
 from .. import config as _CFG
+from .. import texts as _T  # C 档 35a：文案真源（周常达标播报）
 
 # ============================================================
 # 宿主替身口（① 存储层 / 发放函数）
@@ -247,9 +248,9 @@ def weekly_bump_kill(group_id, qq_id, monster) -> list:
                 task["done"] = True
                 st["done_n"] = int(st.get("done_n", 0) or 0) + 1
                 _grant_rewards(group_id, qq_id, task["reward_exp"], task["reward_gold"])
-                out.append(f"📜 周常『{tname}』完成！奖励：经验 +{task['reward_exp']} 金币 +{task['reward_gold']}")
+                out.append(_T.text("weekly.task_done", tname=tname, exp=task['reward_exp'], gold=task['reward_gold']))
                 if st["done_n"] >= len(st["tasks"]):
-                    out.append("🏆 本周悬赏全部完成！下周刷新后再来领新赏金～")
+                    out.append(_T.static("weekly.all_done"))
         if changed:
             _save_week_state(qq_id, st)
     except HostInjectionMissing:

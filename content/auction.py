@@ -30,6 +30,8 @@ from __future__ import annotations
 import time
 import uuid as _uuid
 
+from . import texts as _T  # C 档 35a：文案真源（拍卖结算播报）
+
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -58,7 +60,7 @@ C = PkgModule("content.drops")
 def settle_auction(cur, group_id: str) -> str:
     """拍卖到期结算：最高价者得物品，其余退还。返回结算文本"""
     if not cur or cur["etype"] != "auction":
-        return "拍卖行已关闭。"
+        return _T.static("auc.closed")
     items = cur["data"].get("items", [])
     lines = []
     for it in items:
@@ -72,19 +74,19 @@ def settle_auction(cur, group_id: str) -> str:
             db.add_item(group_id, top_qq, f"eq_{_uuid.uuid4().hex[:8]}", equip, count=1)
             p = db.get_player(group_id, top_qq)
             name = p["name"] if p else top_qq
-            lines.append(f"🎉 {name} 以 {amount} 金币拍得【{it['name']}】！")
+            lines.append(_T.text("auc.win", name=name, amount=amount, item=it['name']))
             # 退还其他出价者
             for qq2, amt2 in it["bids"].items():
                 if qq2 != top_qq:
                     p2 = db.get_player(group_id, qq2)
                     if p2:
                         db.update_player(group_id, qq2, gold=p2["gold"] + amt2)
-                        lines.append(f"↩️ 退还 {p2['name']} {amt2} 金币")
+                        lines.append(_T.text("auc.refund", name=p2['name'], amount=amt2))
         else:
-            lines.append(f"💤 【{it['name']}】无人出价，流拍。")
+            lines.append(_T.text("auc.no_bid", item=it['name']))
     # v104R3 P2：落槌价去向说明（复验点12：赢家金币为系统回收，无文案说明）
     if any(it.get("bids") for it in items):
-        lines.append("💰 落槌价已由拍卖行收讫(系统回收)，未成交者的出价已全额退还。")
+        lines.append(_T.static("auc.settle_note"))
     return "\n".join(lines)
 
 
