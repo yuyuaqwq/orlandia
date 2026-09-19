@@ -10,6 +10,10 @@
 
 缺口（报告登记）：包内 `content/effects/potion_effects.py:208` 走的是 `battle.action_def_down`
 替身口（B8 期写法），**未**消费本模块 → 收口时二选一（改调本模块 / 保留引擎接口），本线不动别线文件。
+
+★ C 档 PRE2-c（2026-09-19）：玩家可见日志文案（`logs.append` 的 7 句）已迁入包内文案表
+（`content/data/text_specs.json` 的 `fxa.*`），代码只传槽位 —— 与游戏仓真源的**唯一**差异
+就是这批文案 + 下面的 `from . import texts as _T` 取件口（函数体其余一字未动）。
 """
 # -*- coding: utf-8 -*-
 """奥兰迪亚·余烬纪年核心层 - effect_actions.py（v180-D P2：共享效果动作 / v180-G B6：朝向参数化）
@@ -37,6 +41,8 @@ v180-G B6（动作收口到 effect_actions 全量适配）：
 """
 import random as _random
 
+from . import texts as _T                      # 文案表（C 档 PRE2-c：共享效果动作日志）
+
 
 def _ea_tgt(battle, target):
     """目标解析：显式传目标 actor → 用之；None → 主目标（旧语义 battle._hit_tgt()）。"""
@@ -50,7 +56,7 @@ def action_regen_hp(battle, player, logs, *, pct=0.01, label="回春"):
     if player.get("hp", 0) < player.get("max_hp", 1):
         heal = int(player.get("max_hp", player.get("hp", 1)) * float(pct))
         battle._heal_actor(player, heal, logs)  # v180E 统一落地
-        logs.append(f"🌿 {label}生效，回复 {heal} 点生命！")
+        logs.append(_T.text("fxa.regen_hp", label=label, heal=heal))
 
 
 def action_regen_mp(battle, player, logs, *, pct=0.01, label="冥想"):
@@ -58,7 +64,7 @@ def action_regen_mp(battle, player, logs, *, pct=0.01, label="冥想"):
     if player.get("mp", 0) < player.get("max_mp", 1):
         heal = int(player.get("max_mp", player.get("mp", 1)) * float(pct))
         player["mp"] = min(player.get("max_mp", player.get("mp", 1)), player.get("mp", 0) + heal)
-        logs.append(f"🧘 {label}生效，回复 {heal} 点魔力！")
+        logs.append(_T.text("fxa.regen_mp", label=label, heal=heal))
 
 
 def action_dot(battle, logs, *, key="bleed", stacks=3, max_n=None, label="流血", target=None):
@@ -73,7 +79,7 @@ def action_dot(battle, logs, *, key="bleed", stacks=3, max_n=None, label="流血
     cap = int(max_n if max_n is not None else stacks)
     cur["n"] = min(cap, int(cur.get("n", 0) or 0) + int(stacks))
     deb[key] = cur
-    logs.append(f"🩸 {label}！{tgt.get('name', '敌人')}伤口裂开，将持续失血！")
+    logs.append(_T.text("fxa.dot_hit", label=label, name=tgt.get('name', '敌人')))
 
 
 def action_def_down(battle, logs, *, turns=2, pct=0.15, label="破甲", target=None):
@@ -85,7 +91,7 @@ def action_def_down(battle, logs, *, turns=2, pct=0.15, label="破甲", target=N
     eb = tgt.setdefault("buffs", {})
     eb["def_down"] = max(int(eb.get("def_down", 0) or 0), int(turns))
     eb["_armor_break_pct"] = float(pct)
-    logs.append(f"🛡️ {label}！{tgt.get('name', '敌人')}防御下降 {int(pct * 100)}%！")
+    logs.append(_T.text("fxa.def_down_hit", label=label, name=tgt.get('name', '敌人'), pct=int(pct * 100)))
 
 
 def action_mark(battle, player, logs, *, key="dragon_mark", max_n=5, label="龙语印记",
@@ -117,7 +123,7 @@ def _bonus_dmg_apply(battle, player, cd, logs, tag, name, target=None):
     except Exception:
         pass
     battle._deal_damage(cd, logs, target=tgt)
-    logs.append(f"{tag} {name}！对【{tgt.get('name', '敌人')}】追加 {cd} 点伤害！")
+    logs.append(_T.text("fxa.bonus_dmg_hit", tag=tag, name=name, foe=tgt.get('name', '敌人'), dmg=cd))
     return cd
 
 
@@ -185,7 +191,7 @@ def action_counter(battle, player, logs, *, atk_pct=0.60, tag="⚔️", name="�
     except Exception:
         pass
     battle._deal_damage(cd, logs, target=tgt)
-    logs.append(f"{tag} {name}！对【{tgt.get('name', '敌人')}】造成 {cd} 点伤害！")
+    logs.append(_T.text("fxa.counter_hit", tag=tag, name=name, foe=tgt.get('name', '敌人'), dmg=cd))
     return cd
 
 
@@ -195,5 +201,5 @@ def action_lifesteal(battle, player, dmg, logs, *, heal_pct=0.08, label="吸血"
         return 0
     heal = max(1, int(dmg * float(heal_pct)))
     battle._heal_actor(player, heal, logs)  # v180E 统一落地
-    logs.append(f"🩸 {label}：回复 {heal} 点生命！")
+    logs.append(_T.text("fxa.lifesteal", label=label, heal=heal))
     return heal

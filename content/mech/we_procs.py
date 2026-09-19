@@ -65,7 +65,7 @@ import random
 from saintess_engine.battle.effects import register_action
 from saintess_engine.battle.actors import actor_alive
 
-from .. import texts as _T                      # 文案表（B 批 B-1：战斗日志文案）
+from .. import texts as _T                      # 文案表（B 批 B-1 + C 档 PRE2-c：战斗日志文案）
 
 
 def _roll(chance) -> bool:
@@ -163,7 +163,7 @@ def we_dot(battle, caster, target, params, logs):
     # ★ 2026-09-13 文案修复（改前既有）：`_DOT_LOG` 的表文案带 `{turns}` 占位符，此前**从不
     #   `.format()`** → 玩家会看到「目标 {turns} 刻内每刻损失当前生命！」（占位符裸露）。
     #   这里统一 `.format(turns=…)`；缺 key 时的兜底文案是 f-string（已填好），故加 `{` 守卫。
-    _dtxt = _DOT_LOG.get(params.get("key")) or f"🔥 {dot_key}：目标持续掉血（{turns} 刻）！"
+    _dtxt = _DOT_LOG.get(params.get("key")) or _T.text("we.dot_fallback", dot_key=dot_key, turns=turns)
     logs.append(_dtxt.format(turns=turns) if "{" in _dtxt else _dtxt)
 
 
@@ -251,7 +251,7 @@ def we_hit_slow(battle, caster, target, params, logs):
         return
     _slow(battle, caster, tgt, int(params.get("turns") or 2),
           float(params.get("slow") or 0.5), logs)
-    logs.append("⚡ 静电麻痹！目标速度下降！")
+    logs.append(_T.static("we.hit_slow"))
 
 
 # ============================================================
@@ -301,7 +301,7 @@ def we_shield_taken(battle, caster, target, params, logs):
     if cd_key:
         from .we_data import ACT_TICK
         st[cd_key] = now + int(params.get("cd") or 1) * ACT_TICK
-    logs.append(_SHIELD_TAKEN_LOG.get(params.get("key") or "", f"🛡️ 获得护盾 {value} 点！").format(shield=value))
+    logs.append(_SHIELD_TAKEN_LOG.get(params.get("key") or "", _T.text("we.shield_taken_fallback", value=value)).format(shield=value))
 
 
 # ============================================================
@@ -327,7 +327,7 @@ def we_guardian_will(battle, caster, target, params, logs):
              {"type": "apply", "key": params.get("debuff_key") or "mon_atk_down",
               "stat": "atk", "op": "mul", "mult": 1.0 - weaken,
               "turns": int(params.get("turns", 1) or 1), "on": "caster"}, logs)
-    logs.append("🛡️ 卫士信念：敌人下一次攻击伤害 -25%！")
+    logs.append(_T.static("we.guardian_will.log"))
 
 
 # ============================================================
@@ -442,7 +442,7 @@ def we_abyss(battle, caster, target, params, logs):
     if bonus > 0:
         owner["max_hp"] = owner.get("max_hp", 100) + bonus
         owner["hp"] = min(owner["max_hp"], owner.get("hp", 0) + bonus)
-        logs.append(params.get("log") or f"🌑 深渊屏障：最大生命 +{bonus}！（持续整场）")
+        logs.append(params.get("log") or _T.text("we.abyss_barrier.log", bonus=bonus))
 
 
 # ============================================================
@@ -541,7 +541,7 @@ def we_extra_dmg(battle, caster, target, params, logs):
                     es_.get("def", 0), pene_pct=float(params.get("pene_pct") or 0.5))
         from saintess_engine.battle.landing import deal_damage
         deal_damage(battle, owner, tgt, dmg, logs)
-        logs.append(params.get("log") or f"🌪️ 幻影连射！无视 50% 防御造成 {dmg} 点伤害！")
+        logs.append(params.get("log") or _T.text("we.phantom_barrage.log", dmg=dmg))
         return
     # ---- splash_magi（matk 溅射）----
     if mode == "splash_magi":
@@ -549,7 +549,7 @@ def we_extra_dmg(battle, caster, target, params, logs):
                     es_.get("mdef", 0), dmg_type="magi")
         from saintess_engine.battle.landing import deal_damage
         deal_damage(battle, owner, tgt, dmg, logs)
-        logs.append(_EXTRA_LOG.get(key, "🔮 溅射 {dmg} 点奥术伤害！").format(dmg=dmg))
+        logs.append(_EXTRA_LOG.get(key, _T.static("we.extra_splash_fallback")).format(dmg=dmg))
         return
     # ---- extra_phys_oncrit（endless_blade：crit + cd 1 刻限 1）----
     if key == "endless_blade":
@@ -563,7 +563,7 @@ def we_extra_dmg(battle, caster, target, params, logs):
                     es_.get("def", 0))
         from saintess_engine.battle.landing import deal_damage
         deal_damage(battle, owner, tgt, dmg, logs)
-        logs.append(_EXTRA_LOG.get(key, "⚔️ 追加 {dmg} 点伤害！").format(dmg=dmg))
+        logs.append(_EXTRA_LOG.get(key, _T.static("we.extra_blade_fallback")).format(dmg=dmg))
         return
     # ---- extra_phys（wind_split）----
     if mode == "extra_phys":
@@ -571,7 +571,7 @@ def we_extra_dmg(battle, caster, target, params, logs):
                     es_.get("def", 0))
         from saintess_engine.battle.landing import deal_damage
         deal_damage(battle, owner, tgt, dmg, logs)
-        logs.append(_EXTRA_LOG.get(key, "💥 追加 {dmg} 点伤害！").format(dmg=dmg))
+        logs.append(_EXTRA_LOG.get(key, _T.static("we.extra_phys_fallback")).format(dmg=dmg))
         return
     # ---- true_dmg_nth（hunter/siren/star 计数真伤）----
     if mode == "true_dmg_nth":
@@ -589,7 +589,7 @@ def we_extra_dmg(battle, caster, target, params, logs):
         dmg = _calc(battle, base, 0, dmg_type="true")
         from saintess_engine.battle.landing import deal_damage
         deal_damage(battle, owner, tgt, dmg, logs)
-        logs.append(_EXTRA_LOG.get(key, "✨ 造成 {dmg} 点真实伤害！").format(dmg=dmg))
+        logs.append(_EXTRA_LOG.get(key, _T.static("we.extra_true_fallback")).format(dmg=dmg))
         return
     # ---- curhp_dmg_heal（soul_eater）----
     if key == "soul_eater":
@@ -620,7 +620,7 @@ def we_mana_once(battle, caster, target, params, logs):
     st["dawn_mana_used"] = True
     mp = int(params.get("mp") or 10)
     owner["mp"] = min(int(owner.get("max_mp", 999) or 999), int(owner.get("mp", 0) or 0) + mp)
-    logs.append(params.get("log") or f"🌅 晨星：回复 {mp} 点魔力！")
+    logs.append(params.get("log") or _T.text("we.mana_once_fallback", mp=mp))
 
 
 # ============================================================
@@ -717,7 +717,7 @@ def we_control(battle, caster, target, params, logs):
         if (tgt.get("effects") or {}).get("spd_down"):
             _freeze(battle, owner, tgt, src_turns, params, logs)
             _bump_control_state(st, cd_key, used_key, params, now)
-            logs.append(_CONTROL_LOG.get(key, "🧊 冻结！").format(turns=src_turns))
+            logs.append(_CONTROL_LOG.get(key, _T.static("we.control_freeze_fallback")).format(turns=src_turns))
         else:
             _slow(battle, owner, tgt, int(params.get("slow_turns") or 2),
                   float(params.get("slow_pct") or 0.4), logs)
@@ -728,31 +728,31 @@ def we_control(battle, caster, target, params, logs):
         from saintess_engine.battle.state_effects import state_def
         cap = int((state_def("heal_down") or {}).get("cap") or 5)
         _add_stacks(tgt, "heal_down", int(params.get("heal_down") or 2), cap=cap)
-        logs.append(_CONTROL_LOG.get(key, "⚖️ 圣裁领域！").format(turns=0))
+        logs.append(_CONTROL_LOG.get(key, _T.static("we.control_judgment_fallback")).format(turns=0))
         return
     if mode == "freeze_cd":
         _freeze(battle, owner, tgt, src_turns, params, logs)
         if cd_key:
             from .we_data import ACT_TICK
             st[cd_key] = now + int(params.get("cd") or 1) * ACT_TICK
-        logs.append(_CONTROL_LOG.get(key, "🧊 永冻！").format(turns=src_turns))
+        logs.append(_CONTROL_LOG.get(key, _T.static("we.control_everfrost_fallback")).format(turns=src_turns))
         return
     if mode == "freeze":
         _freeze(battle, owner, tgt, src_turns, params, logs)
-        logs.append(_CONTROL_LOG.get(key, "🧊 冻结！").format(turns=src_turns))
+        logs.append(_CONTROL_LOG.get(key, _T.static("we.control_freeze_fallback")).format(turns=src_turns))
         return
     if mode == "freeze_taken_limited":
         # frost_crown：受击冻结限次（先计数后冻结）
         if used_key:
             st[used_key] = int(st.get(used_key, 0) or 0) + 1
         _freeze(battle, owner, tgt, src_turns, params, logs)
-        logs.append(_CONTROL_LOG.get(key, "🧊 冻结！").format(turns=src_turns))
+        logs.append(_CONTROL_LOG.get(key, _T.static("we.control_freeze_fallback")).format(turns=src_turns))
         return
     if mode == "freeze_heal":
         if ctx.get("overflow"):
             return
         _freeze(battle, owner, tgt, src_turns, params, logs)
-        logs.append(_CONTROL_LOG.get(key, "✨ 禁锢！").format(turns=src_turns))
+        logs.append(_CONTROL_LOG.get(key, _T.static("we.control_bind_fallback")).format(turns=src_turns))
         return
     if mode == "threshold_stun":
         # time_freeze：玩家 hp 低阈值（挂 on_taken 自查）每场一次
@@ -765,7 +765,7 @@ def we_control(battle, caster, target, params, logs):
         from saintess_engine.battle.effects import act_apply
         act_apply(battle, owner, tgt,
                     {"type": "apply", "key": "stun", "turns": 1, "mode": "skip", "on": "target"}, logs)
-        logs.append(_CONTROL_LOG.get(key, "⏳ 时光凝滞！"))
+        logs.append(_CONTROL_LOG.get(key, _T.static("we.control_time_freeze_fallback")))
         return
     return  # 未知 mode 静默
 
@@ -950,7 +950,7 @@ def we_stack_prod(battle, caster, target, params, logs):
         if n >= need:
             ef[sk] = {"stacks": 0}
             owner.setdefault("ext", {}).setdefault("we_proc", {})[params.get("charge_key") or "we_sage_charge"] = float(params.get("charge_pct") or 0.25)
-            logs.append("📚 秘典充能就绪！下一技能伤害 +25%")
+            logs.append(_T.static("we.sage_charge"))
         else:
             ef[sk] = {"stacks": n}
         return
@@ -964,9 +964,9 @@ def we_stack_prod(battle, caster, target, params, logs):
     if key == "thunder_weave" and cur >= cap:
         ef[sk] = {"stacks": 0}
         owner.setdefault("ext", {}).setdefault("we_proc", {})[params.get("charge_key") or "we_thunder_charge"] = float(params.get("charge_pct") or 0.20)
-        logs.append("⚡ 雷纹充盈！下一次攻击 +20%")
+        logs.append(_T.static("we.thunder_charge"))
     elif key in ("rune_amp", "eternal_codex", "time_staff"):
-        logs.append(f"✦ {sk} 叠层 {cur}/{cap}")
+        logs.append(_T.text("we.stack_prod_line", sk=sk, cur=cur, cap=cap))
 
 
 @register_action("we_amp_consume")
@@ -1058,7 +1058,7 @@ def we_combo_stack(battle, caster, target, params, logs):
     entry["stacks"] = max(0, min(cap, cur + 1))
     n = entry["stacks"]
     pct = int(float(params.get("per_stack") or 0.08) * 100)
-    logs.append(f"🎯 猎影：暴击叠层！（{n}/{cap} 层，每层连击率 +{pct}%）")
+    logs.append(_T.text("we.combo_stack_line", n=n, cap=cap, pct=pct))
 
 
 @register_action("we_combo_end")
@@ -1086,7 +1086,7 @@ def we_combo_end(battle, caster, target, params, logs):
         return  # 本刻连段不足：不触发
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + cd)
     ctx["tags"] = list(ctx.get("tags") or []) + [f"💢连击终点x{1.0 + cd:.2f}"]
-    logs.append(f"💢 连击终点：连段≥{need} 暴击，本次暴击伤害 +{int(cd * 100)}%！")
+    logs.append(_T.text("we.combo_end_line", need=need, pct=int(cd * 100)))
 
 
 # ============================================================
@@ -1133,7 +1133,7 @@ def we_death_pool_pay(battle, caster, target, params, logs):
     pay = max(1, int(pool * pay_pct))
     owner["hp"] = max(0, int(owner.get("hp", 0) or 0) - pay)
     st[pool_key] = max(0.0, pool - pay)
-    logs.append(f"💀 死亡之舞：缓伤池结算，损失 {pay} 点生命！（剩余 {st[pool_key]:.0f}）")
+    logs.append(_T.text("we.death_pool_pay", pay=pay, pool=st[pool_key]))
 
 
 # ============================================================
@@ -1179,7 +1179,7 @@ def we_act_done_slow(battle, caster, target, params, logs):
     cap = int((state_def(sk) or {}).get("cap") or ms)
     n = _add_stacks(acted, sk, 1, cap=cap)
     logs.append(_ACT_DONE_SLOW_LOG.get(
-        key, "🌊 减速叠层！").format(pct=int(sp * 100 * n), n=n, ms=ms))
+        key, _T.static("we.act_done_slow_fallback")).format(pct=int(sp * 100 * n), n=n, ms=ms))
 
 
 # ============================================================
@@ -1211,7 +1211,7 @@ def we_affix_dot(battle, caster, target, params, logs):
     cap = int((state_def(sk) or {}).get("cap") or 3)
     n = _add_stacks(tgt, sk, int(params.get("stacks") or 1), cap=cap,
                     battle=battle, caster=caster)   # v181 批D：施法者快照
-    logs.append(_AFFIX_HIT_LOG.get(params.get("key"), "🩸 目标流血了！").format(
+    logs.append(_AFFIX_HIT_LOG.get(params.get("key"), _T.static("we.affix_bleed_fallback")).format(
         tgt=tgt.get("name", "目标")))
     return n
 
@@ -1229,7 +1229,7 @@ def we_affix_defdown(battle, caster, target, params, logs):
              {"type": "apply", "key": "def_down", "stat": "def", "op": "mul",
               "mult": 1.0 - float(params.get("pct") or 0.15),
               "turns": int(params.get("turns") or 2), "on": "target"}, logs)
-    logs.append(_AFFIX_HIT_LOG.get(params.get("key"), "🛡️ 目标防御下降！").format(
+    logs.append(_AFFIX_HIT_LOG.get(params.get("key"), _T.static("we.affix_defdown_fallback")).format(
         tgt=tgt.get("name", "目标"),
         pct=int(float(params.get("pct") or 0.15) * 100)))
 
@@ -1256,7 +1256,8 @@ def we_affix_element(battle, caster, target, params, logs):
     from saintess_engine.battle.landing import deal_damage
     deal_damage(battle, caster, tgt, dmg, logs)
     _tag = {"fire": "🔥", "ice": "❄️", "thunder": "⚡"}.get(element, "✨")
-    logs.append(f"{_tag} {params.get('name') or '元素附加'}！造成 {dmg} 点{ {'fire':'火','ice':'冰','thunder':'雷'}.get(element, element) }属性伤害！")
+    logs.append(_T.text("we.affix_element_hit", tag=_tag, name=params.get('name') or '元素附加', dmg=dmg,
+                    element={'fire':'火','ice':'冰','thunder':'雷'}.get(element, element)))
     # ice 附带减速（spd_down mult = 减幅语义：slow 0.10 → spd×0.9）
     if element == "ice" and params.get("slow") is not None:
         from saintess_engine.battle.effects import act_apply
@@ -1268,7 +1269,7 @@ def we_affix_element(battle, caster, target, params, logs):
     if element == "thunder" and _roll(params.get("chance")):
         sd = max(1, int(base * float(params.get("thunder_bonus") or 0.20)))
         deal_damage(battle, caster, tgt, sd, logs)
-        logs.append(f"⚡⚡ 感电连跳！追加 {sd} 点雷系伤害！")
+        logs.append(_T.text("we.affix_thunder_jump", dmg=sd))
 
 
 @register_action("we_affix_bonus")
@@ -1301,7 +1302,7 @@ def we_affix_bonus(battle, caster, target, params, logs):
         _dd3(battle, caster, tgt, dmg, logs)
     tag = params.get("tag") or "⚡"
     name = params.get("name") or "追加"
-    logs.append(f"{tag} {name}！对【{tgt.get('name', '敌人')}】追加 {dmg} 点伤害！")
+    logs.append(_T.text("fxa.bonus_dmg_hit", tag=tag, name=name, foe=tgt.get('name', '敌人'), dmg=dmg))
 
 
 # ============================================================
@@ -1334,7 +1335,7 @@ def we_affix_counter(battle, caster, target, params, logs):
     st = _as(battle, owner) or {}
     dmg = max(1, int(float(st.get("atk", 0) or 0) * float(params.get("atk_pct") or 0.60)))
     deal_damage(battle, owner, attacker, dmg, logs)
-    logs.append(_AFFIX_TAKEN_LOG.get(params.get("key"), "⚔️ 反击！").format(
+    logs.append(_AFFIX_TAKEN_LOG.get(params.get("key"), _T.static("we.affix_counter_fallback")).format(
         tgt=attacker.get("name", "敌人"), dmg=dmg))
 
 
@@ -1358,7 +1359,7 @@ def we_affix_tenacity(battle, caster, target, params, logs):
     from saintess_engine.battle.landing import heal_actor
     heal = max(1, int(owner.get("max_hp", 1) * float(params.get("heal_pct") or 0.03)))
     heal_actor(battle, owner, heal, logs)
-    logs.append(_AFFIX_TAKEN_LOG.get(params.get("key"), "💪 坚韧！").format(heal=heal))
+    logs.append(_AFFIX_TAKEN_LOG.get(params.get("key"), _T.static("we.affix_tenacity_fallback")).format(heal=heal))
 
 
 # ============================================================
@@ -1515,15 +1516,14 @@ def we_affix_purify(battle, caster, target, params, logs):
         removed += 1
     if removed <= 0:
         return
-    logs.append(f"✨ 净化！驱散了【{tgt.get('name', '目标')}】的 {removed} 层增益！")
+    logs.append(_T.text("we.purify", name=tgt.get('name', '目标'), removed=removed))
     wk = float(params.get("holy_weaken_pct") or 0)
     if wk > 0:
         from saintess_engine.battle.effects import act_apply
         act_apply(battle, caster, tgt,
                   {"type": "apply", "key": "holy_weaken", "stat": "atk", "op": "mul",
                    "mult": 1.0 - wk, "turns": 1, "on": "target"}, logs)
-        logs.append("😇 圣洁之力！净化后敌人攻击下降 "
-                    f"{int(wk * 100)}%（1 刻）！")
+        logs.append(_T.text("we.purify_holy_weaken", pct=int(wk * 100)))
 
 
 # ★ B10-L1（2026-09-13）**逐字端口回填**：下面这一段（banner + `_INSTALLED` +

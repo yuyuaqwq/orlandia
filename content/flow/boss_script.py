@@ -23,17 +23,24 @@
 | 存档 `st["boss_script"]`（宿主持久化） | 同左 | 调用方给的普通 dict（宿主落库/序列化/迁移） | —— |
 | `battle.script_hook` / `battle.on_event` 挂载（宿主 `instance_battle.py:206-224`） | 同左 | 宿主把 `make_script_hook(st[, …])` / `make_script_event(st[, …])` 挂到引擎 `Battle` | —— |
 
-③ 文案缺口（**未改，逐字保留**）：真源的演出/日志文案全是硬编码 f-string，包内
-`content/data/texts.json`（233 槽位）**没有**任何剧本槽位（无 `instance.剧本_*` 之类）。
-按"无现成槽位先记缺口、不自造 API"处理 → 本文件不新增文案表，缺口清单见
-`overnight/d3-flow-port.md` §4。真源行号（逐条可查）：
-:180 阈值预告 / :202-203 转阶段演出 / :214 atk 提升 / :222 换招 / :302 开场 / :309 :316 :327
-开场效果 / :366 :372 低血 / :404 叠层 / :412 治疗 / :426 狂暴 / :531 召唤 / :535 召唤联动 /
-:588 连招 / :656 反伤 / :682 :689 打断 / :722 :730 :735 爪牙死亡。
+③ 文案（★ C 档 PRE2-c，2026-09-19 起改）：真源的演出/日志文案原是硬编码 f-string，**本批已迁入**
+包内文案表 `content/data/text_specs.json`（`boss.*` 21 条，取代原先「无现成槽位先记缺口、
+不自造 API」的处置），代码只传槽位（`from .. import texts as _T`）——玩家可见输出逐字不变。
+真源行号 → 文案键对照（逐条可查）：
+:180 阈值预告 boss.phase_warn / :202-203 转阶段演出 boss.phase_enter / :214 atk 提升
+boss.phase_atk_up / :222 换招 boss.phase_new_skill / :302 开场 boss.opening_roar /
+:309 :316 :327 开场效果 boss.opening_atk_up / boss.opening_atk_down /
+boss.opening_mortal_wound / :366 :372 低血 boss.player_low_hit / boss.player_low_chase /
+:404 叠层 boss.mech_stack / :412 治疗 boss.mech_heal / :426 狂暴 boss.mech_enrage /
+:531 召唤 boss.summon / :535 召唤联动 boss.summon_atk_up / :588 连招 boss.chain_rotate /
+:656 反伤 boss.reflect / :682 :689 打断 boss.interrupt_freeze / boss.interrupt_vulnerable /
+:722 :730 :735 爪牙死亡 boss.minion_heal / boss.minion_stack_clear / boss.minion_atk_up。
+（旧缺口清单 `overnight/d3-flow-port.md` §4 随之关闭；怪物名/爪牙名/首领名等**取值**仍在代码里。）
 """
 from __future__ import annotations
 
 from .._domainio import read_data_json as _read_json
+from .. import texts as _T                     # 文案表（C 档 PRE2-c：Boss 剧本演出/日志）
 
 
 
@@ -248,7 +255,7 @@ def _check_phases(st: dict, battle, actor: dict, cfg: dict, bs: dict,
         if nxt <= ratio <= nxt + within and (pc + 1) not in warned:
             warned = list(warned) + [pc + 1]
             bs["flags"]["_phase_warned"] = warned
-            logs.append(f"⚠️ 【{name}】的气息开始紊乱……似乎要进入更凶猛的阶段了！")
+            logs.append(_T.text("boss.phase_warn", name=name))
     if ratio >= target or pc >= 3:
         return False
     npc = pc + 1
@@ -270,7 +277,7 @@ def _check_phases(st: dict, battle, actor: dict, cfg: dict, bs: dict,
     icon = script.get("icon", "🔥")
     if sname:
         logs.append(f"{icon}【{name}】{sname}！")
-    logs.append(f"🔥【{name}】进入第 {npc + 1} 阶段！力量再度攀升！")
+    logs.append(_T.text("boss.phase_enter", name=name, npc=npc + 1))
     # ---- atk 乘区（覆盖式：entry/模板 atk_mult；无 → 旧行为 1+0.2×npc）----
     am = None
     if _merged is not None and (_merged.get("atk_mult") or 1.0) != 1.0:
@@ -281,7 +288,7 @@ def _check_phases(st: dict, battle, actor: dict, cfg: dict, bs: dict,
         am = 1.0 + 0.2 * npc
     if abs(am - 1.0) > 0.001:
         _apply_atk_phase(actor, am, npc)
-        logs.append(f"⚔️【{name}】攻击力提升至 {am:.2f} 倍！")
+        logs.append(_T.text("boss.phase_atk_up", name=name, am=am))
     # ---- 换招：add_skills 幂等 append + auto_act 切阶段主技能 ----
     adds = list((_merged or {}).get("add_skills") or (_ph or {}).get("add_skills") or [])
     for s in adds:
@@ -289,7 +296,7 @@ def _check_phases(st: dict, battle, actor: dict, cfg: dict, bs: dict,
             actor["skills"] = list(actor.get("skills") or []) + [s]
     if adds:
         actor["auto_act"] = {"act": {"type": "skill", "skill": adds[0]}}
-        logs.append(f"🎯【{name}】使出了新招【{adds[0]}】！")
+        logs.append(_T.text("boss.phase_new_skill", name=name, skill=adds[0]))
     # ---- 异常净化（模板 preserve_debuffs=False 才清；默认保留 50% 语义 P1 简化为全保留）----
     if _merged is not None and _merged.get("preserve_debuffs") is False:
         _phase_cleanse_negatives(actor, logs)
@@ -369,21 +376,21 @@ def _check_opening(st: dict, battle, actor: dict, cfg: dict, bs: dict,
     effect = str(op.get("effect") or "atk_up").lower()
     power = float(op.get("power", 2.0) or 2.0)
     bname = actor.get("name", "")
-    logs.append(f"🌪️【{bname}】发出震天【{name}】！气势瞬间拉满！")
+    logs.append(_T.text("boss.opening_roar", bname=bname, name=name))
     _mult_info = _buff_stat_mult(effect)
     if _mult_info and effect in ("atk_up", "atk_up_strong", "mon_atk_up",
                                  "mon_atk_up_strong"):
         stat, mult = _mult_info
         _temp_stat_mult(actor, "boss_open_atk", stat, mult, power, now)
         _temp_stat_mult(actor, "boss_open_matk", "matk", mult, power, now)
-        logs.append(f"⚡【{bname}】的{name}让攻击力提升了！")
+        logs.append(_T.text("boss.opening_atk_up", bname=bname, name=name))
     elif _mult_info and effect in ("mon_atk_down", "atk_down"):
         stat, mult = _mult_info
         for a in battle.sides_of("player"):
             if int(a.get("hp", 0) or 0) <= 0:
                 continue
             _temp_stat_mult(a, "boss_open_atk_down", stat, mult, power, now)
-        logs.append(f"🫁【{bname}】的{name}压制了你，攻击下降！")
+        logs.append(_T.text("boss.opening_atk_down", bname=bname, name=name))
     elif effect == "mortal_wound":
         # v1.3 重创：吸血/治疗偷取减半（saintess_engine 吸血批落地时消费此条目减半）
         for a in battle.sides_of("player"):
@@ -394,7 +401,7 @@ def _check_opening(st: dict, battle, actor: dict, cfg: dict, bs: dict,
             ef["mortal_wound"] = {"stacks": 1,
                                   "expire": max(float(old.get("expire", 0) or 0),
                                                 now + power)}
-        logs.append(f"🤕【{bname}】的{name}重创了你！吸血效果减半（{int(power)} 刻）！")
+        logs.append(_T.text("boss.opening_mortal_wound", bname=bname, name=name, turns=int(power)))
     # 其他 effect：演出照出（P5 原语盘点标注，不静默吞）
 
 
@@ -433,13 +440,13 @@ def _check_player_low(st: dict, battle, actor: dict, cfg: dict, bs: dict,
             flags["_low_hp_cd"] = cd - 1
             return
         flags["_low_hp_cd"] = cooldown
-        logs.append(f"☠️ 【{actor.get('name','')}】盯上了重伤的你，狞笑着扑来！(追击)")
+        logs.append(_T.text("boss.player_low_chase", name=actor.get('name','')))
         _temp_stat_mult(actor, "boss_low_atk", "atk", 1.25, 0.1, now)
         return
     flags["_low_hp_fired"] = True
     if cooldown > 0:
         flags["_low_hp_cd"] = cooldown
-    logs.append(f"☠️ 【{actor.get('name','')}】盯上了重伤的你……本刻攻击大幅提升！")
+    logs.append(_T.text("boss.player_low_hit", name=actor.get('name','')))
     _temp_stat_mult(actor, "boss_low_atk", "atk", 1.25, 0.1, now)
     _temp_stat_mult(actor, "boss_low_matk", "matk", 1.25, 0.1, now)
 
@@ -471,7 +478,7 @@ def _check_simple_mech(st: dict, battle, actor: dict, cfg: dict, bs: dict,
                                           "mult": mult, "stacks": 1}
             ef["boss_mech_stacks_matk"] = {"stat": "matk", "op": "mul",
                                            "mult": mult, "stacks": 1}
-            logs.append(f"⚔️【{name}】气势攀升，攻击叠层＋1({n}/5)")
+            logs.append(_T.text("boss.mech_stack", name=name, n=n))
     # ---- heal：每 4 刻回复 8% ----
     if "heal" in mech and rn > 0 and rn % 4 == 0:
         try:
@@ -479,7 +486,7 @@ def _check_simple_mech(st: dict, battle, actor: dict, cfg: dict, bs: dict,
             v = max(1, int(mh * 0.08))
             real = _heal(battle, actor, v, logs)
             if real > 0:
-                logs.append(f"💚【{name}】愈合伤口，恢复 {real} 点生命！")
+                logs.append(_T.text("boss.mech_heal", name=name, heal=real))
         except Exception:
             pass
     # ---- enrage：血<30% once（phases 含 enrage phase → 跳过，P1 已管）----
@@ -493,7 +500,7 @@ def _check_simple_mech(st: dict, battle, actor: dict, cfg: dict, bs: dict,
                                          "mult": 1.35, "stacks": 1}
                 ef["boss_enrage_matk"] = {"stat": "matk", "op": "mul",
                                           "mult": 1.35, "stacks": 1}
-                logs.append(f"🔥【{name}】陷入狂暴，攻击大幅提升！(×1.35)")
+                logs.append(_T.text("boss.mech_enrage", name=name))
     # ---- shield：开战一次 20% 护盾（halve 盾存在受伤减半）----
     if "shield" in mech and not bs.get("flags", {}).get("_shielded"):
         bs.setdefault("flags", {})["_shielded"] = True
@@ -598,11 +605,11 @@ def _check_summon(st: dict, battle, actor: dict, cfg: dict, bs: dict,
     battle.add_actor(m, "enemy", front=True)
     bs["summon_last"] = rn
     bs.setdefault("summoned", []).append(m["uid"])
-    logs.append(f"👥【{actor.get('name','')}】召唤了【{m['name']}】！它挡在身前！")
+    logs.append(_T.text("boss.summon", boss=actor.get('name',''), minion=m['name']))
     # Boss 攻击联动（旧 mon_atk_up 2 刻 = atk×1.30，线上行为——策划案文字 +20% 为概数）
     try:
         _temp_stat_mult(actor, "boss_summon_atk", "atk", 1.30, 2.0, now)
-        logs.append(f"⚡【{actor.get('name','')}】攻击也提升了！")
+        logs.append(_T.text("boss.summon_atk_up", boss=actor.get('name','')))
     except Exception:
         pass
 
@@ -655,7 +662,7 @@ def _check_chains(st: dict, battle, actor: dict, cfg: dict, bs: dict,
             _cd = int(ch.get("cd", 0) or 0)
             # 整链打完冷却：until = 当前帧 + cd + 1（cd=0 无缝；cd=1 隔 1 帧）
             bs["chain_until"] = rn + _cd + 1
-            logs.append(f"⚔️【{actor.get('name','')}】连招轮转，准备下一轮攻势！")
+            logs.append(_T.text("boss.chain_rotate", name=actor.get('name','')))
 
 
 # ============================================================
@@ -724,7 +731,7 @@ def make_script_event(st: dict, *, data=None, phase_templates=None,
                 # 反伤保底 1 HP（永不致死——旧引擎设计取舍：反伤是代价不是处决，
                 # 避免残血玩家被反弹补刀挫败；04 章机制表仅写"反弹 15%"）
                 src["hp"] = max(1, int(src.get("hp", 1) or 1) - rb)
-                logs.append(f"🩸【{boss.get('name', '首领')}】龙鳞反伤！你受到 {rb} 点反弹伤害！")
+                logs.append(_T.text("boss.reflect", boss=boss.get('name', '首领'), dmg=rb))
         except Exception:
             pass
     return on_event
@@ -750,14 +757,14 @@ def _interrupt_link(st: dict, battle, boss: dict, link, logs: list) -> None:
             ef["boss_frozen"] = {"mode": "skip",
                                  "expire": max(float(old.get("expire", 0) or 0),
                                                now + turns)}
-            logs.append(f"🧊【{bname}】的读条被打破，僵直了 {turns} 刻！")
+            logs.append(_T.text("boss.interrupt_freeze", name=bname, turns=turns))
         elif eff == "vulnerable":
             boss["_dmg_taken_mult"] = float(val if val is not None else 1.2)
             bs = st.get("boss_script")
             if isinstance(bs, dict):
                 rn = int(bs.get("round_no", 0) or 0)
                 bs.setdefault("flags", {})["_vuln_until"] = rn + max(1, turns)
-            logs.append(f"💔【{bname}】读条被断，破绽大开（承伤提升）！")
+            logs.append(_T.text("boss.interrupt_vulnerable", name=bname))
     except Exception:
         pass
 
@@ -790,7 +797,7 @@ def _minion_death_link(st: dict, battle, boss: dict, link, logs: list) -> None:
             v = max(1, int(int(boss.get("max_hp", 1) or 1) * pct))
             real = _heal(battle, boss, v, logs)
             if real > 0:
-                logs.append(f"💀 爪牙倒下，【{bname}】汲取残魂恢复 {real} 点生命！")
+                logs.append(_T.text("boss.minion_heal", name=bname, heal=real))
         elif eff == "stacks_clear":
             bs = st.get("boss_script")
             if isinstance(bs, dict):
@@ -798,11 +805,11 @@ def _minion_death_link(st: dict, battle, boss: dict, link, logs: list) -> None:
                 ef = boss.get("effects") or {}
                 ef.pop("boss_mech_stacks_atk", None)
                 ef.pop("boss_mech_stacks_matk", None)
-            logs.append(f"💀 爪牙倒下，【{bname}】的叠层强化消散了！")
+            logs.append(_T.text("boss.minion_stack_clear", name=bname))
         elif eff == "atk_up":
             turns = int(val if val is not None else 2)
             _temp_stat_mult(boss, "boss_minion_atk", "atk", 1.30, turns,
                             float(getattr(battle, "_now", 0) or 0))
-            logs.append(f"💀 爪牙倒下，【{bname}】悲愤交加，攻击提升了！")
+            logs.append(_T.text("boss.minion_atk_up", name=bname))
     except Exception:
         pass

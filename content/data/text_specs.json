@@ -1120,6 +1120,196 @@
     "category": "身份绑定",
     "desc": "搬自 content/player_cmds.py:bind_identity（B 批 C 档）"
   },
+  "boss.chain_rotate": {
+    "value": "⚔️【{name}】连招轮转，准备下一轮攻势！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_chains（B 批 C 档）"
+  },
+  "boss.interrupt_freeze": {
+    "value": "🧊【{name}】的读条被打破，僵直了 {turns} 刻！",
+    "params": [
+      "name",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_interrupt_link（B 批 C 档）"
+  },
+  "boss.interrupt_vulnerable": {
+    "value": "💔【{name}】读条被断，破绽大开（承伤提升）！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_interrupt_link（B 批 C 档）"
+  },
+  "boss.mech_enrage": {
+    "value": "🔥【{name}】陷入狂暴，攻击大幅提升！(×1.35)",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_simple_mech（B 批 C 档）"
+  },
+  "boss.mech_heal": {
+    "value": "💚【{name}】愈合伤口，恢复 {heal} 点生命！",
+    "params": [
+      "name",
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_simple_mech（B 批 C 档）"
+  },
+  "boss.mech_stack": {
+    "value": "⚔️【{name}】气势攀升，攻击叠层＋1({n}/5)",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_simple_mech（B 批 C 档）"
+  },
+  "boss.minion_atk_up": {
+    "value": "💀 爪牙倒下，【{name}】悲愤交加，攻击提升了！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_minion_death_link（B 批 C 档）"
+  },
+  "boss.minion_heal": {
+    "value": "💀 爪牙倒下，【{name}】汲取残魂恢复 {heal} 点生命！",
+    "params": [
+      "name",
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_minion_death_link（B 批 C 档）"
+  },
+  "boss.minion_stack_clear": {
+    "value": "💀 爪牙倒下，【{name}】的叠层强化消散了！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_minion_death_link（B 批 C 档）"
+  },
+  "boss.opening_atk_down": {
+    "value": "🫁【{bname}】的{name}压制了你，攻击下降！",
+    "params": [
+      "bname",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_opening（B 批 C 档）"
+  },
+  "boss.opening_atk_up": {
+    "value": "⚡【{bname}】的{name}让攻击力提升了！",
+    "params": [
+      "bname",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_opening（B 批 C 档）"
+  },
+  "boss.opening_mortal_wound": {
+    "value": "🤕【{bname}】的{name}重创了你！吸血效果减半（{turns} 刻）！",
+    "params": [
+      "bname",
+      "name",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_opening（B 批 C 档）"
+  },
+  "boss.opening_roar": {
+    "value": "🌪️【{bname}】发出震天【{name}】！气势瞬间拉满！",
+    "params": [
+      "bname",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_opening（B 批 C 档）"
+  },
+  "boss.phase_atk_up": {
+    "value": "⚔️【{name}】攻击力提升至 {am:.2f} 倍！",
+    "params": [
+      "name",
+      "am"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_phases（B 批 C 档）"
+  },
+  "boss.phase_enter": {
+    "value": "🔥【{name}】进入第 {npc} 阶段！力量再度攀升！",
+    "params": [
+      "name",
+      "npc"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_phases（B 批 C 档）"
+  },
+  "boss.phase_new_skill": {
+    "value": "🎯【{name}】使出了新招【{skill}】！",
+    "params": [
+      "name",
+      "skill"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_phases（B 批 C 档）"
+  },
+  "boss.phase_warn": {
+    "value": "⚠️ 【{name}】的气息开始紊乱……似乎要进入更凶猛的阶段了！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_phases（B 批 C 档）"
+  },
+  "boss.player_low_chase": {
+    "value": "☠️ 【{name}】盯上了重伤的你，狞笑着扑来！(追击)",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_player_low（B 批 C 档）"
+  },
+  "boss.player_low_hit": {
+    "value": "☠️ 【{name}】盯上了重伤的你……本刻攻击大幅提升！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_player_low（B 批 C 档）"
+  },
+  "boss.reflect": {
+    "value": "🩸【{boss}】龙鳞反伤！你受到 {dmg} 点反弹伤害！",
+    "params": [
+      "boss",
+      "dmg"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:on_event（B 批 C 档）"
+  },
+  "boss.summon": {
+    "value": "👥【{boss}】召唤了【{minion}】！它挡在身前！",
+    "params": [
+      "boss",
+      "minion"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_summon（B 批 C 档）"
+  },
+  "boss.summon_atk_up": {
+    "value": "⚡【{boss}】攻击也提升了！",
+    "params": [
+      "boss"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/boss_script.py:_check_summon（B 批 C 档）"
+  },
   "bp.af_cur": {
     "value": "🔮 奥术力场：{v}",
     "params": [
@@ -3203,6 +3393,58 @@
     "category": "每日任务",
     "desc": "任务面板：每日段小标题"
   },
+  "drop.eq_desc_armor": {
+    "value": "这是一件护甲，版型合体，活动自如",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_boots": {
+    "value": "这是一双靴子，鞋底防滑，走山路也稳当",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_helm": {
+    "value": "这是一顶头盔，护住要害，透气不闷",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_legs": {
+    "value": "这是一副护腿，膝盖处加厚，耐磨耐打",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_necklace": {
+    "value": "这是一条项链，链坠做工精细，贴身佩戴",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_other": {
+    "value": "这是一件装备，做工扎实",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_ring": {
+    "value": "这是一枚戒指，戒面光滑，做工精致",
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_tail": {
+    "value": "{base}。{name}——冒险途中得来，成色不错。",
+    "params": [
+      "base",
+      "name"
+    ],
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
+  "drop.eq_desc_weapon": {
+    "value": "这是一件{wt_name}，刃口打磨精细，握感趁手",
+    "params": [
+      "wt_name"
+    ],
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:_eq_random_desc（B 批 C 档）"
+  },
   "dsettle.down": {
     "value": "💀 你倒下了……被【{name}】击败。",
     "params": [
@@ -5244,6 +5486,138 @@
     "category": "转职",
     "desc": "搬自 content/player_cmds.py:evolve（B 批 C 档）"
   },
+  "evt.bp_learned_bp": {
+    "value": "\n📜 图纸『{bp}』你已经学会了，化作 {pages} 张图纸残页（『出售 图纸残页』变现）！",
+    "params": [
+      "bp",
+      "pages"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_materials（B 批 C 档）"
+  },
+  "evt.bp_learned_chest": {
+    "value": "📜 里面还有一张图纸『{bp}』——你已经学会了，化作 {pages} 张图纸残页（『出售 图纸残页』变现）！",
+    "params": [
+      "bp",
+      "pages"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_mystery_chest（B 批 C 档）"
+  },
+  "evt.bp_learned_gm": {
+    "value": "\n📜 里面有一张图纸『{bp}』——你已经学会了，化作 {pages} 张图纸残页（『出售 图纸残页』变现）！",
+    "params": [
+      "bp",
+      "pages"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_gold_mats（B 批 C 档）"
+  },
+  "evt.bp_line": {
+    "value": "\n📜 还翻出一张图纸：{bp}！",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_materials（B 批 C 档）"
+  },
+  "evt.bp_line_chest": {
+    "value": "📜 里面还有一张泛黄的图纸：{bp}！",
+    "params": [
+      "bp"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_mystery_chest（B 批 C 档）"
+  },
+  "evt.bp_line_gm": {
+    "value": "\n📜 里面还有一张泛黄的图纸：{bp}！",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_gold_mats（B 批 C 档）"
+  },
+  "evt.damage": {
+    "value": "你摔伤了，损失 {dmg} 点生命(当前 ❤️ {hp}/{max_hp})",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_damage（B 批 C 档）"
+  },
+  "evt.exp_gain": {
+    "value": "✨ 经验 +{exp}",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_exp_gain（B 批 C 档）"
+  },
+  "evt.gold_mats_hdr": {
+    "value": "💰 获得 {gold} 金币！{mat_line}{bp_line}",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_gold_mats（B 批 C 档）"
+  },
+  "evt.heal_full": {
+    "value": "❤️ 生命全满！💙 魔力全满！",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_heal_full（B 批 C 档）"
+  },
+  "evt.loot_gold_hdr": {
+    "value": "💰 你捡到了一些金币！",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_gold（B 批 C 档）"
+  },
+  "evt.mat_line_chest": {
+    "value": "\n🎒 还得到一份材料：{mat}！",
+    "params": [
+      "mat"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_mystery_chest（B 批 C 档）"
+  },
+  "evt.mat_line_mats": {
+    "value": "\n🎒 还得到一份材料：{mat}！",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_gold_mats（B 批 C 档）"
+  },
+  "evt.mats_hdr": {
+    "value": "🎒 获得材料：{mats}！{extra}",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_loot_materials（B 批 C 档）"
+  },
+  "evt.mystery_chest": {
+    "value": "📦 【神秘宝匣】你在{name}的角落发现一只埋藏千年的宝匣！\n💰 打开：{gold} 金币！{mat_line}\n{bp_txt}",
+    "params": [
+      "name",
+      "gold",
+      "mat_line",
+      "bp_txt"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_mystery_chest（B 批 C 档）"
+  },
+  "evt.rare_find": {
+    "value": "✨ 稀有发现！🎒 获得稀有材料：{mats}！{extra}",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_rare_find（B 批 C 档）"
+  },
+  "evt.shrine_bless": {
+    "value": "🔮 神龛祝福降临！✨ 下次战斗攻击力 +{pct}% ！",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_shrine_bless（B 批 C 档）"
+  },
+  "evt.stamina_cost": {
+    "value": "⚡ 体力 -{cost}（当前 ⚡ {stamina}/{max}）",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_stamina_cost（B 批 C 档）"
+  },
+  "evt.stamina_gift": {
+    "value": "⚡ 体力 +{gain}（当前 ⚡ {stamina}/{max}）",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_stamina_gift（B 批 C 档）"
+  },
+  "evt.wandering_done": {
+    "value": "🧭 【迷路的旅人】旅人认出了你，笑着摆摆手：'缘分到此为止，下次有缘再见！'",
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_wandering（B 批 C 档）"
+  },
+  "evt.wandering_gift": {
+    "value": "🧭 【迷路的旅人】一位旅人感激你的指路，硬塞给你一件谢礼！\n🎒 获得：{item}",
+    "params": [
+      "item"
+    ],
+    "category": "事件模板",
+    "desc": "搬自 content/event_templates.py:tpl_wandering（B 批 C 档）"
+  },
   "ex.act_hint": {
     "value": "『攻击』『技能 <名称>』『防御』",
     "category": "战斗主循环",
@@ -6057,6 +6431,74 @@
     "value": "🌟 今日大吉：经验 +10%！",
     "category": "战斗结算",
     "desc": "搬自 content/settlement.py:fortune_bonus（B 批 C 档）"
+  },
+  "fxa.bonus_dmg_hit": {
+    "value": "{tag} {name}！对【{foe}】追加 {dmg} 点伤害！",
+    "params": [
+      "tag",
+      "name",
+      "foe",
+      "dmg"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:_bonus_dmg_apply（B 批 C 档）"
+  },
+  "fxa.counter_hit": {
+    "value": "{tag} {name}！对【{foe}】造成 {dmg} 点伤害！",
+    "params": [
+      "tag",
+      "name",
+      "foe",
+      "dmg"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:action_counter（B 批 C 档）"
+  },
+  "fxa.def_down_hit": {
+    "value": "🛡️ {label}！{name}防御下降 {pct}%！",
+    "params": [
+      "label",
+      "name",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:action_def_down（B 批 C 档）"
+  },
+  "fxa.dot_hit": {
+    "value": "🩸 {label}！{name}伤口裂开，将持续失血！",
+    "params": [
+      "label",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:action_dot（B 批 C 档）"
+  },
+  "fxa.lifesteal": {
+    "value": "🩸 {label}：回复 {heal} 点生命！",
+    "params": [
+      "label",
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:action_lifesteal（B 批 C 档）"
+  },
+  "fxa.regen_hp": {
+    "value": "🌿 {label}生效，回复 {heal} 点生命！",
+    "params": [
+      "label",
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:action_regen_hp（B 批 C 档）"
+  },
+  "fxa.regen_mp": {
+    "value": "🧘 {label}生效，回复 {heal} 点魔力！",
+    "params": [
+      "label",
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/effect_actions.py:action_regen_mp（B 批 C 档）"
   },
   "gather.done": {
     "value": "🌿 采集完成！玩家【{pname}】在【{map_name}】采到了：{got_txt}\n",
@@ -9367,6 +9809,29 @@
     "params": [],
     "category": "副本面板",
     "desc": "副本内移动：非队长提示"
+  },
+  "instance.面板_站位_我方": {
+    "value": "── 我方 ──",
+    "category": "副本面板",
+    "desc": "搬自 content/instance_cmds.py:_instance_battle_footer（B 批 C 档）"
+  },
+  "instance.面板_站位_敌方": {
+    "value": "── 敌方 ──",
+    "category": "副本面板",
+    "desc": "搬自 content/instance_cmds.py:_instance_battle_footer（B 批 C 档）"
+  },
+  "instance.面板_站位_精英": {
+    "value": " ⭐精英·{name}",
+    "params": [
+      "name"
+    ],
+    "category": "副本面板",
+    "desc": "搬自 content/instance_cmds.py:_instance_map_view（B 批 C 档）"
+  },
+  "instance.面板_站位_防御": {
+    "value": " 🛡️防御",
+    "category": "副本面板",
+    "desc": "搬自 content/instance_cmds.py:_instance_battle_footer（B 批 C 档）"
   },
   "instance.面板_继续深入": {
     "value": "🧭 你继续深入……",
@@ -18884,6 +19349,36 @@
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
   },
+  "tower.already_today": {
+    "value": "🏯 第 {floor} 层今日已突破过——塔灵只认新的挑战。\n💡 回复『爬塔』挑战第 {next_floor} 层，或明日再来～",
+    "params": [
+      "floor",
+      "next_floor"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
+  "tower.bad_floor": {
+    "value": "🏯 修炼塔共 {max_floor} 层，没有第 {floor} 层哦～(『爬塔 层数』1-{max_floor_2})",
+    "params": [
+      "max_floor",
+      "floor",
+      "max_floor_2"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
+  "tower.daily_limit": {
+    "value": "🌙 今日修炼已通过 {done_n}/{limit} 层，塔灵说该歇息了——明日再来！\n🏯 当前进度：已突破至第 {cur} 层（明日『爬塔』挑战第 {next_floor} 层）",
+    "params": [
+      "done_n",
+      "limit",
+      "cur",
+      "next_floor"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
   "tower.desc": {
     "value": "📜 {desc}",
     "params": [
@@ -18910,6 +19405,34 @@
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
   },
+  "tower.in_battle": {
+    "value": "⚔️ 你正在战斗中！先解决眼前的敌人再说～(『攻击』『技能 <名称>』『防御』)",
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
+  "tower.lock_lv": {
+    "value": "🏯 修炼塔的门扉紧闭——塔灵的低语传来：『未至 {need_lv} 级者，不可窥见登天之路。』\n💡 先完成『周常』悬赏和主线提升，到了 Lv.{need_lv_2} 再来挑战吧～",
+    "params": [
+      "need_lv",
+      "need_lv_2"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
+  "tower.locked": {
+    "value": "🏯 你还没解锁第 {floor} 层——塔灵只放行已突破层数的下一层。\n💡 回复『爬塔』挑战第 {next_floor} 层～",
+    "params": [
+      "floor",
+      "next_floor"
+    ],
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
+  "tower.no_floor": {
+    "value": "🏯 塔灵正在重构试炼……稍后再来挑战吧～",
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
+  },
   "tower.reward": {
     "value": "奖励：经验 +{exp} 金币 +{gold}（击败后自动入账）",
     "params": [
@@ -18926,6 +19449,11 @@
     ],
     "category": "修炼塔",
     "desc": "搬自 content/cmds_tower.py:_tower_start（B 批 C 档）"
+  },
+  "tower.top": {
+    "value": "👑 你已登顶修炼塔之巅！这座塔已没有能拦住你的楼层了——强者无需重复登顶，把传说留给后来者吧。",
+    "category": "修炼塔",
+    "desc": "搬自 content/cmds_tower.py:tower_cmd（B 批 C 档）"
   },
   "tpl.affixroll.in_battle": {
     "value": "命运之墨要在铁匠铺使用，战斗中用不上～",
@@ -20239,6 +20767,50 @@
       "bonus"
     ]
   },
+  "we.act_done_slow_fallback": {
+    "value": "🌊 减速叠层！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_act_done_slow（B 批 C 档）"
+  },
+  "we.affix_bleed_fallback": {
+    "value": "🩸 目标流血了！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_dot（B 批 C 档）"
+  },
+  "we.affix_counter_fallback": {
+    "value": "⚔️ 反击！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_counter（B 批 C 档）"
+  },
+  "we.affix_defdown_fallback": {
+    "value": "🛡️ 目标防御下降！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_defdown（B 批 C 档）"
+  },
+  "we.affix_element_hit": {
+    "value": "{tag} {name}！造成 {dmg} 点{element}属性伤害！",
+    "params": [
+      "tag",
+      "name",
+      "dmg",
+      "element"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_element（B 批 C 档）"
+  },
+  "we.affix_tenacity_fallback": {
+    "value": "💪 坚韧！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_tenacity（B 批 C 档）"
+  },
+  "we.affix_thunder_jump": {
+    "value": "⚡⚡ 感电连跳！追加 {dmg} 点雷系伤害！",
+    "params": [
+      "dmg"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_element（B 批 C 档）"
+  },
   "we.arcane_firmament.log": {
     "value": "✨ 奥术苍穹：魔攻 +15%，技能伤害 +10%！",
     "category": "武器特效",
@@ -20265,10 +20837,63 @@
     "category": "武器特效",
     "desc": "武器特效『blood_trace』战斗日志（域 weapon_effects → 条目 blood_trace 的 log 字段）"
   },
+  "we.combo_end_line": {
+    "value": "💢 连击终点：连段≥{need} 暴击，本次暴击伤害 +{pct}%！",
+    "params": [
+      "need",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_combo_end（B 批 C 档）"
+  },
+  "we.combo_stack_line": {
+    "value": "🎯 猎影：暴击叠层！（{n}/{cap} 层，每层连击率 +{pct}%）",
+    "params": [
+      "n",
+      "cap",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_combo_stack（B 批 C 档）"
+  },
+  "we.control_bind_fallback": {
+    "value": "✨ 禁锢！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_control（B 批 C 档）"
+  },
+  "we.control_everfrost_fallback": {
+    "value": "🧊 永冻！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_control（B 批 C 档）"
+  },
+  "we.control_freeze_fallback": {
+    "value": "🧊 冻结！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_control（B 批 C 档）"
+  },
+  "we.control_judgment_fallback": {
+    "value": "⚖️ 圣裁领域！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_control（B 批 C 档）"
+  },
+  "we.control_time_freeze_fallback": {
+    "value": "⏳ 时光凝滞！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_control（B 批 C 档）"
+  },
   "we.deadman_stride.log": {
     "value": "🌪️ 亡者疾行：速度 +15%（4 刻）！",
     "category": "武器特效",
     "desc": "武器特效『deadman_stride』战斗日志（域 weapon_effects → 条目 deadman_stride 的 log 字段）"
+  },
+  "we.death_pool_pay": {
+    "value": "💀 死亡之舞：缓伤池结算，损失 {pay} 点生命！（剩余 {pool:.0f}）",
+    "params": [
+      "pay",
+      "pool"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_death_pool_pay（B 批 C 档）"
   },
   "we.deeprock_aegis.log": {
     "value": "🪨 深岩壁垒：获得护盾！（吸收 8% 最大生命）",
@@ -20279,6 +20904,15 @@
     "value": "⚡神罚处决",
     "category": "武器特效",
     "desc": "武器特效『divine_execution』乘区标记（域 weapon_effects → 条目 divine_execution 的 tag 字段）"
+  },
+  "we.dot_fallback": {
+    "value": "🔥 {dot_key}：目标持续掉血（{turns} 刻）！",
+    "params": [
+      "dot_key",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_dot（B 批 C 档）"
   },
   "we.dragon_annihilation.tag": {
     "value": "🐉灭龙",
@@ -20339,6 +20973,26 @@
     "category": "武器特效",
     "desc": "武器特效『everfrost_scepter』来源标签（域 weapon_effects → 条目 everfrost_scepter 的 source 字段）"
   },
+  "we.extra_blade_fallback": {
+    "value": "⚔️ 追加 {dmg} 点伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_extra_dmg（B 批 C 档）"
+  },
+  "we.extra_phys_fallback": {
+    "value": "💥 追加 {dmg} 点伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_extra_dmg（B 批 C 档）"
+  },
+  "we.extra_splash_fallback": {
+    "value": "🔮 溅射 {dmg} 点奥术伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_extra_dmg（B 批 C 档）"
+  },
+  "we.extra_true_fallback": {
+    "value": "✨ 造成 {dmg} 点真实伤害！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_extra_dmg（B 批 C 档）"
+  },
   "we.frost_crown.source": {
     "value": "🧊 寒霜凝视",
     "category": "武器特效",
@@ -20368,6 +21022,11 @@
     "category": "武器特效",
     "desc": "武器特效『guardian_will』战斗日志（域 weapon_effects → 条目 guardian_will 的 log 字段）"
   },
+  "we.hit_slow": {
+    "value": "⚡ 静电麻痹！目标速度下降！",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_hit_slow（B 批 C 档）"
+  },
   "we.holy_judgment_field.log": {
     "value": "⚖️ 圣裁领域：目标受治疗 -30%（2 刻）！",
     "category": "武器特效",
@@ -20387,6 +21046,14 @@
     "value": "❄️ 冰脉寒流：敌人速度 -{pct}%（{n}/{ms} 层）！",
     "category": "武器特效",
     "desc": "武器特效『ice_vein』战斗日志（域 weapon_effects → 条目 ice_vein 的 log 字段）"
+  },
+  "we.mana_once_fallback": {
+    "value": "🌅 晨星：回复 {mp} 点魔力！",
+    "params": [
+      "mp"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_mana_once（B 批 C 档）"
   },
   "we.novice_dawn_mana.log": {
     "value": "🌅 晨星：回复 10 点魔力！",
@@ -20426,6 +21093,23 @@
       "dmg"
     ]
   },
+  "we.purify": {
+    "value": "✨ 净化！驱散了【{name}】的 {removed} 层增益！",
+    "params": [
+      "name",
+      "removed"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_purify（B 批 C 档）"
+  },
+  "we.purify_holy_weaken": {
+    "value": "😇 圣洁之力！净化后敌人攻击下降 {pct}%（1 刻）！",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_affix_purify（B 批 C 档）"
+  },
   "we.randuin_weary.log": {
     "value": "🛡️ 兰顿倦意：敌人速度 -{pct}%（{n}/{ms} 层）！",
     "category": "武器特效",
@@ -20444,6 +21128,11 @@
     "category": "武器特效",
     "desc": "武器特效『rune_amp』战斗日志（域 weapon_effects → 条目 rune_amp 的 log 字段）"
   },
+  "we.sage_charge": {
+    "value": "📚 秘典充能就绪！下一技能伤害 +25%",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_stack_prod（B 批 C 档）"
+  },
   "we.sentinel_aegis.log": {
     "value": "🛡️ 哨兵壁垒：获得 {shield} 点护盾！（3 刻）",
     "category": "武器特效",
@@ -20451,6 +21140,14 @@
     "params": [
       "shield"
     ]
+  },
+  "we.shield_taken_fallback": {
+    "value": "🛡️ 获得护盾 {value} 点！",
+    "params": [
+      "value"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_shield_taken（B 批 C 档）"
   },
   "we.soul_eater.log": {
     "value": "💜 破败之吻：额外 {bonus} 点伤害，回复 {healed} 点生命！",
@@ -20460,6 +21157,16 @@
       "bonus",
       "healed"
     ]
+  },
+  "we.stack_prod_line": {
+    "value": "✦ {sk} 叠层 {cur}/{cap}",
+    "params": [
+      "sk",
+      "cur",
+      "cap"
+    ],
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_stack_prod（B 批 C 档）"
   },
   "we.star_destruction.tag": {
     "value": "☄️星陨湮灭",
@@ -20488,6 +21195,11 @@
     "params": [
       "rd"
     ]
+  },
+  "we.thunder_charge": {
+    "value": "⚡ 雷纹充盈！下一次攻击 +20%",
+    "category": "战斗日志",
+    "desc": "搬自 content/we_procs.py:we_stack_prod（B 批 C 档）"
   },
   "we.thunder_weave.log": {
     "value": "⚡ 雷纹连打！({n}/5 层，每层速度+2% 攻击+1%)",

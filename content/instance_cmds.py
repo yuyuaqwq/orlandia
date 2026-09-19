@@ -115,6 +115,8 @@ from .catalog_rules import (INSTANCE_BOSS_EQUIP_DROP as _INSTANCE_BOSS_EQUIP_DRO
                             )                          # 真源：宿主聚合层同名（逐值相等，27 键）
 from ._pkgref import DB as db                          # 包内存储层句柄（B1 起既有）
 from . import texts as T                               # 文案表（B11-L1 起既有）
+# ★ C 档 PRE2-a（2026-09-19）：本文件句壳入表 —— C 档工具产物固定用 `_T.*` 读口（与 T 同一模块对象）
+from . import texts as _T
 
 from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, drops_ctor  # 宿主取件样板单源（P0-3/P0-5）
 from saintess_engine.wire import Wire
@@ -1702,10 +1704,10 @@ class InstanceImpl:
         player_units = [snap for key, snap in (st.get("players") or {}).items()
                         if IR.alive_of(st, key)]
         ally_view = FM.formation_view(player_units, side="ally") if player_units else []
-        lines.append("── 敌方 ──" if enemy_view else "")
+        lines.append(_T.static("instance.面板_站位_敌方") if enemy_view else "")
         if enemy_view:
             lines.extend(f"  {l}" for l in enemy_view)
-        lines.append("── 我方 ──")
+        lines.append(_T.static("instance.面板_站位_我方"))
         lines.extend(f"  {l}" for l in ally_view)
 
         # ② 时刻 / 行动顺序（CTB）
@@ -1728,7 +1730,7 @@ class InstanceImpl:
             line = f"{mark} {pname}：❤️ {snap.get('hp', 0)}/{snap.get('max_hp', 1)} 💙 {snap.get('mp', 0)}/{snap.get('max_mp', 1)}"
             # 防御姿态标记（下一敌方行动减伤）
             if st.get("p_defending", {}).get(k):
-                line += " 🛡️防御"
+                line += _T.static("instance.面板_站位_防御")
             lines.append(line)
             # v110 P0（#119 宠物不动）：各成员宠物战斗可用性提示（饿肚子/Lv 不足），
             # 与野外面板同款 pet_battle_status_note——副本带宠 v167.3 后玩家同样困惑
@@ -2035,7 +2037,7 @@ class InstanceImpl:
                 lines.append(T.text("instance.日志_层_Boss在前", name=vmap['boss'][1]))
             else:
                 lines.append("━━━━━━━━━━━━")
-                mstr = "、".join(m[1] for m in mons) + (f" ⭐精英·{el[1]}" if el else "")
+                mstr = "、".join(m[1] for m in mons) + (_T.text("instance.面板_站位_精英", name=el[1]) if el else "")
                 if mstr:
                     lines.append(T.text("instance.日志_层_敌人列表", monsters=mstr))
                 else:

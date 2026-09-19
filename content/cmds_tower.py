@@ -53,11 +53,10 @@ def tower_cmd(env) -> list:
     max_floor = int(getattr(_TP, "TRIAL_MAX_FLOOR", 30) or 30)
     daily_limit = int(getattr(_TP, "TRIAL_DAILY_LIMIT", 3) or 3)
     if lv < min_lv:
-        return [f"🏯 修炼塔的门扉紧闭——塔灵的低语传来：『未至 {min_lv} 级者，不可窥见登天之路。』\n"
-                f"💡 先完成『周常』悬赏和主线提升，到了 Lv.{min_lv} 再来挑战吧～"]
+        return [_T.text("tower.lock_lv", need_lv=min_lv, need_lv_2=min_lv)]
     shell = _shell(env)
     if shell is not None and shell._in_any_battle(group_id, qq_id):
-        return ["⚔️ 你正在战斗中！先解决眼前的敌人再说～(『攻击』『技能 <名称>』『防御』)"]
+        return [_T.static("tower.in_battle")]
     st = _TP._tower_state(qq_id)
     today_cleared = [int(x) for x in (st.get("cleared_today") or [])]
     cur = int(st.get("cur") or 0)
@@ -67,25 +66,22 @@ def tower_cmd(env) -> list:
     if raw_arg.isdigit():
         floor = int(raw_arg)
         if floor < 1 or floor > max_floor:
-            return [f"🏯 修炼塔共 {max_floor} 层，没有第 {floor} 层哦～(『爬塔 层数』1-{max_floor})"]
+            return [_T.text("tower.bad_floor", max_floor=max_floor, floor=floor, max_floor_2=max_floor)]
         if floor != max_reached + 1:
-            return [f"🏯 你还没解锁第 {floor} 层——塔灵只放行已突破层数的下一层。\n"
-                    f"💡 回复『爬塔』挑战第 {max_reached + 1} 层～"]
+            return [_T.text("tower.locked", floor=floor, next_floor=max_reached + 1)]
     else:
         if max_reached >= max_floor:
-            return ["👑 你已登顶修炼塔之巅！这座塔已没有能拦住你的楼层了——"
-                    "强者无需重复登顶，把传说留给后来者吧。"]
+            return [_T.static("tower.top")]
         floor = max_reached + 1
     # 每日上限：今日已通 >=3 → 拦截新层（已通层同层不可重刷：进度线性、防刷经验）
     if len(today_cleared) >= daily_limit:
-        return [f"🌙 今日修炼已通过 {len(today_cleared)}/{daily_limit} 层，塔灵说该歇息了——明日再来！\n"
-                f"🏯 当前进度：已突破至第 {cur} 层（明日『爬塔』挑战第 {cur + 1} 层）"]
+        return [_T.text("tower.daily_limit", done_n=len(today_cleared), limit=daily_limit, cur=cur,
+                    next_floor=cur + 1)]
     if floor in today_cleared:
-        return [f"🏯 第 {floor} 层今日已突破过——塔灵只认新的挑战。\n"
-                f"💡 回复『爬塔』挑战第 {max_reached + 1} 层，或明日再来～"]
+        return [_T.text("tower.already_today", floor=floor, next_floor=max_reached + 1)]
     fd = _TP._floor_def(floor)
     if not fd:
-        return ["🏯 塔灵正在重构试炼……稍后再来挑战吧～"]
+        return [_T.static("tower.no_floor")]
     from .drops import build_monster as _build_monster   # B2-C2 包内直取（原宿主句柄；调用时解析）
     guard = _TP.build_tower_guard(floor, _build_monster)
     guard_name = guard.get("name", "塔卫")

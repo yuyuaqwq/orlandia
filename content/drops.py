@@ -47,6 +47,8 @@ from .affix import fixed_affixes, random_req, roll_affixes, stat_affix_stats
 from .stats import (ARMOR_FAMILY_ALIAS, equip_stats, equip_value, monster_exp,
                     monster_gold, monster_stats)
 
+from . import texts as _T              # 文案表（C 档 PRE2-b：随机装备描述句壳 → 单源）
+
 # 真源模块级 `from content.catalog_* import …`（原样直取包内门面；此处改相对 import）
 from .catalog_b143 import AFFIX_POOL_BY_QUALITY, QUALITY, WEAPON_FLAVOR
 from .catalog_items import AFFIXES, LEGENDARY_EFFECTS
@@ -128,22 +130,22 @@ def _eq_random_desc(name: str, slot: str, weapon_type: str | None = None) -> str
     """随机装备描述（v101.25g）：按部位/武器类型模板生成，避免与名册描述撞车"""
     if slot == "weapon":
         wt = weapon_type or "sword"
-        base = f"这是一件{_WT_MAP.get(wt, '武器')}，刃口打磨精细，握感趁手"
+        base = _T.text("drop.eq_desc_weapon", wt_name=_WT_MAP.get(wt, '武器'))
     elif slot == "helm":
-        base = "这是一顶头盔，护住要害，透气不闷"
+        base = _T.static("drop.eq_desc_helm")
     elif slot == "armor":
-        base = "这是一件护甲，版型合体，活动自如"
+        base = _T.static("drop.eq_desc_armor")
     elif slot == "legs":
-        base = "这是一副护腿，膝盖处加厚，耐磨耐打"
+        base = _T.static("drop.eq_desc_legs")
     elif slot == "boots":
-        base = "这是一双靴子，鞋底防滑，走山路也稳当"
+        base = _T.static("drop.eq_desc_boots")
     elif slot == "ring":
-        base = "这是一枚戒指，戒面光滑，做工精致"
+        base = _T.static("drop.eq_desc_ring")
     elif slot == "necklace":
-        base = "这是一条项链，链坠做工精细，贴身佩戴"
+        base = _T.static("drop.eq_desc_necklace")
     else:
-        base = "这是一件装备，做工扎实"
-    return f"{base}。{name}——冒险途中得来，成色不错。"
+        base = _T.static("drop.eq_desc_other")
+    return _T.text("drop.eq_desc_tail", base=base, name=name)
 
 def make_blueprint(rid: str) -> dict:
     """按名册 ID 精确构造图纸物品（v94：商店『购买 图纸』用）。

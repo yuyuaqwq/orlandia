@@ -64,6 +64,7 @@ from ._pkgref import DB as db
 
 # B14-2（L7 线）：数据名读点切包内门面 —— 原 `C.MATERIALS` 直取换成门面同名绑定
 from .catalog_items import MATERIALS   # 真源 `C.MATERIALS`
+from . import texts as _T              # 文案表（C 档 PRE2-b：事件模板句壳 → 单源）
 
 
 def check_player_level_up(group_id, qq_id, player):
@@ -179,7 +180,7 @@ def tpl_loot_gold(ctx):
     gold = int(gold * (ctx.loot_mult or 1.0))  # v115 今日奇遇 loot_mult 倍率
     cur = db.get_player(ctx.group_id, ctx.qq_id).get("gold", 0)
     db.update_player(ctx.group_id, ctx.qq_id, gold=cur + gold)
-    header = ctx.param("header", "💰 你捡到了一些金币！")
+    header = ctx.param("header", _T.static("evt.loot_gold_hdr"))
     return header.replace("{name}", ctx.name).replace("{gold}", str(gold))
 
 
@@ -215,11 +216,10 @@ def tpl_loot_materials(ctx):
         bp = C.roll_blueprint(max(1, ctx.lv))
         _learned, _bpn, _pages = _add_bp_or_pages(ctx, db, bp)
         if _learned:
-            extra = (f"\n📜 图纸『{_bpn}』你已经学会了，化作 {_pages} 张图纸残页"
-                     f"（『出售 图纸残页』变现）！")
+            extra = (_T.text("evt.bp_learned_bp", bp=_bpn, pages=_pages))
         else:
-            extra = ctx.param("bp_line", "\n📜 还翻出一张图纸：{bp}！").replace("{bp}", _bpn)
-    header = ctx.param("header", "🎒 获得材料：{mats}！{extra}")
+            extra = ctx.param("bp_line", _T.static("evt.bp_line")).replace("{bp}", _bpn)
+    header = ctx.param("header", _T.static("evt.mats_hdr"))
     return header.replace("{name}", ctx.name) \
                  .replace("{mats}", "、".join(got)) \
                  .replace("{extra}", extra)
@@ -247,7 +247,7 @@ def tpl_loot_gold_mats(ctx):
             db.add_item(ctx.group_id, ctx.qq_id, mid,
                         {"name": C.display("materials", mid), "type": "材料",
                          "stackable": True, "price": MATERIALS[mid]["price"]})
-            mat_line = ctx.param("mat_line", "\n🎒 还得到一份材料：{mat}！").replace("{mat}", C.display("materials", mid))
+            mat_line = ctx.param("mat_line", _T.static("evt.mat_line_mats")).replace("{mat}", C.display("materials", mid))
     bp_line = ""
     bp_chance = ctx.param("blueprint_chance", 0)
     # v94 图纸经济：宝箱为图纸主要来源；阶段九：精灵森林之友——探索获得物品概率 +10%
@@ -257,11 +257,10 @@ def tpl_loot_gold_mats(ctx):
         bp = C.roll_blueprint(max(1, ctx.lv))
         _learned, _bpn, _pages = _add_bp_or_pages(ctx, db, bp)
         if _learned:
-            bp_line = (f"\n📜 里面有一张图纸『{_bpn}』——你已经学会了，化作 {_pages} 张图纸残页"
-                       f"（『出售 图纸残页』变现）！")
+            bp_line = (_T.text("evt.bp_learned_gm", bp=_bpn, pages=_pages))
         else:
-            bp_line = ctx.param("bp_line", "\n📜 里面还有一张泛黄的图纸：{bp}！").replace("{bp}", _bpn)
-    header = ctx.param("header", "💰 获得 {gold} 金币！{mat_line}{bp_line}")
+            bp_line = ctx.param("bp_line", _T.static("evt.bp_line_gm")).replace("{bp}", _bpn)
+    header = ctx.param("header", _T.static("evt.gold_mats_hdr"))
     return header.replace("{name}", ctx.name) \
                  .replace("{gold}", str(gold)) \
                  .replace("{mat_line}", mat_line) \
@@ -283,7 +282,7 @@ def tpl_exp_gain(ctx):
     db.update_player(ctx.group_id, ctx.qq_id, exp=ctx._focus["exp"])
     player = db.get_player(ctx.group_id, ctx.qq_id)
     player["_title_bonus"] = ctx.hooks.get("title_bonus", lambda q: None)(ctx.qq_id)
-    lines = [ctx.param("header", "✨ 经验 +{exp}").replace("{name}", ctx.name).replace("{exp}", str(exp_gain))]
+    lines = [ctx.param("header", _T.static("evt.exp_gain")).replace("{name}", ctx.name).replace("{exp}", str(exp_gain))]
     lv_logs, player = check_player_level_up(ctx.group_id, ctx.qq_id, player)
     if lv_logs:
         lines += [""] + lv_logs
@@ -306,7 +305,7 @@ def tpl_heal_full(ctx):
     """回满血蓝。params: header"""
     db = ctx._db()
     db.update_player(ctx.group_id, ctx.qq_id, hp=ctx._focus["max_hp"], mp=ctx._focus["max_mp"])
-    header = ctx.param("header", "❤️ 生命全满！💙 魔力全满！")
+    header = ctx.param("header", _T.static("evt.heal_full"))
     return header.replace("{name}", ctx.name)
 
 
@@ -317,7 +316,7 @@ def tpl_damage(ctx):
     dmg = int(ctx._focus["max_hp"] * ctx.param("pct", 0.15)) + ctx.param("min", 5)
     new_hp = max(1, ctx._focus["hp"] - dmg)
     db.update_player(ctx.group_id, ctx.qq_id, hp=new_hp)
-    header = ctx.param("header", "你摔伤了，损失 {dmg} 点生命(当前 ❤️ {hp}/{max_hp})")
+    header = ctx.param("header", _T.static("evt.damage"))
     return header.replace("{name}", ctx.name) \
                  .replace("{dmg}", str(dmg)) \
                  .replace("{hp}", str(new_hp)) \
@@ -392,17 +391,14 @@ def tpl_mystery_chest(ctx):
             db.add_item(ctx.group_id, ctx.qq_id, mid,
                         {"name": C.display("materials", mid), "type": "材料",
                          "stackable": True, "price": MATERIALS[mid]["price"]})
-            mat_line = f"\n🎒 还得到一份材料：{C.display('materials', mid)}！"
+            mat_line = _T.text("evt.mat_line_chest", mat=C.display('materials', mid))
     bp = C.roll_blueprint(max(1, ctx.lv))
     _learned, _bpn, _pages = _add_bp_or_pages(ctx, db, bp)
     if _learned:
-        bp_txt = (f"📜 里面还有一张图纸『{_bpn}』——你已经学会了，化作 {_pages} 张图纸残页"
-                  f"（『出售 图纸残页』变现）！")
+        bp_txt = (_T.text("evt.bp_learned_chest", bp=_bpn, pages=_pages))
     else:
-        bp_txt = f"📜 里面还有一张泛黄的图纸：{_bpn}！"
-    return (f"📦 【神秘宝匣】你在{ctx.name}的角落发现一只埋藏千年的宝匣！\n"
-            f"💰 打开：{gold} 金币！{mat_line}\n"
-            f"{bp_txt}")
+        bp_txt = _T.text("evt.bp_line_chest", bp=_bpn)
+    return (_T.text("evt.mystery_chest", name=ctx.name, gold=gold, mat_line=mat_line, bp_txt=bp_txt))
 
 
 # ★ tpl_merchant（流浪商人）：**故意留在宿主** `game/core/event_templates.py`
@@ -417,7 +413,7 @@ def tpl_wandering(ctx):
     C = ctx._C()
     player = db.get_player(ctx.group_id, ctx.qq_id)
     if player.get("explore_wandering"):
-        return "🧭 【迷路的旅人】旅人认出了你，笑着摆摆手：'缘分到此为止，下次有缘再见！'"
+        return _T.static("evt.wandering_done")
     # v102.2：特殊物品用 key（i_scroll_escape），材料保留中文名（resolve 按名解析）
     rewards = ["克罗的罗盘碎片", "i_scroll_escape", "谷地露水"]
     rw = random.choice(rewards)
@@ -434,8 +430,7 @@ def tpl_wandering(ctx):
     db.update_player(ctx.group_id, ctx.qq_id, explore_wandering=1)
     # v105 M23 P3-2：rw 为 key（i_scroll_escape）时原样输出会泄漏内部 ID，改显示中文名
     rw_disp = "回城卷轴" if rw == "i_scroll_escape" else rw
-    return (f"🧭 【迷路的旅人】一位旅人感激你的指路，硬塞给你一件谢礼！\n"
-            f"🎒 获得：{rw_disp}")
+    return (_T.text("evt.wandering_gift", item=rw_disp))
 
 
 @register("combo")
@@ -483,7 +478,7 @@ def tpl_stamina_cost(ctx):
     cur = int(ctx._focus.get("stamina") or 0)
     new = max(0, cur - cost)
     db.update_player(ctx.group_id, ctx.qq_id, stamina=new)
-    header = ctx.param("header", "⚡ 体力 -{cost}（当前 ⚡ {stamina}/{max}）")
+    header = ctx.param("header", _T.static("evt.stamina_cost"))
     return (header.replace("{name}", ctx.name)
                   .replace("{cost}", str(cost))
                   .replace("{stamina}", str(new))
@@ -525,7 +520,7 @@ def tpl_stamina_gift(ctx):
         import time as _time
         db.update_player(ctx.group_id, ctx.qq_id, stamina=new, stamina_ts=int(_time.time()))
         ctx._focus["stamina"] = new  # 同步上下文，避免跨事件陈旧值
-    header = ctx.param("header", "⚡ 体力 +{gain}（当前 ⚡ {stamina}/{max}）")
+    header = ctx.param("header", _T.static("evt.stamina_gift"))
     return (header.replace("{name}", ctx.name)
                   .replace("{gain}", str(new - cur))
                   .replace("{stamina}", str(new))
@@ -542,7 +537,7 @@ def tpl_shrine_bless(ctx):
     db = ctx._db()
     pct = ctx.param("pct", 5)
     db.set_event_state(f"bless_{ctx.qq_id}", _json.dumps({"pct": pct}, ensure_ascii=False))
-    header = ctx.param("header", "🔮 神龛祝福降临！✨ 下次战斗攻击力 +{pct}% ！")
+    header = ctx.param("header", _T.static("evt.shrine_bless"))
     return header.replace("{name}", ctx.name).replace("{pct}", str(pct))
 
 
@@ -565,7 +560,7 @@ def tpl_rare_find(ctx):
                         {"name": C.display("materials", mid), "type": "材料",
                          "stackable": True, "price": MATERIALS[mid]["price"]})
             got.append(C.display("materials", mid))
-    header = ctx.param("header", "✨ 稀有发现！🎒 获得稀有材料：{mats}！{extra}")
+    header = ctx.param("header", _T.static("evt.rare_find"))
     return (header.replace("{name}", ctx.name)
                   .replace("{mats}", "、".join(got))
                   .replace("{extra}", ""))
