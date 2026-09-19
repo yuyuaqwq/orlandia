@@ -53,6 +53,7 @@ from .catalog_rules import (WILD_KING_CHEST_TIERS, WILD_KING_GLOBAL_LIMIT, WILD_
                             WILD_KING_LOOT_PRIORITY_SEC, WILD_KING_MAPS, WILD_KING_NO_KILL_EXTRA,
                             WILD_KING_PER_DAY_LIMIT, WILD_KING_PER_PERIOD_LIMIT, WILD_KING_PITY_PERIODS)
 from ._domainio import read_domain as _read_domain
+from . import texts as _T                # C 档 33c（2026-09-19）：文案表读口（本文件首次接入）
 
 
 # ============================================================
@@ -359,11 +360,10 @@ def wild_king_on_kill(group_id: str, qq_id: str, monster: dict, damage: int = 0,
     except Exception:
         pass
     lines = [
-        f"{icon}【{name}】被击败了！",
-        f"📍 它看守的宝箱在【{map_name}】原地解锁——",
-        f"🎁 击杀者{f' {killer_name} ' if killer_name else ' '}可优先『摸战利箱』15 分钟，"
-        f"之后转为公共宝箱（同图每人 1 次）！",
-        f"💡 打不过也不用等：15 分钟后『摸宝箱』人人可摸！",
+        _T.text("wk.kill_head", icon=icon, name=name),
+        _T.text("wk.chest_unlock", map_name=map_name),
+        _T.text("wk.killer", killer=f' {killer_name} ' if killer_name else ' '),
+        _T.text("wk.no_wait", ),
     ]
     return lines
 
@@ -417,17 +417,17 @@ def _chest_access(group_id: str, king: dict, qq_id: str, meta: dict) -> tuple:
     """
     chest = king.get("chest") or {}
     if not chest.get("unlocked"):
-        return False, "🔒 宝箱还锁着——野王还活着，先去击败它吧！"
+        return False, _T.static("wk.locked")
     now_ts = int(datetime.datetime.now().timestamp())
     # 时段限制
     pk = period_key()
     opened = meta.get("opened", {}) or {}
     if opened.get(pk, 0) >= WILD_KING_PER_PERIOD_LIMIT:
-        return False, "⏳ 本时段你已经摸过宝箱了（每时段限 1 次）！"
+        return False, _T.static("wk.period_limit")
     # 每日限制
     today = datetime.date.today().isoformat()
     if meta.get("day") == today and int(meta.get("day_count", 0) or 0) >= WILD_KING_PER_DAY_LIMIT:
-        return False, "⏳ 今天已经摸过 2 次宝箱了（每日限 2 次）！"
+        return False, _T.static("wk.day_limit")
     # 战利箱（击杀者专属期）
     if not chest.get("public") and now_ts < chest.get("priority_until", 0):
         killers = chest.get("killers") or []
@@ -440,11 +440,11 @@ def _chest_access(group_id: str, king: dict, qq_id: str, meta: dict) -> tuple:
                 return True, "loot"
         except Exception:
             pass
-        return False, "🔒 野王刚倒下，战利箱归击杀者（队伍）所有——等 15 分钟后公共化，或一起组队击杀！"
+        return False, _T.static("wk.killer_only")
     # 公共箱
     if now_ts >= chest.get("priority_until", 0) or chest.get("public"):
         return True, "public"
-    return False, "🔒 宝箱暂时无法打开……"
+    return False, _T.static("wk.cant_open")
 
 
 def _party_members_of(group_id: str, qq_id: str) -> list:
@@ -467,10 +467,9 @@ def open_chest(group_id: str, qq_id: str, map_id: str) -> tuple:
     wild_king_tick()
     king = wild_king_state(map_id)
     if not king:
-        return "这里没有野王看守的宝箱……（野王在 08/14/20/02 时段随机现身，去『探索』碰碰运气）", False
+        return _T.static("wk.no_king"), False
     if not king.get("killed"):
-        return (f"{king.get('icon', '👑')}【{king.get('name')}】还活着，宝箱锁得死死的！\n"
-                f"⚔️ 击败它才能解锁宝箱（打不过就等 15 分钟公共化——不过那要先有人击败它）", False)
+        return (_T.text("wk.alive", icon=king.get('icon', '👑'), name=king.get('name')), False)
     meta = _personal_meta(qq_id)
     ok, kind = _chest_access(group_id, king, qq_id, meta)
     if not ok:
@@ -511,7 +510,7 @@ def open_chest(group_id: str, qq_id: str, map_id: str) -> tuple:
         chest.setdefault("opened", {})[str(qq_id)] = int(datetime.datetime.now().timestamp())
         chest["public"] = True  # 有人开箱后即公共化（击杀者已摸完 → 转公共）
         _save_global(st)
-    header = "🎁 你打开了【野王战利箱】！" if is_loot else "🎁 你打开了【野王宝箱】！"
+    header = _T.static("wk.open_loot") if is_loot else _T.static("wk.open_public")
     return header + "\n" + "\n".join(lines), need_bc
 
 
@@ -546,7 +545,7 @@ def _roll_chest_rewards(group_id: str, qq_id: str, king: dict, tier: dict,
         if t == "gold":
             gold = int(r.get("count", 0))
             db.update_player(group_id, qq_id, gold=player.get("gold", 0) + gold)
-            lines.append(f"💰 金币 +{gold}")
+            lines.append(_T.text("wk.gold", gold=gold))
         elif t == "bp" and r.get("data"):
             got_bp = True
             bp = r["data"]
@@ -557,39 +556,39 @@ def _roll_chest_rewards(group_id: str, qq_id: str, king: dict, tier: dict,
                 db.add_item(group_id, qq_id, "mat_tu_zhi_can_ye",
                             {"name": "图纸残页", "type": "材料", "stackable": True, "price": 10},
                             count=pages)
-                lines.append(f"📜 图纸已学会，化作 {pages} 张图纸残页")
+                lines.append(_T.text("wk.bp_pages", pages=pages))
             else:
                 db.add_item(group_id, qq_id, f"bp_{uuid.uuid4().hex[:8]}", bp)
-                lines.append(f"📜 掉出图纸：{bp['name']}！")
+                lines.append(_T.text("wk.bp", name=bp['name']))
         elif t == "gem" and r.get("data"):
             gem = r["data"]
             db.add_item(group_id, qq_id, f"gem_{uuid.uuid4().hex[:8]}", gem)
-            lines.append(f"💎 获得幸运宝石：{gem['name']}！")
+            lines.append(_T.text("wk.gem", name=gem['name']))
         elif t == "equip" and r.get("data"):
             eq = r["data"]
             db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", eq)
             qn = {"green": "🟢", "blue": "🔵", "purple": "✨🟣", "orange": "🌟🟠"}.get(
                 eq.get("quality", ""), "")
-            lines.append(f"{qn} 装备：【{eq['name']}】！")
+            lines.append(_T.text("wk.equip", qmark=qn, name=eq['name']))
             if eq.get("quality") in ("purple", "orange"):
                 need_bc = True
         elif t == "rune" and r.get("data"):
             rune_data = r["data"]
             db.add_item(group_id, qq_id,
                         f"rune_{rune_data.get('effect', '')}_{rune_data.get('lvl', 1)}", rune_data)
-            lines.append(f"✨ 符文【{rune_data['name']}】！")
+            lines.append(_T.text("wk.rune", name=rune_data['name']))
         elif t == "item" and r.get("item_id") == "mat_gao_ji_qiang_hua_shi":
             stone_n = int(r.get("count", 1))
             db.add_item(group_id, qq_id, "mat_gao_ji_qiang_hua_shi",
                         {"name": "高级强化石", "type": "材料", "stackable": True, "price": 80},
                         count=stone_n)
-            lines.append(f"🪨 高级强化石 ×{stone_n}")
+            lines.append(_T.text("wk.stone", n=stone_n))
         elif t == "item" and r.get("item_id") == "mat_tu_zhi_can_ye":
             pages = int(r.get("count", 1))
             db.add_item(group_id, qq_id, "mat_tu_zhi_can_ye",
                         {"name": "图纸残页", "type": "材料", "stackable": True, "price": 10},
                         count=pages)
-            lines.append(f"📄 图纸残页 ×{pages}")
+            lines.append(_T.text("wk.pages", n=pages))
         elif t == "item" and r.get("item_id"):
             # 材料档 / 收藏品档（collect：铁牌徽章等曾配置但旧代码不消费的死数据）
             mid = r["item_id"]
@@ -608,17 +607,17 @@ def _roll_chest_rewards(group_id: str, qq_id: str, king: dict, tier: dict,
                 db.add_item(group_id, qq_id, "mat_tu_zhi_can_ye",
                             {"name": "图纸残页", "type": "材料", "stackable": True, "price": 10},
                             count=pages)
-                lines.append(f"📜 图纸已学会，化作 {pages} 张图纸残页")
+                lines.append(_T.text("wk.bp_pages", pages=pages))
             else:
                 db.add_item(group_id, qq_id, f"bp_{uuid.uuid4().hex[:8]}", bp)
-                lines.append(f"📜 掉出图纸：{bp['name']}！")
+                lines.append(_T.text("wk.bp", name=bp['name']))
     # 图纸残页 20% 额外（动态特例保留）
     if random.random() < 0.20:
         pages = random.randint(*tier["pages_range"])
         db.add_item(group_id, qq_id, "mat_tu_zhi_can_ye",
                     {"name": "图纸残页", "type": "材料", "stackable": True, "price": 10},
                     count=pages)
-        lines.append(f"📄 图纸残页 ×{pages}")
+        lines.append(_T.text("wk.pages", n=pages))
     return lines, need_bc
 
 
@@ -629,9 +628,8 @@ def wild_king_summary(map_id: str) -> str:
     if not king:
         return ""
     if king.get("killed"):
-        return (f"{king.get('icon', '👑')}【{king.get('name')}】已被击败，"
-                f"宝箱在原地（『摸宝箱』）")
+        return (_T.text("wk.sum_killed", icon=king.get('icon', '👑'), name=king.get('name')))
     left = max(0, int(king.get("expire", 0)) - int(datetime.datetime.now().timestamp()))
     mins = left // 60
-    return (f"{king.get('icon', '👑')}【{king.get('name')}】Lv.{king.get('lv')} 在此图看守宝箱"
-            f"（约 {mins} 分钟后离开）——击败它解锁宝箱！")
+    return (_T.text("wk.sum_alive", icon=king.get('icon', '👑'), name=king.get('name'), lv=king.get('lv'),
+                mins=mins))

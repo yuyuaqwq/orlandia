@@ -42,6 +42,7 @@ import random  # noqa: F401  （真源模块级 `import random`；`move_stamina_
 from . import catalog_core as _cc        # MAP_TYPE_FIELD / MAP_TYPE_TOWN / MAP_TYPE_INSTANCE
 from . import catalog_space as _cs       # MAPS / MAP_BY_ID / PORTALS
 from . import catalog_b143 as _cb143     # ★ W4：LEGACY_MAP_ALIAS / HIDDEN_MAP_UNLOCK（原缺口）
+from . import texts as _T                # C 档 33c（2026-09-19）：文案表读口（本文件首次接入）
 
 
 # ============================================================
@@ -184,10 +185,10 @@ def subarea_hidden_block(group_id, qq_id, map_id: str, sa: dict) -> str:
                     try:
                         _ck, _nk = _reveal_pr(group_id, qq_id, map_id)
                         if _nk is not None:
-                            _progress_txt = f"（还差 {_nk - _ck} 次探索）"
+                            _progress_txt = _T.text("tv.reveal_left", n=_nk - _ck)
                     except Exception:
                         pass
-                return f"🔒 这里似乎被什么遮挡着……（在本图继续『探索』可揭开它的面纱）{_progress_txt}"
+                return _T.text("tv.hidden_block", progress=_progress_txt)
         except Exception:
             pass
     return None
@@ -229,15 +230,13 @@ def move_blocked_msg(cur_map: dict, player: dict, target_sa: dict) -> str:
         _route = C.map_route(_mid, cur_sa_id, _tgt_id)
         if len(_route) >= 2 and _route[1] != _tgt_id:
             first = next((s["name"] for s in sas if s["id"] == _route[1]), _route[1])
-            return (f"🧭 你身处【{cur_name}】，不能直接去【{tgt_name}】——"
-                    f"路只有一条，需要先经过{first}。")
+            return (_T.text("tv.move_blocked", cur_name=cur_name, tgt_name=tgt_name, via=first))
     # v95.12：按空间连接提示必经路线（街道/出口链），不要一律"回广场"——
     # 镇郊去广场要先经过东大街，提示必须与真实路径一致。
     # v183：原来城镇/野外各有一份 return（两份逐字相同），已合一。
     links = C.subarea_links(_mid, cur_sa_id)
     link_names = [next((s["name"] for s in sas if s["id"] == lid), lid) for lid in links]
-    return (f"🧭 你身处【{cur_name}】，不能直接去【{tgt_name}】——"
-            f"路只有一条，需要先经过{'、'.join(link_names)}。")
+    return (_T.text("tv.move_blocked", cur_name=cur_name, tgt_name=tgt_name, via='、'.join(link_names)))
 
 
 def leave_map_block_msg(cur_map: dict, player: dict) -> str:
@@ -251,8 +250,8 @@ def leave_map_block_msg(cur_map: dict, player: dict) -> str:
         _exit_name = next((s["name"] for s in sas if s["id"] == exit_sa_id), "出口")
         _cur_sa_name = next((s["name"] for s in sas if s["id"] == player.get("cur_subarea")),
                             player.get("cur_subarea", ""))
-        return (f"🧭 你身处【{_cur_sa_name}】，还不能离开{cur_map.get('name', '此地')}——"
-                f"需要先到{_exit_name}(『前往 {_exit_name}』)才能出城/出图。")
+        return (_T.text("tv.leave_block", cur_sa=_cur_sa_name, cur_map=cur_map.get('name', '此地'),
+                    exit_name=_exit_name, exit_name2=_exit_name))
     return ""
 
 
@@ -261,7 +260,7 @@ def leave_map_block_msg(cur_map: dict, player: dict) -> str:
 def level_warn(player: dict, target: dict) -> str:
     """v87 跨图建议等级提示行（玩家低于目标图等级时）。"""
     if player["level"] < target["lv"]:
-        return (f"\n⚠️ 建议等级 Lv.{target['lv']}，你才 Lv.{player['level']}，小心行事！")
+        return (_T.text("tv.level_warn", tgt_lv=target['lv'], my_lv=player['level']))
     return ""
 
 
@@ -273,10 +272,7 @@ def stamina_max(player: dict) -> int:
 def stamina_tired_line(player: dict) -> str:
     """体力 0 走不动提示段（move 跨图扣 1 前置拦截，原 4 行文案逐字符随迁）。"""
     return (
-        f"⚡ 你太累了，走不动了！(体力 {int(player.get('stamina') or 0)}/{stamina_max(player)})\n"
-        "💡 恢复体力：野外营地『休息』/ 吃食物 / 旅店『住宿』，或等体力自然恢复(每1分钟+1)\n"
-        "💡 也可以『传送』(已激活的方碑)或使用『回城卷轴』脱身～\n"
-        "💡 新手建议：野外活动前先在城镇『商店』买点食物（烤肉串等），体力 0 才不会困在野外～"
+        _T.text("tv.tired", stamina=int(player.get('stamina') or 0), max=stamina_max(player))
     )
 
 
@@ -382,7 +378,7 @@ def hidden_map_block(group_id, qq_id, player: dict, target: dict):
         return None
     unlock = _cb143.HIDDEN_MAP_UNLOCK.get(target["id"], {})
     if player["level"] < unlock.get("level", 99):
-        return "前方被无形的屏障阻挡……这里需要更强大的实力！(等级不足)"
+        return _T.static("tv.hidden_level")
     # v87：物品型准入（H6 泛黄书页×3 / H7 烬火信标）
     item_req = unlock.get("item")
     if item_req:
@@ -390,14 +386,11 @@ def hidden_map_block(group_id, qq_id, player: dict, target: dict):
                 if db.count_item(group_id, qq_id, name) < need]
         if lack:
             return (
-                "入口被古老的力量封锁，似乎需要信物才能进入……\n"
-                f"🔒 缺少：{'、'.join(lack)}\n"
-                "💡 失落图书馆：集齐 3 张泛黄书页(探索彩蛋/圣堂地窖精英/符文石)\n"
-                "💡 灰烬回廊：找到老守墓人·灰须领取烬火信标"
+                _T.text("tv.hidden_item", lack='、'.join(lack))
             )
     quests = db.get_quests(group_id, qq_id)
     if unlock.get("quest") not in quests.get("completed_main", []):
-        return "地图的入口被古老魔法封印，似乎只有完成主线任务才能解开……"
+        return _T.static("tv.hidden_quest")
     return None
 
 
@@ -429,5 +422,5 @@ def portal_arrive_note(group_id, qq_id, target: dict) -> str:
     tid = target.get("id", "")
     if tid in _cs.PORTALS and tid not in db.get_portals(qq_id):
         p = _cs.PORTALS[tid]
-        return f"\n\n🌌 一座{p['icon']}{p['name']}矗立在此！『激活』可解锁传送点～"
+        return _T.text("tv.portal", icon=p['icon'], name=p['name'])
     return ""

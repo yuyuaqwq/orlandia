@@ -179,7 +179,9 @@ FROZEN_COUNTS = {
     #     gather.rare_hint 跨 settle_gather / settle_mining 共键）⇒ 2586 → 2625
     #   ★ C 档 33b（B-2 第 22 片：cmds_job「职业速查」+ cmds_collection「收藏册」
     #     36 处替换 / 36 新键；职业速查 / 收藏册 两个新分类；零同值复用）⇒ 2625 → 2661
-    "texts": 2661,
+    #   ★ C 档 33c（B-2 第 23 片：wild_king「野王 / 野王宝箱」+ travel「出行提示」
+    #     33 处替换 / 33 新键；野王 / 野王宝箱 / 出行提示 三个新分类）⇒ 2661 → 2694
+    "texts": 2694,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）
