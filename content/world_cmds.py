@@ -1561,17 +1561,11 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
         # v2 多对多：撞怪经 build_monster_group 生成敌方阵列（单只即可，伏击不引入随机双怪）
         # N5b4-6：撞怪开战 saintess_engine 化（同 _open_battle 仪式，跨图伏击 = 普通战斗形态）
         _grp = _drops().build_monster_group(ambush, target, player)
-        _open2 = getattr(self, "_open_battle", None)
-        if _open2 is not None:
-            _nb = _open2(player, _grp, "monster", group_id=group_id, qq_id=qq_id)
-        else:
-            from . import bridge as BR
-            BR.prepare_player_for_battle(player, self._title_bonus(group_id, qq_id), db)
-            _sides = BR.build_sides(player=player, enemies=_grp)
-            from saintess_engine import Battle as B2
-            _nb = B2("monster", sides=_sides,
-                     title_bonus=self._title_bonus(group_id, qq_id),
-                     pet=db.pet_get(qq_id))
+        # T6⑧（2026-09-20）：旧兜底分支已删 —— 它经别名
+        # `from saintess_engine import Battle as B2` 裸造 Battle（**不带 `text=`**）⇒ 绕过「玩家可见文案唯一真源」。
+        # `_open_battle`（真源 `content/combat_cmds.py`）与 move 同属包内聚合面（facade
+        # AGGREGATE_MODULES）⇒ 终态不可能缺席；缺即 AttributeError 大声失败（fail-closed，不静默兜底）。
+        _nb = self._open_battle(player, _grp, "monster", group_id=group_id, qq_id=qq_id)
         db.save_battle(group_id, qq_id, _nb.to_state())
         self._lock_battle(group_id, qq_id)
         arrive_txt = _T.text("move.arrive", name=target['name'])

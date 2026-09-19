@@ -284,6 +284,22 @@ _PIN = {
 }
 # <<< _u1i4_gen (auto) <<<
 
+# ══════════════════════════════════════════════════════════════════════════════
+# 手工区（**非生成器**）：活实现 sha 的**有意差异登记**
+#   同构既有 `_ECONOMY_DB_SHA_INTENT` / `_AUX_SHA_INTENT`（T4 第 4 轮起）：`_PIN['live']` 仍是
+#   「最后一次重采」的账，**不就地改写**；有意变更在此登记，判据改为「登记优先」。
+#   自洽断言：键必须在 `_PIN['live']` 里 · `old` 必须等于 `_PIN['live']` 的值 · `new` 必为 sha256 · 必填理由。
+# ══════════════════════════════════════════════════════════════════════════════
+_LIVE_SHA_INTENT = {
+    'content/world_cmds.py::move': {
+        'old': 'a74a1c039761b7d29beb96738c14ad53e3f6ed485cd0dca5471b1db213fcd1d8',
+        'new': 'a3467b4173b55ae75e9f0649b3bbe111bb872fabdc95866a091737f43e049709',
+        'why': 'T6⑧（2026-09-20）：删撞怪兜底分支（`Battle as B2` 裸造 Battle，不带 text= ⇒ 绕过'
+               '文案唯一真源），改 `self._open_battle` 直调 fail-closed。行为不变由 [2] 甲/乙等价网'
+               ' + [3] 丙类 golden（逐字节）证明：本轮实测仅本条 sha 变，其余 28 段与 golden 指纹全绿。',
+    },
+}
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 1. 冻结段清单 / 分级 / 旧实现命名空间 / 猴补
@@ -604,14 +620,21 @@ def test_frozen_pins():
     bad = [k for k in keys if sha256(_FROZEN_TEXT[k]) != _PIN["frozen"][k]]
     check("冻结文本 sha256 全等 _PIN['frozen']（29 段）", not bad, bad[:4])
 
+    bad_intent = [k for k, v in _LIVE_SHA_INTENT.items()
+                  if k not in _PIN["live"] or v["old"] != _PIN["live"][k]
+                  or len(v["new"]) != 64 or not v.get("why")]
+    check("有意差异登记自洽（%d 条：键在册 / old == _PIN['live'] / new 为 sha256 / 有理由）"
+          % len(_LIVE_SHA_INTENT), not bad_intent, bad_intent)
+
     live_bad = []
     for k in keys:
         sym = k.split("::")[1]
         obj = getattr(WC, sym, None)
         got = "<deleted>" if obj is None else sha256(inspect.getsource(obj))
-        if got != _PIN["live"][k]:
-            live_bad.append((k, _PIN["live"][k][:12], got[:12]))
-    check("活实现 inspect.getsource sha256 全等 _PIN['live']（29 段）", not live_bad, live_bad[:4])
+        want = _LIVE_SHA_INTENT[k]["new"] if k in _LIVE_SHA_INTENT else _PIN["live"][k]
+        if got != want:
+            live_bad.append((k, want[:12], got[:12]))
+    check("活实现 inspect.getsource sha256 全等「登记优先」口径（29 段）", not live_bad, live_bad[:4])
 
     seg = _PIN["segments"]
     chkE = [k for k in seg["E"] if _PIN["frozen"][k] != _PIN["live"][k]]
