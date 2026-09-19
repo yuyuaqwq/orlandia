@@ -31,6 +31,9 @@ import datetime
 
 from . import event_menu as _EM
 from . import texts as T
+# ★ C 档 34b（B-2 第 25 片）：文案真源取件口别名 `_T`（同 `T` 同源；本片新增的行壳走 `_T`，
+#   既有的 supply.* 调用点保持 `T.` 不动，行为逐字不变）
+from . import texts as _T
 from .catalog_b143 import WORLD_EVENT_POOL as _WORLD_EVENT_POOL
 from .catalog_rules import DAILY_MAP_EVENTS as _DAILY_MAP_EVENTS
 from .catalog_rules import SUPPLY_BOX as _SUPPLY_BOX
@@ -45,28 +48,28 @@ def _fx_label(effects: dict) -> str:
     notes = []
     _er = float(effects.get("encounter_rate", 0) or 0)
     if _er > 0.08:
-        notes.append("遇怪率↑↑(较高)")
+        notes.append(_T.static("ce.fx_er_hi2"))
     elif _er > 0:
-        notes.append("遇怪率↑(较低)")
+        notes.append(_T.static("ce.fx_er_hi"))
     elif _er < -0.08:
-        notes.append("遇怪率↓↓(较低)")
+        notes.append(_T.static("ce.fx_er_lo2"))
     elif _er < 0:
-        notes.append("遇怪率↓(较低)")
+        notes.append(_T.static("ce.fx_er_lo"))
     _ec = float(effects.get("event_chance", 0) or 0)
     if _ec > 0:
-        notes.append("事件率↑")
+        notes.append(_T.static("ce.fx_ec"))
     _el = float(effects.get("elite_chance", 0) or 0)
     if _el > 0:
-        notes.append("精英出没")
+        notes.append(_T.static("ce.fx_elite"))
     _lm = float(effects.get("loot_mult", 1.0) or 1.0)
     if _lm > 1.3:
-        notes.append("掉落丰收")
+        notes.append(_T.static("ce.fx_loot_hi"))
     elif _lm > 1.0:
-        notes.append("掉落略增")
+        notes.append(_T.static("ce.fx_loot_lo"))
     _mats = effects.get("mats") or []
     if _mats:
-        notes.append(f"材料倾向：{'、'.join(str(m) for m in _mats[:3])}")
-    return "，".join(notes) if notes else "风平浪静"
+        notes.append(_T.text("ce.fx_mats", mats='、'.join(str(m) for m in _mats[:3])))
+    return "，".join(notes) if notes else _T.static("ce.fx_calm")
 
 
 @register("event_menu", guards=("hook:player",), params=("cmd=今日事件",))
@@ -88,7 +91,7 @@ def event_menu(env) -> list:
         target = next((m for m in _maps
                        if m.get("name") == map_name or map_name in str(m.get("name", ""))), None)
         if not target:
-            return [f"🗺️ 没找到地图『{map_name}』，试试『今日事件』看全部～"]
+            return [_T.text("ce.no_map", map_name=map_name)]
         return _map_event_detail(env, target)
     # 总览
     return _overview(env)
@@ -104,7 +107,7 @@ def _today_event_for(map_id: str):
 
 def _overview(env) -> list:
     """全服总览：今日奇遇/世界事件/彩蛋线索三栏。"""
-    lines = ["📅 【今日事件】", "━━━━━━━━━━━━"]
+    lines = [_T.static("ce.ov_head"), "━━━━━━━━━━━━"]
     # 一、今日奇遇（遍历全部配置了 DAILY_MAP_EVENTS 的野外图）
     daily_map = _DAILY_MAP_EVENTS or {}
     ev_maps = []
@@ -117,14 +120,14 @@ def _overview(env) -> list:
             note = _fx_label(ev.get("effects") or {})
             ev_maps.append(f"  🌤 {mname}：{ev['name']}——{ev.get('desc', '')}（{note}）")
     if ev_maps:
-        lines.append("【今日奇遇】")
+        lines.append(_T.static("ce.ov_daily_head"))
         lines.extend(ev_maps)
     else:
-        lines.append("【今日奇遇】")
-        lines.append("  今日风平浪静，暂无特别奇遇～")
+        lines.append(_T.static("ce.ov_daily_head"))
+        lines.append(_T.static("ce.ov_daily_none"))
     # 二、世界事件（当前进行中的，由 WORLD_EVENT_POOL + social 管理）
     lines.append("")
-    lines.append("【世界事件】")
+    lines.append(_T.static("ce.ov_world_head"))
     wpool = _WORLD_EVENT_POOL or []
     if isinstance(wpool, dict):
         wpool = list(wpool.values())
@@ -133,10 +136,10 @@ def _overview(env) -> list:
         for e in active[:5]:
             lines.append(f"  🌋 {e.get('name', '未知事件')}：{e.get('desc', '')}")
     else:
-        lines.append("  暂无世界事件进行中。")
+        lines.append(_T.static("ce.ov_world_none"))
     # 三、彩蛋线索（酒馆传闻式：只给方向不给答案）
     lines.append("")
-    lines.append("【彩蛋线索】")
+    lines.append(_T.static("ce.ov_egg_head"))
     egg_events = _EM.EXPLORE_EGG_EVENTS or []
     if egg_events:
         hints = [e for e in egg_events if e.get("hint")]
@@ -144,45 +147,45 @@ def _overview(env) -> list:
         for e in shown:
             lines.append(f"  🥚 {e.get('hint') or e.get('desc', '有人在野外见过不寻常的东西…')}")
     else:
-        lines.append("  旅人们传言，最近野外有些动静……")
+        lines.append(_T.static("ce.ov_egg_none"))
     lines.append("")
-    lines.append("💡 『事件 <地图名>』查看单图详情（如：事件 橡木平原）")
+    lines.append(_T.static("ce.ov_tip"))
     return lines
 
 
 def _map_event_detail(env, target) -> list:
     """单图事件详情：今日奇遇 + 探索事件池 + 彩蛋传闻。"""
     mid = target.get("id", "")
-    lines = [f"🗺️ 【{target.get('name', mid)}】事件", "━━━━━━━━━━━━"]
+    lines = [_T.text("ce.dt_head", name=target.get('name', mid)), "━━━━━━━━━━━━"]
     # 今日奇遇
     ev = _today_event_for(mid)
     if ev and ev.get("name"):
         note = _fx_label(ev.get("effects") or {})
-        lines.append(f"🌤 今日奇遇：{ev['name']}——{ev.get('desc', '')}（{note}）")
+        lines.append(_T.text("ce.dt_daily", name=ev['name'], desc=ev.get('desc', ''), note=note))
     else:
-        lines.append("🌤 今日奇遇：无特别效果，风平浪静。")
+        lines.append(_T.static("ce.dt_daily_none"))
     # 探索事件池（EXPLORE_EVENTS 该图可用事件——按地图匹配近似展示，只给档位）
     lines.append("")
-    lines.append("📦 探索事件（随机触发，概率模糊带）：")
+    lines.append(_T.static("ce.dt_pool_head"))
     explore = _EM.EXPLORE_EVENTS or []
     if explore:
         # 展示高频档位（weight 排序，不泄露精确概率）
         top = sorted(explore, key=lambda e: -e.get("weight", 0))[:6]
         for e in top:
-            band = "较高" if e.get("weight", 0) >= 15 else ("普通" if e.get("weight", 0) >= 8 else "罕见")
+            band = _T.static("ce.band_high") if e.get("weight", 0) >= 15 else (_T.static("ce.band_normal") if e.get("weight", 0) >= 8 else _T.static("ce.band_rare"))
             lines.append(f"  {e.get('name', '?')}（{band}）")
     else:
-        lines.append("  （暂无探索事件配置）")
+        lines.append(_T.static("ce.dt_pool_none"))
     # 彩蛋传闻
     lines.append("")
-    lines.append("🥚 彩蛋传闻：")
+    lines.append(_T.static("ce.dt_egg_head"))
     egg_events = _EM.EXPLORE_EGG_EVENTS or []
     if egg_events:
         hints = [e for e in egg_events if e.get("hint")]
         for e in (hints or egg_events)[:2]:
             lines.append(f"  {e.get('hint') or e.get('desc', '…')}")
     else:
-        lines.append("  传闻这里埋着不寻常的东西……")
+        lines.append(_T.static("ce.dt_egg_none"))
     return lines
 
 

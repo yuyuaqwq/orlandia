@@ -203,7 +203,7 @@ def _grant_items(ctx, items):
                     continue
                 eq = _drops().generate_roster_equip(_rid)
                 db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", eq)
-                lines.append(f"  🎁 获得装备：{eq.get('name', rid)}")
+                lines.append(_T.text("rw.equip_gain", name=eq.get('name', rid)))
                 continue
             # 普通物品/材料
             kid = _key_to_id(key) if _key_to_id else key
@@ -228,7 +228,7 @@ def _grant_equips(ctx, equips):
         try:
             equip = _drops().generate_roster_equip(rid)
             db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", equip)
-            lines.append(f"  🎁 获得装备：{equip.get('name', rid)}")
+            lines.append(_T.text("rw.equip_gain", name=equip.get('name', rid)))
         except Exception:
             print(f"[dragonfall][reward] 装备奖励名册缺失: {rid}，已跳过")
 
@@ -241,7 +241,7 @@ def _grant_pets(ctx, pets):
             if not egg:
                 continue
             db.add_item(group_id, qq_id, f"petegg_{pid}", egg)
-            lines.append(f"  🥚 获得道具：{egg['name']}！『使用 宠物蛋』孵化！")
+            lines.append(_T.text("rw.pet_gain", name=egg['name']))
         except Exception:
             pass
 
@@ -254,7 +254,7 @@ def _grant_mounts(ctx, mounts):
             if not rein:
                 continue
             db.add_item(group_id, qq_id, f"mountrein_{mid}", rein)
-            lines.append(f"  🐾 获得道具：{rein['name']}！『使用 缰绳』驯服坐骑！")
+            lines.append(_T.text("rw.mount_gain", name=rein['name']))
         except Exception:
             pass
 
@@ -269,7 +269,7 @@ def _grant_title(ctx, titles):
     if not tinfo:
         tinfo = next((t for t in TITLES if t.get("name") == title), None)
     if tinfo:
-        lines.append(f"  🏅 获得称号：「{tinfo.get('name', title)}」！")
+        lines.append(_T.text("rw.title_gain", name=tinfo.get('name', title)))
     else:
         print(f"[dragonfall][reward] 称号 id 缺失：{title}（titles.py 未登记），已跳过")
 
@@ -290,7 +290,7 @@ def _grant_bonus(ctx, bonuses):
     for k, v in (bonus or {}).items():
         parts.append(f"{_STAT_CN.get(k, k)}+{v}")
     if parts:
-        lines.append(f"  ✨ 永久属性：{'、'.join(parts)}（已自动生效）")
+        lines.append(_T.text("rw.bonus_gain", parts='、'.join(parts)))
 
 
 #: 发放类别 → sink；声明序 = 发放序（items → equips → pets → mounts → title → bonus）
@@ -369,11 +369,11 @@ def grant_reward(reward: dict, group_id, qq_id, *, player=None, lines=None) -> l
                              learned_skills=player.get("learned_skills", []))
             parts = []
             if exp:
-                parts.append(f"经验 +{exp}")
+                parts.append(_T.text("rw.exp_part", exp=exp))
             if gold:
-                parts.append(f"金币 +{gold}")
+                parts.append(_T.text("rw.gold_part", gold=gold))
             if parts:
-                lines.append(f"🎁 获得{'、'.join(parts)}")
+                lines.append(_T.text("rw.gain_head", parts='、'.join(parts)))
             lines += lv_logs
     # ── 奖励包 → 分类发放（`sinks` 声明序 = 发放序）──────────
     grant = Grant(sinks=_SINKS)

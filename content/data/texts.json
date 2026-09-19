@@ -1717,6 +1717,165 @@
     "category": "声望阵营",
     "desc": "搬自 content/world_cmds.py:camp_task（B 批 C 档）"
   },
+  "ce.band_high": {
+    "value": "较高",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.band_normal": {
+    "value": "普通",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.band_rare": {
+    "value": "罕见",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_daily": {
+    "value": "🌤 今日奇遇：{name}——{desc}（{note}）",
+    "params": [
+      "name",
+      "desc",
+      "note"
+    ],
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_daily_none": {
+    "value": "🌤 今日奇遇：无特别效果，风平浪静。",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_egg_head": {
+    "value": "🥚 彩蛋传闻：",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_egg_none": {
+    "value": "  传闻这里埋着不寻常的东西……",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_head": {
+    "value": "🗺️ 【{name}】事件",
+    "params": [
+      "name"
+    ],
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_pool_head": {
+    "value": "📦 探索事件（随机触发，概率模糊带）：",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.dt_pool_none": {
+    "value": "  （暂无探索事件配置）",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_map_event_detail（B 批 C 档）"
+  },
+  "ce.fx_calm": {
+    "value": "风平浪静",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_ec": {
+    "value": "事件率↑",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_elite": {
+    "value": "精英出没",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_er_hi": {
+    "value": "遇怪率↑(较低)",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_er_hi2": {
+    "value": "遇怪率↑↑(较高)",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_er_lo": {
+    "value": "遇怪率↓(较低)",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_er_lo2": {
+    "value": "遇怪率↓↓(较低)",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_loot_hi": {
+    "value": "掉落丰收",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_loot_lo": {
+    "value": "掉落略增",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.fx_mats": {
+    "value": "材料倾向：{mats}",
+    "params": [
+      "mats"
+    ],
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_fx_label（B 批 C 档）"
+  },
+  "ce.no_map": {
+    "value": "🗺️ 没找到地图『{map_name}』，试试『今日事件』看全部～",
+    "params": [
+      "map_name"
+    ],
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:event_menu（B 批 C 档）"
+  },
+  "ce.ov_daily_head": {
+    "value": "【今日奇遇】",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_daily_none": {
+    "value": "  今日风平浪静，暂无特别奇遇～",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_egg_head": {
+    "value": "【彩蛋线索】",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_egg_none": {
+    "value": "  旅人们传言，最近野外有些动静……",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_head": {
+    "value": "📅 【今日事件】",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_tip": {
+    "value": "💡 『事件 <地图名>』查看单图详情（如：事件 橡木平原）",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_world_head": {
+    "value": "【世界事件】",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
+  "ce.ov_world_none": {
+    "value": "  暂无世界事件进行中。",
+    "category": "今日事件",
+    "desc": "搬自 content/cmds_event.py:_overview（B 批 C 档）"
+  },
   "chest.at_home": {
     "value": "家里可没有野王宝箱……(『出门』去野外)",
     "category": "战斗主循环",
@@ -14521,6 +14680,70 @@
     "value": "复活选择已失效……",
     "category": "许愿商人",
     "desc": "搬自 content/combat_cmds.py:revive_confirm（B 批 C 档）"
+  },
+  "rw.bonus_gain": {
+    "value": "  ✨ 永久属性：{parts}（已自动生效）",
+    "params": [
+      "parts"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:_grant_bonus（B 批 C 档）"
+  },
+  "rw.equip_gain": {
+    "value": "  🎁 获得装备：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:_grant_items（B 批 C 档）"
+  },
+  "rw.exp_part": {
+    "value": "经验 +{exp}",
+    "params": [
+      "exp"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:grant_reward（B 批 C 档）"
+  },
+  "rw.gain_head": {
+    "value": "🎁 获得{parts}",
+    "params": [
+      "parts"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:grant_reward（B 批 C 档）"
+  },
+  "rw.gold_part": {
+    "value": "金币 +{gold}",
+    "params": [
+      "gold"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:grant_reward（B 批 C 档）"
+  },
+  "rw.mount_gain": {
+    "value": "  🐾 获得道具：{name}！『使用 缰绳』驯服坐骑！",
+    "params": [
+      "name"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:_grant_mounts（B 批 C 档）"
+  },
+  "rw.pet_gain": {
+    "value": "  🥚 获得道具：{name}！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:_grant_pets（B 批 C 档）"
+  },
+  "rw.title_gain": {
+    "value": "  🏅 获得称号：「{name}」！",
+    "params": [
+      "name"
+    ],
+    "category": "奖励发放",
+    "desc": "搬自 content/reward.py:_grant_title（B 批 C 档）"
   },
   "scene.explore": {
     "value": "{icon} {name}(『探索』有机会发现)",
