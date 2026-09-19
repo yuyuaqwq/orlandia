@@ -33,6 +33,14 @@
   （`class_stance_guard_enter` / `class_guard_stance_enter`）**含挂载点**，作业书 §2 要求改其挂载
   动作 ⇒ 其 `getsource` 必然变。本门禁因此断言：**37 个零改动逐字节不变** + 那 2 个用
   「锚点归一化」（挂载块前后文本逐字相等）证明**只换了挂载动作**。
+
+★ 2026-09-19 口径变更（C 档 mech-unblock · 文案迁移）：上述「37 个零改动 / 2 个必须变」是
+  **v1.81 移植作业**的验收口径，移植 landed 后随之退场 —— 文案迁移把 `class_mech.py` 的
+  40 处中文句壳搬进文案表，涉及 **32 个动作体**的 `logs.*` 行（有意改动），基线由生成器
+  `--emit-live` / `--emit-aux` 正规推进。**现行判据只剩一条**：所有 pin 必须全等
+  （9 段 frozen/live + 39 个动作体 aux）—— 即任何偏离都必须先重生并登记，不会被静默放行。
+  `test_mount_only` 及其专用件同时删除（其前提「文本逐字不变」已不成立）。
+  等价性由迁移侧独立对拍承担：dry-run 命中 40/40 · 「表 value {槽位} 顺序 == 新代码 kwarg 顺序」44/44。
 """
 from __future__ import annotations
 
@@ -147,54 +155,54 @@ _PIN = {
         'content/mech/cond_procs.py::apply_cond_procs': '0767c02518cacd010d75f62900b383f97d2b76156370dd12e579cfe460855fa7',
         'content/mech/element_procs.py::apply_element_procs': 'd51efa7c3a34dd22a27791ebed50d29a3c98c68336bf5eff139b38a4e2aa2455',
         'content/mech/class_mech.py::_melody_ensure_tick': 'f9b42974c12e01e29b70e943a8fd7ce3aa659a33c7d676e0e2cb391d2c764af6',
-        'content/mech/class_mech.py::class_stance_guard_enter': '516c6ba5f0985aa34dd57ed766c671056bf45b8c8d0f8069f8f5bb70ed0cf335',
-        'content/mech/class_mech.py::class_guard_stance_enter': 'fff7fa3a792657c1b831425fcdb596301b1317187c89da27f683dfc3ed93530e',
+        'content/mech/class_mech.py::class_stance_guard_enter': '5d8ee369443e925a3dc388e044f010bddcce5f20df97a0d19247c44e5ee0bb84',
+        'content/mech/class_mech.py::class_guard_stance_enter': '9602cb412110358d0ff94b2db7c1507f9c2958902d218727d0c2b94146aca71c',
         'content/mech/class_mech.py::apply_class_channels': '8955439388152e79adb8096643735347f410748c756dca63199716f7e15080b6',
         'content/mech/class_mech.py::apply_class_passives': '051d6d5c84382fdeca35718d4611d3d7181287b7b8d9c7d0822f7d97223883db',
         'content/mech/class_mech.py::apply_class_mech': '8f17bdd67ab2424856a09617181359289a6e36a065e2a7ddb8704b1456723298',
     },
     'aux': {
-        'class_mech_action::class_faith_load_tier': 'c5aa3169a92dfbd2a4fe06c5b355634d9034c78d884b99fc5b4a6f370b82a913',
-        'class_mech_action::class_faith_overload': 'fcfb04313cdeca887dd6a7e2852a64445b36784444e165446329457dee8800ab',
-        'class_mech_action::class_guard_stance_enter': '8eea84e72f6f9b0598bdd64b4ced8fba77fae24e99d0faf3ed2615ffb53f130f',
-        'class_mech_action::class_melody_act': 'a6270e3cdffe4e724b6270f15a24f47747044407577216eaaa54ab399db3c834',
-        'class_mech_action::class_melody_dirge_tick': '5df292e9a4fdd8064b41cc6e7167a5d0fc1a10430e08ff55218b211a264ab6b5',
+        'class_mech_action::class_faith_load_tier': '7444f5dda57ac810e3a3a6f2b27cea678a3b7f59d1dc74846560ea9cdfdfb99a',
+        'class_mech_action::class_faith_overload': '5cc7a625111150a04bc1e3f37cbe86a40d47d3f947feff9b93e1a9441e2e6368',
+        'class_mech_action::class_guard_stance_enter': '9602cb412110358d0ff94b2db7c1507f9c2958902d218727d0c2b94146aca71c',
+        'class_mech_action::class_melody_act': '1f18c1b0c749e28ebd3714b9750bc92e5429aa6827b9d07800413b9b14afea83',
+        'class_mech_action::class_melody_dirge_tick': 'dcd3132b8c54257d1daf3e2267b9eca3377ff1570bce11ccc3eb4a84a829f8ca',
         'class_mech_action::class_res_channel_gain': '12d2f40c4f9452bd4308ec5ff2ce413f54fed6ca64947b275685694042c86695',
-        'class_mech_action::class_shadow_dance_enter': '2291de751b7104ea16351f6f0c336a106c7bb3b666bdc04a5b0853f7bfc79da0',
-        'class_mech_action::class_stance_counter': 'c5fcac4a15b9cbb774612e028cb4e27bcdf5af5a829cf814a3827facecfa93f7',
-        'class_mech_action::class_stance_guard_enter': 'e9f80aa38ef2261ac6d3c96dc000be53ff2755d2c6fc96f02092db53e5a8d2de',
+        'class_mech_action::class_shadow_dance_enter': 'bce13cd3f07eb6887750938f03e5b9457594220d8f42e9cf93d3df0b979e3c1e',
+        'class_mech_action::class_stance_counter': 'f568df9147f3547e5063931c435e299b92782742df8d893be32da5f18262acb2',
+        'class_mech_action::class_stance_guard_enter': '5d8ee369443e925a3dc388e044f010bddcce5f20df97a0d19247c44e5ee0bb84',
         'class_mech_action::mech_cash_clear': '0af618be891a0768e86b87afa51dbd9e177d021dd7f5343c7645025a1d601834',
-        'class_mech_action::mech_cash_dmg_mult': 'f155b39088e3c225d378f25df18c4b4d8aa1eff7971f9acb1a2a1d9620b1ca33',
-        'class_mech_action::mech_cash_finisher_crit': '6adb90d5cf6165cfef5ad64dbef0c466587d7d8b0ac205704ec772bb26e625a9',
-        'class_mech_action::mech_cash_fury_enter': '1613fb0829cfaa2b42dda14bfd7ec88fb61da256dd3d4a9181ba02450809ec8a',
-        'class_mech_action::mech_cash_per_system_mult': 'b6fd9289d6b7b211fb73967b0681173835a01eda052d1134206cb2dfbec59801',
-        'class_mech_action::passive_bar_decay_half': 'eab2211255595320aacd6e299453e653e058a330550c6495ac534d1b7f3b1c0c',
-        'class_mech_action::passive_bar_extend': '3bbeb7694bd93ba31bdccdef3f34c78011ab9ac04d18084a570b5237e7ffea52',
-        'class_mech_action::passive_cc_break': '92835ef65de04ba69cc2084b4aa5a8ea01f32351a7361fe34fcf4b0f0975b205',
-        'class_mech_action::passive_cc_clear': '4102d0bd99ca32d2f30bf34d44b2f3aae63e25a50325b04c05cf93ff8412be02',
-        'class_mech_action::passive_cond_crit': 'e0cb6adb56f8799db75f7227be153be196f716a53b801f10d6c66c5d9e127266',
-        'class_mech_action::passive_counter': '3917519b84c85f28ee356abfd48fb725c875fc6421f241a93c06d5eff9efb504',
-        'class_mech_action::passive_ctrl_extend': '814e7c70f6a5a04e2e9e6a36dc0b853576f6f2d9789dd2e6294a0539dc97bdbf',
-        'class_mech_action::passive_dmg_mult': '380361bd7b8f8d6dc05de5dd3088ea86a2cca6ae95c511d4cc9491a260aa1a7c',
-        'class_mech_action::passive_dot_mult': '406f286bd6f2cceebfb7bf81da2567c715942ead94cc4c2639c6ab8493688afb',
-        'class_mech_action::passive_element_core_crit': 'b2fc65c54542cc2816473c30aae312004dea5239f9c2b01c9b5b16282823dafa',
-        'class_mech_action::passive_heal_overflow_shield': '1dc7670f8d4e02b199992cd2a29d4cf3a1ce7accde7637b0e505d52eabae05d5',
+        'class_mech_action::mech_cash_dmg_mult': 'e024a50f54e4881f2fbc2f125cdaf31ee7912b14760af8fb84c77be5c7a561fa',
+        'class_mech_action::mech_cash_finisher_crit': '2dcd8d3875b1162091ddae2c911fe9975dee89219589cb2f180b864c6c4ad337',
+        'class_mech_action::mech_cash_fury_enter': 'f0201757543a4b4b55bc6d939b8191f86fcba41f1f80b8b5fbf53d0426a072db',
+        'class_mech_action::mech_cash_per_system_mult': '82fb433a137411943b53099e4a8191f40e0f2dea88c1ac519f247dc188d034f7',
+        'class_mech_action::passive_bar_decay_half': '07191ac1ea61cacbf9e83142e167a50d0c0cfe9159dee61daa48caa97f55473d',
+        'class_mech_action::passive_bar_extend': 'dca1aa43dfe06f4c79fc3690b1126fc69d6807de2e444d76f8929678ce8cc4e6',
+        'class_mech_action::passive_cc_break': '28fbd11690055d667c79764922ce93e7a6189bda45db96fce5257badb9fc1c73',
+        'class_mech_action::passive_cc_clear': '846ac1374743ba80be4103d6c23dc820ff880693411dd62107465037851787ec',
+        'class_mech_action::passive_cond_crit': 'd2355a00738aa7fc000fb25d2229f437d8613a1ebdf4c6c7a9682efa314e8fab',
+        'class_mech_action::passive_counter': '367517a53604cadcab03e5b787a0753276afa3f26700e10d0964a6bd6380b382',
+        'class_mech_action::passive_ctrl_extend': 'a00b2ee7deed9ed75d348cd3cd947ea9da4f58ab29574f3429e045aea0e843e7',
+        'class_mech_action::passive_dmg_mult': '81a3ff4d987c33e0a346203e153d2169cb47ff2e26a97dcc185a2f640139939e',
+        'class_mech_action::passive_dot_mult': '795bde0c0d82abe973129d4758ba36b5dcf3c50628e5b0d23ab056f2be3f3b38',
+        'class_mech_action::passive_element_core_crit': 'd2fc6aebe628323df47c120571ce9e93a8a88d0a0d5d3ef1ab64055394f90a33',
+        'class_mech_action::passive_heal_overflow_shield': '5df63fa3d16339bb8d145fc4f0428c6cc2af0f2b78d752d8d79d0cd76a794013',
         'class_mech_action::passive_kill_gain': 'a38359bf83fb2d0b98c2d96e55f7e5e88fc16d21fbe4b36d4d14771fb2ff461f',
-        'class_mech_action::passive_lian_duan_soft': '0867bd36250ac0e2038372f733063a64f67604b0dd0bc39847625910ade0abf2',
+        'class_mech_action::passive_lian_duan_soft': 'cccb7e960980be4bdf87c94bd474ebeb73836ed349df42ecf8753c709c35183d',
         'class_mech_action::passive_lifesteal_buff': 'bff07b2ef9ae782015da0c9d7d6fe40f978f325a296002c588ecee311eb507ae',
-        'class_mech_action::passive_low_hp_core': '50db15e1ec1c8dbb8177fbb751d5cff27488ea653140ac2c3e3b147f44dc81df',
-        'class_mech_action::passive_mark_enhance': '0a7c2d83b2a431f84803f6332bd5c30ee8711b884eae49ca90c13aad5fc865da',
-        'class_mech_action::passive_melody_duet': 'e1ba9085c522e1a65173ec5843492195046cb0af77203b47c560beca5dcd4138',
-        'class_mech_action::passive_overflow_shield': 'f56ecf259b94980164f1e3759fe44ba9f7adcce03472d64f570158b77148894e',
-        'class_mech_action::passive_poison_spread': 'e2aaabbfac1be8abf039f5812a7c979ce940a038cc8756f1a59831d27d5609c4',
-        'class_mech_action::passive_poison_weaken': 'c572f9aa4b6dc9ef915d19a0a97c3e27594347e147bf621e075295ac0e6869d3',
-        'class_mech_action::passive_res_gain_turn': '4d76114c61a6eb3c224d2ffd3e8608dbf2c021a7d201cde880f5345444bb48d8',
-        'class_mech_action::passive_revive_berserk': '8d05ed2f98cd97bb949db0349ad2f2fda3e9f0303d8ccf3c631ff64915ab89d1',
-        'class_mech_action::passive_revive_guard': '4e8c79e42845fd3b564612fa69c7fe28885d6b9fbc754486750d1d8717145f3b',
+        'class_mech_action::passive_low_hp_core': '86f5c36d66b6ec649028f7e4a415573c184431702d13511edfca5555f3d4cc59',
+        'class_mech_action::passive_mark_enhance': '7753ccab604ade714933f74e4e3e5ba42d006e7ebd47926f09fb674ed0de7ae3',
+        'class_mech_action::passive_melody_duet': 'bb07a087721dfe41a88d1c20fc4e9f4cf5f9c0e11b81d913e09e4eb24732a2c0',
+        'class_mech_action::passive_overflow_shield': '5a342fe89c867af9d64ea6467c622a05b27f9391f80c732611396a0b33fa3202',
+        'class_mech_action::passive_poison_spread': '77e66189d72dc139fe75cd61511653a1f32270a8f20de99574f556b78828f231',
+        'class_mech_action::passive_poison_weaken': '9de69501aa872c9dd8b3cca6ae85e37864a0f8649de3d37caf251a7f3f0794ee',
+        'class_mech_action::passive_res_gain_turn': 'a82bfb4beea444c1e01e645b12046fced7f82503eeaafba70a88893f9b22bfcd',
+        'class_mech_action::passive_revive_berserk': '937a9f4531a784b50ccb997d07a4b1c36a27dfa5d14177e1c86fade793f85e89',
+        'class_mech_action::passive_revive_guard': '94948d0c59d3a364ef59c61503b80038820d0f65ec6ace5e2152f0a7acc1a44f',
         'class_mech_action::passive_shadow_buff': '75d6446c3dee1e07e218d68e6712ad500d2c04f2a5d93f7ea9f66880ea18bc54',
-        'class_mech_action::passive_taken_reduce': '905b4be981614c769bfe86bbb54a21289345c72bc7c52a477ea67921d6e8c6af',
-        'class_mech_actions': '06ddd060c33444c732a1ce596f44cd55f8f547efa090eafadb2226e12d94680b',
-        'class_mech_actions_37': 'a0c19dde19c1d064ddd89363d0767fea3ba0375456e945b2b614df488bcc4dce',
+        'class_mech_action::passive_taken_reduce': '6e6e259dece0ede0f1e4ddfe1165e4c96e55a55a7c610e2a5ed1d185427a606e',
+        'class_mech_actions': 'a1c3d3e48b32b334988e2dbb76971d9207b04474c4ac9c2c30300577c3b88e7c',
+        'class_mech_actions_37': '833b9645f7c6d2368af5b87258749af1656cfc0e158b13f957333e22b67bd3c8',
     },
     'segments': {
         'E': [
@@ -622,40 +630,34 @@ def _action_names():
 
 _ACTION_NAMES = _action_names()
 
-#: 39 个动作里**含挂载点**、因而按作业书 §2 必须改其挂载动作的 2 个（见模块头注口径修正）
+#: 39 个动作里**含挂载点**的 2 个。
+#: ★ 2026-09-19 口径变更：原口径「按作业书 §2 必须改其挂载动作」随 v1.81 移植 landed 退场
+#:   （文案迁移已按正规流程推进基线，见 `_probe_action_bodies` / `test_aux` 注释）。
+#:   本常量现在**只用于** `_aux_fingerprints()` 里算「其余 37 个」的联合指纹（分组口径沿用）。
 _MOUNT_ACTIONS = ("class_stance_guard_enter", "class_guard_stance_enter")
-
-#: 「只换挂载动作」的锚点归一化：挂载块**前后文本必须逐字相等**
-_NORM_ANCHORS = {
-    "content/mech/class_mech.py::class_stance_guard_enter": (
-        "    # 挂受击反击 trigger（幂等——同 key 不重复挂）\n",
-        "    logs.append(f\"🛡️ 进入守护姿态",
-    ),
-    "content/mech/class_mech.py::class_guard_stance_enter": (
-        "    if reduce_v > 0:\n",
-        "    logs.append(f\"🪨 进入",
-    ),
-}
-
-
-def _norm_around(text, pre, post):
-    i = text.index(pre) + len(pre)
-    j = text.index(post, i)
-    return text[:i] + "<<MOUNT>>" + text[j:]
 
 
 def _probe_action_bodies():
-    """⑤ 39 格：37 个无挂载点的**逐字节不变**；2 个含挂载点的按 §2 **必须变**（landed 档）。"""
+    """⑤ 39 格：@register_action 动作体 getsource sha256 ↔ `_PIN["aux"]`（逐名比）。
+
+    ★ 2026-09-19 口径变更（C 档 mech-unblock · 文案迁移）：
+      把 `class_mech.py` 里 40 处中文句壳搬进文案表，涉及 **32 个动作体**的 `logs.*` 行
+      ⇒ 它们**有意**改变，`_PIN["aux"]` 已由生成器 `--emit-aux` 正规推进为新基线。依据：
+        · 迁移器构造性保证（表 value = 原字面量片段 + 槽位；槽位实参 `ast.get_source_segment` 原样搬运）
+        · dry-run needle+nslots 严格命中 **40/40**、0 未命中
+        · 独立对拍「表 value 的 {槽位} 顺序 == 新代码 kwarg 顺序」**44/44**
+      随之**退场**的原口径：「37 个无挂载点动作体逐字节不变 / 2 个含挂载点的必须变」——
+      那是 **v1.81 移植作业的验收断言**（作业书 §2），移植早已 landed。
+      保留的约束：任何动作体都不得偏离 `_PIN["aux"]`；未来若要再改，必须走 `--emit-aux`
+      重生并在本节登记理由，改动不会被静默放行。
+    """
     bad = []
-    landed = _PIN["phase"] == "landed"
     for name in _ACTION_NAMES:
         live_h = sha256(inspect.getsource(getattr(CM, name)))
         want = _PIN["aux"].get("class_mech_action::" + name)
-        if name in _MOUNT_ACTIONS:
-            if landed and live_h == want:
-                bad.append(("含挂载点的动作体没变（§2 要求改挂载动作）", name))
-        elif want is None or live_h != want:
-            bad.append(("无挂载动作体被改（越界）", name, live_h, want))
+        if want is None or live_h != want:
+            bad.append(("动作体被改（≠ _PIN['aux']）—— 如属有意改动，须 --emit-aux 重生并按本节注释登记",
+                        name, live_h, want))
         _bump("action_bodies")
     return bad
 
@@ -709,28 +711,20 @@ def _aux_fingerprints():
 def test_aux():
     print("【6. aux ⑭：39 个 @register_action 动作体 getsource sha256】")
     now = _aux_fingerprints()
-    landed = _PIN["phase"] == "landed"
     for k in sorted(_PIN["aux"]):
-        name = k.split("::", 1)[1] if k.startswith("class_mech_action::") else None
-        want_change = landed and (name in _MOUNT_ACTIONS or k == "class_mech_actions")
         got, want = now.get(k), _PIN["aux"][k]
-        if want_change:
-            check("aux[%s] 已按 §2 改变（该段另有 frozen/live 双 pin）" % k, got != want,
-                  "%s == %s" % (str(got)[:48], str(want)[:48]))
-        else:
-            check("aux[%s] 全等 _PIN" % k, got == want,
-                  "%r != %r" % (str(got)[:48], str(want)[:48]))
+        check("aux[%s] 全等 _PIN" % k, got == want,
+              "%r != %r" % (str(got)[:48], str(want)[:48]))
     check("aux 条数 == 41（39 动作体 + 2 条汇总）", len(_PIN["aux"]) == 41, len(_PIN["aux"]))
-    # 37 个（无挂载点）必须逐字节不变；2 个（含挂载点）在 landed 档必须变
+    # ★ 2026-09-19 口径变更：原「37 个零改动 / 2 个含挂载点的必须变」是 **v1.81 移植作业**的验收
+    #   口径（作业书 §2），移植 landed 后随本次文案迁移退场 —— 迁移在这些动作体内**有意**改了
+    #   40 处 logs 行，基线由生成器 `--emit-aux` 正规推进。现行判据 = 全等 `_PIN["aux"]`
+    #   （即：任何偏离基线的改动都必须先重生并在此登记，不会被静默放行）。
     changed = [n for n in _ACTION_NAMES
                if sha256(inspect.getsource(getattr(CM, n)))
                != _PIN["aux"].get("class_mech_action::" + n)]
-    if landed:
-        check("aux：改动的动作体恰好 == 2 个含挂载点的",
-              sorted(changed) == sorted(_MOUNT_ACTIONS), changed)
-    else:
-        check("aux（baseline 档）：39 个动作体全未改动 == 改动前快照",
-              changed == [], changed)
+    check("aux：39 个动作体全部 == _PIN['aux']（如属有意改动，须 --emit-aux 重生并在本节登记）",
+          changed == [], changed)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -923,21 +917,14 @@ def test_teeth():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 13. 「只换挂载动作」：2 个含挂载点的动作体锚点归一化（见模块头注）
+# 13. （已退场）「只换挂载动作」：2 个含挂载点的动作体锚点归一化
 # ══════════════════════════════════════════════════════════════════════════════
-def test_mount_only():
-    print("【5. 只换挂载动作：2 个含挂载点动作体的「挂载块前后逐字相等」】")
-    import inspect as _inspect
-    for k, (pre, post) in _NORM_ANCHORS.items():
-        relpath, symbol = k.split("::")
-        old = _FROZEN_TEXT[k]
-        new = _inspect.getsource(getattr(CM, symbol))
-        try:
-            same = _norm_around(old, pre, post) == _norm_around(new, pre, post)
-        except ValueError as exc:
-            same = False
-            print("     锚点缺失：%r" % (exc,))
-        check("`%s`：挂载块前后文本逐字相等（只换挂载动作）" % symbol, same)
+# ★ 2026-09-19 删除：`test_mount_only` 及其专用件（`_NORM_ANCHORS` / `_norm_around`）已移除。
+#   该检查的证明前提是「这些动作体除挂载块外**文本逐字不变**」—— 那是 v1.81 移植作业的验收口径
+#   （作业书 §2）。文案迁移在动作体内**有意**改了 40 处 `logs.*` 行 ⇒ 前提不成立。
+#   等价性保证改由两处承担（不必再留一个前提已失效、只能靠软兜底变绿的检查）：
+#     · `_PIN["aux"]` 全等（`test_aux` / `_probe_action_bodies`）—— 任何偏离必须先重生并登记
+#     · 迁移侧独立对拍「表 value 的 {槽位} 顺序 == 新代码 kwarg 顺序」（44/44）
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -963,7 +950,6 @@ def main() -> int:
     test_probes()
     test_divergences()
     test_teeth()
-    test_mount_only()
     _check_readonly(before)
     print("\n%s\n结果：通过 %d / 共 %d" % ("-" * 46, PASS, PASS + FAIL))
     if FAILURES:

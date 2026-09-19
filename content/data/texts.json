@@ -2219,6 +2219,127 @@
     "category": "编年史",
     "desc": "搬自 content/world_cmds.py:chronicle（B 批 C 档）"
   },
+  "cmech.bar_decay_half": {
+    "value": "🎯 {label}：破绽衰减减半（{before:g} → {after:g}）",
+    "params": [
+      "label",
+      "before",
+      "after"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_bar_decay_half（B 批 C 档）"
+  },
+  "cmech.bar_extend": {
+    "value": "✨ {label}：破防持续 +{ext} 刻！",
+    "params": [
+      "label",
+      "ext"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_bar_extend（B 批 C 档）"
+  },
+  "cmech.cash_dmg_mult": {
+    "value": "{icon} {label}！{keys} {n:g} {unit}，伤害 ×{mult:.2f}",
+    "params": [
+      "icon",
+      "label",
+      "keys",
+      "n",
+      "unit",
+      "mult"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:mech_cash_dmg_mult（B 批 C 档）"
+  },
+  "cmech.cash_per_system": {
+    "value": "{icon} {label}！结算 {systems}，伤害 ×{factor:.2f}",
+    "params": [
+      "icon",
+      "label",
+      "systems",
+      "factor"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:mech_cash_per_system_mult（B 批 C 档）"
+  },
+  "cmech.cc_break": {
+    "value": "🛡️ {label}：消耗 {cost} 层战意挣脱控制！",
+    "params": [
+      "label",
+      "cost"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_cc_break（B 批 C 档）"
+  },
+  "cmech.cc_clear": {
+    "value": "🛡️ {label}：免疫【{ctrl}】！",
+    "params": [
+      "label",
+      "ctrl"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_cc_clear（B 批 C 档）"
+  },
+  "cmech.counter_hit": {
+    "value": "⚔️ 反击！对【{name}】造成 {dmg} 点伤害！",
+    "params": [
+      "name",
+      "dmg"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_counter（B 批 C 档）"
+  },
+  "cmech.ctrl_extend": {
+    "value": "🎵 {label}：挽歌延长【{ctrl}】控制 +{add} 刻！",
+    "params": [
+      "label",
+      "ctrl",
+      "add"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_ctrl_extend（B 批 C 档）"
+  },
+  "cmech.dot_mult": {
+    "value": "☠️ {label}：DOT 伤害 ×{mult:.2f}！",
+    "params": [
+      "label",
+      "mult"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_dot_mult（B 批 C 档）"
+  },
+  "cmech.elem_core_crit": {
+    "value": "✨ {label}：元素核心，结算暴击 +{pct}%！",
+    "params": [
+      "label",
+      "pct"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_element_core_crit（B 批 C 档）"
+  },
+  "cmech.faith_overload_heal": {
+    "value": "⚡ 信仰过载！圣光迸发，全员回复 {healed} 点生命！",
+    "params": [
+      "healed"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_faith_overload（B 批 C 档）"
+  },
+  "cmech.faith_overload_zero": {
+    "value": "⚡ 信仰过载！信念归零（全员生命已满）！",
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_faith_overload（B 批 C 档）"
+  },
+  "cmech.faith_tier_heal": {
+    "value": "✨ 信仰{label}！治疗 ×{mult:.2f}（{cur:g} 层）",
+    "params": [
+      "label",
+      "mult",
+      "cur"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_faith_load_tier（B 批 C 档）"
+  },
   "cmech.finale_buff_all": {
     "value": "💥 终章！全队获得爆发增益（{turns} 刻）！",
     "params": [
@@ -2245,6 +2366,171 @@
     "category": "职业机制",
     "desc": "搬自 content/class_mech.py:_melody_finale（B 批 C 档）"
   },
+  "cmech.finisher_crit_ready": {
+    "value": "🔪 连段达 {n} 段 → 终结技必定暴击！",
+    "params": [
+      "n"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:mech_cash_finisher_crit（B 批 C 档）"
+  },
+  "cmech.fury_enter": {
+    "value": "🔥 {label}！战士进入狂暴状态，攻击 +20%！",
+    "params": [
+      "label"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:mech_cash_fury_enter（B 批 C 档）"
+  },
+  "cmech.fury_short": {
+    "value": "🔥 战意不足（{cur}/{cost}），无法进入狂暴！",
+    "params": [
+      "cur",
+      "cost"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:mech_cash_fury_enter（B 批 C 档）"
+  },
+  "cmech.guard_stance_enter": {
+    "value": "🪨 进入{name}：受伤 −{pct}%（{turns} 刻）！",
+    "params": [
+      "name",
+      "pct",
+      "turns"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_guard_stance_enter（B 批 C 档）"
+  },
+  "cmech.heal_overflow_shield": {
+    "value": "🛡️ {label}：治疗溢出 {overflow}，转化护盾 {val} 点！",
+    "params": [
+      "label",
+      "overflow",
+      "val"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_heal_overflow_shield（B 批 C 档）"
+  },
+  "cmech.lian_duan_soft": {
+    "value": "🌑 {label}：断连只损 {lose} 段（{cur} → {nv}）",
+    "params": [
+      "label",
+      "lose",
+      "cur",
+      "nv"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_lian_duan_soft（B 批 C 档）"
+  },
+  "cmech.low_hp_core": {
+    "value": "🪨 {label}：绝境补磐核 +{cores:g}（{n}/{cap}）！",
+    "params": [
+      "label",
+      "cores",
+      "n",
+      "cap"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_low_hp_core（B 批 C 档）"
+  },
+  "cmech.mark_affinity": {
+    "value": "✨ {label}：元素亲和，挂印 +1 层！",
+    "params": [
+      "label"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_mark_enhance（B 批 C 档）"
+  },
+  "cmech.mark_sync": {
+    "value": "✨ {label}：元素同调，挂印 +1 层！",
+    "params": [
+      "label"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_mark_enhance（B 批 C 档）"
+  },
+  "cmech.melody_chant": {
+    "value": "🎵 吟唱回旋，【{name}】强度 +1（{stacks}/{max}）！",
+    "params": [
+      "name",
+      "stacks",
+      "max"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_melody_act（B 批 C 档）"
+  },
+  "cmech.melody_dirge_silence": {
+    "value": "🎵 挽歌低沉：敌方技能被封（每 4 刻至多 1 次）！",
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_melody_dirge_tick（B 批 C 档）"
+  },
+  "cmech.melody_duet": {
+    "value": "🎶 {label}：二重唱，旋律强度额外 +{add}！（{stacks}/{max}）",
+    "params": [
+      "label",
+      "add",
+      "stacks",
+      "max"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_melody_duet（B 批 C 档）"
+  },
+  "cmech.melody_none": {
+    "value": "🎵 尚无旋律奏响——先唱一首歌吧！（战歌/守歌/疾歌）",
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_melody_act（B 批 C 档）"
+  },
+  "cmech.melody_peak": {
+    "value": "🎵 旋律已至巅峰（{max} 层）——此曲无终章，保持最强音吧",
+    "params": [
+      "max"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_melody_act（B 批 C 档）"
+  },
+  "cmech.overflow_shield": {
+    "value": "🪨 {label}：承伤转化 {val} 点护盾！",
+    "params": [
+      "label",
+      "val"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_overflow_shield（B 批 C 档）"
+  },
+  "cmech.passive_crit_add": {
+    "value": "✨ 被动生效：暴击 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_cond_crit（B 批 C 档）"
+  },
+  "cmech.passive_dmg_mult": {
+    "value": "✨ 被动生效：伤害 ×{mult:.2f}！",
+    "params": [
+      "mult"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_dmg_mult（B 批 C 档）"
+  },
+  "cmech.poison_spread": {
+    "value": "☠️ {label}：毒层扩散至 {spread} 名相邻敌人（{n} 层）！",
+    "params": [
+      "label",
+      "spread",
+      "n"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_poison_spread（B 批 C 档）"
+  },
+  "cmech.poison_weaken": {
+    "value": "🐍 {label}：剧毒缠身，目标减速降防！",
+    "params": [
+      "label"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_poison_weaken（B 批 C 档）"
+  },
   "cmech.res_clear_zero": {
     "value": "🔗 {keys} 归零",
     "params": [
@@ -2252,6 +2538,74 @@
     ],
     "category": "职业机制",
     "desc": "搬自 content/class_mech.py:_clear_actor（B 批 C 档）"
+  },
+  "cmech.res_gain_turn": {
+    "value": "🔮 {label}：奥术充能自动回复 {gain}（{n:g}/{cap}）",
+    "params": [
+      "label",
+      "gain",
+      "n",
+      "cap"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_res_gain_turn（B 批 C 档）"
+  },
+  "cmech.revive_berserk": {
+    "value": "🔥 {label}：怒意未熄，战士复活！回复 {hp} 生命",
+    "params": [
+      "label",
+      "hp"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_revive_berserk（B 批 C 档）"
+  },
+  "cmech.revive_guard": {
+    "value": "🛡️ {label}：铁誓加身，致命伤被免疫！",
+    "params": [
+      "label"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_revive_guard（B 批 C 档）"
+  },
+  "cmech.shadow_enter": {
+    "value": "🌫️ 踏入影舞之境！技能 CD −20%，如影随形！",
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_shadow_dance_enter（B 批 C 档）"
+  },
+  "cmech.shadow_short": {
+    "value": "🌫️ 连段不足（{cur}/{req}），无法进入影舞态！",
+    "params": [
+      "cur",
+      "req"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_shadow_dance_enter（B 批 C 档）"
+  },
+  "cmech.stance_counter_hit": {
+    "value": "🛡️ 守护反击！对【{name}】造成 {dmg} 点伤害！",
+    "params": [
+      "name",
+      "dmg"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_stance_counter（B 批 C 档）"
+  },
+  "cmech.stance_guard_enter": {
+    "value": "🛡️ 进入守护姿态：受击反击 40%（{turns} 刻）！",
+    "params": [
+      "turns"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:class_stance_guard_enter（B 批 C 档）"
+  },
+  "cmech.taken_reduce": {
+    "value": "🛡️ {label}：减伤 {pct}% 生效！",
+    "params": [
+      "label",
+      "pct"
+    ],
+    "category": "职业机制",
+    "desc": "搬自 content/class_mech.py:passive_taken_reduce（B 批 C 档）"
   },
   "collect.claim_done": {
     "value": "📖 {name} 集齐奖励已经领取过啦，不能重复领取～",

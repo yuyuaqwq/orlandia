@@ -534,7 +534,7 @@ def mech_cash_finisher_crit(battle, caster, target, params, logs):
     apply_action(battle, actor, actor, "apply",
                  {"key": hit_key, "turns": 1, "on": "caster",
                   "hit": {"guaranteed_crit": True}}, logs)
-    logs.append(f"🔪 连段达 {int(cur)} 段 → 终结技必定暴击！")
+    logs.append(_T.text("cmech.finisher_crit_ready", n=int(cur)))
 
 
 @register_action("mech_cash_dmg_mult")
@@ -560,7 +560,8 @@ def mech_cash_dmg_mult(battle, caster, target, params, logs):
     icon = params.get("icon") or "💥"
     layer_label = params.get("layer_label") or "、".join(_key_list(params.get("key")))
     unit = params.get("unit") or "层"
-    logs.append(f"{icon} {label}！{layer_label} {n:g} {unit}，伤害 ×{mult:.2f}")
+    logs.append(_T.text("cmech.cash_dmg_mult", icon=icon, label=label, keys=layer_label, n=n, unit=unit,
+                    mult=mult))
 
 
 @register_action("mech_cash_clear")
@@ -616,7 +617,8 @@ def mech_cash_per_system_mult(battle, caster, target, params, logs):
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * factor
     label = params.get("label") or params.get("mech") or ""
     icon = params.get("icon") or "💥"
-    logs.append(f"{icon} {label}！结算 {'、'.join(hit_systems)}，伤害 ×{factor:.2f}")
+    logs.append(_T.text("cmech.cash_per_system", icon=icon, label=label, systems='、'.join(hit_systems),
+                    factor=factor))
 
 
 @register_action("class_res_channel_gain")
@@ -729,7 +731,7 @@ def class_faith_load_tier(battle, caster, target, params, logs):
             label = str(_last.get("label") or "")
     if mult != 1.0:
         ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
-        logs.append(f"✨ 信仰{label or '专注'}！治疗 ×{mult:.2f}（{cur:g} 层）")
+        logs.append(_T.text("cmech.faith_tier_heal", label=label or '专注', mult=mult, cur=cur))
 
 
 @register_action("class_faith_overload")
@@ -802,8 +804,8 @@ def class_faith_overload(battle, caster, target, params, logs):
         _real = heal_actor(battle, _a, _val, logs)
         if _real > 0:
             healed += _real
-    logs.append(f"⚡ 信仰过载！圣光迸发，全员回复 {healed} 点生命！"
-                if healed > 0 else "⚡ 信仰过载！信念归零（全员生命已满）！")
+    logs.append(_T.text("cmech.faith_overload_heal", healed=healed)
+                if healed > 0 else _T.static("cmech.faith_overload_zero"))
 
 
 @register_action("class_melody_act")
@@ -842,7 +844,7 @@ def class_melody_act(battle, caster, target, params, logs):
         return
     state = ef.get("melody_state")
     if not isinstance(state, dict) or not state.get("kind"):
-        logs.append("🎵 尚无旋律奏响——先唱一首歌吧！（战歌/守歌/疾歌）")
+        logs.append(_T.static("cmech.melody_none"))
         return
     stack = int(state.get("stacks") or 1)
     _fin_tok = state.get("fin_kind") or ""
@@ -854,12 +856,12 @@ def class_melody_act(battle, caster, target, params, logs):
             state["stacks"] = 1
             _melody_write_aura(battle, actor, logs)
         else:
-            logs.append(f"🎵 旋律已至巅峰（{_MELODY_MAX_STACK} 层）——此曲无终章，保持最强音吧")
+            logs.append(_T.text("cmech.melody_peak", max=_MELODY_MAX_STACK))
         return
     state["stacks"] = stack + 1
     _melody_write_aura(battle, actor, logs)
-    logs.append(f"🎵 吟唱回旋，【{state.get('name')}】强度 +1"
-                f"（{state['stacks']}/{_MELODY_MAX_STACK}）！")
+    logs.append(_T.text("cmech.melody_chant", name=state.get('name'), stacks=state['stacks'],
+                    max=_MELODY_MAX_STACK))
 
 
 @register_action("passive_melody_duet")
@@ -890,8 +892,8 @@ def passive_melody_duet(battle, caster, target, params, logs):
         return
     state["stacks"] = min(_MELODY_MAX_STACK, int(state.get("stacks", 0) or 0) + add)
     _melody_write_aura(battle, actor, logs)
-    logs.append(f"🎶 {params.get('label') or '二重唱'}：二重唱，旋律强度额外 +{add}！"
-                f"（{state['stacks']}/{_MELODY_MAX_STACK}）")
+    logs.append(_T.text("cmech.melody_duet", label=params.get('label') or '二重唱', add=add,
+                    stacks=state['stacks'], max=_MELODY_MAX_STACK))
 
 
 @register_action("class_melody_dirge_tick")
@@ -924,7 +926,7 @@ def class_melody_dirge_tick(battle, caster, target, params, logs):
     for _foe in _melody_side_actors(battle, host, True):
         _melody_ctrl_apply(battle, host, _foe, "silence",
                            int(_MELODY_SILENCE_TICK), logs)
-    logs.append("🎵 挽歌低沉：敌方技能被封（每 4 刻至多 1 次）！")
+    logs.append(_T.static("cmech.melody_dirge_silence"))
 
 
 @register_action("passive_ctrl_extend")
@@ -978,8 +980,7 @@ def passive_ctrl_extend(battle, caster, target, params, logs):
             if exp is None or float(exp) <= now:
                 continue  # 无到期/已过期 → 非生效控制
             entry["expire"] = float(exp) + add
-            logs.append(f"🎵 {params.get('label') or '镇魂安魂'}："
-                        f"挽歌延长【{_ck}】控制 +{int(add)} 刻！")
+            logs.append(_T.text("cmech.ctrl_extend", label=params.get('label') or '镇魂安魂', ctrl=_ck, add=int(add)))
             return
 
 
@@ -1099,7 +1100,7 @@ def passive_dmg_mult(battle, caster, target, params, logs):
     if not ok or mult <= 0:
         return
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + mult)
-    logs.append(f"✨ 被动生效：伤害 ×{1.0 + mult:.2f}！")
+    logs.append(_T.text("cmech.passive_dmg_mult", mult=1.0 + mult))
 
 
 @register_action("passive_bar_extend")
@@ -1135,7 +1136,7 @@ def passive_bar_extend(battle, caster, target, params, logs):
     if float(bs.get("immune_until", 0.0) or 0.0) <= _now:
         return
     bs["immune_until"] = float(bs.get("immune_until", 0.0) or 0.0) + ext
-    logs.append(f"✨ {params.get('label') or '被动'}：破防持续 +{int(ext)} 刻！")
+    logs.append(_T.text("cmech.bar_extend", label=params.get('label') or '被动', ext=int(ext)))
 
 
 @register_action("passive_kill_gain")
@@ -1184,7 +1185,7 @@ def passive_counter(battle, caster, target, params, logs):
         dmg = max(1, int(float(st.get("atk", 0) or 0)
                            * float(params.get("atk_pct") or 0.80)))
         deal_damage(battle, owner, attacker, dmg, logs)
-        logs.append(f"⚔️ 反击！对【{attacker.get('name', '敌人')}】造成 {dmg} 点伤害！")
+        logs.append(_T.text("cmech.counter_hit", name=attacker.get('name', '敌人'), dmg=dmg))
     except Exception:
         pass  # 反击异常不阻断受击落地
 
@@ -1244,7 +1245,7 @@ def passive_cond_crit(battle, caster, target, params, logs):
         # 命中 → 重写 buff（防多次行动叠加/陈旧值）
         ef[buff_key] = {"stacks": 1, "stat": "crit", "mult": add,
                         "op": "add", "expire": None}
-        logs.append(f"✨ 被动生效：暴击 +{int(add * 100)}%！")
+        logs.append(_T.text("cmech.passive_crit_add", pct=int(add * 100)))
     else:
         ef.pop(buff_key, None)
 
@@ -1290,7 +1291,7 @@ def passive_taken_reduce(battle, caster, target, params, logs):
         else:
             return  # 未知 judge kind = fail-closed
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 - min(reduce_v, 0.9))
-    logs.append(f"🛡️ {params.get('label') or '被动'}：减伤 {int(reduce_v * 100)}% 生效！")
+    logs.append(_T.text("cmech.taken_reduce", label=params.get('label') or '被动', pct=int(reduce_v * 100)))
 
 
 @register_action("passive_cc_clear")
@@ -1315,7 +1316,7 @@ def passive_cc_clear(battle, caster, target, params, logs):
     entry = ef.get(ctrl)
     if isinstance(entry, dict) and entry.get("mode") == "skip":
         ef.pop(ctrl, None)
-        logs.append(f"🛡️ {params.get('label') or '被动'}：免疫【{ctrl}】！")
+        logs.append(_T.text("cmech.cc_clear", label=params.get('label') or '被动', ctrl=ctrl))
 
 
 @register_action("passive_cc_break")
@@ -1356,7 +1357,7 @@ def passive_cc_break(battle, caster, target, params, logs):
     if left_key and isinstance(_le, dict):
         _le["stacks"] = left - 1
     ef.pop(hit_ctrl, None)
-    logs.append(f"🛡️ {params.get('label') or '被动'}：消耗 {int(cost)} 层战意挣脱控制！")
+    logs.append(_T.text("cmech.cc_break", label=params.get('label') or '被动', cost=int(cost)))
 
 
 @register_action("passive_lifesteal_buff")
@@ -1432,7 +1433,8 @@ def passive_heal_overflow_shield(battle, caster, target, params, logs):
             cur["expire_at"] = max(float(cur.get("expire_at", 0) or 0), expire)
     else:
         sh[key] = {"value": val, "expire_at": expire, "halve": False}
-    logs.append(f"🛡️ {params.get('label') or '被动'}：治疗溢出 {overflow}，转化护盾 {val} 点！")
+    logs.append(_T.text("cmech.heal_overflow_shield", label=params.get('label') or '被动', overflow=overflow,
+                    val=val))
 
 
 @register_action("mech_cash_fury_enter")
@@ -1461,11 +1463,11 @@ def mech_cash_fury_enter(battle, caster, target, params, logs):
     _entry = ef.get(res)
     cur = float(_entry.get("stacks", 0) or 0) if isinstance(_entry, dict) else 0.0
     if cur < cost:
-        logs.append(f"🔥 战意不足（{int(cur)}/{cost}），无法进入狂暴！")
+        logs.append(_T.text("cmech.fury_short", cur=int(cur), cost=cost))
         return
     _entry["stacks"] = max(0, cur - cost)
     owner.setdefault("effects", {})["fury"] = {"stacks": 1, "expire": None}
-    logs.append(f"🔥 {params.get('label') or '狂暴'}！战士进入狂暴状态，攻击 +20%！")
+    logs.append(_T.text("cmech.fury_enter", label=params.get('label') or '狂暴'))
 
 
 @register_action("passive_dot_mult")
@@ -1491,7 +1493,7 @@ def passive_dot_mult(battle, caster, target, params, logs):
     if mult <= 0:
         return  # 缺字段 = 无此行为
     ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + mult)
-    logs.append(f"☠️ {params.get('label') or '被动'}：DOT 伤害 ×{1.0 + mult:.2f}！")
+    logs.append(_T.text("cmech.dot_mult", label=params.get('label') or '被动', mult=1.0 + mult))
 
 
 @register_action("passive_poison_weaken")
@@ -1537,7 +1539,7 @@ def passive_poison_weaken(battle, caster, target, params, logs):
     if def_pct > 0:
         ef["def_down"] = {"stat": "def", "op": "mul", "mult": 1.0 - def_pct,
                           "expire": exp}
-    logs.append(f"🐍 {params.get('label') or '被动'}：剧毒缠身，目标减速降防！")
+    logs.append(_T.text("cmech.poison_weaken", label=params.get('label') or '被动'))
 
 
 @register_action("class_shadow_dance_enter")
@@ -1558,10 +1560,10 @@ def class_shadow_dance_enter(battle, caster, target, params, logs):
     #   （态内 CD −20%）与影舞态自带 cd_mult 0.8 重复，已改词为门槛放宽。
     _req = int(_learned_proc_param(actor, "shadow_dance_ease", "threshold", 5) or 5)
     if n < _req:
-        logs.append(f"🌫️ 连段不足（{int(n)}/{_req}），无法进入影舞态！")
+        logs.append(_T.text("cmech.shadow_short", cur=int(n), req=_req))
         return
     actor.setdefault("effects", {})["shadow_dance"] = {"stacks": 1, "expire": None}
-    logs.append("🌫️ 踏入影舞之境！技能 CD −20%，如影随形！")
+    logs.append(_T.static("cmech.shadow_enter"))
 
 
 @register_action("class_stance_guard_enter")
@@ -1587,7 +1589,7 @@ def class_stance_guard_enter(battle, caster, target, params, logs):
     _DECL_TYPE.mount(actor, {"on_taken": [{"type": "class_stance_counter", "chance": 0.40,
                                            "atk_pct": 1.0, "label": "守护姿态"}]},
                      merge="keep")
-    logs.append(f"🛡️ 进入守护姿态：受击反击 40%（{turns} 刻）！")
+    logs.append(_T.text("cmech.stance_guard_enter", turns=turns))
 
 
 @register_action("class_stance_counter")
@@ -1614,7 +1616,7 @@ def class_stance_counter(battle, caster, target, params, logs):
         dmg = max(1, int(float(st.get("atk", 0) or 0)
                            * float(params.get("atk_pct") or 1.0)))
         deal_damage(battle, owner, attacker, dmg, logs)
-        logs.append(f"🛡️ 守护反击！对【{attacker.get('name', '敌人')}】造成 {dmg} 点伤害！")
+        logs.append(_T.text("cmech.stance_counter_hit", name=attacker.get('name', '敌人'), dmg=dmg))
     except Exception:
         pass
 
@@ -1660,7 +1662,8 @@ def class_guard_stance_enter(battle, caster, target, params, logs):
              "judge": {"kind": "has_effect", "key": key},
              "reduce": reduce_v, "label": cfg.get("name") or key}]},
             merge="keep")
-    logs.append(f"🪨 进入{cfg.get('name') or key}：受伤 −{int(reduce_v * 100)}%（{turns} 刻）！")
+    logs.append(_T.text("cmech.guard_stance_enter", name=cfg.get('name') or key, pct=int(reduce_v * 100),
+                    turns=turns))
 
 
 @register_action("passive_low_hp_core")
@@ -1699,8 +1702,8 @@ def passive_low_hp_core(battle, caster, target, params, logs):
         entry = ef[res] = {}
     entry["stacks"] = _ns(n)
     ef[used_key] = {"stacks": 1, "expire": None}
-    logs.append(f"🪨 {params.get('label') or '不动如山'}：绝境补磐核 +{_ns(cores):g}"
-                f"（{_ns(n)}/{cap}）！")
+    logs.append(_T.text("cmech.low_hp_core", label=params.get('label') or '不动如山', cores=_ns(cores), n=_ns(n),
+                    cap=cap))
 
 
 @register_action("passive_overflow_shield")
@@ -1749,7 +1752,7 @@ def passive_overflow_shield(battle, caster, target, params, logs):
             cur["expire_at"] = max(float(cur.get("expire_at", 0) or 0), now + turns)
     else:
         sh[key] = {"value": val, "expire_at": now + turns, "halve": False}
-    logs.append(f"🪨 {params.get('label') or '磐石之心'}：承伤转化 {val} 点护盾！")
+    logs.append(_T.text("cmech.overflow_shield", label=params.get('label') or '磐石之心', val=val))
 
 
 @register_action("passive_shadow_buff")
@@ -1806,7 +1809,7 @@ def passive_res_gain_turn(battle, caster, target, params, logs):
     n = min(float(cap), cur + gain)
     if n > cur:
         entry["stacks"] = n
-        logs.append(f"🔮 {params.get('label') or '被动'}：奥术充能自动回复 {int(gain)}（{n:g}/{cap}）")
+        logs.append(_T.text("cmech.res_gain_turn", label=params.get('label') or '被动', gain=int(gain), n=n, cap=cap))
 
 
 @register_action("passive_revive_guard")
@@ -1842,7 +1845,7 @@ def passive_revive_guard(battle, caster, target, params, logs):
             ka.remove(owner)
     except Exception:
         pass
-    logs.append(f"🛡️ {params.get('label') or '铁誓·不动'}：铁誓加身，致命伤被免疫！")
+    logs.append(_T.text("cmech.revive_guard", label=params.get('label') or '铁誓·不动'))
 
 
 @register_action("passive_revive_berserk")
@@ -1882,7 +1885,7 @@ def passive_revive_berserk(battle, caster, target, params, logs):
             ka.remove(owner)
     except Exception:
         pass
-    logs.append(f"🔥 {params.get('label') or '血怒·不灭'}：怒意未熄，战士复活！回复 {int(mhp * hp_pct)} 生命")
+    logs.append(_T.text("cmech.revive_berserk", label=params.get('label') or '血怒·不灭', hp=int(mhp * hp_pct)))
 
 
 @register_action("passive_mark_enhance")
@@ -1921,7 +1924,7 @@ def passive_mark_enhance(battle, caster, target, params, logs):
         if tgt is None:
             return
         _add_mark(tgt, mech, 1)
-        logs.append(f"✨ {params.get('label') or '被动'}：元素亲和，挂印 +1 层！")
+        logs.append(_T.text("cmech.mark_affinity", label=params.get('label') or '被动'))
         return
     if mode == "sync":
         if is_mark:
@@ -1931,7 +1934,7 @@ def passive_mark_enhance(battle, caster, target, params, logs):
             tgt = _act_target(battle, ctx, actor, target)
             if last == mech and tgt is not None:
                 _add_mark(tgt, mech, 1)
-                logs.append(f"✨ {params.get('label') or '被动'}：元素同调，挂印 +1 层！")
+                logs.append(_T.text("cmech.mark_sync", label=params.get('label') or '被动'))
         elif not is_burst:
             # 非元素施法（普攻/其他系）打断连续记录
             (actor.get("effects") or {}).pop("_elem_last_mark", None)
@@ -1974,7 +1977,7 @@ def passive_element_core_crit(battle, caster, target, params, logs):
     actor.setdefault("effects", {})[buff_key] = {"stacks": 1, "stat": "crit",
                                                  "mult": add, "op": "add",
                                                  "expire": None}
-    logs.append(f"✨ {params.get('label') or '被动'}：元素核心，结算暴击 +{int(add * 100)}%！")
+    logs.append(_T.text("cmech.elem_core_crit", label=params.get('label') or '被动', pct=int(add * 100)))
 
 
 @register_action("passive_bar_decay_half")
@@ -2023,8 +2026,8 @@ def passive_bar_decay_half(battle, caster, target, params, logs):
             _tick[id(host)] = now
             nv = float(bs.get("val", 0.0) or 0.0) + refund
             bs["val"] = min(cap, nv) if cap > 0 else nv
-            logs.append(f"🎯 {params.get('label') or '破绽感知'}：破绽衰减减半"
-                        f"（{before:g} → {bs['val']:g}）")
+            logs.append(_T.text("cmech.bar_decay_half", label=params.get('label') or '破绽感知', before=before,
+                            after=bs['val']))
 
 
 @register_action("passive_lian_duan_soft")
@@ -2074,8 +2077,8 @@ def passive_lian_duan_soft(battle, caster, target, params, logs):
     nv = norm_stack(max(0.0, cur - lose))
     entry["stacks"] = nv
     ef[rec_key] = {"t": now}   # 断连已结算 → 重开窗（防每刻连续掉段）
-    logs.append(f"🌑 {params.get('label') or '暗影之心'}：断连只损 {int(lose)} 段"
-                f"（{int(cur)} → {int(nv)}）")
+    logs.append(_T.text("cmech.lian_duan_soft", label=params.get('label') or '暗影之心', lose=int(lose),
+                    cur=int(cur), nv=int(nv)))
 
 
 @register_action("passive_poison_spread")
@@ -2134,8 +2137,7 @@ def passive_poison_spread(battle, caster, target, params, logs):
                   {"key": key, "op": "add", "amount": n, "on": "target"}, logs)
         spread += 1
     if spread > 0:
-        logs.append(f"☠️ {params.get('label') or '毒刃·共鸣'}：毒层扩散至 "
-                    f"{spread} 名相邻敌人（{n} 层）！")
+        logs.append(_T.text("cmech.poison_spread", label=params.get('label') or '毒刃·共鸣', spread=spread, n=n))
 
 __all__ = [
     "mech_cash_finisher_crit",
