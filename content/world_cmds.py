@@ -662,17 +662,6 @@ async def map_view(self, event: AstrMessageEvent, group_id, qq_id, player):
             if _sa["id"] == cur_sa:
                 sa_now = _sa["name"]
                 break
-    # v87.3 标题修复：地图名 + 当前子区域（不再重复"橡木镇 · 橡木镇"）
-    title = cur_map["name"]
-    if sa_now:
-        title = f"{cur_map['name']} · {sa_now}"
-    # v87.13 描述优先显示当前子区域（子区域无 desc 时回退地图 desc）
-    sa_desc = ""
-    if cur_sa:
-        for _sa in (cur_map.get("subareas") or []):
-            if _sa["id"] == cur_sa:
-                sa_desc = _sa.get("desc", "") or ""
-                break
     lines = self._map_nav_body(player, cur_map, cur_sa, group_id, qq_id)
     # v134.3 赶路模式精简：move_mode 开启时『地图』只显示可前往；带 hurry_type
     # 参数才显示对应类型区（与 _subarea_arrive 同规则，鱼鱼拍板）
@@ -4181,10 +4170,6 @@ async def camp_shop(self, event: AstrMessageEvent):
     if cur:
         c = FACTION_CAMPS[cur]
         head = _T.text("campshop.panel_head", icon=c['icon'], name=c['name'], contrib=contrib)
-    curf = FACTION_CAMPS.get(cur) if cur else None
-    if not cur:
-        curf = None
-
     # 列表
     if not raw:
         lines = [head, "━━━━━━━━━━━━"]

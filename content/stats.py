@@ -140,7 +140,7 @@ def _stage_mult(segments: tuple, lv: int) -> float:
     if not segments:
         return 1.0
     # 首段：≤ max_lv 用首段末值（首段斜率 0 = 恒定）
-    first_max, first_v = segments[0][0], 1.0
+    first_max = segments[0][0]
     if lv <= first_max:
         return 1.0
     mult = 1.0

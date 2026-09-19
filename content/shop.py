@@ -284,7 +284,7 @@ def sell_one(group_id, qq_id, player, it, rate, *, is_smith_shop_=None, at_shop=
             gold = sum(int(price * (0.5 + (t.get("weight") or 0) / _wmax)) for t in _tags if isinstance(t, dict))
             gold += (it["count"] - len(_tags)) * price
     # F1 P0-2：原子出售（单事务：校验货存→加金币→扣包），替代原两步独立 commit
-    ok = db.sell_item_atomic(group_id, qq_id, it["key"], it["count"], gold)
+    db.sell_item_atomic(group_id, qq_id, it["key"], it["count"], gold)
     return (d["name"], it["count"], gold)
 
 

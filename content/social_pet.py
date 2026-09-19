@@ -131,7 +131,7 @@ def pet_view(qq_id):
         skill_line = _T.static("pet.skill_dead")
     lines = [
         _T.text("pet.header", icon=icon, name=pdef['name'] if pdef else pet['name']),
-        f"━━━━━━━━━━━━",
+        "━━━━━━━━━━━━",
         _T.text("pet.name_line", name=pet['name'], lv=pet['level'], max=_b143.PET_MAX_LEVEL),
     ]
     # v101.14 品质/出处展示

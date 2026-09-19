@@ -766,34 +766,34 @@ def settle_fishing(group_id, qq_id, st, *, hooks=None,
     _pet_egg_line = ""
     if fq == "orange" and random.random() < _cc.PET_EGG_ORANGE_CHANCE:
         egg = C.make_pet_egg("pet_rabbit")
-        db.add_item(group_id, qq_id, f"petegg_pet_rabbit", egg)
+        db.add_item(group_id, qq_id, "petegg_pet_rabbit", egg)
         _pet_egg_line = _T.text("fish.egg_rabbit", name=egg['name'])
     # v101.15 生活渠道：垂钓品质档特殊产出（稀缺品走生活渠道，不走战斗掉落）
     _life_line = ""
     if fq == "blue":
         if random.random() < 0.08:  # 铁壳龟蛋
             egg = C.make_pet_egg("pet_turtle")
-            db.add_item(group_id, qq_id, f"petegg_pet_turtle", egg)
+            db.add_item(group_id, qq_id, "petegg_pet_turtle", egg)
             _life_line += _T.text("fish.egg_turtle", name=egg['name'])
         if random.random() < 0.05:  # 圣光鸽蛋
             egg = C.make_pet_egg("pet_dove")
-            db.add_item(group_id, qq_id, f"petegg_pet_dove", egg)
+            db.add_item(group_id, qq_id, "petegg_pet_dove", egg)
             _life_line += _T.text("fish.egg_dove", name=egg['name'])
         # v110 审计修复：驼马缰绳档位对齐 31 章设计（稀有级 blue 垂钓 5%）——
         # 原实现错标 purple 档（史诗档出绿色坐骑缰绳，档位与坐骑品质倒挂）
         if random.random() < 0.05:  # 铁港驼马缰绳
             rein = C.make_mount_rein("mount_camel")
-            db.add_item(group_id, qq_id, f"mountrein_mount_camel", rein)
+            db.add_item(group_id, qq_id, "mountrein_mount_camel", rein)
             _life_line += _T.text("fish.rein_camel", name=rein['name'])
     # v110 审计修复：purple 档原驼马条目已移入 blue 档（档位对齐 31 章设计），此档暂空
     elif fq == "orange":
         if random.random() < 0.08:  # 森林独角兽缰绳
             rein = C.make_mount_rein("mount_unicorn")
-            db.add_item(group_id, qq_id, f"mountrein_mount_unicorn", rein)
+            db.add_item(group_id, qq_id, "mountrein_mount_unicorn", rein)
             _life_line += _T.text("fish.rein_unicorn", name=rein['name'])
         if random.random() < 0.08:  # 星灵蝶蛋
             egg = C.make_pet_egg("pet_starbutterfly")
-            db.add_item(group_id, qq_id, f"petegg_pet_starbutterfly", egg)
+            db.add_item(group_id, qq_id, "petegg_pet_starbutterfly", egg)
             _life_line += _T.text("fish.egg_star", name=egg['name'])
     # v101.13 坐骑 fish_bonus：概率额外多一条（骑乘钓鱼类坐骑）
     _mount_fish_line = ""

@@ -710,7 +710,6 @@ def next_step_hint(host, group_id, qq_id, player, monster) -> str:
 def nearest_town(host, cur_map: str) -> str:
     """BFS 找离当前地图最近的城镇（战败回城用；与回城卷轴 economy._nearest_town 同逻辑，M22 P3）。"""
     from collections import deque
-    C = host.C
     if cur_map in _sp.MAP_BY_ID and _sp.MAP_BY_ID[cur_map].get("type") == _cc.MAP_TYPE_TOWN:
         return cur_map
     q = deque([(cur_map, 0)])

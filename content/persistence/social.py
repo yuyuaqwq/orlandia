@@ -337,7 +337,6 @@ def market_buy_atomic(group_id, qq_id, mid):
         b = conn.execute("SELECT gold FROM players WHERE qq_id=?", (qq_id,)).fetchone()
         if not b or b["gold"] < price:
             return False, _T.static("stall.buy_gold_short"), item_name
-        s = conn.execute("SELECT gold FROM players WHERE qq_id=?", (row["seller"],)).fetchone()
         conn.execute("UPDATE players SET gold=gold-? WHERE qq_id=?", (price, qq_id))
         conn.execute("UPDATE players SET gold=gold+? WHERE qq_id=?", (price, row["seller"]))
         conn.execute("DELETE FROM market WHERE id=?", (mid,))

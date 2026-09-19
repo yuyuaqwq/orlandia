@@ -24,7 +24,7 @@ from .catalog_items import RUNES, RUNE_CONFLICTS             # `runes` 域（int
 """奥兰迪亚·余烬纪年数据层 - runes.py"""
 def rune_value(effect: str, lvl: int):
     """符文效果数值：effect + 等级 → 数值(用于战斗结算)"""
-    for name, r in RUNES.items():
+    for r in RUNES.values():
         if r["effect"] == effect:
             return r["lvl"].get(lvl, r["lvl"].get(1, 0))
     return 0

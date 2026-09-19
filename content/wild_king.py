@@ -320,7 +320,6 @@ def wild_king_on_kill(group_id: str, qq_id: str, monster: dict, damage: int = 0,
 
     返回广播文本列表（命令层负责 _broadcast）。重复调用幂等（killed 标记）。
     """
-    kid = monster.get("id", "")
     map_id = monster.get("_wk_map", "") or ""
     st = _load_global()
     if not st.get("kings") or map_id not in st["kings"]:

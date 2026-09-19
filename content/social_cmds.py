@@ -93,7 +93,7 @@ async def maybe_roll_event(group_id: str, broadcast) -> str:
                 _lines = _settle_auction(cur, group_id)
                 if _lines:
                     await broadcast(_T.text("auction.settle_header", lines=_lines))
-            except Exception as _e:                 # noqa: BLE001
+            except Exception:                 # noqa: BLE001
                 pass
         db.clear_world_event()
         cur = None
@@ -133,7 +133,7 @@ async def world_event_run(group_id: str, notice: str, broadcast, host_self):
     if notice.strip():
         try:
             await broadcast(notice.strip(), exclude_group=group_id)
-        except Exception as _e:                     # noqa: BLE001
+        except Exception:                     # noqa: BLE001
             pass
     cur = db.get_world_event()
     now = int(time.time())
@@ -144,7 +144,7 @@ async def world_event_run(group_id: str, notice: str, broadcast, host_self):
     mm, ss = divmod(left, 60)
     lines = [_T.text("wevent.panel_title", icon=evt['icon'], name=evt['name'], mm=mm, ss=ss)
              if evt else _T.static("wevent.panel_title_plain"),
-             f"━━━━━━━━━━━━"]
+             "━━━━━━━━━━━━"]
     if evt:
         lines.append(evt["desc"])
     lines.append("")
@@ -215,7 +215,6 @@ async def bid_run(group_id: str, qq_id: str, player, args, player_lookup, broadc
     `args` = `self._strip_cmd(event, "竞拍").split()`；`player_lookup` = `self._player`。
     """
     cur = db.get_world_event()
-    now = int(time.time())
     if not cur:
         # 过期的拍卖待结算（过期结算+清槽收敛至 services.auction.settle_expired_auction）
         from .auction import settle_expired_auction as _settle_expired_auction

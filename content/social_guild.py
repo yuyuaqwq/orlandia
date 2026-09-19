@@ -413,11 +413,11 @@ def guild_info_lines(group_id, g, members, page_items, page, pages, player_looku
     count = len(members)
     lines = [
         _T.text("guild.title", icon=g['icon'], name=g['name'], level=g['level']),
-        f"━━━━━━━━━━━━",
+        "━━━━━━━━━━━━",
         _T.text("guild.members", count=count, exp=g['exp'], need=exp_need),
         _T.text("guild.desc", desc=g['desc'] or '暂无宣言'),
         _T.text("guild.exp_bonus", pct=guild_exp_bonus_pct(g)),
-        f"━━━━━━━━━━━━",
+        "━━━━━━━━━━━━",
         _T.text("guild.member_head", page=page, pages=pages),
     ]
     for i, m in enumerate(page_items, (page - 1) * per_page + 1):

@@ -188,7 +188,6 @@ def roll_stock(map_id: str, town_lv: int) -> list:
             pools["trinket"].append(rid)
     # 保证货架件数：等级窗口候选不足时逐级放宽（窗口±6→全档低段→全局低段），
     # 品质权重只做倾向（未命中权重品质的槽位直接取候选池首位），不缩水货架数量
-    need_map = {"weapon": 2, "armor": 3, "trinket": 2}
     for _ in range(6):
         if all(len(p) >= n for p, n in ((pools["weapon"], 2), (pools["armor"], 3), (pools["trinket"], 2))):
             break
