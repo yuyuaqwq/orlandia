@@ -64,6 +64,7 @@ from . import catalog_core as _cc          # CLASSES / RACES
 from . import catalog_quests as _cq        # MAIN_QUESTS / SIDE_QUESTS / NPCS / DIALOGUES / TITLES
 from . import catalog_space as _cs         # MAP_BY_ID
 from . import wild as _w                   # ALL_WILD（派生式读口）
+from . import texts as _T              # ★ C 档 29a（2026-09-19）：文案表读口（本文件首次接入）
 
 
 # ============================================================
@@ -423,21 +424,23 @@ def _one_text_of(type_key, obj, prog, st):
     if not obj.get(type_key):
         return None
     if type_key == "kill":
-        return f"击败 {obj['kill']} ×{_OBJECTIVES.need_of(obj, 'kill')}"
+        return _T.text("objline.kill", name=obj['kill'], n=_OBJECTIVES.need_of(obj, 'kill'))
     if type_key == "collect":
         # v125.1 P2：s64 等 collect_count 无 count 的复合目标不再 KeyError
-        return f"收集 {obj['collect']} ×{_OBJECTIVES.need_of(obj, 'collect')}"
+        return _T.text("objline.collect", name=obj['collect'], n=_OBJECTIVES.need_of(obj, 'collect'))
     if type_key == "explore":
-        return f"前往 {_cs.MAP_BY_ID.get(obj['explore'], {}).get('name', '？')}"
+        return _T.text("objline.explore", map=_cs.MAP_BY_ID.get(obj['explore'], {}).get('name', '？'))
     if type_key == "find":
         # v97.1 告示委托：在指定地图探索概率找到目标
-        return f"在 {_cs.MAP_BY_ID.get(obj.get('map', ''), {}).get('name', '？')} 寻找 {obj['find']}(探索有概率遇到)"
+        return _T.text("objline.find_elsewhere",
+                   map=_cs.MAP_BY_ID.get(obj.get('map', ''), {}).get('name', '？'),
+                   name=obj['find'])
     if type_key == "use":
         # v124 use 目标：使用指定物品达成
-        return f"使用 {obj['use']}"
+        return _T.text("objline.use", name=obj['use'])
     if type_key == "talk":
         npc = _cq.NPCS.get(obj["talk"], {})
-        return f"与 {npc.get('name', '？')} 交谈"
+        return _T.text("objline.talk", name=npc.get('name', '？'))
     return None
 
 
@@ -500,7 +503,7 @@ def available_quest_list(player, quests, mq) -> list:
         if giver.get("map") == player["cur_map"]:
             available.append({
                 "name": mq["name"],
-                "line": f"主线『{mq['name']}』（{giver.get('name', '？')}发布）",
+                "line": _T.text("qflow.list_main", name=mq['name'], giver=giver.get('name', '？')),
             })
     for sq in _cq.SIDE_QUESTS:
         if sq["id"] in _side:
@@ -521,7 +524,7 @@ def available_quest_list(player, quests, mq) -> list:
             _lv = f"Lv.{sq['min_level']}+ " if sq.get("min_level") else ""
             available.append({
                 "name": sq["name"],
-                "line": f"支线『{sq['name']}』{_lv}（{npc.get('name', '？')}发布）",
+                "line": _T.text("qflow.list_side", name=sq['name'], lv=_lv, giver=npc.get('name', '？')),
             })
     return available
 
@@ -546,7 +549,8 @@ def update_explore_quests(group_id, qq_id, map_id):
             # 旧实现手写这四步（v105 M19 P1 注释里的「与 _take_main_quest 交付分支一致」）。
             quests = _log(quests).deliver(lane=None, next_of=lambda _cur: mq["next"])
             changed = True
-            lines.append(f"📜 主线『{mq['name']}』达成！奖励：经验 +{mq['reward_exp']} 金币 +{mq['reward_gold']}")
+            lines.append(_T.text("qflow.explore_main_done", name=mq['name'], exp=mq['reward_exp'],
+                             gold=mq['reward_gold']))
             # v105 M19 P2：explore 自动完成补发声望（奖励本体已并入 _grant_quest_rewards）
             _rep = quest_reputation(group_id, qq_id, mq["giver"])
             if _rep:
@@ -554,9 +558,9 @@ def update_explore_quests(group_id, qq_id, map_id):
             if mq["next"]:
                 nq = next((q for q in _cq.MAIN_QUESTS if q["id"] == mq["next"]), None)
                 if nq:
-                    lines.append(f"📜 新主线：『{nq['name']}』{nq['desc']}")
+                    lines.append(_T.text("qflow.new_main", name=nq['name'], desc=nq['desc']))
             else:
-                lines.append("🎊 恭喜！你完成了全部主线任务，成为奥兰迪亚的传说！")
+                lines.append(_T.static("qflow.all_main_done"))
     # 支线 explore
     _lane = _lane_log(quests)
     for sid, sq in list(_lane.lane("side").items()):
@@ -568,7 +572,8 @@ def update_explore_quests(group_id, qq_id, map_id):
                 _lane = _lane_log(quests)
                 changed = True
                 _g = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
-                lines.append(f"📜 支线『{sqd['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(sqd['giver'])}吧～")
+                lines.append(_T.text("qflow.side_ready", name=sqd['name'], giver=_g.get('name', '？'),
+                                 hint=deliver_hint(sqd['giver'])))
     if changed:
         db.save_quests(group_id, qq_id, quests)
     return lines
@@ -580,7 +585,7 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
     quests = db.get_quests(group_id, qq_id)
     main_id = _log(quests).current
     if not main_id:
-        lines.append("🎊 主线任务已全部完成，你已是奥兰迪亚的传说！")
+        lines.append(_T.static("qflow.all_main_short"))
         return lines
     mq = next((q for q in _cq.MAIN_QUESTS if q["id"] == main_id), None)
     # 存档容错：main_quest 指向已不存在的任务（旧存档/主线数据变更）→ 重置回主线起点
@@ -595,9 +600,9 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
     if not mq or mq["giver"] != npc_id:
         # 不是这个 NPC 的任务
         need_npc = _cq.NPCS.get(mq["giver"], {}).get("name", "？") if mq else "？"
-        lines.append(f"【{npc['name']}】我现在没有任务交给你。镇长/各地首领或许有安排……")
+        lines.append(_T.text("qflow.no_quest", npc=npc['name']))
         if mq:
-            lines.append(f"📜 当前主线『{mq['name']}』由 {need_npc} 发布。")
+            lines.append(_T.text("qflow.main_by", name=mq['name'], giver=need_npc))
         return lines
     st = _log(quests).status
     # v105 P0：collect 型主线（q5_5 圣光百合）——背包材料足够即置 ready
@@ -614,7 +619,7 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
     if st == "pending":
         # v169.1：主线 min_level 硬门槛（高经验主线防跨级接取；suggest_lv 仅软提示保留）
         if mq.get("min_level") and player["level"] < mq["min_level"]:
-            return lines + [f"🛡️ 『{mq['name']}』需要 Lv.{mq['min_level']} 才能接取！（你当前 Lv.{player['level']}）先去提升实力吧～"]
+            return lines + [_T.text("qflow.take_need_lv", name=mq['name'], need=mq['min_level'], lv=player['level'])]
         quests = _log(quests).accept(lane=None, key=main_id,
                                      status=_QL_STATES["live"], progress={})
         # talk 型任务：与发布 NPC 交谈即达成目标（对话即完成）
@@ -627,16 +632,16 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
             quests = _log(quests).accept(lane=None, key=main_id, status="ready",
                                          progress={obj["explore"]: 1})
         db.save_quests(group_id, qq_id, quests)
-        lines.append(f"📜 【接取任务】『{mq['name']}』")
+        lines.append(_T.text("qflow.take_main", name=mq['name']))
         if mq.get("story"):
             lines.append(f"  📖 {mq['story']}")
-        lines.append(f"  🎯 目标：{obj_text(mq['objective'])}")
-        lines.append(f"  奖励：经验 +{mq['reward_exp']} 金币 +{mq['reward_gold']}")
+        lines.append(_T.text("qflow.goal", target=obj_text(mq['objective'])))
+        lines.append(_T.text("qflow.reward", exp=mq['reward_exp'], gold=mq['reward_gold']))
         # v95.25 #138：主线等级建议（软提示，不拦截接取）——suggest_lv 在 quests.py 数据里
         if mq.get("suggest_lv") and player["level"] < mq["suggest_lv"]:
-            lines.append(f"  ⚠️ 建议等级 Lv.{mq['suggest_lv']}，你才 Lv.{player['level']}——可以先练练级再挑战！")
+            lines.append(_T.text("qflow.suggest_lv", need=mq['suggest_lv'], lv=player['level']))
         if _log(quests).status == "ready":
-            lines.append("  ✨ 交谈完成！再与这位 NPC 对话即可交付任务。")
+            lines.append(_T.static("qflow.talk_done"))
     elif st == "ready":
         # 交任务领奖
         obj = mq.get("objective") or {}
@@ -647,11 +652,11 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
                 quests = _log(quests).accept(lane=None, key=main_id,
                                              status=_QL_STATES["live"], progress={})
                 db.save_quests(group_id, qq_id, quests)
-                lines.append(f"📜 交付『{mq['name']}』需要 {obj['collect']} ×{need}，你背包里不够了，先去凑齐吧～")
+                lines.append(_T.text("qflow.deliver_short", name=mq['name'], item=obj['collect'], n=need))
                 return lines
             db.remove_item(group_id, qq_id, obj["collect"], need)
             # v126.2：鱼获个体属性在 item_data.tags，remove_item 自动截断，无需额外同步
-            lines.append(f"🎒 交出 {obj['collect']} ×{need}")
+            lines.append(_T.text("qflow.hand_over", item=obj['collect'], n=need))
         # v124.3：奖励统一走 _grant_quest_rewards（exp/gold/升级 + reward_item 全格式
         # + reward_pet/reward_mount/unlock_class）——此前主线交付只支持 reward_item
         # 单值 + reward_pet，eq:/list 随机/坐骑/隐藏职业配了不发
@@ -660,7 +665,7 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
         # 状态回 todo → 进度清空。与 `_take_main_quest` / explore 完成三处**同一份语义**。
         quests = _log(quests).deliver(lane=None, next_of=lambda _cur: mq["next"])
         db.save_quests(group_id, qq_id, quests)
-        lines.append(f"✅ 【任务完成】『{mq['name']}』！")
+        lines.append(_T.text("qflow.main_done", name=mq['name']))
         if mq.get("ending"):
             # v105 M19 P1：主线抉择结局变体——q10_5 等任务按对话树选择的 flag 输出不同结尾
             _ending = mq["ending"]
@@ -675,19 +680,19 @@ def take_main_quest(group_id, qq_id, npc_id, npc):
                         _ending = _fv
                         break
             lines.append(f"  📖 {_ending}")
-        lines.append(f"  奖励：经验 +{mq['reward_exp']} 金币 +{mq['reward_gold']}")
+        lines.append(_T.text("qflow.reward", exp=mq['reward_exp'], gold=mq['reward_gold']))
         rep_line = quest_reputation(group_id, qq_id, mq["giver"])
         if rep_line:
             lines.append(f"  {rep_line}")
         if mq["next"]:
             nq = next((q for q in _cq.MAIN_QUESTS if q["id"] == mq["next"]), None)
             if nq:
-                lines.append(f"📜 新主线：『{nq['name']}』{nq['desc']}")
-                lines.append(f"  🎯 去找 {_cq.NPCS[nq['giver']]['name']} 接取新任务")
+                lines.append(_T.text("qflow.new_main", name=nq['name'], desc=nq['desc']))
+                lines.append(_T.text("qflow.go_find_new", npc=_cq.NPCS[nq['giver']]['name']))
         else:
-            lines.append("🎊 恭喜！你完成了全部主线任务，成为奥兰迪亚的传说！")
+            lines.append(_T.static("qflow.all_main_done"))
     else:
-        lines.append(f"📜 你已接取『{mq['name']}』：{mq['desc']}")
+        lines.append(_T.text("qflow.already_taken", name=mq['name'], desc=mq['desc']))
     return lines
 
 def quest_reputation(group_id, qq_id, npc_id):
@@ -701,7 +706,7 @@ def quest_reputation(group_id, qq_id, npc_id):
     if not faction:
         return ""
     db.add_reputation(group_id, qq_id, faction, 10)
-    return f"🏛️ {_b143.FACTIONS[faction]['icon']} 声望＋10"
+    return _T.text("qflow.rep_gain", icon=_b143.FACTIONS[faction]['icon'])
 
 def deliver_hint(npc_id):
     """交付方式提示（v95.16 #75）：有对话树 NPC 走对话交付，无对话树 NPC 用『交付任务』"""
@@ -772,9 +777,9 @@ def offer_side_quest(group_id, qq_id, npc_id, sid) -> list:
                                       progress={})
     db.save_quests(group_id, qq_id, quests)
     return [
-        f"📜 【支线】『{sq['name']}』{sq['desc']}",
-        f"  奖励：经验 +{sq['reward_exp']} 金币 +{sq['reward_gold']}",
-        f"  🎯 目标：{item['objective_text']}",
+        _T.text("qflow.side_offer", name=sq['name'], desc=sq['desc']),
+        _T.text("qflow.reward", exp=sq['reward_exp'], gold=sq['reward_gold']),
+        _T.text("qflow.goal", target=item['objective_text']),
     ]
 
 def offer_side_quests(group_id, qq_id, npc_id, npc):
@@ -801,9 +806,9 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
             quests = _lane_log(quests).accept(lane="side", key=sq["id"],
                                               status=_QL_STATES["live"], progress={})
             changed = True
-            lines.append(f"📜 【支线】『{sq['name']}』{sq['desc']}")
-            lines.append(f"  奖励：经验 +{sq['reward_exp']} 金币 +{sq['reward_gold']}")
-            lines.append(f"  🎯 目标：{obj_text(sq['objective'])}")
+            lines.append(_T.text("qflow.side_offer", name=sq['name'], desc=sq['desc']))
+            lines.append(_T.text("qflow.reward", exp=sq['reward_exp'], gold=sq['reward_gold']))
+            lines.append(_T.text("qflow.goal", target=obj_text(sq['objective'])))
             continue
         # 不可接但符合其余条件的拒绝提示（与原始行为文案一致）
         if not sq_unlocked(quests, sq):
@@ -813,7 +818,7 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
         # v101.30d #O52：支线等级门槛——等级不够不自动接
         if sq.get("min_level") and (player.get("level") or 0) < sq["min_level"]:
             lines.append(
-                f"🛡️ {npc.get('name', '对方')}打量了你一眼：这活得有 Lv.{sq['min_level']}+ 的本事，你再去练练吧。"
+                _T.text("qflow.side_need_lv", npc=npc.get('name', '对方'), lv=sq['min_level'])
             )
             continue
         # v113 种族限制：require_race 指定血脉——非该种族导师直接拒绝
@@ -823,8 +828,8 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
             if _cur != _rr:
                 _rcn = (_cc.RACES.get(_rr) or {}).get("name", "对应血脉")
                 lines.append(
-                    f"⛔ {npc.get('name', '对方')}凝视着你，缓缓摇头：『这份传承只属于{_rcn}的血脉。"
-                    f"你体内流淌的{(_cc.RACES.get(_cur) or {}).get('name', '血脉')}之血，与它无缘。』"
+                    _T.text("qflow.race_deny", npc=npc.get('name', '对方'), race=_rcn,
+                        cur=(_cc.RACES.get(_cur) or {}).get('name', '血脉'))
                 )
                 continue
     if changed:
@@ -838,9 +843,9 @@ def offer_side_quests(group_id, qq_id, npc_id, npc):
         sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
         if sqd and sqd["giver"] == npc_id and _lane.status_of("side", sid) == "ready":
             if _cq.DIALOGUES.get(npc_id):
-                lines.append(f"✅ 『{sqd['name']}』已完成！与{_ta}对话即可交付～")
+                lines.append(_T.text("qflow.side_done_talk", name=sqd['name'], ta=_ta))
             else:
-                lines.append(f"✅ 『{sqd['name']}』已完成！输入『交付任务』即可交付～")
+                lines.append(_T.text("qflow.side_done_cmd", name=sqd['name']))
             break
     return lines
 
@@ -900,11 +905,11 @@ def grant_quest_rewards(group_id, qq_id, qdef, lines):
         if uc not in unlocks:
             unlocks.append(uc)
             db.update_player(group_id, qq_id, hidden_class_unlock=unlocks)
-            lines.append(f"  ⚔️ 传承达成！隐藏职业「{_cc.CLASSES.get(uc, {}).get('name', uc)}」已解锁！")
+            lines.append(_T.text("qflow.hidden_unlock", cls=_cc.CLASSES.get(uc, {}).get('name', uc)))
             # v112：档位门槛统一读 CLASSES["tier_levels"]（缺省 T1=40），删除 60/30 特例
             _need = (_cc.CLASSES.get(uc, {}).get("tier_levels") or {1: 40, 2: 60, 3: 90})[1]
             _cname = _cc.CLASSES.get(uc, {}).get("name", uc)
-            lines.append(f"  💡 达到 {_need} 级后输入『转职 {_cname}』接受传承！")
+            lines.append(_T.text("qflow.hidden_hint", lv=_need, cls=_cname))
     # v140 波3.6：任务奖励称号（title 字段 = titles.py id 或中文名；称号系统条件判定自动拥有，
     # 这里仅播报解锁——条件满足即生效，不满足也不阻塞任务完成）
     _tid = qdef.get("title")
@@ -914,7 +919,7 @@ def grant_quest_rewards(group_id, qq_id, qdef, lines):
             # 兼容支线旧字段用中文名（如 "北境的恩人" → north_benefactor）
             _tinfo = next((t for t in _cq.TITLES if t.get("name") == _tid), None)
         if _tinfo:
-            lines.append(f"  🏅 获得称号：「{_tinfo.get('name', _tid)}」！")
+            lines.append(_T.text("qflow.title_gain", name=_tinfo.get('name', _tid)))
         else:
             print(f"[dragonfall][v140] 任务『{qdef.get('name', '')}』称号 id 缺失：{_tid}（titles.py 未登记），已跳过")
     return player
@@ -933,10 +938,10 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
     quests = db.get_quests(group_id, qq_id)
     sqd = next((q for q in _cq.SIDE_QUESTS if q["id"] == sid), None)
     if not sqd:
-        return ["未知支线任务。"]
+        return [_T.static("qflow.side_unknown")]
     sq = _lane_log(quests).entry("side", sid)
     if not sq:
-        return ["这个任务还没完成呢。"]
+        return [_T.static("qflow.side_unfinished")]
     obj = sqd["objective"]
     # 收集型：实时检查背包材料（不依赖 ready 状态）
     if obj.get("collect"):
@@ -945,14 +950,14 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
         _ckey = C.resolve("materials", obj["collect"])
         have = db.count_item(group_id, qq_id, _ckey)
         if have < need:
-            return [f"材料不够！需要 {obj['collect']} ×{need}，你只有 {have} 个。"]
+            return [_T.text("qflow.mat_short", item=obj['collect'], need=need, have=have)]
         # v87 复合目标：同时存在 kill 目标时，击杀进度也要满足
         if obj.get("kill"):
             kp = (sq.get("progress") or {}).get(obj["kill"], 0)
             if kp < obj["count"]:
-                return [f"还要击败 {obj['kill']} ×{obj['count'] - kp}(当前 {kp}/{obj['count']})！"]
+                return [_T.text("qflow.kill_pending", name=obj['kill'], n=obj['count'] - kp, cur=kp, need=obj['count'])]
     elif _lane_log(quests).status_of("side", sid) != "ready":
-        return ["这个任务还没完成呢。"]
+        return [_T.static("qflow.side_unfinished")]
     # v124 分支任务：第一次交付输出选项，等待玩家回复数字
     br = sqd.get("branch")
     if br and not branch_choice:
@@ -976,7 +981,7 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
                     chosen = o
                     break
         if chosen is None:
-            return [f"没有这个选项～{br.get('prompt', '')}\n{_tip('quest_branch')}\n" + "\n".join(
+            return [_T.text("qflow.branch_bad", prompt=br.get('prompt', ''), tip=_tip('quest_branch')) + "\n".join(
                 f"  {o.get('key', str(i + 1))}. {o.get('label', '')}" for i, o in enumerate(opts))]
         # 用分支选项覆盖奖励（顶层 reward 为 0 时以选项为准）
         lines.append(f"  📖 {chosen.get('text', '')}")
@@ -1008,8 +1013,8 @@ def complete_side_quest(group_id, qq_id, sid, branch_choice=None, hooks=None):
     db.save_quests(group_id, qq_id, quests)
     # v104 M20：行会委托每日（complete_side）——支线交付完成 +1，达标发奖
     _bump_daily_progress(group_id, qq_id, "complete_side", lines)
-    lines.append(f"✅ 【支线完成】『{sqd['name']}』！")
-    lines.append(f"  奖励：经验 +{sqd['reward_exp']} 金币 +{sqd['reward_gold']}")
+    lines.append(_T.text("qflow.side_done", name=sqd['name']))
+    lines.append(_T.text("qflow.reward", exp=sqd['reward_exp'], gold=sqd['reward_gold']))
     rep_line = quest_reputation(group_id, qq_id, sqd["giver"])
     if rep_line:
         lines.append(f"  {rep_line}")
@@ -1039,21 +1044,21 @@ def talk_quest_progress(group_id, qq_id, npc_id) -> list:
         quests = _log(quests).accept(lane=None, key=mid, status="ready",
                                      progress={npc_id: 1})
         db.save_quests(group_id, qq_id, quests)
-        return ["✨ 交谈完成！再与这位 NPC 对话即可交付任务。"]
+        return [_T.static("qflow.talk_done_bare")]
     if obj.get("collect") and mq.get("giver") == npc_id:
         need = _need_main_collect(obj)
         if db.count_item(group_id, qq_id, obj["collect"]) >= need:
             quests = _log(quests).accept(lane=None, key=mid, status="ready",
                                          progress={obj["collect"]: need})
             db.save_quests(group_id, qq_id, quests)
-            return [f"✨ 材料已齐（{obj['collect']} ×{need}）！再与这位 NPC 对话即可交付任务。"]
+            return [_T.text("qflow.mat_ready", item=obj['collect'], need=need)]
     if obj.get("explore") and mq.get("giver") == npc_id:
         player = db.get_player(group_id, qq_id)
         if player.get("cur_map") == obj["explore"]:
             quests = _log(quests).accept(lane=None, key=mid, status="ready",
                                          progress={obj["explore"]: 1})
             db.save_quests(group_id, qq_id, quests)
-            return ["✨ 目标地点已到达！再与这位 NPC 对话即可交付任务。"]
+            return [_T.static("qflow.explore_ready")]
     return []
 
 # ---------------- v95.23 职业就职 / 导师转职 ----------------
@@ -1088,7 +1093,7 @@ def update_use_quests(group_id, qq_id, item_name):
             _lane = _lane_log(quests)
             changed = True
             giver = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
-            lines.append(f"✨ 『{sqd['name']}』目标达成！回去找 {giver.get('name', '发布人')} 交付吧～")
+            lines.append(_T.text("qflow.use_ready", name=sqd['name'], giver=giver.get('name', '发布人')))
     if changed:
         db.save_quests(group_id, qq_id, quests)
     return "\n".join(lines)
@@ -1130,9 +1135,10 @@ def quest_kill_progress(group_id, qq_id, monster):
                     if prog.get(obj["kill"], 0) >= _OBJECTIVES.need_of(obj, "kill"):
                         quests = _log(quests).set_status("ready", lane=None)
                         _g = _cq.NPCS.get(mq["giver"]) or _w.ALL_WILD.get(mq["giver"]) or {}
-                        lines.append(f"📜 主线『{mq['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(mq['giver'])}吧～")
+                        lines.append(_T.text("qflow.main_ready", name=mq['name'], giver=_g.get('name', '？'),
+                                         hint=deliver_hint(mq['giver'])))
                     else:
-                        lines.append(f"📜 主线『{mq['name']}』：{prog[obj['kill']]}/{obj['count']}")
+                        lines.append(_T.text("qflow.main_progress", name=mq['name'], cur=prog[obj['kill']], need=obj['count']))
     # 每日
     # v94：先清跨天任务（daily 里 _date 不是今天 → 清空），避免旧任务残留
     if _expire_daily(quests):
@@ -1182,9 +1188,10 @@ def quest_kill_progress(group_id, qq_id, monster):
             quests = _lane.set_status("ready", lane="side", key=sid)
             _lane = _lane_log(quests)
             _g = _cq.NPCS.get(sqd["giver"]) or _w.ALL_WILD.get(sqd["giver"]) or {}
-            lines.append(f"📜 支线『{sqd['name']}』目标达成！回去找 {_g.get('name', '？')} {deliver_hint(sqd['giver'])}吧～")
+            lines.append(_T.text("qflow.side_ready", name=sqd['name'], giver=_g.get('name', '？'),
+                             hint=deliver_hint(sqd['giver'])))
         else:
-            lines.append(f"📜 支线『{sqd['name']}』：{prog[_key]}/{_need}")
+            lines.append(_T.text("qflow.side_progress", name=sqd['name'], cur=prog[_key], need=_need))
     if changed:
         db.save_quests(group_id, qq_id, quests)
     return lines

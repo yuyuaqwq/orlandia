@@ -117,9 +117,11 @@ CLASS = {
     "content/cmds_world.py::quest_view": "C",
     # ── E：本批逐字未动（取值/奖励/门槛/薄壳；无引擎形状可接）──
     "content/quests_flow.py::sq_stats_met": "E",
-    "content/quests_flow.py::quest_reputation": "E",
+    # ★ C 档 29a（B-2 第 16 片）：两段源码因「文案入表」改动（行为逐字不变：
+    #   只把字面量换成 `_T.text/_T.static` 调用）⇒ E → C（实测口径）。
+    "content/quests_flow.py::quest_reputation": "C",
     "content/quests_flow.py::deliver_hint": "E",
-    "content/quests_flow.py::grant_quest_rewards": "E",
+    "content/quests_flow.py::grant_quest_rewards": "C",
     "content/quests_flow.py::branch_wait_sid": "E",
     "content/profession_quests.py::settle_daily_quest": "E",
     "content/profession_quests.py::daily_pool": "E",
