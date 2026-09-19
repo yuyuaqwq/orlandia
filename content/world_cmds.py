@@ -2994,7 +2994,7 @@ def _teach_by_npc(self, group_id, qq_id, player, npc_id):
     cid = _idx.resolve("classes", player.get("class_name", ""))
     sname = cfg_skills.get(cid)
     if not sname:
-        return [f"{hint}他打量了你片刻，摇了摇头：你这身本事，不在我能指点的路数上。"]
+        return [_T.text("teach.wrong_class", hint=hint)]
     info = skill_info(player.get("class_name", ""), sname)
     if not info:
         return []
@@ -3002,18 +3002,18 @@ def _teach_by_npc(self, group_id, qq_id, player, npc_id):
     need_lv = int(info.get("lv", 1))
     cost = max(500, need_lv * 100)
     if player.get("level", 0) < need_lv:
-        return [f"{hint}这套本事要 Lv.{need_lv} 才学得动，你才 Lv.{player.get('level', 1)}，先练练基本功。"]
+        return [_T.text("teach.need_lv", hint=hint, need_lv=need_lv, lv=player.get('level', 1))]
     if (player.get("gold", 0) or 0) < cost:
-        return [f"{hint}想学？拿 {cost} 金币来，一分诚意一分本事。(你现在有 {player.get('gold', 0)} 金币)"]
+        return [_T.text("teach.need_gold", hint=hint, cost=cost, gold=player.get('gold', 0))]
     learned = list(player.get("learned_skills", []))
     if _idx.resolve("skills", sname) in [_idx.resolve("skills", s) for s in learned if s]:
-        return [f"{hint}『{sname_cn}』你早已掌握，不必再学。"]
+        return [_T.text("teach.learned", hint=hint, name=sname_cn)]
     db.update_player(group_id, qq_id, gold=(player.get("gold", 0) or 0) - cost,
                      learned_skills=learned + [sname_cn])
     return [
         f"{hint}",
-        f"💰 你献上 {cost} 金币作为谢礼",
-        f"✨ 前辈悉心传授，你学会了技能『{sname_cn}』！",
+        _T.text("teach.gift", cost=cost),
+        _T.text("teach.ok", name=sname_cn),
         f"「{info['desc']}」",
         self._tip("skill_set"),
     ]
@@ -3367,11 +3367,11 @@ def _do_join_class(self, group_id, qq_id, player, new_cls):
     返回通知行列表。"""
     lines = []
     if player.get("class_name") != _cat_core.CLASS_NOVICE:
-        lines.append("你已经有正式职业了，冒险者行会只负责给新人就职。")
+        lines.append(_T.static("join.already"))
         return lines
     cls = _cat_core.CLASSES.get(new_cls)
     if not cls or cls.get("hidden"):
-        lines.append("这个职业暂时无法就职……")
+        lines.append(_T.static("join.unavailable"))
         return lines
     # 属性按新职业重算（参考隐藏职业传承的属性同步写法）
     st = player_final_stats(
@@ -3390,12 +3390,12 @@ def _do_join_class(self, group_id, qq_id, player, new_cls):
         bar.append(None)
     db.set_skill_bar(qq_id, bar)
     names = "、".join(_idx.display("skills", s) for s in init_skills)
-    lines.append(f"🎉 行会为你登记在册——就职【{cls['icon']} {cls['name']}】！")
+    lines.append(_T.text("join.ok", icon=cls['icon'], name=cls['name']))
     lines.append(f"『{cls['desc']}』")
     if names:
-        lines.append(f"📖 行会赠送基础技能书，你学会了：{names}")
+        lines.append(_T.text("join.books", names=names))
     lines.append(self._tip("skill_learn"))
-    lines.append("💡 各城职业导师可学进阶技能；Lv.30/60/90 找导师转职")
+    lines.append(_T.static("join.tip"))
     return lines
 
 
@@ -3406,13 +3406,13 @@ def _do_evolve_via_npc(self, group_id, qq_id, player, next_tier, path):
     cur_tier = player.get("class_tier", 0)
     need_lv = _cat_core.EVOLVE_LEVELS.get(next_tier)
     if not need_lv:
-        lines.append("你已经完成了全部转职！")
+        lines.append(_T.static("evolve.npc_done_all"))
         return lines
     if cur_tier != next_tier - 1:
-        lines.append("时机未到，先提升自己的境界吧。")
+        lines.append(_T.static("evolve.npc_not_yet"))
         return lines
     if player.get("level", 0) < need_lv:
-        lines.append(f"导师摇摇头：这一阶要 Lv.{need_lv} 才够格，你才 Lv.{player.get('level', 0)}。")
+        lines.append(_T.text("evolve.npc_need_lv", need_lv=need_lv, lv=player.get('level', 0)))
         return lines
     branches = cls.get("evolve_branches", {}).get(next_tier, [])
     if path < 1 or path > len(branches):
@@ -3437,7 +3437,7 @@ def _do_evolve_via_npc(self, group_id, qq_id, player, next_tier, path):
     bonus = int((TIER_GROWTH.get(next_tier, 1.0) - 1.0) * 100)
     branch_line = ""
     if path:
-        tag = "⚔️ 进攻路线" if path == 1 else "🛡️ 防御路线"
+        tag = _T.static("evolve.path_atk") if path == 1 else _T.static("evolve.path_def")
         branch_line = f"\n🔀 {tag}"
     auto_skills = self._evolve_auto_skills(player, next_tier)
     if auto_skills:
@@ -3448,17 +3448,17 @@ def _do_evolve_via_npc(self, group_id, qq_id, player, next_tier, path):
         player = self._player(group_id, qq_id)
     auto_line = ""
     if auto_skills:
-        auto_line = f"\n🌟 领悟：{'、'.join(auto_skills)}"
+        auto_line = _T.text("evolve.npc_gains", names='、'.join(auto_skills))
     _ach.check_achievements(group_id, qq_id, player)
-    lines.append("🌟 转职成功！")
+    lines.append(_T.static("evolve.npc_ok"))
     lines.append("━━━━━━━━━━━━")
     lines.append(f"{old_title}")
     lines.append("  ↓↓↓")
     lines.append(f"{cls['icon']} {new_title}{branch_line}")
     lines.append("")
-    lines.append(f"✨ 成长加成 +{bonus}%(全属性)")
-    lines.append(f"📜 新技能已解锁，输入『技能』查看！{auto_line}")
-    lines.append("👑 已达成最终转职（Lv.90 三转）！" if next_tier >= 3 else "💪 继续历练，下一次转职在 Lv.60/90")
+    lines.append(_T.text("evolve.npc_bonus", bonus=bonus))
+    lines.append(_T.text("evolve.npc_skills", auto=auto_line))
+    lines.append(_T.static("evolve.npc_final") if next_tier >= 3 else _T.static("evolve.npc_next"))
     return lines
 
 
@@ -3692,7 +3692,7 @@ async def turn_in(self, event: AstrMessageEvent, group_id, qq_id, player):
             return None
         if not _wild.base_conditions_met(npc_id, npc, player, group_id, qq_id):
             period_cn = (PERIOD_CN.get(_tw.current_period(), "") or "").strip()
-            return f"🌙 {npc.get('name', '他')}现在({period_cn})不在这里，换个时间再来交付吧～"
+            return _T.text("npcabsent.turnin", name=npc.get('name', '他'), period=period_cn)
         return None
     # 主线可交
     main_id = quests.get("main_quest")
@@ -3712,7 +3712,8 @@ async def turn_in(self, event: AstrMessageEvent, group_id, qq_id, player):
             else:
                 giver = _cat_quests.NPCS.get(mq["giver"], {}).get("name", "？")
                 giver_map = _cat_quests.NPCS.get(mq["giver"], {}).get("map", "")
-                yield event.plain_result(f"你需要到 {_cat_space.MAP_BY_ID.get(giver_map, {}).get('name', '？')} 找 {giver} 交付任务！")
+                yield event.plain_result(_T.text("quest.giver_other", where=_cat_space.MAP_BY_ID.get(giver_map, {}).get('name', '？'),
+                                         npc=giver))
                 return
     # 支线可交
     # O100 修复：『交付任务』按当前 NPC/地图过滤——此前遍历 dict 顺序取第一个 ready
@@ -3776,17 +3777,17 @@ async def turn_in(self, event: AstrMessageEvent, group_id, qq_id, player):
                 waiting.append((sqd["name"], giver, giver_map))
     # O100：无当场可交付时，列出全部"已达成待交付"任务（带位置），不再只报第一条
     if waiting:
-        lines = ["📜 可交付任务："]
+        lines = [_T.static("quest.deliver_head")]
         for i, (qname, giver, giver_map) in enumerate(waiting, 1):
-            lines.append(f"{i:>2}. 『{qname}』→ 找 {giver}(在{giver_map})")
+            lines.append(_T.text("quest.deliver_row", i=i, qname=qname, giver=giver, giver_map=giver_map))
         lines.append(self._tip("quest_deliver"))
         yield event.plain_result("\n".join(lines))
         return
     if collect_missing:
         name, mat, have, need = collect_missing
-        yield event.plain_result(f"支线『{name}』还差 {mat} ×{need - have}(背包 {have}/{need})！")
+        yield event.plain_result(_T.text("quest.collect_short", name=name, mat=mat, gap=need - have, have=have, need=need))
         return
-    yield event.plain_result("没有可交的任务。输入『任务』查看进度～")
+    yield event.plain_result(_T.static("quest.none_deliver"))
 
 
 def _grant_quest_rewards(self, group_id, qq_id, qdef, lines):

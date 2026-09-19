@@ -4594,6 +4594,74 @@
     "category": "转职",
     "desc": "搬自 content/player_cmds.py:_evolve_hidden_status（B 批 C 档）"
   },
+  "evolve.npc_bonus": {
+    "value": "✨ 成长加成 +{bonus}%(全属性)",
+    "params": [
+      "bonus"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_done_all": {
+    "value": "你已经完成了全部转职！",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_final": {
+    "value": "👑 已达成最终转职（Lv.90 三转）！",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_gains": {
+    "value": "\n🌟 领悟：{names}",
+    "params": [
+      "names"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_need_lv": {
+    "value": "导师摇摇头：这一阶要 Lv.{need_lv} 才够格，你才 Lv.{lv}。",
+    "params": [
+      "need_lv",
+      "lv"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_next": {
+    "value": "💪 继续历练，下一次转职在 Lv.60/90",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_not_yet": {
+    "value": "时机未到，先提升自己的境界吧。",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_ok": {
+    "value": "🌟 转职成功！",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.npc_skills": {
+    "value": "📜 新技能已解锁，输入『技能』查看！{auto}",
+    "params": [
+      "auto"
+    ],
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.path_atk": {
+    "value": "⚔️ 进攻路线",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
+  "evolve.path_def": {
+    "value": "🛡️ 防御路线",
+    "category": "转职",
+    "desc": "搬自 content/world_cmds.py:_do_evolve_via_npc（B 批 C 档）"
+  },
   "evolve.reset_err_gold": {
     "value": "转职重置需要 {cost} 金币(当前 {tier} 转)，你只有 {gold} 金币。",
     "params": [
@@ -8816,6 +8884,38 @@
     "category": "背包面板",
     "desc": "搬自 content/economy_cmds.py:item_view_mode_cmd（B 批 C 档）"
   },
+  "join.already": {
+    "value": "你已经有正式职业了，冒险者行会只负责给新人就职。",
+    "category": "行会就职",
+    "desc": "搬自 content/world_cmds.py:_do_join_class（B 批 C 档）"
+  },
+  "join.books": {
+    "value": "📖 行会赠送基础技能书，你学会了：{names}",
+    "params": [
+      "names"
+    ],
+    "category": "行会就职",
+    "desc": "搬自 content/world_cmds.py:_do_join_class（B 批 C 档）"
+  },
+  "join.ok": {
+    "value": "🎉 行会为你登记在册——就职【{icon} {name}】！",
+    "params": [
+      "icon",
+      "name"
+    ],
+    "category": "行会就职",
+    "desc": "搬自 content/world_cmds.py:_do_join_class（B 批 C 档）"
+  },
+  "join.tip": {
+    "value": "💡 各城职业导师可学进阶技能；Lv.30/60/90 找导师转职",
+    "category": "行会就职",
+    "desc": "搬自 content/world_cmds.py:_do_join_class（B 批 C 档）"
+  },
+  "join.unavailable": {
+    "value": "这个职业暂时无法就职……",
+    "category": "行会就职",
+    "desc": "搬自 content/world_cmds.py:_do_join_class（B 批 C 档）"
+  },
   "learn.already": {
     "value": "『{name}』你已经学会了，不需要重复学习～",
     "params": [
@@ -9414,6 +9514,15 @@
     ],
     "category": "NPC查找",
     "desc": "搬自 content/world_cmds.py:_town_npc_absent_hint（B 批 C 档）"
+  },
+  "npcabsent.turnin": {
+    "value": "🌙 {name}现在({period})不在这里，换个时间再来交付吧～",
+    "params": [
+      "name",
+      "period"
+    ],
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_npc_absent（B 批 C 档）"
   },
   "npclist.empty": {
     "value": "这里没有 NPC。输入『地图』看看哪里有 NPC～",
@@ -11148,6 +11257,43 @@
     "category": "任务委托",
     "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
   },
+  "quest.collect_short": {
+    "value": "支线『{name}』还差 {mat} ×{gap}(背包 {have}/{need})！",
+    "params": [
+      "name",
+      "mat",
+      "gap",
+      "have",
+      "need"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:turn_in（B 批 C 档）"
+  },
+  "quest.deliver_head": {
+    "value": "📜 可交付任务：",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:turn_in（B 批 C 档）"
+  },
+  "quest.deliver_row": {
+    "value": "{i:>2}. 『{qname}』→ 找 {giver}(在{giver_map})",
+    "params": [
+      "i",
+      "qname",
+      "giver",
+      "giver_map"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:turn_in（B 批 C 档）"
+  },
+  "quest.giver_other": {
+    "value": "你需要到 {where} 找 {npc} 交付任务！",
+    "params": [
+      "where",
+      "npc"
+    ],
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:turn_in（B 批 C 档）"
+  },
   "quest.list_head": {
     "value": "📜 【可接取任务】",
     "category": "任务委托",
@@ -11227,6 +11373,11 @@
     "value": "没有可接取的任务。输入『任务』查看进度～",
     "category": "任务委托",
     "desc": "搬自 content/world_cmds.py:quest_accept（B 批 C 档）"
+  },
+  "quest.none_deliver": {
+    "value": "没有可交的任务。输入『任务』查看进度～",
+    "category": "任务委托",
+    "desc": "搬自 content/world_cmds.py:turn_in（B 批 C 档）"
   },
   "quest.not_found": {
     "value": "未找到名为『{name}』的任务。输入『任务』查看进度～",
@@ -14928,6 +15079,59 @@
     ],
     "category": "NPC对话",
     "desc": "搬自 content/world_cmds.py:talk_choice（B 批 C 档）"
+  },
+  "teach.gift": {
+    "value": "💰 你献上 {cost} 金币作为谢礼",
+    "params": [
+      "cost"
+    ],
+    "category": "NPC教习",
+    "desc": "搬自 content/world_cmds.py:_teach_by_npc（B 批 C 档）"
+  },
+  "teach.learned": {
+    "value": "{hint}『{name}』你早已掌握，不必再学。",
+    "params": [
+      "hint",
+      "name"
+    ],
+    "category": "NPC教习",
+    "desc": "搬自 content/world_cmds.py:_teach_by_npc（B 批 C 档）"
+  },
+  "teach.need_gold": {
+    "value": "{hint}想学？拿 {cost} 金币来，一分诚意一分本事。(你现在有 {gold} 金币)",
+    "params": [
+      "hint",
+      "cost",
+      "gold"
+    ],
+    "category": "NPC教习",
+    "desc": "搬自 content/world_cmds.py:_teach_by_npc（B 批 C 档）"
+  },
+  "teach.need_lv": {
+    "value": "{hint}这套本事要 Lv.{need_lv} 才学得动，你才 Lv.{lv}，先练练基本功。",
+    "params": [
+      "hint",
+      "need_lv",
+      "lv"
+    ],
+    "category": "NPC教习",
+    "desc": "搬自 content/world_cmds.py:_teach_by_npc（B 批 C 档）"
+  },
+  "teach.ok": {
+    "value": "✨ 前辈悉心传授，你学会了技能『{name}』！",
+    "params": [
+      "name"
+    ],
+    "category": "NPC教习",
+    "desc": "搬自 content/world_cmds.py:_teach_by_npc（B 批 C 档）"
+  },
+  "teach.wrong_class": {
+    "value": "{hint}他打量了你片刻，摇了摇头：你这身本事，不在我能指点的路数上。",
+    "params": [
+      "hint"
+    ],
+    "category": "NPC教习",
+    "desc": "搬自 content/world_cmds.py:_teach_by_npc（B 批 C 档）"
   },
   "team_effect.crit_all": {
     "value": "暴击全队",

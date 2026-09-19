@@ -154,7 +154,7 @@ FROZEN_COUNTS = {
     #   move.same_sa；新分类 副本移动）——content/world_cmds.py 的 _instance_dungeon_move
     #   （副本内移动全守卫链 + 遇怪/Boss 房开场）+ _subarea_arrive（落点赶路模式提示行）
     #   ⇒ 2333 → 2341
-    "texts": 2341,
+    "texts": 2369,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）
