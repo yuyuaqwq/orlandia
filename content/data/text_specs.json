@@ -1435,6 +1435,14 @@
     "category": "战前设置",
     "desc": "搬自 content/combat_cmds.py:battle_prefs_finisher（B 批 C 档）"
   },
+  "bp.form_avail": {
+    "value": "可用：{name}（当前职业仅此一种双形态）",
+    "params": [
+      "name"
+    ],
+    "category": "战前设置",
+    "desc": "搬自 content/combat_cmds.py:battle_prefs_form（B 批 C 档）"
+  },
   "bp.form_cur": {
     "value": "⚔️ 双形态预设：{v}",
     "params": [
@@ -8599,6 +8607,16 @@
     "category": "PvP荣誉",
     "desc": "搬自 content/combat_cmds.py:honor_shop（B 批 C 档）"
   },
+  "hn.row": {
+    "value": "{i}. {name} ｜ {cost} 荣誉",
+    "params": [
+      "i",
+      "name",
+      "cost"
+    ],
+    "category": "PvP荣誉",
+    "desc": "搬自 content/combat_cmds.py:honor_shop（B 批 C 档）"
+  },
   "hn.short": {
     "value": "荣誉不足！兑换【{name}】需要 {need} 荣誉，你只有 {have}。",
     "params": [
@@ -9290,6 +9308,11 @@
     ],
     "category": "副本准入",
     "desc": "开本：强制多人副本却无队伍"
+  },
+  "instance.resume_size": {
+    "value": "人数不符合副本要求",
+    "category": "副本准入",
+    "desc": "搬自 content/instance_gate.py:resume_admission（B 批 C 档）"
   },
   "instance.stamina_short": {
     "value": "😮‍💨 体力不足！{action}需要 {cost} 点体力，你只有 {cur} 点。\n🍖 吃点食物(『烹饪』/『使用 <食物>』)或去旅店『住宿』恢复体力～\n💡 体力每 1 分钟自然恢复 1 点(上限 100+等级×2)，『防御』不耗体力可拖延时间～",
@@ -12831,6 +12854,15 @@
     ],
     "category": "宠物面板",
     "desc": "搬自 content/social_pet.py:pet_view（B 批 C 档）"
+  },
+  "pet.egg_desc": {
+    "value": "{q}宠物蛋，使用后可孵化出『{name}』",
+    "params": [
+      "q",
+      "name"
+    ],
+    "category": "宠物面板",
+    "desc": "搬自 content/pets.py:make_pet_egg（B 批 C 档）"
   },
   "pet.exp_bonus": {
     "value": "✨ 经验加成：+{bonus}%(主人战斗经验)",
@@ -17216,6 +17248,21 @@
     "category": "商店出售",
     "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
   },
+  "sell.hint_alchemy": {
+    "value": "草药铺/炼金工坊（草药/精华）",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.hint_shop": {
+    "value": "商店（食材/织物/杂物）",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
+  "sell.hint_smith": {
+    "value": "铁匠铺（矿石/兽材/木材/宝石）",
+    "category": "商店出售",
+    "desc": "搬自 content/economy_cmds.py:sell（B 批 C 档）"
+  },
   "sell.kept_appr": {
     "value": "；{items} 是拜师考验材料，已帮你留着",
     "params": [
@@ -17779,6 +17826,21 @@
     "category": "商店面板",
     "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
   },
+  "shop.row_shelf": {
+    "value": "{color}{name}{owned}（{slot}）Lv.{lv}{req} ×{qty} —— {price} 金币",
+    "params": [
+      "color",
+      "name",
+      "owned",
+      "slot",
+      "lv",
+      "req",
+      "qty",
+      "price"
+    ],
+    "category": "商店面板",
+    "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
   "shop.shelf_buy_ok": {
     "value": "✅ 你买下了【{name}】！铁匠的手艺交到你手里，输入『装备』查看。",
     "params": [
@@ -17796,6 +17858,11 @@
     "value": "💡 全服共享货架，售罄等补货；每日 0 点换新",
     "category": "商店面板",
     "desc": "搬自 content/economy_cmds.py:shop（B 批 C 档）"
+  },
+  "shop.shelf_unique": {
+    "value": "铁匠的作品是孤品，只能单件购买！",
+    "category": "商店购买",
+    "desc": "搬自 content/economy_cmds.py:buy（B 批 C 档）"
   },
   "shop.trader_title": {
     "value": "🧭 {tname}的货摊",
@@ -21588,6 +21655,16 @@
     ],
     "category": "道具使用",
     "desc": "搬自 content/economy_cmds.py:use（B 批 C 档）"
+  },
+  "use.stamina_hook": {
+    "value": "\n⚡ 恢复 {n} 点体力({cur}/{cap})",
+    "params": [
+      "n",
+      "cur",
+      "cap"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/economy_cmds.py:_item_use_hooks（B 批 C 档）"
   },
   "use.state_odd": {
     "value": "你不在战斗中（状态异常）！",

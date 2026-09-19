@@ -3079,7 +3079,7 @@ async def honor_shop(self, event: AstrMessageEvent, group_id, qq_id, player, raw
     honor = self._get_honor(qq_id)
     lines = [_T.text("hn.title", honor=honor), "━━━━━━━━━━━━"]
     for i, item in _b143.HONOR_SHOP.items():
-        lines.append(f"{i}. {item['name']} ｜ {item['cost']} 荣誉")
+        lines.append(_T.text("hn.row", i=i, name=item['name'], cost=item['cost']))
         lines.append(f"   {item['desc']}")
     lines.append("━━━━━━━━━━━━")
     lines.append(self._tip("honor"))
@@ -3440,7 +3440,7 @@ async def battle_prefs_form(self, event: AstrMessageEvent, group_id, qq_id, play
     if not arg:
         cur = (player.get("battle_prefs") or {}).get("dual_form", "")
         lines.append(_T.text("bp.form_cur", v='【' + cur + '】' if cur else '未设置（默认按资源自动入形态）'))
-        lines.append(f"可用：{fname}（当前职业仅此一种双形态）")
+        lines.append(_T.text("bp.form_avail", name=fname))
         yield event.plain_result("\n".join(lines))
         return
     if arg not in (fname, fkey):

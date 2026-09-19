@@ -274,7 +274,7 @@ def resume_admission(ctx: dict) -> Admission:
     _min = int(inst.get("min_players", 2) or 0)
     _max = int(inst.get("max_players", 3) or 0)
     rules = [Rule("size", check=lambda c: _min <= len(c.get("members") or ()) <= _max,
-                  reason="人数不符合副本要求")]
+                  reason=T.static("instance.resume_size"))]
     rules += [member_rule(m, ctx, with_prof_wait=False) for m in (ctx.get("members") or ())]
     return Admission(rules, name="resume")
 

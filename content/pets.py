@@ -54,7 +54,7 @@ def make_pet_egg(pet_key):
     qname = _quality_name(q)
     return {"name": f"{p['name']}蛋", "type": "宠物蛋", "pet_key": p["key"], "stackable": True,
             "price": _PET_EGG_PRICE.get(q, 100), "quality": q,
-            "desc": f"{qname}宠物蛋，使用后可孵化出『{p['name']}』"}
+            "desc": _T.text("pet.egg_desc", q=qname, name=p['name'])}
 
 
 def _quality_name(q):

@@ -6297,7 +6297,7 @@ class EconomyImpl(CommandBase):
             st_gain = self._add_stamina(gid, qid, int(d["stamina"]), p)
             if st_gain > 0:
                 _p3 = self._player(gid, qid)
-                return f"\n⚡ 恢复 {st_gain} 点体力({self._stamina(_p3)}/{self._stamina_max(_p3)})"
+                return _T.text("use.stamina_hook", n=st_gain, cur=self._stamina(_p3), cap=self._stamina_max(_p3))
             return ""
 
         return {
@@ -6555,7 +6555,7 @@ class EconomyImpl(CommandBase):
             else:
                 _mm = _cit.MATERIALS_BY_NAME.get(d.get("name", "")) or {}
                 _need = _MAT_FACILITY.get(_mm.get("type", "杂物"), "shop")
-                _hint_map = {"smith": "铁匠铺（矿石/兽材/木材/宝石）", "alchemy": "草药铺/炼金工坊（草药/精华）", "shop": "商店（食材/织物/杂物）"}
+                _hint_map = {"smith": _T.static("sell.hint_smith"), "alchemy": _T.static("sell.hint_alchemy"), "shop": _T.static("sell.hint_shop")}
                 # q7-8：单件提示到具体柜台，并附完整分店品类说明帮新手不跑错柜台（纯文案）
                 yield event.plain_result(
                     _T.text("sell.mat_shop", name=d['name'], fac=_hint_map.get(_need, '对应店铺'),
@@ -6686,7 +6686,10 @@ class EconomyImpl(CommandBase):
                 _slot_cn = _b143.EQUIP_SLOTS[_sl] if _sl in _b143.EQUIP_SLOTS else (C.display('weapon_types', _r.get('weapon_type')) or _sl)
                 _n = _T.text("shop.work_name", name=_r['name'], npc=_npc)
                 _price = int(_ss.smith_stock_price(_rid, _sit["price_mult"]))
-                entries.append((f"s:{_rid}", f"{_q['color']}{_n}{_owned(_r['name'])}（{_slot_cn}）Lv.{_r['lv']}{' · ' + self._req_label(_r) if self._req_label(_r) else ''} ×{_sit['qty']} —— {_price} 金币"))
+                entries.append((f"s:{_rid}", _T.text("shop.row_shelf", color=_q['color'], name=_n, owned=_owned(_r['name']), slot=_slot_cn,
+                                                 lv=_r['lv'],
+                                                 req=' · ' + self._req_label(_r) if self._req_label(_r) else '',
+                                                 qty=_sit['qty'], price=_price)))
         else:
             # 普通商店：消耗品 + 武器（v101.28g：只挂子区域配货，无城镇级兜底）
             sa_kind = self._sa_shop_kind(player)
@@ -7051,7 +7054,7 @@ class EconomyImpl(CommandBase):
                         yield event.plain_result(_T.static("shop.shelf_soldout"))
                         return
                     if qty > 1:
-                        yield event.plain_result("铁匠的作品是孤品，只能单件购买！")
+                        yield event.plain_result(_T.static("shop.shelf_unique"))
                         return
                     _price_chk = int(_ss.smith_stock_price(_sit["rid"], _sit["price_mult"]))
                     if player["gold"] < _price_chk:
