@@ -39,7 +39,6 @@ v180-G B6（动作收口到 effect_actions 全量适配）：
 - 伤害落地统一走 battle._deal_damage(..., target=...) 与 battle._boss_dmg_filter
   （v104 M02 P1-5 统一：附加伤害过 Boss 护盾过滤）。
 """
-import random as _random
 
 from . import texts as _T                      # 文案表（C 档 PRE2-c：共享效果动作日志）
 

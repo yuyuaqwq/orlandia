@@ -75,63 +75,6 @@ from content.tables import resolve_job as resolve_job  # noqa: F401  包内模�
 # ② 包内域读口（content/rules/game_config.json 各组；对拍全等）
 # ============================================================
 # ---- game_config.battle_config（14 名）
-from content.tables import JOB_GUIDE as _JOB_GUIDE_RAW  # noqa: E402
-from content.tables import JOB_ORDER as BASE_ORDER  # noqa: E402
-
-# 宝石名基底（真源 game/data/gems.py `GEM_BASE_NAME`；与包内 `GEM_ITEM_TYPE` 同值）
-from content.catalog_rules import GEM_ITEM_TYPE as GEM_BASE_NAME  # noqa: E402
-
-# 垂钓档位序（真源 game/data/__init__.py:30：`FISH_QUALITY_ORDER = QUALITY_ORDER`）
-from content.catalog_b143 import QUALITY_ORDER as _QUALITY_ORDER  # noqa: E402
-from content.collection import books as _collection_books  # noqa: E402
-from content.wild_king import WILD_KINGS as _WILD_KINGS_RAW  # noqa: E402
-BOSS_ATTACK_MULTS = placeholder("BOSS_ATTACK_MULTS")
-CONTROL_MECHS = placeholder("CONTROL_MECHS")
-DOT_ADAPT_DECAY_STEP = placeholder("DOT_ADAPT_DECAY_STEP")
-DOT_BLEED_DOUBLE_HP_PCT = placeholder("DOT_BLEED_DOUBLE_HP_PCT")
-DOT_DEFS = placeholder("DOT_DEFS")
-DOT_RESIST_CAP = placeholder("DOT_RESIST_CAP")
-MECH_COMBO_STACKS = placeholder("MECH_COMBO_STACKS")
-MECH_FROZEN_MULT = placeholder("MECH_FROZEN_MULT")
-MECH_FULL_HP_CRIT = placeholder("MECH_FULL_HP_CRIT")
-MECH_PROC_GROUPS = placeholder("MECH_PROC_GROUPS")
-MECH_STACK_BONUS = placeholder("MECH_STACK_BONUS")
-MECH_STACK_WHITELIST = placeholder("MECH_STACK_WHITELIST")
-MECH_STAT_PASSIVES = placeholder("MECH_STAT_PASSIVES")
-SKILL_CC_WHITELIST = placeholder("SKILL_CC_WHITELIST")
-GATHER_MAP_POOLS = placeholder("GATHER_MAP_POOLS")
-GATHER_COND_POOLS = placeholder("GATHER_COND_POOLS")
-MINING_DEEP_POOLS = placeholder("MINING_DEEP_POOLS")
-PRICE_BAND = placeholder("PRICE_BAND")
-GATHER_MAP_MIN_LV = placeholder("GATHER_MAP_MIN_LV")
-ITEM_TAG_DISPLAY = placeholder("ITEM_TAG_DISPLAY")
-MOUNT_DROP_BOSS = placeholder("MOUNT_DROP_BOSS")
-MOUNT_DROP_ELITE = placeholder("MOUNT_DROP_ELITE")
-SIGNIN_CONFIG = placeholder("SIGNIN_CONFIG")
-SHOP_LIMIT = placeholder("SHOP_LIMIT")
-_ORDER_JOB_GUIDE = placeholder("_ORDER_JOB_GUIDE")
-_JOB_GUIDE_STRIPPED = placeholder("_JOB_GUIDE_STRIPPED")
-JOB_GUIDE = placeholder("JOB_GUIDE")
-_ORDER_JOB_ALIASES = placeholder("_ORDER_JOB_ALIASES")
-_JOB_ALIASES_FOLDED = placeholder("_JOB_ALIASES_FOLDED")
-JOB_ALIASES = placeholder("JOB_ALIASES")
-EXTRA_RESOURCES = placeholder("EXTRA_RESOURCES")
-EXTRA_RESOURCE_GUIDE = placeholder("EXTRA_RESOURCE_GUIDE")
-FISH_QUALITY_ORDER = placeholder("FISH_QUALITY_ORDER")
-COLLECTION_BOOKS = placeholder("COLLECTION_BOOKS")
-_ORDER_WILD_KINGS = placeholder("_ORDER_WILD_KINGS")
-WILD_KINGS = placeholder("WILD_KINGS")
-_ORDER_SUBAREA_LINKS_INDEX = placeholder("_ORDER_SUBAREA_LINKS_INDEX")
-_MAPS_DOM = placeholder("_MAPS_DOM")
-_LINKS_BUILT = placeholder("_LINKS_BUILT")
-SUBAREA_LINKS_INDEX = placeholder("SUBAREA_LINKS_INDEX")
-_ORDER_SUBAREA_POIS = placeholder("_ORDER_SUBAREA_POIS")
-_POIS_DOM = placeholder("_POIS_DOM")
-SUBAREA_POIS = placeholder("SUBAREA_POIS")
-_a = placeholder("_a")
-_cid = placeholder("_cid")
-_e = placeholder("_e")
-_e2 = placeholder("_e2")
 
 _ORDER_SHOP_LIMIT = _order("shop_limit")
 from content.shop_stock import SHOP_LIMIT as _SHOP_LIMIT_RAW  # noqa: E402
