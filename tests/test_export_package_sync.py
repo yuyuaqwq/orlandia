@@ -31,13 +31,17 @@
 【2】items 每条必填 `name`/`price`/`desc`（对齐 `schemas/item.schema.json` required）；
      price 非负；`quality` 有则必须 ∈ enum。
 【3】逐条过**包内 schema**（`editor.packages.domain_status`；jsonschema 缺失时用框架校验器兜底）。
-【4】清单 ↔ 文件：`game.json:domains` 声明的每个域都有数据文件（落点由域 `kind` 决定）；
-     反向：`content/data|rules/` 下不存在未声明的孤儿文件。
+【4】清单 ↔ 文件：**生效域表**里的每个域都有数据文件（落点由域 `kind` 决定）；
+     反向：`content/data|rules/` 下不存在未声明（= 不在生效域表里）的孤儿文件。
+     ★ 2026-09-20（台账 §0 D9②）：口径由「包**声明**域」改为「**生效域表**」= 包声明 ∪ 引擎默认集
+     （`effective_domains()`，与编辑器 tab / 装载口 `records.read_domain_decl` **同一份**）——
+     域「上移」到引擎后包不再声明它，按「包声明域」判会假红（清单 106 / 包声明 105 / 生效 106
+     + 假孤儿 `content/data/instances.json`）；按生效域表判则「域在哪一层声明」都不影响本门禁。
 【5】各域**冻结规模账**（值 = B14 收纳当刻实测：72 域 / 9125 条的那份账里的代表项）。
 【6】**落盘规范**（编辑器保存自动满足；手改必须照此，否则每次保存都产生 diff 噪音）：
      UTF-8 无 BOM · LF 行尾 · `indent=2` · 末尾换行 · 外层键**升序**。
 【7】包清单规范：`id`/`name`/`engine`/`entry`/`created`/`domains` 齐备；`id == "orlandia"`；
-     `domains` 与包声明域、实际数据文件三方一致。
+     `domains` 与**生效域表**、实际数据文件三方一致。
 """
 from __future__ import annotations
 
@@ -279,10 +283,22 @@ def main() -> int:
     for k in ("id", "name", "engine", "entry", "created", "domains"):
         check(f"manifest 有 {k} 字段", k in man, f"实际键={sorted(man)}")
     check(f"manifest.id == {PKG_ID!r}", man.get("id") == PKG_ID, repr(man.get("id")))
-    declared = sorted(PK.declared_domain_ids(PKG_DIR))
+    # ★ 2026-09-20（台账 §0 D9② / T4 第一步）：域集合来源 = **生效域表**，不再是「包声明域」。
+    #   `effective_domains()` = 包声明 ∪ 引擎默认集（合并规则唯一源
+    #   `saintess_engine.domains.merge_decls`），与编辑器 tab / 装载口同一份。
+    eff, eff_warns = PK.effective_domains(PKG_DIR)
+    declared = sorted(eff)
+    pkg_declared = sorted(PK.declared_domain_ids(PKG_DIR))
+    eff_only = sorted(set(declared) - set(pkg_declared))   # 只由引擎默认集兜着（= 上移态那批）
+    print(f"  域表：生效 {len(declared)} = 包声明 {len(pkg_declared)} ∪ 引擎默认集兜底 {len(eff_only)}"
+          f"（兜底域 {eff_only[:5] if eff_only else '无'}）· 告警 {len(eff_warns)}")
+    check("包声明域 ⊆ 生效域表", set(pkg_declared) <= set(declared),
+          f"漏 {sorted(set(pkg_declared) - set(declared))[:5]}")
+    if eff_warns:   # 域覆盖告警不判红（包显式覆盖引擎同名字段是合法意图），只打印供追查
+        print(f"  ※ 域告警（不判红）= {eff_warns[:MAX_REPORT]}")
     man_doms = sorted(man.get("domains") or [])
-    check(f"manifest.domains == 包声明域（{len(declared)} 个）", declared == man_doms,
-          f"清单独有 {sorted(set(man_doms) - set(declared))[:5]} / 声明独有 {sorted(set(declared) - set(man_doms))[:5]}")
+    check(f"manifest.domains == 生效域表（{len(declared)} 个）", declared == man_doms,
+          f"清单独有 {sorted(set(man_doms) - set(declared))[:5]} / 生效独有 {sorted(set(declared) - set(man_doms))[:5]}")
 
     # ---------------- 【4】清单 ↔ 文件（双向） ----------------
     print("\n【4】清单 ↔ 数据文件（正反双向）")
@@ -295,7 +311,7 @@ def main() -> int:
             continue
         if not os.path.isfile(p):
             missing.append(d)
-    check(f"{len(declared)} 个声明域都有数据文件（落点由域 kind 决定）", not missing,
+    check(f"{len(declared)} 个生效域都有数据文件（落点由域 kind 决定）", not missing,
           f"缺 {missing[:MAX_REPORT]}")
     orphans = []
     aux_seen = []

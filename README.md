@@ -138,7 +138,7 @@ UTF-8 无 BOM · LF 行尾 · json.dump(indent=2) · 文件末尾换行 · 外�
 ```bash
 cd C:/Users/yuyu/qqbot/data/plugins/dragonfall          # 宿主仓里有全套门禁（读包内真源）
 python scripts/verify_package_coverage.py --check       # 域清单四方一致 / 落点 / 条数>0 / 逐条过 schema / 无孤儿文件
-python tests/test_export_package_sync.py                # 冻结门禁（items 900 等冻结规模账 + 落盘规范 + 清单一致）
+python tests/test_export_package_sync.py                # 冻结门禁（items 900 等冻结规模账 + 落盘规范 + 清单↔生效域表一致）
 python tests/test_monster_roster_closure.py             # 名册闭合（读包内三域）
 python scripts/check_terminal_state.py --check          # 终态六条判据（含「包内覆盖 0 失败」）
 python scripts/check_package_landings.py                # 三落点一致（本仓 / 引擎仓检出 / 宿主检出）
