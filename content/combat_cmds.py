@@ -462,9 +462,14 @@ _STACK_NAMES = _T.names(_STACK_KEYS, prefix="stack_name")
 
 _ENEMY_MECH_STACKS = ("burn", "poison", "mark", "bleed")
 
-_DEBUFF_NAMES = {
-    "poison": "☠️毒", "burn": "🔥灼烧", "mark": "🎯标记", "bleed": "🩸流血",
+_DEBUFF_KEYS = {   # ★ C 档 45：id → 文案键（文案真源 = text_specs.json 的 ebuff_name.*）
+    #   同值复用：burn / mark 与 `_E_BUFF_KEYS` 逐字相同 ⇒ 用同一个键；
+    #   异值另开：poison 的状态条短名（☠️毒）与 ebuff_name.poison（☠️中毒）
+    #   不同 ⇒ poison_bar；bleed 表内原无键 ⇒ 新增。迁移只换存储位置，逐字不变。
+    "poison": "ebuff_name.poison_bar", "burn": "ebuff_name.burn",
+    "mark": "ebuff_name.mark", "bleed": "ebuff_name.bleed",
 }
+_DEBUFF_NAMES = _T.names(_DEBUFF_KEYS, prefix="ebuff_name")
 
 _DF139_CLASS_FORMS = {
     "cls_zhan_shi": ("狂暴", "fury"),

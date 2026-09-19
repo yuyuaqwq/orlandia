@@ -3992,6 +3992,11 @@
     "category": "战斗结算",
     "desc": "搬自 content/settlement.py:defeat_settle（B 批 C 档）"
   },
+  "ebuff_name.bleed": {
+    "value": "🩸流血",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_DEBUFF_NAMES（C 档 45；敌方 DOT 状态条短名）"
+  },
   "ebuff_name.burn": {
     "value": "🔥灼烧",
     "category": "减益名",
@@ -4056,6 +4061,11 @@
     "value": "☠️中毒",
     "category": "减益名",
     "desc": "搬自 combat_cmds.py:_E_BUFF_NAMES（B 批 B-1）"
+  },
+  "ebuff_name.poison_bar": {
+    "value": "☠️毒",
+    "category": "减益名",
+    "desc": "搬自 combat_cmds.py:_DEBUFF_NAMES（C 档 45；状态条短名，与 ebuff_name.poison 的「中毒」刻意分家）"
   },
   "ebuff_name.shield": {
     "value": "🛡️护盾",
