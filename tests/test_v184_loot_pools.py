@@ -92,8 +92,6 @@ sys.modules.setdefault("data.plugins.dragonfall.game.drop_engine", _loot)
 #     （`__package__` = data.plugins.dragonfall.game）与 `game/drop_engine.py::_get_pools()`
 #     的「宿主已加载则优先」分支都按**这个模块名**取数 → 在 sys.modules 里把它指到包内同一只
 #     模块对象，新旧两侧读的仍是同一份 DROP_POOLS，§5 `_with_pools` 打桩同时可见（判据不削弱）。
-from content import catalog_rules as _DP                                        # noqa: E402
-DROP_POOLS = _DP.DROP_POOLS
 sys.modules["data.plugins.dragonfall.game.data.drop_pools"] = _DP
 
 # ★ P5F 前置②（去壳）：旧壳 `game/drop_engine.py` **不只是别名** —— 它另外安装三个
