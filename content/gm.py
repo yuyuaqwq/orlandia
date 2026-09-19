@@ -497,9 +497,9 @@ def reload_tables(reload_all_sets, reload_error) -> list:
     lines = [_T.static("gm.reload_ok")
              % (total, len(change), rebuilt)]
     if not rows:
-        lines.append("无变化")
+        lines.append(_T.static("gm.reload_none"))
         return lines
-    lines.append("有变化的表：")
+    lines.append(_T.static("gm.reload_head"))
     lines.extend("  %s：%d → %d" % row for row in rows)
     return lines
 

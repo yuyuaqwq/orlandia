@@ -2302,7 +2302,8 @@ def _present_wild_hints(self, group_id, qq_id, cur_map) -> list:
         if not wnpc:
             continue
         remain_min = minutes_left(ev.get("remain", 0))  # max(1, ceil(remain/60)) —— 引擎口径
-        lines.append(f"  {wnpc.get('icon', '')}{wnpc.get('name', nid)} ⏳剩{remain_min}分")
+        lines.append(_T.text("npclist.wild_hint", icon=wnpc.get('icon', ''), name=wnpc.get('name', nid),
+                         remain=remain_min))
     return lines
 
 

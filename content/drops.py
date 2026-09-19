@@ -159,7 +159,7 @@ def make_blueprint(rid: str) -> dict:
         "price": int(r["lv"] * 3 + 20), "blueprint_for": r["name"], "roster_id": rid,
         "quality": r["quality"],
         # v56.4：玩家语言描述——不含内部 ID
-        "desc": f"{q['name']}级图纸：{r['name']}({C.EQUIP_SLOTS[r['slot']]})",
+        "desc": _T.text("drop.bp_desc", qname=q['name'], name=r['name'], slot=C.EQUIP_SLOTS[r['slot']]),
     }
 
 def roll_blueprint(monster_lv: int):

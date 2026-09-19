@@ -199,7 +199,7 @@ FROZEN_COUNTS = {
     #     （content/mech/cond_procs.py 的条件乘区播报行本片**未动**：该动作的「文案」
     #      被 test_u1i5_cond_single_source.py::audit_predicate_bytes 显式冻结 ——
     #      门禁原文「判定/累乘/文案部分必须逐字节保留」；撤销该子项，不在本片削验收环节）
-    "texts": 3188,
+    "texts": 3192,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

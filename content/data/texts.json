@@ -3863,6 +3863,16 @@
     "category": "每日任务",
     "desc": "任务面板：每日段小标题"
   },
+  "drop.bp_desc": {
+    "value": "{qname}级图纸：{name}({slot})",
+    "params": [
+      "qname",
+      "name",
+      "slot"
+    ],
+    "category": "装备描述",
+    "desc": "搬自 content/drops.py:make_blueprint（B 批 C 档）"
+  },
   "drop.eq_desc_armor": {
     "value": "这是一件护甲，版型合体，活动自如",
     "category": "装备描述",
@@ -7819,6 +7829,16 @@
   "gm.reload_fail": {
     "value": "❌ 资料表重载失败：%s",
     "category": "GM指令",
+    "desc": "搬自 content/gm.py:reload_tables（B 批 C 档）"
+  },
+  "gm.reload_head": {
+    "value": "有变化的表：",
+    "category": "GM面板",
+    "desc": "搬自 content/gm.py:reload_tables（B 批 C 档）"
+  },
+  "gm.reload_none": {
+    "value": "无变化",
+    "category": "GM面板",
     "desc": "搬自 content/gm.py:reload_tables（B 批 C 档）"
   },
   "gm.reload_ok": {
@@ -12496,6 +12516,16 @@
     "value": "👥 这里的 NPC：",
     "category": "NPC面板",
     "desc": "搬自 content/world_cmds.py:_start_talk_list（B 批 C 档）"
+  },
+  "npclist.wild_hint": {
+    "value": "  {icon}{name} ⏳剩{remain}分",
+    "params": [
+      "icon",
+      "name",
+      "remain"
+    ],
+    "category": "NPC面板",
+    "desc": "搬自 content/world_cmds.py:_present_wild_hints（B 批 C 档）"
   },
   "npclist.wild_row": {
     "value": "{i:>2}. {icon}{name} ⏳剩{remain_min}分",

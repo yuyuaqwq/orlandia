@@ -178,7 +178,7 @@ _PIN = {
     'live': {
         'content/world_cmds.py::_npc_dialogue': '3b69a0d7c1a114dcc097a38025160792ed5c9a5d3c351a368cf072a91e39ffdc',
         'content/world_cmds.py::_current_npcs': '3db861c90b1bc8435a1dd7b8d4c0a426fe9312e4491c1092e340f400db1343c4',
-        'content/world_cmds.py::_present_wild_hints': '5842eeb60d91e44f00a0f7939219b6d43a2105d1f4fd020001a42153a47649cd',
+        'content/world_cmds.py::_present_wild_hints': 'fffacc77dfd3e3656913e3a4bb433f7be6c6adf8bafda8ca47f36dbb36cc8beb',
         'content/world_cmds.py::_start_talk_list': 'f689d88931d48265ff4c3c35e4c61da484be5d8d63b006ca764f6dc6bdc56b87',
         'content/world_cmds.py::_find_npc_in_map': 'ddd119fb7e1d4e4d2d1c499e01226983d9d32dd82ead20bc9cb41aca33697733',
         'content/world_cmds.py::_town_npc_absent_hint': '527b5705d3879566f07287655f4bce6be09e0dd260feeb6487e463b844bfccb9',
