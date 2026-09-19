@@ -4896,6 +4896,46 @@
     "category": "战斗主循环",
     "desc": "搬自 content/combat_cmds.py:explore（B 批 C 档）"
   },
+  "expbonus.guild": {
+    "value": "🏰 公会加成：经验 +{pct}%",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:guild_exp_bonus（B 批 C 档）"
+  },
+  "expbonus.mount": {
+    "value": "🐎 坐骑疾驰：经验 +{pct}%",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:mount_exp_bonus（B 批 C 档）"
+  },
+  "expbonus.party": {
+    "value": "\n🤝 组队加成：经验 +10%（与 {n} 名队友同行）",
+    "params": [
+      "n"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:party_exp_bonus（B 批 C 档）"
+  },
+  "expcurve.over": {
+    "value": "⚔️ 越级挑战：经验 ×{mult:.2f}",
+    "params": [
+      "mult"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:exp_curve（B 批 C 档）"
+  },
+  "expcurve.under": {
+    "value": "📉 碾压低阶怪：经验 ×{mult:.2f}",
+    "params": [
+      "mult"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:exp_curve（B 批 C 档）"
+  },
   "explore.find_found": {
     "value": "🐱【找到目标】你在{where}的灌木丛里听到一声细弱的『喵——』！\n一只{target}怯生生地探出头，你小心翼翼地靠近，用食物引诱，一把将它抱了起来！\n━━━━━━━━━━━━\n📜 『{quest}』目标达成！回去找 {giver} {hint}吧～",
     "params": [
@@ -5244,6 +5284,16 @@
       "vis",
       "tot"
     ]
+  },
+  "fortune.bad": {
+    "value": "🌧️ 今日小凶：掉落价值 -10%……",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:fortune_bonus（B 批 C 档）"
+  },
+  "fortune.good": {
+    "value": "🌟 今日大吉：经验 +10%！",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:fortune_bonus（B 批 C 档）"
   },
   "gem.combine_head": {
     "value": "💎 【原石合成】3 个同级原石 → 1 个上级，无失败！",
@@ -8965,6 +9015,23 @@
     "category": "行会就职",
     "desc": "搬自 content/world_cmds.py:_do_join_class（B 批 C 档）"
   },
+  "kills.rep": {
+    "value": "🏛️ {icon} 声望 +{n}",
+    "params": [
+      "icon",
+      "n"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:bump_kill_stats（B 批 C 档）"
+  },
+  "knowexp": {
+    "value": "\n📚 求知属性：经验 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:know_exp_bonus（B 批 C 档）"
+  },
   "learn.already": {
     "value": "『{name}』你已经学会了，不需要重复学习～",
     "params": [
@@ -9034,6 +9101,11 @@
     "value": "💡 想赶路请发送『赶路』指令（可选『赶路 NPC/怪物/场景/设施』过滤）～",
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:location_view（B 批 C 档）"
+  },
+  "lucky.charm": {
+    "value": "\n🍀 幸运护符生效：掉落价值 +50%！",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:lucky_charm（B 批 C 档）"
   },
   "map.ev_note_encounter": {
     "value": "(遇怪率↑)",
@@ -9297,6 +9369,39 @@
     "value": "战意狂暴",
     "category": "机制名",
     "desc": "搬自 combat_cmds.py:_MECH_CN（B 批 B-1）"
+  },
+  "mfold.gold": {
+    "value": "\n💰 聚宝属性：金币收益 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:material_fold（B 批 C 档）"
+  },
+  "mfold.luck": {
+    "value": "\n🍀 幸运属性：掉落收益 +{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:material_fold（B 批 C 档）"
+  },
+  "mfold.pick_key": {
+    "value": "🎒 拾取：{name}×1（副本入场钥匙）",
+    "params": [
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:material_fold（B 批 C 档）"
+  },
+  "mfold.pick_mat": {
+    "value": "🎒 拾取材料：{name} ×{n}（可到城镇商店/铁匠铺出售）",
+    "params": [
+      "name",
+      "n"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:material_fold（B 批 C 档）"
   },
   "mount.buy_hint": {
     "value": "去商店『购买 {name}』",
@@ -9570,6 +9675,29 @@
     ],
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
+  },
+  "nextstep.exp_full": {
+    "value": "✨ 经验已满——去『加点』突破吧，实力还能再进一步！",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:next_step_hint（B 批 C 档）"
+  },
+  "nextstep.explore": {
+    "value": "🗺️ 继续『探索』{map}，还有未知的角落等着你——",
+    "params": [
+      "map"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:next_step_hint（B 批 C 档）"
+  },
+  "nextstep.fight": {
+    "value": "⚔️ 继续讨伐，下一个猎物已在路上——",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:next_step_hint（B 批 C 档）"
+  },
+  "nextstep.gold": {
+    "value": "🛠️ 攒了点金币——回城去『铁匠铺』强化装备，讨伐更顺手！",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:next_step_hint（B 批 C 档）"
   },
   "notes.empty": {
     "value": "📖 【见闻录】还是空白的……\n去野外走走，那些藏在角落里的旅人、隐士、夜行者，都在等着被遇见。",
@@ -10426,6 +10554,55 @@
     ],
     "category": "宠物技能描述",
     "desc": "搬自 content/pets.py:_PET_SKILL_DESC（B 批 B-1 B 档）"
+  },
+  "petexp.bond": {
+    "value": "💕 羁绊(亲密度≥50)：经验 +5%",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
+  },
+  "petexp.levelup": {
+    "value": "🎉 宠物升到 Lv.{lv}！",
+    "params": [
+      "lv"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
+  },
+  "petexp.levelup_max": {
+    "value": "🎉 宠物升到 Lv.{lv}！(已满级)",
+    "params": [
+      "lv"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
+  },
+  "petexp.levelup_skill": {
+    "value": "🎉 宠物升到 Lv.{lv}！(Lv.{unlock} 解锁宠物技能)",
+    "params": [
+      "lv",
+      "unlock"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
+  },
+  "petexp.line": {
+    "value": "{tag}：经验 +{pct}%",
+    "params": [
+      "tag",
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
+  },
+  "petexp.tag": {
+    "value": "🐾 陪伴",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
+  },
+  "petexp.tag_half": {
+    "value": "🐾 陪伴(饱食度归零，加成减半)",
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:pet_exp_gain（B 批 C 档）"
   },
   "poi.check_plain": {
     "value": "你检查了{name}，没发现特别之处。",
@@ -11832,6 +12009,22 @@
     "category": "排行榜",
     "desc": "搬自 content/player_cmds.py:leaderboard（B 批 C 档）"
   },
+  "rbp.drop": {
+    "value": "📜 掉落图纸：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_blueprint_drop（B 批 C 档）"
+  },
+  "rbp.pages": {
+    "value": "📜 图纸已学会，化作 {n} 张图纸残页（『出售 图纸残页』变现）",
+    "params": [
+      "n"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_blueprint_drop（B 批 C 档）"
+  },
   "recipe.head": {
     "value": "📜 铁匠锻造配方(『锻造 <职业>』看该职业，『锻造 配方 <装备名>』看详情)：",
     "category": "锻造",
@@ -11954,6 +12147,14 @@
     "value": "💡 『装备重锻 <装备名>』重锻你的装备，继承一半强化/升级！",
     "category": "重锻炼成",
     "desc": "搬自 content/economy_cmds.py:refine_equip（B 批 C 档）"
+  },
+  "regg": {
+    "value": "🥚 【{name}】从怪物身上掉下来了！『使用 宠物蛋』孵化！",
+    "params": [
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_pet_egg（B 批 C 档）"
   },
   "region.not_found": {
     "value": "🧭 找不到当前区域信息……",
@@ -12162,6 +12363,41 @@
     "category": "声望阵营",
     "desc": "搬自 content/world_cmds.py:rep_shop（B 批 C 档）"
   },
+  "req.blue": {
+    "value": "{mark} 一道蓝光闪过，你拾起了【{name}】！",
+    "params": [
+      "mark",
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_equip_drop（B 批 C 档）"
+  },
+  "req.orange": {
+    "value": "{mark} 一道耀眼的金光冲天而起！【{name}】现世了！这件传说中的宝物，已收入你的背包！",
+    "params": [
+      "mark",
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_equip_drop（B 批 C 档）"
+  },
+  "req.plain": {
+    "value": "🎒 你拾起了【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_equip_drop（B 批 C 档）"
+  },
+  "req.purple": {
+    "value": "{mark} 紫光流转，你拾起了【{name}】！(✦史诗·已收入背包)",
+    "params": [
+      "mark",
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_equip_drop（B 批 C 档）"
+  },
   "reroll.full": {
     "value": "【{name}】的词条槽已满({have}/{cap})，无法重铸！先换一件装备吧～",
     "params": [
@@ -12296,6 +12532,32 @@
     "value": "战意",
     "category": "资源名",
     "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
+  },
+  "rgem": {
+    "value": "💎 获得幸运宝石：{name}！(『原石』镶嵌到装备孔位)",
+    "params": [
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_gem_drop（B 批 C 档）"
+  },
+  "rmount": {
+    "value": "🐾 战利品里有【{name}】！『使用 缰绳』驯服坐骑！",
+    "params": [
+      "name"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_mount_drop（B 批 C 档）"
+  },
+  "rrune": {
+    "value": "💎 掉落了【{name}】！({desc})『附魔 <装备> {name2}』使用",
+    "params": [
+      "name",
+      "desc",
+      "name2"
+    ],
+    "category": "掉落播报",
+    "desc": "搬自 content/settlement.py:roll_rune_drop（B 批 C 档）"
   },
   "rune.bad_slot": {
     "value": "『{slot}』不是有效孔位！输入『符文拆卸 <装备名> <孔位序号>』，如：符文拆卸 铁剑 1",
@@ -17234,6 +17496,26 @@
     "value": "🌍 大陆风平浪静……\n",
     "category": "世界事件",
     "desc": "搬自 content/social_cmds.py:world_event_run（B 批 C 档）"
+  },
+  "wevent.exp": {
+    "value": "{icon} {name}：经验 +{pct}%",
+    "params": [
+      "icon",
+      "name",
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:world_event_bonus（B 批 C 档）"
+  },
+  "wevent.gold": {
+    "value": "{icon} {name}：金币 +{pct}%",
+    "params": [
+      "icon",
+      "name",
+      "pct"
+    ],
+    "category": "战斗结算",
+    "desc": "搬自 content/settlement.py:world_event_bonus（B 批 C 档）"
   },
   "wevent.panel_title": {
     "value": "🌍 【世界事件】{icon} {name}(剩余 {mm}分{ss}秒)",

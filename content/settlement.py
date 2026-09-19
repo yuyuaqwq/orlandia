@@ -41,6 +41,7 @@ from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_quests as _cq   # 任务/剧情族
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（宠物/公会/势力/符文掉落/地图连边/世界事件表）
+from . import texts as _T             # ★ C 档 28a（2026-09-19）：文案表读口（本文件首次接入）
 # ---- B14-3（2026-09-14）读点切换 ----
 # 上一段留下的 8 个「域缺口名」（GUILD_CONFIG/PET_MAX_LEVEL/PET_SKILL_UNLOCK_LV/WORLD_EVENT_POOL/
 # AREA_FACTION/FACTIONS/MAP_CONNECTIONS/RUNE_DROP）已由 `catalog_b143` 提供 → 本段 15 处切 `_b143`；
@@ -211,11 +212,11 @@ def exp_curve(exp, monster_lv, player_level):
         if mult > 2.0:
             mult = 2.0
         exp = int(exp * mult)
-        _exp_note = f"⚔️ 越级挑战：经验 ×{mult:.2f}"
+        _exp_note = _T.text("expcurve.over", mult=mult)
     elif diff < -3:
         mult = max(0.15, 0.85 ** (-diff - 3))
         exp = int(exp * mult)
-        _exp_note = f"📉 碾压低阶怪：经验 ×{mult:.2f}"
+        _exp_note = _T.text("expcurve.under", mult=mult)
     return exp, _exp_note
 
 
@@ -229,7 +230,7 @@ def party_exp_bonus(host, group_id, qq_id, exp):
     party_bonus_line = ""
     if _pm:
         exp = int(exp * 1.1)
-        party_bonus_line = f"\n🤝 组队加成：经验 +10%（与 {len(_pm) - 1} 名队友同行）"
+        party_bonus_line = _T.text("expbonus.party", n=len(_pm) - 1)
     return exp, party_bonus_line
 
 
@@ -243,7 +244,7 @@ def guild_exp_bonus(host, qq_id, exp):
         gb = min(g["level"] * _b143.GUILD_CONFIG["exp_bonus_per_level"], _b143.GUILD_CONFIG["max_bonus"])
         if gb > 0:
             exp = int(exp * (1 + gb))
-            guild_bonus.append(f"🏰 公会加成：经验 +{int(gb*100)}%")
+            guild_bonus.append(_T.text("expbonus.guild", pct=int(gb*100)))
     return exp, guild_bonus
 
 
@@ -260,12 +261,12 @@ def pet_exp_gain(host, qq_id, exp, monster):
             pb = pb / 2  # 饱食度 =0：经验加成减半
         if pb > 0:
             exp = int(exp * (1 + pb))
-            ptag = "🐾 陪伴(饱食度归零，加成减半)" if pet["satiety"] <= 0 else "🐾 陪伴"
-            pet_bonus.append(f"{ptag}：经验 +{C.pct_str(pb)}%")
+            ptag = _T.static("petexp.tag_half") if pet["satiety"] <= 0 else _T.static("petexp.tag")
+            pet_bonus.append(_T.text("petexp.line", tag=ptag, pct=C.pct_str(pb)))
         # v104 M17 P3：亲密度≥50 → 战斗经验 +5%（bond 消费方，面板见 social.py pet_view）
         if pet.get("bond", 0) >= 50:
             exp = int(exp * 1.05)
-            pet_bonus.append("💕 羁绊(亲密度≥50)：经验 +5%")
+            pet_bonus.append(_T.static("petexp.bond"))
         # 战斗消耗饱食度 -2（先自然衰减再扣战斗消耗）
         # v105 M17 P3-5 设计说明：仅胜利路径扣除。24 章四"每场战斗 -2"字面含败北/逃跑，
         # 但当前为对玩家的宽容设计——败北已有金币惩罚+回城，逃跑无惩罚，不再叠加扣粮；改动需策划拍板
@@ -284,7 +285,7 @@ def pet_exp_gain(host, qq_id, exp, monster):
             p_exp = min(p_exp, C.pet_exp_need(_b143.PET_MAX_LEVEL) - 1)  # 封顶溢出封存
         db.pet_update(qq_id, exp=p_exp, level=p_lv)
         if p_lvup:
-            pet_bonus.append(f"🎉 宠物升到 Lv.{p_lv}！(Lv.{int(_b143.PET_SKILL_UNLOCK_LV)} 解锁宠物技能)" if p_lv == int(_b143.PET_SKILL_UNLOCK_LV) else (f"🎉 宠物升到 Lv.{p_lv}！(已满级)" if p_lv >= _b143.PET_MAX_LEVEL else f"🎉 宠物升到 Lv.{p_lv}！"))
+            pet_bonus.append(_T.text("petexp.levelup_skill", lv=p_lv, unlock=int(_b143.PET_SKILL_UNLOCK_LV)) if p_lv == int(_b143.PET_SKILL_UNLOCK_LV) else (_T.text("petexp.levelup_max", lv=p_lv) if p_lv >= _b143.PET_MAX_LEVEL else _T.text("petexp.levelup", lv=p_lv)))
     return exp, pet_bonus
 
 
@@ -297,7 +298,7 @@ def mount_exp_bonus(host, player, exp):
     em = float(meff.get("exp_mult", 0) or 0)
     if em > 0:
         exp = int(exp * (1 + em))
-        mount_bonus.append(f"🐎 坐骑疾驰：经验 +{int(em*100)}%")
+        mount_bonus.append(_T.text("expbonus.mount", pct=int(em*100)))
     return exp, mount_bonus
 
 
@@ -324,10 +325,12 @@ def world_event_bonus(host, group_id, qq_id, exp, gold):
             _gm = evt_effects.get("gold_mult")
             if _em:
                 exp = int(exp * _em)
-                evt_bonus.append(f"{evt_def['icon']} {evt_def['name']}：经验 +{int(round((_em - 1) * 100))}%")
+                evt_bonus.append(_T.text("wevent.exp", icon=evt_def['icon'], name=evt_def['name'],
+                                     pct=int(round((_em - 1) * 100))))
             if _gm:
                 gold = int(gold * _gm)
-                evt_bonus.append(f"{evt_def['icon']} {evt_def['name']}：金币 +{int(round((_gm - 1) * 100))}%")
+                evt_bonus.append(_T.text("wevent.gold", icon=evt_def['icon'], name=evt_def['name'],
+                                     pct=int(round((_gm - 1) * 100))))
     return exp, gold, evt_bonus, evt_effects
 
 
@@ -345,10 +348,10 @@ def fortune_bonus(host, group_id, qq_id, exp, gold):
             if _f.get("date") == _dt.date.today().isoformat():
                 if _f.get("fortune") == "大吉":
                     exp = int(exp * 1.10)
-                    fortune_line = "🌟 今日大吉：经验 +10%！"
+                    fortune_line = _T.static("fortune.good")
                 elif _f.get("fortune") == "小凶":
                     gold = int(gold * 0.90)
-                    fortune_line = "🌧️ 今日小凶：掉落价值 -10%……"
+                    fortune_line = _T.static("fortune.bad")
     except Exception:
         pass
     return exp, gold, fortune_line
@@ -375,7 +378,7 @@ def bump_kill_stats(host, group_id, qq_id, monster, evt_effects):
         rep_gain = int(rep_gain * evt_effects.get("rep_mult", 1))
         db.add_reputation(group_id, qq_id, faction, rep_gain)
         if rep_gain > 1:
-            rep_lines.append(f"🏛️ {_b143.FACTIONS[faction]['icon']} 声望 +{rep_gain}")
+            rep_lines.append(_T.text("kills.rep", icon=_b143.FACTIONS[faction]['icon'], n=rep_gain))
     return rep_lines
 
 
@@ -406,13 +409,13 @@ def roll_blueprint_drop(host, group_id, qq_id, player, monster, gold):
             db.add_item(group_id, qq_id, "mat_tu_zhi_can_ye",
                         {"name": "图纸残页", "type": "材料", "stackable": True, "price": 10},
                         count=_pages)
-            drop_lines.append(f"📜 图纸已学会，化作 {_pages} 张图纸残页（『出售 图纸残页』变现）")
+            drop_lines.append(_T.text("rbp.pages", n=_pages))
         else:
             import uuid
             bp_key = f"eq_{uuid.uuid4().hex[:8]}"
             db.add_item(group_id, qq_id, bp_key, drop_bp)
             # v56.4：掉落提示只显示名字，不把 desc 整段塞进括号（曾漏内部 ID）
-            drop_lines.append(f"📜 掉落图纸：{drop_bp['name']}")
+            drop_lines.append(_T.text("rbp.drop", name=drop_bp['name']))
     return drop_equip, drop_lines, gold
 
 
@@ -444,9 +447,9 @@ def roll_equip_drop(host, group_id, qq_id, monster, drop_equip, drop_lines):
         _qmark = {"green": "🟢", "blue": "🔵", "purple": "✨🟣", "orange": "🌟🟠"}.get(
             drop_equip.get("quality", ""), "")
         if drop_equip.get("quality") in ("purple", "orange"):
-            drop_lines.append(f"{_qmark} 紫光流转，你拾起了【{_qname}】！(✦史诗·已收入背包)" if drop_equip.get("quality")=="purple" else f"{_qmark} 一道耀眼的金光冲天而起！【{_qname}】现世了！这件传说中的宝物，已收入你的背包！")
+            drop_lines.append(_T.text("req.purple", mark=_qmark, name=_qname) if drop_equip.get("quality")=="purple" else _T.text("req.orange", mark=_qmark, name=_qname))
         else:
-            drop_lines.append(f"{_qmark} 一道蓝光闪过，你拾起了【{_qname}】！" if drop_equip.get("quality")=="blue" else f"🎒 你拾起了【{_qname}】")
+            drop_lines.append(_T.text("req.blue", mark=_qmark, name=_qname) if drop_equip.get("quality")=="blue" else _T.text("req.plain", name=_qname))
     return drop_lines
 
 
@@ -472,7 +475,7 @@ def roll_pet_egg(host, group_id, qq_id, monster):
     if egg_key:
         egg = C.make_pet_egg(egg_key)
         db.add_item(group_id, qq_id, f"petegg_{egg_key}", egg)
-        pet_egg_line = f"🥚 【{egg['name']}】从怪物身上掉下来了！『使用 宠物蛋』孵化！"  # v113.5 O97：去掉调试感"咦？"，改正式掉落文案
+        pet_egg_line = _T.text("regg", name=egg['name'])  # v113.5 O97：去掉调试感"咦？"，改正式掉落文案
     return pet_egg_line
 
 
@@ -485,7 +488,7 @@ def roll_mount_drop(host, group_id, qq_id, monster):
     if mk:
         rein = C.make_mount_rein(mk)
         db.add_item(group_id, qq_id, f"mountrein_{mk}", rein)
-        mount_line = f"🐾 战利品里有【{rein['name']}】！『使用 缰绳』驯服坐骑！"
+        mount_line = _T.text("rmount", name=rein['name'])
     return mount_line
 
 
@@ -521,7 +524,7 @@ def roll_rune_drop(host, group_id, qq_id, monster):
                 r_lvl = random.randint(2, 3)
             rune_data = C.rune_item(r_def["effect"], r_lvl)
             db.add_item(group_id, qq_id, f"rune_{r_def['effect']}_{r_lvl}", rune_data)
-            rune_line = f"💎 掉落了【{rune_data['name']}】！({rune_data['desc']})『附魔 <装备> {rune_data['name']}』使用"
+            rune_line = _T.text("rrune", name=rune_data['name'], desc=rune_data['desc'], name2=rune_data['name'])
     return rune_line
 
 
@@ -539,7 +542,7 @@ def roll_gem_drop(host, group_id, qq_id, monster):
         _gem = C.roll_gem_drop(monster)
         if _gem:
             db.add_item(group_id, qq_id, f"gem_{uuid.uuid4().hex[:8]}", _gem)
-            gem_line = f"💎 获得幸运宝石：{_gem['name']}！(『原石』镶嵌到装备孔位)"
+            gem_line = _T.text("rgem", name=_gem['name'])
     except Exception:
         gem_line = ""  # 掉落挂接失败不阻塞胜利结算（老档/数据缺失兜底）
     return gem_line
@@ -568,7 +571,7 @@ def lucky_charm(gold, player, now):
     lucky_line = ""
     if int(player.get("lucky_until") or 0) > int(now):
         gold = int(gold * 1.5)
-        lucky_line = "\n🍀 幸运护符生效：掉落价值 +50%！"
+        lucky_line = _T.static("lucky.charm")
     return gold, lucky_line
 
 
@@ -593,9 +596,9 @@ def material_fold(host, group_id, qq_id, player, monster, gold, lucky_line):
         _gold_bonus = 0.0
     mat_value = int(gold * 1.5 * (1 + _luck) * (1 + _gold_bonus))
     if _luck > 0 and not lucky_line:
-        lucky_line = f"\n🍀 幸运属性：掉落收益 +{int(_luck*100)}%！"
+        lucky_line = _T.text("mfold.luck", pct=int(_luck*100))
     if _gold_bonus > 0:
-        lucky_line = (lucky_line or "") + f"\n💰 聚宝属性：金币收益 +{int(_gold_bonus*100)}%！"
+        lucky_line = (lucky_line or "") + _T.text("mfold.gold", pct=int(_gold_bonus*100))
     drop_lines = []
     if mat_value > 0:
         drop_pool = [m for m in (monster.get("drops") or []) if m and "图纸" not in str(m)]
@@ -621,14 +624,14 @@ def material_fold(host, group_id, qq_id, player, monster, gold, lucky_line):
                 db.add_item(group_id, qq_id, mid,
                             {"name": C.display("materials", mid), "type": "材料",
                              "stackable": True, "price": mprice}, n)
-                drop_lines.append(f"🎒 拾取材料：{C.display('materials', mid)} ×{n}（可到城镇商店/铁匠铺出售）")
+                drop_lines.append(_T.text("mfold.pick_mat", name=C.display('materials', mid), n=n))
             else:
                 # v110 审计修复：掉落结算支持消耗品（副本钥匙 i_key_* 等，29 章发放链补全）
                 _it = _ci.ITEMS.get(mid, {})
                 db.add_item(group_id, qq_id, mid,
                             {"name": _it.get("name", mat_name), "type": _it.get("type", "消耗品"),
                              "stackable": True, "price": _it.get("price", 0)}, 1)
-                drop_lines.append(f"🎒 拾取：{_it.get('name', mat_name)}×1（副本入场钥匙）")
+                drop_lines.append(_T.text("mfold.pick_key", name=_it.get('name', mat_name)))
     return lucky_line, drop_lines
 
 
@@ -645,7 +648,7 @@ def know_exp_bonus(host, group_id, qq_id, player, exp):
         _exp_bonus = 0.0
     if _exp_bonus > 0:
         exp = int(exp * (1 + _exp_bonus))
-        exp_bonus_line = f"\n📚 求知属性：经验 +{int(_exp_bonus*100)}%！"
+        exp_bonus_line = _T.text("knowexp", pct=int(_exp_bonus*100))
     else:
         exp_bonus_line = ""
     return exp, exp_bonus_line
@@ -690,15 +693,15 @@ def next_step_hint(host, group_id, qq_id, player, monster) -> str:
         exp = int(player.get("exp", 0) or 0)
         need = C.exp_to_next(lv) if hasattr(C, "exp_to_next") else 0
         if need and exp >= need:
-            return f"✨ 经验已满——去『加点』突破吧，实力还能再进一步！"
+            return _T.static("nextstep.exp_full")
         gold = int(player.get("gold", 0) or 0)
         if gold >= 500:
-            return f"🛠️ 攒了点金币——回城去『铁匠铺』强化装备，讨伐更顺手！"
+            return _T.static("nextstep.gold")
         # 探索引导：当前地图还有未探索区域
         cur_map = player.get("cur_map") or ""
         if cur_map:
-            return f"🗺️ 继续『探索』{cur_map}，还有未知的角落等着你——"
-        return f"⚔️ 继续讨伐，下一个猎物已在路上——"
+            return _T.text("nextstep.explore", map=cur_map)
+        return _T.static("nextstep.fight")
     except Exception:
         return ""
 
