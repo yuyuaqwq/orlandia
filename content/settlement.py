@@ -87,13 +87,8 @@ from . import texts as _T             # ★ C 档 28a（2026-09-19）：文案�
 #   （没有 host 参数）。`@_host_tolerant` 让两种约定都成立且行为一致：首参不是宿主面句柄时，
 #   自动左对齐补上包内自解析句柄。**函数签名/正文/返回值一字未改**（装饰器只做取件归一）。
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主面注入（幂等）——键 = 符号名；值 = 模块/函数（定值）；`None` 忽略。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 def _slot(key, fallback):

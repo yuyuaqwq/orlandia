@@ -35,13 +35,8 @@ from .tlog_collect import _rounds_of, _uid
 # ---------------------------------------------------------------- 取件口（包内直取）
 # 真源 `from ..services.battle_bridge import (…)` = 包内 `content/bridge.py` 的构造半边。
 # 旧键 `services.battle_bridge`（宿主薄壳注入）保留兼容：薄壳的 3 个同名函数是同一实现的委托。
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """过渡注入槽（幂等）——键 `bridge` 或旧键 `services.battle_bridge`（宿主薄壳 import 期调用）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 def _bridge():

@@ -55,13 +55,8 @@ from __future__ import annotations
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 # ============================================================
 from ._hostref import make_wire_module  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`db` / `content`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 _wire_module = make_wire_module(_WIRE, "party")

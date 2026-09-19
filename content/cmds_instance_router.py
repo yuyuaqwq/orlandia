@@ -63,18 +63,13 @@ from .skills import skill_info             # 包内直取（技能链 D3 已进�
 # ★ W2b（2026-09-15）：兜底句柄从 `persistence.handles` 的宿主内容聚合层取件口（宿主聚合层 `game.content`）
 #   换成**包内聚合门面** `content/facade.py::C` —— 本文件不再回宿主取件。
 # ============================================================
-from saintess_engine.wire import Wire
+from saintess_engine.wire import slot as _slot
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）
-_WIRE = Wire()
+_WIRE, bind_host = _slot()
 
 _cs = _PkgModule("content.catalog_space")     # MAP_BY_ID
 _worlds = _PkgModule("content.worlds")        # get_instance_st
-
-
-def bind_host(**objs):
-    """宿主替身注入（幂等；wave 2 宿主壳调用）——键 `c`（内容聚合层）/ `build_monster`。`None` 忽略。"""
-    _WIRE.bind(**objs)
 
 
 def _host_c():

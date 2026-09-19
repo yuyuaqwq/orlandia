@@ -26,13 +26,8 @@
 #   解析：注入优先 → `sys.modules` 已加载的宿主模块（**不 import** 之外的模块树）→ importlib → 抛
 # ============================================================
 from ._hostref import make_host_mod  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`data` 等）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 _host_mod = make_host_mod(_WIRE, __name__)

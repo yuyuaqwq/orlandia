@@ -56,13 +56,8 @@ from . import texts as _T          # C 档 20c（2026-09-19）：文案表读口
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content` / `db`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 from ._pkgref import DB as db, PkgModule

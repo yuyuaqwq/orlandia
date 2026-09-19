@@ -93,13 +93,8 @@ _DATA_DIR = os.path.join(os.path.dirname(_HERE), "data")      # <pkg>/content/da
 # 冻结理由与顺序见文件头 ② R1；写法照 `content/reward.py` / `content/travel.py` 的替身口
 # （注入优先 → 包内直取；取不到抛，拒绝静默空跑）。
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主替身注入（幂等）——键 `db_update`（callable）或 `db`（宿主 db 模块）；`None` 忽略。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 def _make_db_update(mod):

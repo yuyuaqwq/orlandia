@@ -38,13 +38,8 @@ from .skills import _sk_table
 # ============================================================
 # 宿主替身口（惰性；真源「函数内 `from .. import db as _db`」的同义替身）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 模块名（`db`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 # ============================================================

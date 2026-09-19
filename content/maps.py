@@ -46,13 +46,8 @@ _MAPS = placeholder("_MAPS")
 _SUBS = placeholder("_SUBS")
 _DOM_ROLES = placeholder("_DOM_ROLES")
 
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主替身注入（幂等）——键 = 模块名（`db`；`data` 镜像口随宿主 `game/data` 删除已撤）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 from ._pkgref import DB as db            # B1：包内存储层（引擎 wire 形状的惰性句柄）

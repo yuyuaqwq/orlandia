@@ -37,13 +37,8 @@ from saintess_engine.store.snapshots import SnapshotSpec, declare_snapshot
 #    写法照抄包内 `content/world_cmds.py`（B9 线2）：注入优先 → sys.modules → importlib，
 #    取不到**大声抛**（绝不静默空跑）。
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`db` / `content`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 # ★ B14-2 L8（2026-09-14）：`create_instance_world` 克隆用的三张表切**包内门面**

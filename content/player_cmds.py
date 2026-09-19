@@ -89,13 +89,8 @@ from . import catalog_b143 as _cat_b143
 #    （`_combat_cmds_cls`）随常量表正位一并**删除** —— 本模块不再有宿主类读点，
 #    只剩下面这个通用注入字典（键 = 宿主面名 `content` / `db`）。
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`content` / `db`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 from ._pkgref import DB as db

@@ -29,14 +29,9 @@ from saintess_engine.records import apply_replacements, placeholder, register_vi
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    抄 `content/world_cmds.py` 的同款写法（B9 线2 定的包内标准形状）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 _MOD = "pois"
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名。"""
-    _WIRE.bind(**objs)
 
 
 # ============================================================

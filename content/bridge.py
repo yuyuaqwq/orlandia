@@ -73,13 +73,8 @@ from saintess_engine import make_actor  # 只读 saintess_engine 工厂，不改
 # 按宿主壳同款约定取：`bind_host(attach_tlog=…)` 注入 → `sys.modules` 已加载 → import。
 # ============================================================
 from ._hostref import make_host_mod  # 取件工厂单源（P0-3；常量本身不再被本文件引用）
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主替身注入（幂等；宿主薄壳 import 期调用）。键 = `attach_tlog`；`None` 忽略。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 _host_mod = make_host_mod(_WIRE, "bridge")

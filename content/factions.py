@@ -10,13 +10,8 @@
 """
 from __future__ import annotations
 
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主替身注入（幂等）——键 = 模块名（`data`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 # ---- 包内门面读口（W12 收口：真源顶层 `from ..data import REPUTATION_TIERS`）----

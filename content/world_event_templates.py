@@ -32,13 +32,8 @@ from . import texts as _T
 # ============================================================
 # ① 宿主替身口（与 content/world_cmds.py 同款）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`content`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 from ._pkgref import PkgModule

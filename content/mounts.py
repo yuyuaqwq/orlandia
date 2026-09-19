@@ -19,15 +19,9 @@ from . import catalog_life as _cl                                  # noqa: E402 
 from .catalog_b143 import MOUNT_DROP_BOSS, MOUNT_DROP_ELITE        # noqa: E402  两张掉落表
 from . import texts as _T                                          # noqa: E402  C 档 PRE4-a（2026-09-19）：文案表读口（本文件首次接入）
 
-from saintess_engine.wire import Wire
+from saintess_engine.wire import slot as _slot
 from ._domainio import read_data_json as _read_json
-_WIRE = Wire()
-
-
-
-def bind_host(**objs):
-    """宿主替身注入（幂等）——键 = 模块名（`data`）。"""
-    _WIRE.bind(**objs)
+_WIRE, bind_host = _slot()
 
 
 def _tables():

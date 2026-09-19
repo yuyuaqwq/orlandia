@@ -29,13 +29,8 @@
 # 宿主替身口（`content/index.py` / `content/world_cmds.py` 同款：注入优先 → sys.modules →
 # importlib；**绝不静默空跑**）
 # ============================================================
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主模块名（`data` / `content` / `db`）。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 # -*- coding: utf-8 -*-

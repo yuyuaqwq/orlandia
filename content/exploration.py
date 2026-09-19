@@ -128,13 +128,8 @@ _FIRST_VISIT_MAT_POOL = ("草药", "铁矿石", "兽肉", "浆果", "蜂蜜")
 
 _WORLDS = _read_json(os.path.join(_DATA_DIR, "worlds.json"), {})
 
-from saintess_engine.wire import Wire
-_WIRE = Wire()
-
-
-def bind_host(**objs) -> None:
-    """宿主替身注入（幂等）——键 = 模块名（`db` / `content`）。宿主薄壳 import 期调用。"""
-    _WIRE.bind(**objs)
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
 
 from ._pkgref import DB as db, PkgModule

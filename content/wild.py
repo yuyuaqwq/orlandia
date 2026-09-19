@@ -38,7 +38,7 @@ from .timed_events import register_timed, set_timed                       # 包�
 #    写法照抄包内 `content/world_cmds.py`（B9 线2）：注入优先 → sys.modules → importlib，
 #    取不到**大声抛**（绝不静默空跑）。
 # ============================================================
-from saintess_engine.wire import Wire
+from saintess_engine.wire import slot as _slot
 # ============================================================
 # ①′ 在场形状（U1-I4 L4）：当天定位 / 概率阈值 / 保底 / 冷却 / 合表 —— **手算派生**换成引擎纯函数。
 #    取值与业务语义（`roam` 桶、`appear` 盐、`chance`、保底 7、冷却 1800、`inst_stage` 6 条）
@@ -46,12 +46,7 @@ from saintess_engine.wire import Wire
 # ============================================================
 from saintess_engine.presence import (day_slot, day_hit, guarded_roll,   # noqa: F401
                                       cooldown_ok, merge_tables)
-_WIRE = Wire()
-
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等）——键 = 宿主面名（`db` / `content`）。"""
-    _WIRE.bind(**objs)
+_WIRE, bind_host = _slot()
 
 
 from ._pkgref import DB as db

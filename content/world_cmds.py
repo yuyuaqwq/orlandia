@@ -92,13 +92,9 @@ from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（�
 #    · 兼容面两个旧替身口名（`content/cmds_world.py:49` 的 F401 再导出用，**零调用点**，见头注 ⚠️）
 # ============================================================
 from ._hostref import drops_module  # 宿主取件样板单源（P0-3/P0-5）
-from saintess_engine.wire import Wire
-_WIRE = Wire()
+from saintess_engine.wire import slot as _slot
+_WIRE, bind_host = _slot()
 
-
-def bind_host(**objs):
-    """宿主薄壳 import 期注入（幂等；签名/时机逐字不变）——键 = 宿主面名（`content` / `db`）。"""
-    _WIRE.bind(**objs)
 
 _drops = drops_module("world_cmds")
 
