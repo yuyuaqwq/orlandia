@@ -92,7 +92,11 @@ _host_mod = make_host_mod(_WIRE, "bridge")
 # ============================================================
 
 class _EventStateView(dict):
-    """宿主 db → 包内 `event_state` 协议替身（get / 赋值 / pop 三动词转发宿主 db）。"""
+    """宿主 db → 包内 `event_state` 协议替身（get / 赋值 / pop 三动词转发宿主 db）。
+
+    ★ 全仓唯一一份（P1-4，2026-09-19）：`content/combat_cmds.py` 曾再抄一份逐字同体，
+    已收口到本文件（那边 `_es_arg()` 只多一层「缺省库」回落）。
+    """
 
     __slots__ = ("_db",)
 

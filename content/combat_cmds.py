@@ -38,7 +38,7 @@
 | 原读点（宿主壳） | 现取用（包内家） |
 |---|---|
 | `game.commands.combat` 的野王四函数 | `content/wild_king.py`（宿主 `core.wild_king` **is** 本模块）+ 猴补覆写面 |
-| `game.services.battle_bridge`（构造 + 回写） | `content/bridge.py`（`_EventStateView` 等价件也在本文件） |
+| `game.services.battle_bridge`（构造 + 回写） | `content/bridge.py`（构造 + 回写两半；`_EventStateView` 替身件也**只**在那边一份 —— P1-4 收口） |
 | `game.services.battle_settlement` 7 名 | `content/settlement.py` + 本文件结算句柄（注入名 `db`/`content`） |
 | `game.services.battle_worldboss_procs` | `content/mech/worldboss.py` |
 | `game.core.event_templates` | `content/event_templates.py` |
@@ -298,37 +298,13 @@ def _attach_tlog(b, *, btype="monster", player=None, enemies=None, seed=None):
     return _fn(b, btype=btype, player=player, enemies=enemies, seed=seed)
 
 
-class _EventStateView(dict):
-    """宿主 db → 包内 `event_state` 协议替身（逐字等价宿主壳 `game/services/battle_bridge.py:122`）。
-
-    接口表第 11 行把 `_EventStateView` 记为宿主独有 ⇒ 等价实现落在本文件。三动词转发宿主 db；
-    `dict` 子类只为满足包内 `isinstance(event_state, dict)` 守卫（键值不落本对象）。
-    """
-
-    __slots__ = ("_db",)
-
-    def __init__(self, db):
-        super().__init__()
-        self._db = db
-
-    def get(self, key, default=None):
-        v = self._db.get_event_state(key)
-        return default if v is None else v
-
-    def __setitem__(self, key, value):
-        self._db.set_event_state(key, value)
-
-    def pop(self, key, default=None):
-        v = self._db.get_event_state(key)
-        if v is None:
-            return default
-        self._db.delete_event_state(key)
-        return v
-
-
 def _es_arg(db):
-    """宿主第三参 `db` → 包内 `event_state` 替身（宿主壳 `_es_arg` 逐字等价）。"""
-    return _EventStateView(db or _settle_db())
+    """宿主第三参 `db` → 包内 `event_state` 替身（宿主壳 `_es_arg` 逐字等价）。
+
+    ★ P1-4（2026-09-19）：替身类**只有一份**，真源 `content/bridge.py::_EventStateView`
+    （本文件曾再抄一份逐字同体，已收口）。这里只多一层「缺省库」回落。
+    """
+    return _BR._EventStateView(db or _settle_db())
 
 
 class _SettleHost:
