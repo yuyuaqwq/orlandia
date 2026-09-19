@@ -6602,6 +6602,57 @@
     "category": "家园地契",
     "desc": "搬自 content/world_cmds.py:visit_home（B 批 C 档）"
   },
+  "hurry.elite": {
+    "value": "  ⭐ 精英：{name}",
+    "params": [
+      "name"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.fac_head": {
+    "value": "🏪 此地设施：",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.fac_none": {
+    "value": "🏪 这里没有商店/设施～",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.monster_head": {
+    "value": "🐾 此地的怪物 ({lv})：",
+    "params": [
+      "lv"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.monster_none": {
+    "value": "🐾 这里没什么怪物，比较安全～",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.npc_none": {
+    "value": "👥 这里附近没有可交谈的 NPC ～",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.poi_head": {
+    "value": "🔎 可探索触发：",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.prop_head": {
+    "value": "✨ 可交互场景：",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
+  "hurry.scene_none": {
+    "value": "✨ 这里没什么特别的场景～",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:_hurry_section（B 批 C 档）"
+  },
   "hurry.usage": {
     "value": "『赶路』可选参数：NPC / 怪物 / 场景 / 设施（例：『赶路 NPC』；无参=看当前全部可前往）～",
     "category": "地图导航",
@@ -9078,6 +9129,138 @@
     ],
     "category": "坐骑面板",
     "desc": "搬自 content/social_pet.py:mount_run（B 批 C 档）"
+  },
+  "move.ally_head": {
+    "value": "\n── 我方 ──\n",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.ambush_head": {
+    "value": "{arrive}\n{desc}{lv}{extra}{portal}\n━━━━━━━━━━━━\n🛡️ 还没站稳，{ambush} 就拦住了去路！\n── 敌方 ──\n",
+    "params": [
+      "arrive",
+      "desc",
+      "lv",
+      "extra",
+      "portal",
+      "ambush"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.ambush_tail": {
+    "value": "\n🐾【{name}】Lv.{lv} ❤️ {hp}/{max_hp}\n━━━━━━━━━━━━\n你的行动：『攻击』『技能 <名称>』『防御』『逃跑』",
+    "params": [
+      "name",
+      "lv",
+      "hp",
+      "max_hp"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.arrive": {
+    "value": "🚶 你来到了【{name}】",
+    "params": [
+      "name"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.arrive_desc": {
+    "value": "🚶 你来到了【{name}】\n{desc}",
+    "params": [
+      "name",
+      "desc"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.arrive_town": {
+    "value": "🚶 你从野外方向来到了【{name}】{sa}",
+    "params": [
+      "name",
+      "sa"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.battle_block": {
+    "value": "⚔️ 你正在战斗中！输入『攻击』/『技能 <名称>』继续战斗，『防御』『逃跑』『用药』可选——先解决眼前的敌人再说移动。",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.exit_hint": {
+    "value": "🧭 你身处【{sa}】，还不能离开{map}——需要先到{exit}(『前往 {exit2}』)才能出城/出图。",
+    "params": [
+      "sa",
+      "map",
+      "exit",
+      "exit2"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.idx_invalid": {
+    "value": "序号无效！这里可前往 {total} 处，输入『地图』查看～",
+    "params": [
+      "total"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.no_dest": {
+    "value": "前往哪？输入『地图』查看～",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.not_adjacent": {
+    "value": "无法直接前往{name}！需要先到相邻地图。看看『地图』～",
+    "params": [
+      "name"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.not_found": {
+    "value": "找不到『{dest}』！输入『地图』查看可前往区域，或『传送 <名称>』用方碑快速旅行～",
+    "params": [
+      "dest"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.redname": {
+    "value": "🛡️ 城门口的守卫拦住了你：\"你身上沾着血腥味！红名期间禁止进入城镇！\"\n(红名期间不能进入安全区，去野外避避风头吧)",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.sa_missing": {
+    "value": "目标子区域不存在！输入『地图』查看～",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.same_map": {
+    "value": "你已经在这里了！(当前：{map})",
+    "params": [
+      "map"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.same_sa": {
+    "value": "你已经在这里了({map}·{sa})～",
+    "params": [
+      "map",
+      "sa"
+    ],
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
+  },
+  "move.talk_block": {
+    "value": "你还在和 NPC 交谈中！先回复 0 结束对话再动身吧。",
+    "category": "移动赶路",
+    "desc": "搬自 content/world_cmds.py:move（B 批 C 档）"
   },
   "my_equip.footer": {
     "value": "已穿戴 {worn}/{total} 件 ｜ 『装备 <序号>』换装 ｜ 『卸下 <部位>』脱下 ｜ 『物品详情 <名称>』看详情",

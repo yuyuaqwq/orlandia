@@ -1158,11 +1158,11 @@ def _hurry_section(self, player: dict, cur_map: dict, cur_sa: str,
         npcs = [(nid, n) for nid, n in npcs
                 if nid in _cat_quests.HIDDEN_NPCS or not cur_sa or _wild.town_npc_visible(nid, n, cur_sa)]
         if npcs:
-            lines.append("👥 这里的 NPC：")
+            lines.append(_T.static("npclist.head"))
             for i, (_, n) in enumerate(npcs, 1):
                 lines.append(f"  {i:>2}. {n['icon']}{n['name']}({n['title']})")
         else:
-            lines.append("👥 这里附近没有可交谈的 NPC ～")
+            lines.append(_T.static("hurry.npc_none"))
     elif ftype == "monster":
         mons = (cur_sa_obj.get("monsters") if cur_sa_obj else None)
         if mons is None:
@@ -1177,7 +1177,7 @@ def _hurry_section(self, player: dict, cur_map: dict, cur_sa: str,
             else:
                 base_lv = (cur_sa_obj.get("lv") if cur_sa_obj else None) or cur_map["lv"]
                 lv_label = f"Lv.{base_lv}"
-            lines.append(f"🐾 此地的怪物 ({lv_label})：")
+            lines.append(_T.text("hurry.monster_head", lv=lv_label))
             for mid, name, role, lv, skills, drops in mons:
                 if role == "elite" and elite and elite[0] == mid:
                     continue
@@ -1186,33 +1186,33 @@ def _hurry_section(self, player: dict, cur_map: dict, cur_sa: str,
                 mark = "👑" if role == "boss" else ("⭐" if role == "elite" else "")
                 lines.append(f"  {mark}{name} Lv.{lv}")
         if elite:
-            lines.append(f"  ⭐ 精英：{elite[1]}")
+            lines.append(_T.text("hurry.elite", name=elite[1]))
         if boss:
             lines.append(f"  👑 Boss：{boss[1]}")
         if not mons and not elite and not boss:
-            lines.append("🐾 这里没什么怪物，比较安全～")
+            lines.append(_T.static("hurry.monster_none"))
     elif ftype == "scene":
         # v132 场景两区：🔎 可探索触发（POI）+ ✨ 可交互场景（PROPS），与 _map_blocks 同口径
         # ★ 修：_map_scene 返回 (poi_lines, prop_lines) 二元组——此前当平铺列表用 ⇒ 打印 list repr
         poi_lines, prop_lines = self._map_scene(cur_map, player, cur_sa)
         if poi_lines:
-            lines.append("🔎 可探索触发：")
+            lines.append(_T.static("hurry.poi_head"))
             for l in poi_lines:
                 lines.append(f"  {l}")
         if prop_lines:
-            lines.append("✨ 可交互场景：")
+            lines.append(_T.static("hurry.prop_head"))
             for l in prop_lines:
                 lines.append(f"  {l}")
         if not poi_lines and not prop_lines:
-            lines.append("✨ 这里没什么特别的场景～")
+            lines.append(_T.static("hurry.scene_none"))
     elif ftype == "facility":
         fac = self._map_facilities(cur_map, player, cur_sa)
         if fac:
-            lines.append("🏪 此地设施：")
+            lines.append(_T.static("hurry.fac_head"))
             for l in fac:
                 lines.append(f"  {l}")
         else:
-            lines.append("🏪 这里没有商店/设施～")
+            lines.append(_T.static("hurry.fac_none"))
     return lines
 
 
@@ -1411,7 +1411,7 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
     # v87.13 对话中禁止移动：多轮对话进行时先回复 0 结束（v127.8 起『对话 0』亦拦截）
     # O99 修复：统一对话状态判定（_talk_active 会清除损坏残留键，防判定漂移）
     if self._talk_active(group_id, qq_id):
-        yield event.plain_result("你还在和 NPC 交谈中！先回复 0 结束对话再动身吧。")
+        yield event.plain_result(_T.static("move.talk_block"))
         return
     # v137 副本地图化：副本内移动（队长带队，房间连通）——必须先于 _in_battle 全局拦截：
     # 副本地图模式（mode=map，st.boss=None）下 battle 锁仍持有，_in_battle 会拦截所有移动。
@@ -1428,13 +1428,13 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
     dest = _mv_dest
     # v95.17 #146：战斗中禁止移动（与传送/回家/拜访一致，防战斗挂起跨图/被撞怪覆盖）
     if self._in_battle(group_id, qq_id):
-        yield event.plain_result("⚔️ 你正在战斗中！输入『攻击』/『技能 <名称>』继续战斗，『防御』『逃跑』『用药』可选——先解决眼前的敌人再说移动。")
+        yield event.plain_result(_T.static("move.battle_block"))
         return
     dest = dest.strip()
     # v104 P1(M22)：空参数『前往』/『移动』不再静默移动——"" 是任意非空串的子串，
     # 此前会命中 area_name 首个非空地图静默跨图并扣体力，直接提示输入目标
     if not dest:
-        yield event.plain_result("前往哪？输入『地图』查看～")
+        yield event.plain_result(_T.static("move.no_dest"))
         return
     # v94 体力：同图子区域移动免费（城内溜达不算赶路）；跨图移动扣 1、体力不足拒绝
     cur = player["cur_map"]
@@ -1453,10 +1453,10 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
             sa_id = links[idx - 1]
             sa = next((s for s in cur_sas if s["id"] == sa_id), None)
             if sa is None:
-                yield event.plain_result("目标子区域不存在！输入『地图』查看～")
+                yield event.plain_result(_T.static("move.sa_missing"))
                 return
             if sa["id"] == player.get("cur_subarea"):
-                yield event.plain_result(f"你已经在这里了({cur_map['name']}·{sa['name']})～")
+                yield event.plain_result(_T.text("move.same_sa", map=cur_map['name'], sa=sa['name']))
                 return
             db.update_player(group_id, qq_id, cur_subarea=sa["id"])
             yield event.plain_result(self._subarea_arrive(player, cur_map, sa, group_id, qq_id))
@@ -1466,7 +1466,7 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
         for sa in cur_sas:
             if dest in (sa["name"], sa["id"]):
                 if sa["id"] == player.get("cur_subarea"):
-                    yield event.plain_result(f"你已经在这里了({cur_map['name']}·{sa['name']})～")
+                    yield event.plain_result(_T.text("move.same_sa", map=cur_map['name'], sa=sa['name']))
                     return
                 # v87.14 空间连接：同图只能移动到相邻子区域
                 # v115：隐藏未揭示房不能直接前往（提示需先探索揭开）
@@ -1505,19 +1505,20 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
                 _exit_name = next((s["name"] for s in (cur_map.get("subareas") or []) if s["id"] == exit_sa_id), "出口")
                 _cur_sa_name = next((s["name"] for s in (cur_map.get("subareas") or []) if s["id"] == player.get("cur_subarea")), player.get("cur_subarea", ""))
                 yield event.plain_result(
-                    f"🧭 你身处【{_cur_sa_name}】，还不能离开{cur_map.get('name', '此地')}——"
-                    f"需要先到{_exit_name}(『前往 {_exit_name}』)才能出城/出图。"
+                    _T.text("move.exit_hint", sa=_cur_sa_name,
+                            map=cur_map.get('name', '此地'),
+                            exit=_exit_name, exit2=_exit_name)
                 )
                 return
             total = len(links) + len(neighbors)
-            yield event.plain_result(f"序号无效！这里可前往 {total} 处，输入『地图』查看～")
+            yield event.plain_result(_T.text("move.idx_invalid", total=total))
             return
     else:
         from .travel import resolve_map_target
         target = resolve_map_target(dest)
     if not target:
         names = "、".join([m["name"] for m in _cat_space.MAPS])
-        yield event.plain_result(f"找不到『{dest}』！输入『地图』查看可前往区域，或『传送 <名称>』用方碑快速旅行～")
+        yield event.plain_result(_T.text("move.not_found", dest=dest))
         return
     # 隐藏图检查
     from .travel import hidden_map_block
@@ -1532,16 +1533,14 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
     # v104 P1(M22)：目标==当前图（输入本图地图名/区域名）→ 提示已在，不再原地白走扣体力
     # （同图子区域名分支 :676-678 已有同款提示，跨图路径此前漏了）
     if target["id"] == cur:
-        yield event.plain_result(f"你已经在这里了！(当前：{cur_map.get('name', '此地')})")
+        yield event.plain_result(_T.text("move.same_map", map=cur_map.get('name', '此地')))
         return
     if target["id"] != cur and target["id"] not in nids:
-        yield event.plain_result(f"无法直接前往{target['name']}！需要先到相邻地图。看看『地图』～")
+        yield event.plain_result(_T.text("move.not_adjacent", name=target['name']))
         return
     # v84 红名限制（26 章三 第一档）：红名不能进入城镇安全区（'城镇外郊' 数据不存在，v102.1 清理）
     if self._is_redname(qq_id) and target.get("type") == _cat_core.MAP_TYPE_TOWN:
-        yield event.plain_result(
-            "🛡️ 城门口的守卫拦住了你：\"你身上沾着血腥味！红名期间禁止进入城镇！\"\n"
-            "(红名期间不能进入安全区，去野外避避风头吧)")
+        yield event.plain_result(_T.static("move.redname"))
         return
     # 等级提示
     from .travel import level_warn
@@ -1635,9 +1634,9 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
                      pet=db.pet_get(qq_id))
         db.save_battle(group_id, qq_id, _nb.to_state())
         self._lock_battle(group_id, qq_id)
-        arrive_txt = f"🚶 你来到了【{target['name']}】"
+        arrive_txt = _T.text("move.arrive", name=target['name'])
         if target.get("type") == _cat_core.MAP_TYPE_TOWN and first_sa:
-            arrive_txt = f"🚶 你从野外方向来到了【{target['name']}】{first_sa['name']}"
+            arrive_txt = _T.text("move.arrive_town", name=target['name'], sa=first_sa['name'])
         # 我方站位单机 = 玩家单位
         _cls = _cat_core.CLASSES.get(player.get("class_name", ""), {}) or {}
         _self_unit = {
@@ -1648,23 +1647,22 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
         _enemy_rows = formation_view(alive_units(_grp), side="enemy")
         _ally_rows = formation_view(alive_units([_self_unit]), side="ally")
         yield event.plain_result(
-            f"{arrive_txt}\n{(first_sa.get('desc') if first_sa else '') or target.get('desc', '')}{lv_msg}{extra}{portal_msg}\n"
-            f"━━━━━━━━━━━━\n"
-            f"🛡️ 还没站稳，{ambush['name']} 就拦住了去路！\n"
-            f"── 敌方 ──\n" + "\n".join(_enemy_rows) + "\n── 我方 ──\n" + "\n".join(_ally_rows) + "\n"
-            f"🐾【{ambush['name']}】Lv.{ambush['lv']} ❤️ {ambush['hp']}/{ambush['max_hp']}\n"
-            f"━━━━━━━━━━━━\n"
-            f"你的行动：『攻击』『技能 <名称>』『防御』『逃跑』"
+            _T.text("move.ambush_head", arrive=arrive_txt,
+                    desc=(first_sa.get('desc') if first_sa else '') or target.get('desc', ''),
+                    lv=lv_msg, extra=extra, portal=portal_msg, ambush=ambush['name'])
+            + "\n".join(_enemy_rows) + _T.static("move.ally_head") + "\n".join(_ally_rows)
+            + _T.text("move.ambush_tail", name=ambush['name'], lv=ambush['lv'],
+                      hp=ambush['hp'], max_hp=ambush['max_hp'])
         )
         return
     # v87.3 必经之路：进入城镇时提示方向（从路图/野外进城）
-    arrive_txt = f"🚶 你来到了【{target['name']}】"
+    arrive_txt = _T.text("move.arrive", name=target['name'])
     if target.get("type") == _cat_core.MAP_TYPE_TOWN and first_sa:
-        arrive_txt = f"🚶 你从野外方向来到了【{target['name']}】{first_sa['name']}"
+        arrive_txt = _T.text("move.arrive_town", name=target['name'], sa=first_sa['name'])
     # v97.5 行为彩蛋规则：进入新地图
     _rule_txt = self._rule_fire("move_enter", group_id, qq_id, player, target)
     arrive_view = self._subarea_arrive(player, target, first_sa, group_id, qq_id) if first_sa else \
-        f"🚶 你来到了【{target['name']}】\n{target.get('desc', '')}"
+        _T.text("move.arrive_desc", name=target['name'], desc=target.get('desc', ''))
     # 跨图特有信息插在主体前（等级提示/任务/方碑）
     _head_extra = f"{lv_msg}{extra}{portal_msg}"
     yield event.plain_result(

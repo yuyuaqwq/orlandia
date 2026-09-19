@@ -147,7 +147,10 @@ FROZEN_COUNTS = {
     #     content/social_cmds.py 全 4 函数（maybe_roll_event / world_event_run / auction_run / bid_run）
     #     23 处替换 / 19 新键（新分类 世界事件 / 社交拍卖）⇒ 2073 → 2092。
     # ★ C 档 22c（B-2 第 8 片：world「NPC 对话族」43 处替换 / 37 新键，6 处幂等复用）⇒ 2270 → 2307
-    "texts": 2307,
+    # ★ C 档 23a（B-2 第 9 片：world「移动 · 赶路族」30 处替换 / 26 新键，1 处幂等复用
+    #   npclist.head；新分类 移动赶路）——content/world_cmds.py 的 move（前往/移动全守卫链）
+    #   + _hurry_section（赶路各类型过滤区）⇒ 2307 → 2333
+    "texts": 2333,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）
