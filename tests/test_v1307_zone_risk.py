@@ -49,14 +49,9 @@ INSTANCE = C.MAP_BY_ID["goblin_camp"]  # 副本 lv15
 FAKE_MON = ("m_goblin_test", "戈布林测试王", "boss", 15, [], [])
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 def _ambush(m, level, rnd):

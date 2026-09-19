@@ -6,14 +6,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from conftest import FakeEvent, run, clean_db, TEST_DB, Main, db, C
 
 passed = failed = 0
-def check(name, ok, detail=""):
-    global passed, failed
-    if ok:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 async def main():
     clean_db()  # 已含 props_use

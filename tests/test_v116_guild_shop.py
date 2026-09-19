@@ -18,15 +18,9 @@ from content.social_guild import guild_roles as _guild_roles
 from content.persistence.social import guild_get_member, guild_set_role
 
 passed = failed = 0
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        safe = detail.encode("utf-8", "replace").decode("utf-8", "replace") if detail else ""
-        print(f"  ❌ {name} {safe}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 async def cmd(m, handler_name, gid, qid, msg):
     ev = FakeEvent(gid, qid, msg)

@@ -40,14 +40,9 @@ passed = failed = 0
 known_fail = []
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {str(detail).encode('utf-8', 'replace').decode('utf-8', 'replace')[:300]}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed", limit=300)
 
 
 def check_kf(name, cond, detail=""):

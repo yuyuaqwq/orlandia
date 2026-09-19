@@ -37,15 +37,9 @@ FAILURES = []
 MON_SKILL = "ms_an_ying_dan"   # 暗影弹（MONSTER_SKILLS 内，name=暗影弹）
 
 
-def check(name, cond, detail=""):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print(f"  ✅ {name}")
-    else:
-        FAIL += 1
-        FAILURES.append(f"{name}: {detail}")
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
 
 def mk_p(spd=10, hp=99999):

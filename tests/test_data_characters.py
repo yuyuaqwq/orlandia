@@ -18,14 +18,9 @@ _CRG = {_c: {"key": _v.get("resource_key"), "name": _v.get("resource_name"),
         for _c, _v in C.JOB_GUIDE.items() if _v.get("resource_key")}
 
 passed = failed = 0
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print("  ✅ %s" % name)
-    else:
-        failed += 1
-        print("  ❌ %s %s" % (name, detail))
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 def main():

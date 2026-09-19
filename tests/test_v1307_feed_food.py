@@ -41,14 +41,9 @@ G, Q = 1095961597, "gm_t1307_feed"
 PET_KEY = "pet_wolf"
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"✅ {name}")
-    else:
-        failed += 1
-        print(f"❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 async def _cmd(m, cmd):

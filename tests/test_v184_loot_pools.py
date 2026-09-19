@@ -131,15 +131,9 @@ FAIL = 0
 CMP = 0          # 逐项比对条数（与断言数分开如实报）
 
 
-def check(name, cond, detail="", quiet=False):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        if not quiet:
-            print(f"  ✅ {name}")
-    else:
-        FAIL += 1
-        print(f"  ❌ {name}: {str(detail)[:600]}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL", limit=600)
 
 
 def _diff(a, b, path="result"):

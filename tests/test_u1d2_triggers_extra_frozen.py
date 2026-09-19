@@ -89,15 +89,9 @@ _COUNT = {"idempotent": 0, "prepend": 0, "element_order": 0, "class_sites": 0,
 _COUNTING = True
 
 
-def check(name, cond, detail=""):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print(f"  ✅ {name}")
-    else:
-        FAIL += 1
-        FAILURES.append(f"{name} {detail}")
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
 
 def sha256(text: str) -> str:

@@ -19,14 +19,9 @@ from _engine_harness import FakeEvent, run, clean_db, Main, db, make_player
 from content import wild as W
 
 passed = failed = 0
-def check(name, ok, detail=""):
-    global passed, failed
-    if ok:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 GID, QID = "g1", "1001"
 

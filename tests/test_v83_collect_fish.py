@@ -12,14 +12,9 @@ from _engine_harness import C, db  # noqa: E402
 from _engine_harness import Main  # noqa: E402
 
 passed = failed = 0
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print("  ✅", name)
-    else:
-        failed += 1
-        print("  ❌", name, detail)
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 async def main():
     clean_db()

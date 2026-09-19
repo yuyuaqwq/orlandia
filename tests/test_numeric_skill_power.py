@@ -22,14 +22,9 @@ from conftest import C  # noqa: E402
 
 passed = failed = 0
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 # 锁定表：cid -> (基础技, 成型技)，每项 = (技能名, lv, power, mp, SKILL_UP.p)
 # v153 职业重做：7 基础职业数值按 v153 新表实测锁定（2026-09-01 baseline 重生成）

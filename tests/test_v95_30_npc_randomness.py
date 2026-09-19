@@ -16,14 +16,9 @@ C_town_npc_visible = _W.town_npc_visible
 C_town_npc_dialogue = _W.town_npc_dialogue
 
 passed = failed = 0
-def check(name, ok, detail=""):
-    global passed, failed
-    if ok:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 # 固定日期（2026-08-11 = toordinal 739988 之类，无所谓，只要固定）
 D0 = datetime.date(2026, 8, 11)

@@ -32,14 +32,9 @@ Main._spend_stamina = _fake_spend
 
 passed = failed = 0
 findings = []
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 def finding(name, detail):
     """记录真实发现（不失败，报告用）。"""

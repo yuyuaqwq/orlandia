@@ -29,14 +29,9 @@ G, Q = 1095961597, "gm_t1307_seq"
 passed = failed = 0
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"✅ {name}")
-    else:
-        failed += 1
-        print(f"❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 # base._tip 的 emoji 前缀规则：条目以 emoji 开头时原样返回，否则补 '💡 ' 前缀

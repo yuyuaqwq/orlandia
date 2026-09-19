@@ -53,14 +53,9 @@ ELITE_DEF = ("m_elite_test", "精英测试怪", "elite", 30, [], [])
 BOSS_DEF = ("m_boss_test", "Boss测试怪", "boss", 30, [], [])
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 def with_randint(val, fn):

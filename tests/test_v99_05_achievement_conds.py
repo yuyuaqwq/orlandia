@@ -29,14 +29,9 @@ PASS = 0
 FAIL = 0
 
 
-def check(name, cond):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print(f"  ✅ {name}")
-    else:
-        FAIL += 1
-        print(f"  ❌ {name}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL")
 
 
 player = {"qq_id": "q1", "class_name": "cls_zhan_shi", "level": 15,

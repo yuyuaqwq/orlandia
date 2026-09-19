@@ -36,14 +36,9 @@ G, Q = 1095961598, "gm_t1307prof"
 FIXED_OLD = ("练满再选新的", "铁港城", "驯鹿缰绳")
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"✅ {name}")
-    else:
-        failed += 1
-        print(f"❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 def _tip_lines(text):

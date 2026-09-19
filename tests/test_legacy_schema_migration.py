@@ -24,14 +24,9 @@ OLD_DB = db.DB_PATH
 _passed = _failed = 0
 
 
-def check(name, cond, detail=""):
-    global _passed, _failed
-    if cond:
-        _passed += 1
-        print("  ✅ %s" % name)
-    else:
-        _failed += 1
-        print("  ❌ %s %s" % (name, detail))
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "_passed", "_failed")
 
 
 def _cols(conn, table):

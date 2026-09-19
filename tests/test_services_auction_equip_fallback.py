@@ -30,14 +30,9 @@ settle_auction = auction.settle_auction
 passed = failed = 0
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 #: 兜底生成器的调用记录（供判据 #3 用；替身是**透明转发**，不改变绑定与行为）

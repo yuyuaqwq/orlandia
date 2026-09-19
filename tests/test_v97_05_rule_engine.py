@@ -16,14 +16,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _engine_harness import C, db, clean_db, make_player, Main, FakeEvent, run
 
 passed = failed = 0
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {str(detail).encode('utf-8', 'replace').decode('utf-8', 'replace')[:300]}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed", limit=300)
 
 async def main():
     from content.rule_engine import fire, _get_counter

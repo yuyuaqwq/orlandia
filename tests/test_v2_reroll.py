@@ -29,14 +29,9 @@ MAT_KEY = "mat_f08_liao_ya"
 MAT_NAME = "魔狼獠牙"          # 含『獠牙』→ 命中 ENCHANT_RECIPES.atk 同族材料
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print("✅ %s" % name)
-    else:
-        failed += 1
-        print("❌ %s %s" % (name, str(detail)[:260]))
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed", limit=260)
 
 
 async def cmd(m, handler_name, gid, qid, msg):

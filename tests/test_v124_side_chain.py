@@ -25,14 +25,9 @@ _qf.bind_host(quests_svc=_pq)
 PASS = 0
 FAIL = 0
 
-def check(name, ok, detail=""):
-    global PASS, FAIL
-    if ok:
-        PASS += 1
-        print(f"  ✅ {name}")
-    else:
-        FAIL += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL")
 
 def make_player(qq, lv=50, gold=10000, race="human"):
     db.create_player("g", qq, f"测试{qq}", "cls_warrior", {}, 100, 50, race=race, gender="男")

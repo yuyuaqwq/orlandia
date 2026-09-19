@@ -51,14 +51,9 @@ def _attach_tlog(b, *, btype="monster", player=None, enemies=None, seed=None):
 _CC.bind_host(attach_tlog=_attach_tlog)
 
 passed = failed = 0
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  ✅ {name}")
-    else:
-        failed += 1
-        print(f"  ❌ {name} {detail}")
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed")
 
 
 async def cmd(m, handler_name, gid, qid, msg):

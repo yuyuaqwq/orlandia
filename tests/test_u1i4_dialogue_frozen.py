@@ -76,16 +76,9 @@ FAILURES = []
 _SECTION = ["?"]
 
 
-def check(name, cond, detail=""):
-    """一条断言。"""
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print("  [OK] %s" % name)
-    else:
-        FAIL += 1
-        FAILURES.append("%s: %s" % (name, detail))
-        print("  [XX] %s %s" % (name, detail))
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
 
 def section(title):
@@ -561,7 +554,10 @@ _PIN = {
 }
 
 #: 本文件（门禁本体）的自哈希 —— 去掉 gate_self 那一行后算；防「安全网自己被动过」
-_GATE_SELF_SHA256 = '59231b80cd3c604187088c0c19f69c1ea4c01b0cf561433812986535f6b1c3e7'
+#: ★ 2026-09-19 审计 P0-1 重钉（唯一一次）：只动了 region **外**的那份 `def check`
+#:   （换成 `tests/_check.py` 的一行绑定）⇒ 本体哈希必然变，属**有意**改动。
+#:   改前值 59231b80…（见 git 历史）；GENERATED region 内一字未动。
+_GATE_SELF_SHA256 = '8469c75b9b78558cf062e921eb0d10e974fa4349cdbcffce1514c99d631050fe'
 
 #: 冻结侧的段落表（段序 = 设计稿 §1.4 的行号序）
 _SEGMENT_KEYS = (

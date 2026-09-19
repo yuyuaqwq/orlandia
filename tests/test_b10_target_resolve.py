@@ -48,15 +48,9 @@ PASS = FAIL = 0
 FAILURES = []
 
 
-def check(name, cond, detail=""):
-    global PASS, FAIL
-    if cond:
-        PASS += 1
-        print("  ✅ %s" % name)
-    else:
-        FAIL += 1
-        FAILURES.append("%s: %s" % (name, detail))
-        print("  ❌ %s %s" % (name, detail))
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
 
 def _a(uid, side, rank=2, hp=100, name=None):

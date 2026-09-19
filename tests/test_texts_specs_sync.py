@@ -79,14 +79,9 @@ def retired_check(name: str, reason: str) -> None:
     print("  ⏸️  [已退休] %s —— %s" % (name, reason))
 
 
-def check(name, cond, detail=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print("  ✅ %s" % name)
-    else:
-        failed += 1
-        print("  ❌ %s %s" % (name, str(detail)[:400]))
+from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+
+check = bind_check(globals(), "passed", "failed", limit=400)
 
 
 def _read_bytes(path):
