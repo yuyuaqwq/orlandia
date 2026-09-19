@@ -56,15 +56,11 @@ B14-3_BRIEF §1 列的 46 个缺口名（42 个数据名 + 派生名 `ALL_WILD` 
 """
 from __future__ import annotations
 
-import os
 from functools import partial
 
-from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_module, update_in_place
 
 from ._domainio import int_keys as _int_keys, num_sorted, ordered, require_key_order, same_container as _same_container   # P0-4 域读口单源
-
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明。
 # **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
@@ -72,7 +68,7 @@ _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 # 本文件的 `int_keys` / `num_sorted` / `ordered`（本地按 `_ordered` 绑定）作用在**嵌套常量组**上（`_R.<域>.get("<组>")` 之后）：
 # 形状的 `key_type` / `order` 只作用于域顶层键，组内键型与组内键序覆盖不到 ⇒ 仍由本文件还原
 # （序声明按名取 `key_order` 域，见 out/DIFF_NOTES.md §C）。
-_R = set_from_domains(_PKG_ROOT, (
+_R = set_from_module(__file__, (
     "game_config", "equipment", "factions", "enchant", "poi_pools",
     "chapters", "gems", "guild", "shop", "key_order",
 ))

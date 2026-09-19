@@ -54,19 +54,14 @@
 """
 from __future__ import annotations
 
-import os
-
-from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_module, update_in_place
 
 from ._domainio import int_keys as _int_keys, order_of as _order, seq_rows, same_container as _same_container   # P0-4 域读口单源
-
-_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # 读域文件 / 缺表留痕（`missing`）收进引擎 records 形状的域声明（本文件的域顶层键无声明序）。
 # **域元数据唯一源 = 包内 `editor/domains.json`**（S2 ②：这里只声明「我要哪些域」，
 # 落点由声明的 `kind` 派生；声明缺项 / 文件缺 / 声明与磁盘不符 → 装载期报错，不静默）。
-_R = set_from_domains(_PKG_ROOT, (
+_R = set_from_module(__file__, (
     "game_config", "craft", "alchemy", "cooking",
     "fishing_spots", "fishing_pool", "shop", "pets",
 ))

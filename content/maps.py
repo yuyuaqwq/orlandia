@@ -29,16 +29,11 @@ B13-L7（2026-09-14）。宿主 `game/core/maps.py` 已改成薄壳（本模块�
 """
 from __future__ import annotations
 
-import os
-
-from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
-
-_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_module, update_in_place
 
 # 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
 # （S2 ②：只声明「我要哪些域」，落点由声明的 `kind` 派生；缺项/缺文件即报错，不静默空表）
-_R = set_from_domains(_PKG_ROOT, ("maps", "subareas"))
+_R = set_from_module(__file__, ("maps", "subareas"))
 
 
 # maps 域（图内形状）：{map_id: {name, roles, nodes:[{id,name,role}], topology, links?}}

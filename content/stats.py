@@ -27,8 +27,6 @@
   与 `MONSTER_ROLE_MODS`（role→系数）**不同表**）。
 """
 
-import os
-
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
 #    形状逐字抄 `content/world_cmds.py`（B9 线2 定稿）
@@ -48,10 +46,9 @@ _WIRE, bind_host = _slot()
 #     ⇒ 整表静默走 `exp_to_next` 的兜底公式（本批点名的类型还原陷阱，同
 #     `content/tables.py:55` 对 `enhance_table` 的写法）。
 # ============================================================
-from saintess_engine.records import set_from_domains  # noqa: E402
+from saintess_engine.records import set_from_module  # noqa: E402
 
-_PKG_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # <pkg>
-_R = set_from_domains(_PKG_ROOT, ("exp_table",), overrides={"exp_table": {"key_type": int}})
+_R = set_from_module(__file__, ("exp_table",), overrides={"exp_table": {"key_type": int}})
 
 
 # -*- coding: utf-8 -*-

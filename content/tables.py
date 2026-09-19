@@ -33,15 +33,10 @@
 """
 from __future__ import annotations
 
-import os
-
 from saintess_engine.records import (apply_replacements, placeholder, register_view,
-                                    set_from_domains, update_in_place)
+                                    set_from_module, update_in_place)
 
 from ._domainio import int_keys as _int_keys          # P0-4 域读口单源
-
-_HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
-_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
 
 # 见习兜底职业 id（游戏仓 `game/core/constants.py:84 CLASS_NOVICE`；包内 classes 域里就是这把键）
 # 未知/脏 class_name 时面板兜底用它（见 panel.py:player_base_stats 的 v105 P1 兜底）。
@@ -50,7 +45,7 @@ CLASS_NOVICE = "cls_novice"
 # 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
 # （S2 ②：只声明「我要哪些域」+ 自己的派生参数（`key_type`），落点由声明的 `kind` 派生；
 #   缺项/缺文件/声明与磁盘不符 → 装载期报错，不静默空表）
-_R = set_from_domains(_PKG_ROOT, (
+_R = set_from_module(__file__, (
     "classes", "skills", "races", "sets", "enhance_table", "panel_rules",
     "job_guide", "boss_phases",
 ), overrides={

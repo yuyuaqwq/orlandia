@@ -15,9 +15,8 @@
 
 宿主侧：`game/core/fishing.py` 现在只剩「加载包 + 模块别名 + 源码探针」薄壳，见那边头注。
 """
-import os
 import random
-from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_domains, update_in_place
+from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_module, update_in_place
 
 # ============================================================
 # ① 宿主替身口（注入优先 → sys.modules → importlib；**绝不静默空跑**）
@@ -32,12 +31,9 @@ _MOD = "fishing"
 # ② 包内域读口（域 `fishing_spots` / `fishing_pool`；导出器 = 游戏仓
 #    `scripts/export_domains/b9_profession.py:derive_fishing_spots / derive_fishing_pool`）
 # ============================================================
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
-
 # 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`
 # （S2 ②：只声明「我要哪些域」，落点由声明的 `kind` 派生；缺项/缺文件即报错，不静默空表）
-_R = set_from_domains(_PKG_ROOT, ("fishing_spots", "fishing_pool"))
+_R = set_from_module(__file__, ("fishing_spots", "fishing_pool"))
 
 
 FISHING_SPOTS = placeholder("FISHING_SPOTS")
