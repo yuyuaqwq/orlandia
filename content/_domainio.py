@@ -41,6 +41,14 @@
 的整文件 sha pin 未动）· `day_hash`（`daily_events` / `event_menu` / `time_weather` / `wild_king` 各一份，
 `time_weather` 版多一行 docstring，一并采用）。
 
+**W8（2026-09-20）—— 通用助手收进引擎**：上列 6 个**纯通用**口（零游戏知识、零内容包约定）
+`read_json` / `int_keys` / `num_sorted` / `ordered` / `seq_rows` / `same_container` 已搬进
+`saintess_engine/records/shapes.py`（行为逐字不变），本模块**只再导出**（42 个调用点零改动）；
+`read_json` 同时消掉与引擎宿主装载口 `host/package.py` 的**重复实现**（改为同一份）。
+仍留包内：`order_of` / `require_key_order`（吃 `key_order` 域这一内容包约定）·
+`read_data_json` / `read_domain` / `read_data_json_strict` / `read_seq_domain` /
+`keyed_values` / `domain_section`（吃包内落点 / 条目壳约定）· `day_hash`（内容侧的每日滚动口径）。
+
 **有意未收**：`catalog_life` / `catalog_quests` 的 `_ordered`（序名由本模块解析 / 空序宽容 /
 报错口径与前两处不同，硬合会改诊断措辞）；`dialogue.py` / `dialogue_conds.py` 的 `_main_quests`
 （别线冻结门禁持有其字节）。
@@ -61,24 +69,12 @@ import json
 import os
 
 from saintess_engine.records import RecordsDeclarationError, orders_of, records_from_domain
+# W8：6 个**纯通用**口搬进引擎 `records/shapes.py`，本模块只再导出（调用点零改动）——
+from saintess_engine.records.shapes import (int_keys, num_sorted, ordered,  # noqa: F401
+                                            read_json, same_container, seq_rows)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 _PKG_ROOT = os.path.dirname(_HERE)                          # <pkg>
-
-
-def int_keys(tbl) -> dict:
-    """JSON 字符串键 → int 键（非整数键**原样保留**，不静默丢）。
-
-    用途：`UPGRADE_TABLE` / `HOUSE_LEVELS` / `HOUSE_REFUND` / `ENHANCE_FAIL_DROP` /
-    `FISH_QUALITY_WEIGHTS` 这类 `{int 档位: 值}` 的表 —— 不还原 = `.get(3)` 恒 `None`（静默归零）。
-    """
-    out: dict = {}
-    for k, v in (tbl or {}).items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            out[k] = v
-    return out
 
 
 def order_of(name: str) -> list:
@@ -102,15 +98,6 @@ def require_key_order(orders, name: str) -> list:
 
 # ───────────────────────────────────────────────────────── 域读口（P0-4b：读 JSON / 读域文件）
 _DATA_DIR = os.path.join(_HERE, "data")
-
-
-def read_json(path: str, default):
-    """读一个 JSON 文件（缺文件 / 坏 JSON / 权限 → `default`，不抛）。"""
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
 
 
 def read_data_json(name: str, default=None, sub: str = "data"):
@@ -186,37 +173,6 @@ def read_seq_domain(name: str, field=None, where: str = "") -> dict:
 
 
 # ───────────────────────────────────────────────────────── 表形状口（P0-4d：序 / 段 / 条目壳 / seq 还原）
-def num_sorted(tbl) -> dict:
-    """int 键表 → 按**数值升序**（JSON 是字典序：`"10" < "2"` ⇒ 不排序 = 阶位/等级乱序）。
-
-    非整数键排在后面并保持相对序。
-    """
-    ints = {k: v for k, v in (tbl or {}).items() if isinstance(k, int) and not isinstance(k, bool)}
-    rest = {k: v for k, v in (tbl or {}).items() if k not in ints}
-    return {**{k: ints[k] for k in sorted(ints)}, **rest}
-
-
-def ordered(tbl, order, where: str, *, who: str, subject: str, noun: str, hint: str) -> dict:
-    """按**声明序**排外层键（域是字典序，真源是插入序）。域读不到 → `{}` 不抛；
-    域在但键集与声明不一致 → `raise`（防「源改了、门面静默改序」）。
-
-    `who` / `subject` / `noun` / `hint` 只进报错文案 —— 合并前两处调用点各有各的措辞
-    （`content/catalog_b143.py` / `content/catalog_legacy.py`），**逐字保留**。
-    """
-    if not isinstance(tbl, dict) or not tbl:
-        return {}
-    keys = list(order)
-    if len(set(keys)) != len(keys):
-        raise ValueError("%s：%s 的序声明有重复键 —— 拒绝静默取首个" % (who, where))
-    have = set(tbl)
-    miss = [k for k in keys if k not in have]
-    extra = [k for k in have if k not in set(keys)]
-    if miss or extra:
-        raise ValueError(
-            "%s：%s %s（%s缺 %d / 声明缺 %d）—— %s。%s缺 %s … 未声明 %s …"
-            % (who, where, subject, noun, len(miss), len(extra), hint, noun, miss[:5],
-               sorted(extra)[:5]))
-    return {k: tbl[k] for k in keys}
 
 
 def keyed_values(domain: str, *, keep_entries: bool = False) -> dict:
@@ -255,18 +211,7 @@ def domain_section(domain: str, key: str) -> dict:
     return section
 
 
-def seq_rows(values) -> list:
-    """域内「带 `seq` 注入字段」的条目 → 按 `seq` 还原源插入序的 list（顺手剥掉 `seq`）。"""
-    return [{k: v for k, v in ent.items() if k != "seq"}
-            for ent in sorted(values, key=lambda x: x["seq"])]
-
-
 # ───────────────────────────────────────────────────────── 纯函数小工具（P1-2 / P1-3 单源）
-def same_container(a, b) -> bool:
-    """同型可变容器（dict / list / set）—— 就地更新只对同型成立。"""
-    return ((isinstance(a, dict) and isinstance(b, dict))
-            or (isinstance(a, list) and isinstance(b, list))
-            or (isinstance(a, set) and isinstance(b, set)))
 
 
 def day_hash(seed: int, salt: str = "") -> int:
