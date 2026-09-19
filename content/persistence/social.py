@@ -21,6 +21,7 @@ from saintess_engine.periodic import Streak
 from .handles import _connect, _lock, atomic, clock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
+from .. import texts as _T  # C 档 35b：文案真源（市场交易回执）
 from .inventory import FISH_TAGS_MAX, _slim, _trim_individuals, _snapshot_one
 from .inventory import record_possessed_conn  # v168 冒险手册：市场/摆摊接手记曾拥有
 
@@ -323,19 +324,19 @@ def market_buy_atomic(group_id, qq_id, mid):
     with atomic() as conn:
         row = conn.execute("SELECT * FROM market WHERE id=?", (mid,)).fetchone()
         if not row:
-            return False, "没有这个物品！可能已被买走。", None
+            return False, _T.static("stall.buy_gone"), None
         item_data = json.loads(row["item_data"] or "{}")
         # v126.4 审计 P1：旧市场行可能是整堆 tags 快照——买入按 1 件交付，只带 1 条个体
         item_data = _snapshot_one(item_data)
         item_name = item_data.get("name", "?")
         if str(row["seller"]) == str(qq_id):
-            return False, "不能买自己的物品！", item_name
+            return False, _T.static("stall.buy_self"), item_name
         price = int(row["price"] or 0)
         if price <= 0:
-            return False, f"【{item_name}】是换摊(只换不卖)——用『换 {mid} <物品名>』提出交换！", item_name
+            return False, _T.text("stall.buy_pawn", name=item_name, id=mid), item_name
         b = conn.execute("SELECT gold FROM players WHERE qq_id=?", (qq_id,)).fetchone()
         if not b or b["gold"] < price:
-            return False, "金币不足！", item_name
+            return False, _T.static("stall.buy_gold_short"), item_name
         s = conn.execute("SELECT gold FROM players WHERE qq_id=?", (row["seller"],)).fetchone()
         conn.execute("UPDATE players SET gold=gold-? WHERE qq_id=?", (price, qq_id))
         conn.execute("UPDATE players SET gold=gold+? WHERE qq_id=?", (price, row["seller"]))
@@ -403,14 +404,14 @@ def market_exchange_atomic(group_id, qq_id, mid, give_key, give_data):
     with atomic() as conn:
         row = conn.execute("SELECT * FROM market WHERE id=?", (mid,)).fetchone()
         if not row:
-            return False, f"没有编号 {mid} 的摊位！『摊位』看看～"
+            return False, _T.text("stall.ex_noid", id=mid)
         item_data = json.loads(row["item_data"] or "{}")
         item_name = item_data.get("name", "?")
         if str(row["seller"]) == str(qq_id):
-            return False, "不能和自己交换！"
+            return False, _T.static("stall.ex_self")
         # 扣买家的给物（不足则整单回滚，另一请求也拿不到 → 各自 Message 一致）
         if not _inv_remove_conn(conn, qq_id, give_key, 1):
-            return False, "背包里没有这个交换物！"
+            return False, _T.static("stall.ex_give_missing")
         # 删摊主单并交付（v126.4 审计 P1：摊主单/给物都按 1 件流转，快照只带 1 条个体）
         conn.execute("DELETE FROM market WHERE id=?", (mid,))
         tgt_group = row["group_id"] or group_id

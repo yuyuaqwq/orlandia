@@ -433,7 +433,9 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          "探索事件": os.path.join(PKG_CONTENT, "combat_cmds.py"),
          # ★ C 档 20a（B-2 第 6 片第 1 小片）：社交散落「市场·摊位」
          #   （群市场面板/上架下架购入全分支 · 摆卖摆换·收摊·摊位·换 全分支 · 家园铺面门禁）
-         "社交市场": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_stall.py")],
+         # ★ C 档 35b（B-2 第 28 片）：存档层 social.py 的市场交易回执同域 ⇒ 追加第三文件
+         "社交市场": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "social_stall.py"),
+                  os.path.join(PKG_CONTENT, "persistence", "social.py")],
          # ★ C 档 20b（B-2 第 6 片第 2 小片）：社交「组队·公会」
          #   （组队面板/拉人/退队守卫 · 公会创建/加入/退出/解散/签到/任务/捐献/排行/商店/技能/任命/免职）
          "社交队伍": [PKG_SOCIAL_SRC, os.path.join(PKG_CONTENT, "party.py")],

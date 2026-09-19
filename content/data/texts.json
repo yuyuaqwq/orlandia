@@ -18350,6 +18350,11 @@
     "category": "社交市场",
     "desc": "搬自 content/cmds_social.py:market_buy（B 批 C 档）"
   },
+  "stall.buy_gold_short": {
+    "value": "金币不足！",
+    "category": "社交市场",
+    "desc": "搬自 content/social.py:market_buy_atomic（B 批 C 档）"
+  },
   "stall.buy_gone": {
     "value": "没有这个物品！可能已被买走。",
     "category": "社交市场",
@@ -18450,6 +18455,11 @@
     "value": "格式：换 <摊位编号> <物品名>，如『换 3 狼皮』(对方摆摊不带价格 = 换摊)",
     "category": "社交市场",
     "desc": "搬自 content/cmds_social.py:stall_exchange（B 批 C 档）"
+  },
+  "stall.ex_give_missing": {
+    "value": "背包里没有这个交换物！",
+    "category": "社交市场",
+    "desc": "搬自 content/social.py:market_exchange_atomic（B 批 C 档）"
   },
   "stall.ex_noid": {
     "value": "没有编号 {id} 的摊位！『摊位』看看～",
