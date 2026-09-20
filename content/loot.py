@@ -395,7 +395,7 @@ def _resolve_item_ref(ref: str, ctx: Any) -> dict | None:
 #    而引擎的 inline_prefixes 是"命中即跳过"，装不下这条判定；故 equip: 交给 resolvable 判。
 _INLINE_PREFIXES = ("gold:", "gold_pct:", "item:", "special:", "equip_drop:", "petegg:", "rune:")
 
-# 精确值特殊引用（不会断链）：图纸 / 幸运宝石 / 符文 / 混合装备
+# 精确值特殊引用（不会断链）：图纸 / 宝石 / 符文 / 混合装备
 _SPECIAL_REFS = ("bp", "gem", "rune", "equip_drop_mix")
 
 # 子池 key 可能带的前缀（v174 的 expand_pool / 审计里对 'weighted:xxx' / 'fixed:xxx' 的处理）

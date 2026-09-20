@@ -108,7 +108,8 @@ from content.flow import instance_battle as _IB  # ★ 改绑到包内实现：�
 from _engine_harness import Main as _CmdHostBase  # noqa: E402
 from content.instance_cmds import InstanceImpl as _InstImpl  # noqa: E402  （打桩落点：包内实现类）
 from _check import bind_check
-from _econ_text_intent import ECONOMY_TEXT_INTENT
+from _econ_text_intent import (ECONOMY_TEXT_INTENT, INSTANCE_LOG_TEXT_INTENT,
+                               INSTANCE_LOG_TPL_INTENT)
 
 
 # `_PD` = 旧插件根语义（见上 `_paths.HOST_ROOT`）；宿主各扫描根（`game/**`）按插件根拼。
@@ -1999,14 +2000,28 @@ INSTANCE_LOG_TEMPLATES = {
     "instance.日志_面板_选敌提示": "💡 选敌：『技能1 a2』打2号(纯数字同义)；治疗『技能 <名称> b1』奶自己",
 }   # 迁移前快照（2026-09-13 真跑/源码 AST 存下，勿手改）
 
+def _il_expected(k):
+    """该分支「当前口径」文本：有意差异登记优先，其余 = 迁移前冻结基准（口径不放宽）。"""
+    return INSTANCE_LOG_TEXT_INTENT.get(k) or INSTANCE_LOG_FROZEN[k]
+
+
+def _il_tpl_expected(k):
+    """该模板「当前口径」骨架：有意差异登记优先，其余 = 迁移前快照（口径不放宽）。"""
+    return INSTANCE_LOG_TPL_INTENT.get(k) or INSTANCE_LOG_TEMPLATES[k]
+
+
 def t10_instance_log_frozen():
     print("\n[10] 副本日志域逐字冻结：迁移前 26 分支（战斗/面板/地图/搜刮/击杀/通关/失败）复跑比对")
     check("冻结基准已内嵌（26 分支）", len(INSTANCE_LOG_FROZEN) == 26, len(INSTANCE_LOG_FROZEN))
+    check("★ 副本日志文案有意差异登记自洽（登记项 ∈ 冻结面 · 新值 ≠ 旧值）",
+          all(k in INSTANCE_LOG_FROZEN and v and v != INSTANCE_LOG_FROZEN[k]
+              for k, v in INSTANCE_LOG_TEXT_INTENT.items()), list(INSTANCE_LOG_TEXT_INTENT))
     now = _il_scenarios()
-    bad = [k for k in INSTANCE_LOG_FROZEN if INSTANCE_LOG_FROZEN[k] != now.get(k)]
+    bad = [k for k in INSTANCE_LOG_FROZEN if _il_expected(k) != now.get(k)]
     for k in bad:
         print("     · %s 现=%r" % (k, (now.get(k) or "")[:140]))
-    check("★ 副本日志 26 分支输出与迁移前**逐字一致**", not bad, bad)
+    check("★ 副本日志 26 分支输出与迁移前**逐字一致**（登记项按 `_econ_text_intent`）",
+          not bad, bad)
     _single = ("IN13_搜刮_空",)     # 单行分支（本身无换行结构）
     check("冻结基准非空且含换行结构（防基准写空）",
           all(v and "\n" in v for k, v in INSTANCE_LOG_FROZEN.items() if k not in _single))
@@ -2016,7 +2031,7 @@ def t10_instance_log_frozen():
         return re.sub(r"\{[^{}]*\}", "«»", v or "")
     tb = T.table()
     diff = [k for k in INSTANCE_LOG_TEMPLATES
-            if _skel((tb.spec(k).value if tb.spec(k) else "")) != INSTANCE_LOG_TEMPLATES[k]]
+            if _skel((tb.spec(k).value if tb.spec(k) else "")) != _il_tpl_expected(k)]
     check("★ 70 条日志模板骨架与迁移前源码**逐字一致**（含真跑覆盖不到的分支）",
           not diff, diff[:5])
 
@@ -3949,7 +3964,7 @@ def _e_bag_a():
     _e_add_item("a", "i_stone_upgrade", "强化石", "材料", 200, 8)
     _e_add_item("a", "mat_tu_zhi_can_ye", "图纸残页", "材料", 50, 12)
     _e_add_item("a", "rn_shard", "符文碎片", "材料", 100, 6)
-    _e_add_item("a", "gem_sui_lie", "碎裂的幸运宝石", "原石", 50, 4,
+    _e_add_item("a", "gem_sui_lie", "碎裂的宝石", "原石", 50, 4,
                 gem=True, tier=1, stats={"atk": 0.02})
 
 
@@ -4226,14 +4241,14 @@ _E_CASES = (
     ('equip_upgrade/boundary_notfound', 'equip_upgrade', 'a', '升级 不存在的剑', 'full'),
     ('gem_drill/normal', 'gem_drill', 'a', '打孔 铁剑', 'full'),
     ('gem_drill/boundary_notfound', 'gem_drill', 'a', '打孔 不存在的剑', 'full'),
-    ('gem_socket/normal', 'gem_socket', 'a', '镶嵌 铁剑 碎裂的幸运宝石', 'full'),
+    ('gem_socket/normal', 'gem_socket', 'a', '镶嵌 铁剑 碎裂的宝石', 'full'),
     ('gem_socket/boundary_fmt', 'gem_socket', 'a', '镶嵌 铁剑', 'full'),
     ('gem_remove/normal', 'gem_remove', 'a', '拆卸 铁剑 1', 'full'),
     ('gem_remove/boundary_notfound', 'gem_remove', 'a', '拆卸 不存在的剑', 'full'),
-    ('gem_combine/normal', 'gem_combine', 'a', '原石合成 碎裂的幸运宝石', 'full'),
+    ('gem_combine/normal', 'gem_combine', 'a', '原石合成 碎裂的宝石', 'full'),
     ('gem_combine/boundary_none', 'gem_combine', 'a', '原石合成', 'full'),
     ('gem_view/normal', 'gem_view', 'a', '原石', 'full'),
-    ('gem_view/boundary_detail', 'gem_view', 'a', '原石 碎裂的幸运宝石', 'full'),
+    ('gem_view/boundary_detail', 'gem_view', 'a', '原石 碎裂的宝石', 'full'),
     ('rune_craft/normal', 'rune_craft', 'a', '符文制作', 'full'),
     ('rune_craft/boundary_no_mat', 'rune_craft', 'a', '符文制作 残忍', 'full'),
     ('rune_remove/normal', 'rune_remove', 'a', '符文拆卸 铁剑', 'full'),
@@ -4611,13 +4626,106 @@ ECONOMY_DB_SHA = {
 #:   `ECONOMY_FROZEN` 文本不符集 = 仅 `encyclopedia/boundary_browse` 一处，且那是 A5
 #:   『图鉴』→『图鉴 收藏』的文案修复，与本例无关）。值：a721208a… → b8c79308…。
 _ECONOMY_DB_SHA_INTENT = {
-    'fishing/normal': ('c8f905a27be2f649', '6147b8f7f079f4bd'),
-    'gather/normal': ('764e38fd11a4da67', '6dd6e62e77307c0c'),
-    'mining/normal': ('b67a44311ed157b0', 'b8c793088058b227'),
+    'fishing/normal': ('c8f905a27be2f649', 'b0d894548fd5c237'),
+    'gather/normal': ('764e38fd11a4da67', '11e277d6f66d4cbf'),
+    'mining/normal': ('b67a44311ed157b0', 'f5cff3a43d644583'),
     # ★ 2026-09-20：第 4 例 —— 「配方唯一性」清理删 13 条同图纸不可达配方后，
     #   本例「列出全部配方（426→413）」的落库行随之变；**玩家可见文本已另在
     #   `_econ_text_intent` 登记**（标题件数/页码），本条只登记 DB 摘要。
-    'craft/boundary_all': ('8225fc9708cf9d62', 'a1af004926bd5098'),
+    'craft/boundary_all': ('8225fc9708cf9d62', 'fb044886f47937a3'),
+    # ★ 2026-09-20：T13「宝石系统改名」（名字层：幸运宝石 → 宝石）—— 标准背包夹具里的
+    #   宝石件名随 GEM_TIER_NAMES 改名 ⇒ 所有 dump 到该行的小例 DB 摘要整体位移。
+    #   差异**仅在物品名**（玩家可见文本另在 `_econ_text_intent.ECONOMY_TEXT_INTENT` 登记）。
+    #   口径不放宽：本表逐条「旧值 → 重采值」显式登记；`t13` 仍逐例精确比对。
+    'adventure_book/boundary_items': ('e0765d75ecbbdcc7', '3cc2ebb1577ace64'),
+    'adventure_book/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'alchemy/boundary_page2': ('eed07221bdba9df0', '2ab33a0bb7631f63'),
+    'alchemy/normal': ('e71070c2656ea74a', '88cc225d767d1952'),
+    'alchemy_craft/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'alchemy_craft/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'bag_filter/boundary_page2': ('6a12402b63b45a74', '5662b40a22429d4d'),
+    'bag_filter/normal': ('6a12402b63b45a74', '5662b40a22429d4d'),
+    'bestiary/boundary_page2': ('7790884157e02075', '13bc27a260d26583'),
+    'bestiary/normal': ('c04649c684c5c459', 'd4a930ca3ca6251e'),
+    'bp_craft/boundary_index': ('12f260296114ff71', '1fe8a0d07368c76c'),
+    'bp_craft/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'buy/boundary_no_gold': ('7097ee267a0d6871', 'e62a160f5b9ea1cf'),
+    'buy/normal': ('8d9764b4ab3ae3f0', '06a95e3bfef047c4'),
+    'buy/normal_batch': ('d76d2106a4b1ef80', '2fbee1ca9925bb8d'),
+    'calamity_forge/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'calamity_forge/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'cooking/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'cooking/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'cooking_list/boundary_page2': ('03cda5502b20eda4', '5e4748609546eed9'),
+    'cooking_list/normal': ('5a7df62483a7965c', 'd3764fcc9bf175a4'),
+    'craft/normal': ('56614b194bc87618', 'c4fe3535b3ffffc6'),
+    'craft_commission/boundary_no_smith': ('185f876bb1d084af', '7e6b27be2d10ac7f'),
+    'craft_commission/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'daily_prof/boundary_alias': ('3eb4b0247943544d', '0d85f03dc412176d'),
+    'daily_prof/normal': ('3eb4b0247943544d', '0d85f03dc412176d'),
+    'enchant/boundary_fmt': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'enchant/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'encyclopedia/boundary_browse': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'encyclopedia/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'enhance/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'enhance/normal': ('6d083fc6848af78a', 'bf0bbfc88ca0ef12'),
+    'equip/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'equip/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'equip/normal_ok': ('8e53b65cc940afee', '0a51b5f72a1d137f'),
+    'equip_upgrade/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'equip_upgrade/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'fishing/boundary_no_water': ('d9a24b914b784566', '923d1185fd436121'),
+    'footprint/boundary_empty': ('8fbd2011fa28a2d0', 'b70e35bb24769000'),
+    'footprint/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gather/boundary_town': ('d9a24b914b784566', '923d1185fd436121'),
+    'gem_combine/boundary_none': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_combine/normal': ('3174a3b67ee66d61', 'e506421f2e57b4be'),
+    'gem_drill/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_drill/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_remove/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_remove/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_socket/boundary_fmt': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_socket/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_view/boundary_detail': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'gem_view/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'inventory/boundary_filter': ('6a12402b63b45a74', '5662b40a22429d4d'),
+    'inventory/normal': ('450c7f6345491bd8', '7e84986ec87b3800'),
+    'item_detail/boundary_index': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'item_detail/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'item_view_mode_cmd/boundary_end': ('af4761c05fbf71f0', 'ce04659808a68ad6'),
+    'item_view_mode_cmd/normal': ('a26e3aa56e84e641', 'df5f19305dddb10e'),
+    'learn/boundary_empty': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'learn/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'mining/boundary_no_vein': ('185f876bb1d084af', '7e6b27be2d10ac7f'),
+    'monster/boundary_unknown': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'monster/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'my_equipment/boundary_empty': ('8fbd2011fa28a2d0', 'b70e35bb24769000'),
+    'my_equipment/normal': ('1a66527628a63bd8', 'c28a911e358f54e9'),
+    'prof_forget/boundary_nosuch': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'prof_forget/normal': ('41ea1d1e2089a47a', '203eda20110374ce'),
+    'profession_view/boundary_rank': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'profession_view/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'recipe_list/boundary_detail': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'recipe_list/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'refine_equip/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'refine_equip/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'rune_craft/boundary_no_mat': ('f26132980321b5c9', 'eeabde4e2e2d4a98'),
+    'rune_craft/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'rune_remove/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'rune_remove/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'sell/boundary_category': ('7fe88cd030f31e66', '72734ea377343ac2'),
+    'sell/normal': ('6564df8d7f067f54', '86a8737efdafce3a'),
+    'set_view/boundary_unknown': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'set_view/normal': ('1d4f732f838584da', '515930723f139df9'),
+    'shop/boundary_no_shop': ('a9f25efcc246955e', 'e6259af98341d740'),
+    'shop/normal': ('b3bca9acba17397c', '36990223b5fd3f72'),
+    'titles/boundary_page2': ('7369ea32272f7037', '8d423d4bc2f52a30'),
+    'titles/normal': ('a8f76928f4ca2fb9', '13e96d5778f31979'),
+    'unequip/boundary_empty': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'unequip/normal': ('b86038a84dfcd388', '9c17d3c1fa6eb913'),
+    'use/boundary_notfound': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'use/normal': ('c5af189f0b5aa338', 'dcee0eb720d995e5'),
+    'use/normal_low_hp': ('a62b099521d20502', 'd045eba38eeb8598'),
 }
 
 
@@ -4637,13 +4745,13 @@ def t13_economy_frozen():
     check("冻结基准已内嵌（142 例）", len(ECONOMY_FROZEN) == 142, len(ECONOMY_FROZEN))
     check("用例表覆盖 45 条命令", len({h for _c, h, _q, _m, _p in _E_CASES}) == 45,
           sorted({h for _c, h, _q, _m, _p in _E_CASES}))
-    check("★ 有意差异登记自洽（旧值 = 迁移前基准 · 新值 = 换机制后重采 · 条数恒 4）",
-          len(_ECONOMY_DB_SHA_INTENT) == 4
+    check("★ 有意差异登记自洽（旧值 = 迁移前基准 · 新值 = 换机制后重采 · 条数恒 93）",
+          len(_ECONOMY_DB_SHA_INTENT) == 93
           and all(ECONOMY_DB_SHA[k] == old and new != old
                   for k, (old, new) in _ECONOMY_DB_SHA_INTENT.items()),
           _ECONOMY_DB_SHA_INTENT)
     check("★ 文本有意差异登记自洽（登记项 ∈ 冻结面 · 新值 ≠ 旧值 · 条数恒 2）",
-          len(ECONOMY_TEXT_INTENT) == 2
+          len(ECONOMY_TEXT_INTENT) == 12
           and all(k in ECONOMY_FROZEN and v != ECONOMY_FROZEN[k]
                   for k, v in ECONOMY_TEXT_INTENT.items()),
           list(ECONOMY_TEXT_INTENT))

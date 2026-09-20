@@ -666,7 +666,7 @@
     "tier": "fixed"
   },
   "gems": {
-    "label": "幸运宝石",
+    "label": "宝石",
     "kind": "data",
     "schema": "gems.schema.json",
     "primary": "gems_group",

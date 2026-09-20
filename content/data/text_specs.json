@@ -4895,7 +4895,7 @@
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
   },
   "ency.gem_title": {
-    "value": "💎 【幸运宝石百科】共 {n} 阶 · 碎裂 → 神话",
+    "value": "💎 【宝石百科】共 {n} 阶 · 碎裂 → 神话",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）",
     "params": [
@@ -4933,7 +4933,7 @@
     "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
   },
   "ency.help_gem": {
-    "value": "💎 宝石：『百科 宝石』看幸运宝石 10 阶（碎裂→神话）· 『百科 宝石 <阶名>』查单个",
+    "value": "💎 宝石：『百科 宝石』看宝石 10 阶（碎裂→神话）· 『百科 宝石 <阶名>』查单个",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py（B 批 C 档）"
   },
@@ -7222,17 +7222,17 @@
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
   "gem.combine_none": {
-    "value": "背包里还没有幸运宝石！打怪有概率掉落幸运宝石～",
+    "value": "背包里还没有宝石！打怪有概率掉落宝石～",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
   "gem.combine_none_usable": {
-    "value": "背包里还没有可合成的幸运宝石！打怪有概率掉落幸运宝石～",
+    "value": "背包里还没有可合成的宝石！打怪有概率掉落宝石～",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
   "gem.combine_ok": {
-    "value": "✨ 三颗 {name} 光芒交织，合成了更纯粹的幸运宝石！\n✅ 合成成功！获得 {out}(消耗 3 颗，无失败)",
+    "value": "✨ 三颗 {name} 光芒交织，合成了更纯粹的宝石！\n✅ 合成成功！获得 {out}(消耗 3 颗，无失败)",
     "params": [
       "name",
       "out"
@@ -7241,7 +7241,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
   "gem.combine_tip": {
-    "value": "💡 『原石合成 <原石名/序号>』消耗 3 颗同级幸运宝石合成 1 颗上级(神话 不可再合成)",
+    "value": "💡 『原石合成 <原石名/序号>』消耗 3 颗同级宝石合成 1 颗上级(神话 不可再合成)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
@@ -7286,7 +7286,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
   },
   "gem.drill_ok": {
-    "value": "🔨 打孔成功！【{name}】现在有 {n} 个孔位({quota})！『镶嵌 {slot_hint} <原石>』放入幸运宝石～",
+    "value": "🔨 打孔成功！【{name}】现在有 {n} 个孔位({quota})！『镶嵌 {slot_hint} <原石>』放入宝石～",
     "params": [
       "name",
       "n",
@@ -7311,7 +7311,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
   },
   "gem.empty_slot": {
-    "value": "【{name}】的 {slot} 是空孔，没有幸运宝石可拆～",
+    "value": "【{name}】的 {slot} 是空孔，没有宝石可拆～",
     "params": [
       "name",
       "slot"
@@ -7328,7 +7328,7 @@
     "desc": "搬自 content/economy_cmds.py:_gem_find_equip（B 批 C 档）"
   },
   "gem.no_gem": {
-    "value": "背包里没有『{name}』！『原石』查看背包里的幸运宝石～",
+    "value": "背包里没有『{name}』！『原石』查看背包里的宝石～",
     "params": [
       "name"
     ],
@@ -7336,7 +7336,7 @@
     "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
   },
   "gem.no_gem_idx": {
-    "value": "背包里没有第 {idx} 颗幸运宝石(共 {total} 颗)！『原石』查看～",
+    "value": "背包里没有第 {idx} 颗宝石(共 {total} 颗)！『原石』查看～",
     "params": [
       "idx",
       "total"
@@ -7374,7 +7374,7 @@
     "desc": "搬自 content/economy_cmds.py:_gem_find_equip（B 批 C 档）"
   },
   "gem.pick_usage": {
-    "value": "哪颗幸运宝石？输入『原石』查看背包里的幸运宝石～",
+    "value": "哪颗宝石？输入『原石』查看背包里的宝石～",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
   },
@@ -7402,7 +7402,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
   },
   "gem.remove_usage": {
-    "value": "拆卸哪个孔位的幸运宝石？输入『拆卸 <装备名> <孔位>』(如：拆卸 铁剑 S1)",
+    "value": "拆卸哪个孔位的宝石？输入『拆卸 <装备名> <孔位>』(如：拆卸 铁剑 S1)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
   },
@@ -7442,7 +7442,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.socket_ok": {
-    "value": "💎 镶嵌成功！【{name}】{slot} 镶入 {gem}！『原石』查看背包剩余幸运宝石～",
+    "value": "💎 镶嵌成功！【{name}】{slot} 镶入 {gem}！『原石』查看背包剩余宝石～",
     "params": [
       "name",
       "slot",
@@ -7452,7 +7452,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.socket_tier": {
-    "value": "【{name}】({q})的孔位只能镶 {lo}~{hi} 的幸运宝石(你选的是 {picked})！",
+    "value": "【{name}】({q})的孔位只能镶 {lo}~{hi} 的宝石(你选的是 {picked})！",
     "params": [
       "name",
       "q",
@@ -7464,7 +7464,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.socket_usage": {
-    "value": "镶嵌哪颗幸运宝石到哪件装备？输入『镶嵌 <装备名> <原石名/序号> [孔位]』\n如：『镶嵌 铁剑 碎裂的幸运宝石』『镶嵌 铁剑 1』『镶嵌 铁剑 碎裂 S2』(孔位默认第一个空孔)",
+    "value": "镶嵌哪颗宝石到哪件装备？输入『镶嵌 <装备名> <原石名/序号> [孔位]』\n如：『镶嵌 铁剑 碎裂的宝石』『镶嵌 铁剑 1』『镶嵌 铁剑 碎裂 S2』(孔位默认第一个空孔)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
@@ -7505,12 +7505,12 @@
     "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
   },
   "gem.tier_tip": {
-    "value": "💡 『镶嵌 <装备名> <幸运宝石>』塞进装备孔位｜『百科 宝石』看全部 10 阶",
+    "value": "💡 『镶嵌 <装备名> <宝石>』塞进装备孔位｜『百科 宝石』看全部 10 阶",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:_gem_tier_detail（B 批 C 档）"
   },
   "gem.view_head": {
-    "value": "💎 【幸运宝石】(共 {n} 颗)",
+    "value": "💎 【宝石】(共 {n} 颗)",
     "params": [
       "n"
     ],
@@ -7518,7 +7518,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
   "gem.view_none": {
-    "value": "💎 背包里还没有幸运宝石！打怪有概率掉落幸运宝石～\n💡 『打孔 <装备>』给蓝/紫/橙装开孔，『镶嵌 <装备> <原石>』镶入获得属性！",
+    "value": "💎 背包里还没有宝石！打怪有概率掉落宝石～\n💡 『打孔 <装备>』给蓝/紫/橙装开孔，『镶嵌 <装备> <原石>』镶入获得属性！",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
@@ -9911,7 +9911,7 @@
     "desc": "通关结算：成员通关奖励行（金币 + 经验）"
   },
   "instance.日志_通关_宝石": {
-    "value": "  💎 {name} 获得幸运宝石：{gem_name}！(『原石』镶嵌到装备孔位)",
+    "value": "  💎 {name} 获得宝石：{gem_name}！(『原石』镶嵌到装备孔位)",
     "params": [
       "name",
       "gem_name"
@@ -11013,7 +11013,7 @@
     "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
   },
   "item.eq_socks": {
-    "value": "💎 幸运宝石： ",
+    "value": "💎 宝石： ",
     "category": "经济面板",
     "desc": "搬自 content/economy_cmds.py:_render_equip（B 批 C 档）"
   },
@@ -16882,7 +16882,7 @@
     "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
   },
   "rgem": {
-    "value": "💎 获得幸运宝石：{name}！(『原石』镶嵌到装备孔位)",
+    "value": "💎 获得宝石：{name}！(『原石』镶嵌到装备孔位)",
     "params": [
       "name"
     ],
@@ -23225,7 +23225,7 @@
     "desc": "搬自 content/wild_king.py:_roll_chest_rewards（B 批 C 档）"
   },
   "wk.gem": {
-    "value": "💎 获得幸运宝石：{name}！",
+    "value": "💎 获得宝石：{name}！",
     "params": [
       "name"
     ],

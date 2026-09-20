@@ -36,7 +36,7 @@ from .catalog_rules import (GEM_STATS, GEM_ITEM_TYPE, GEM_REMOVE_COST,
 
 
 def _tier_label(tier: int) -> str:
-    """阶 → 展示名（如 1 → 碎裂的幸运宝石、10 → 神话的幸运宝石）"""
+    """阶 → 展示名（如 1 → 碎裂的宝石、10 → 神话的宝石）"""
     return GEM_TIER_NAMES.get(tier, f"阶{tier}")
 
 

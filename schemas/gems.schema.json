@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/gems.schema.json",
-  "title": "幸运宝石（gems）—— 一条 = 一张源表（阶位 / 阶名 / 孔位 / 打孔 / 传说特效 / 符文拆卸价）",
+  "title": "宝石（gems）—— 一条 = 一张源表（阶位 / 阶名 / 孔位 / 打孔 / 传说特效 / 符文拆卸价）",
   "description": "本域 = 宿主 `game/data/gems.py` 的常量表 12 张（B14-3 缺口名 `GEM_TIERS` 5 处引用 / `GEM_TIER_NAMES` 8 / `GEM_SOCKETS` 2 / `GEM_DRILL` 1 / `GEM_LEGENDARY_EFFECTS` 1 / `RUNE_REMOVE_COST` 2；`GEM_STATS`/`GEM_ITEM_TYPE`/`GEM_REMOVE_COST`/`GEM_DROP_RATE`/`GEM_DROP_TIER`/`GEM_BOSS_FIXED` 6 张由 `content/{catalog_rules,gems,catalog_legacy}.py` 读）。单向导出（**值原样，零注入**）。\\n\\n**形状**：一条 = 一个源模块的常量组（表键 = 源模块名；条目 = `{源常量名: 值原样}`）—— 同 `equipment`/`factions`/`enchant`。\\n\\n⚠⚠ **int 键陷阱（本域最重要的坑，必须由包内读口还原）**：`GEM_TIERS` / `GEM_TIER_NAMES` 的键源侧是 **int 1..10**，JSON 只有字符串键。不还原的后果（消费点 `content/economy_cmds.py`）：① `GEM_TIERS.get(tier)`（tier 是 int）恒 miss → 宝石详情数值静默归零；② `sorted(GEM_TIERS)` 变 `\\\"1\\\",\\\"10\\\",\\\"2\\\"…` → 百科阶位乱序；③ `GEM_TIER_NAMES.get(tier + 1)` → 合成链永远显示「已是最高阶」。还原责任在包内读口（同 `content/config.py:int_keys()` 的先例）。\\n\\n**同族的 int 键 / tuple 值**：`CONTENT/rules/game_config.json` 的 `fishing.FISH_QUALITY_WEIGHTS` 也是 int 键；`GEM_DROP_TIER` 的值源侧是 tuple，包内读口还原。",
   "x-primary": "gems_group",
   "type": "object",
@@ -153,7 +153,7 @@
     "gem_tier_names_table": {
       "type": "object",
       "title": "宝石阶全名表（`game/data/gems.py:19 GEM_TIER_NAMES`）",
-      "description": "键 = 阶位 **1..10**（同上，须还原 int）；值 = 全名（如「碎裂的幸运宝石」）。与 `GEM_BASE_NAME`（「幸运宝石」）拼合。",
+      "description": "键 = 阶位 **1..10**（同上，须还原 int）；值 = 全名（如「碎裂的宝石」）。与 `GEM_BASE_NAME`（「宝石」）拼合。",
       "propertyNames": {
         "pattern": "^[0-9]+$",
         "description": "阶位（1..10）。"
@@ -238,7 +238,7 @@
           "type": "string",
           "minLength": 1,
           "title": "宝石物品类型名（`game/data/gems.py:21 GEM_ITEM_TYPE`）",
-          "description": "实测「幸运宝石」；键名 `GEM_BASE_NAME` 在 `content/catalog_legacy.py` 里读本值。"
+          "description": "实测「宝石」；键名 `GEM_BASE_NAME` 在 `content/catalog_legacy.py` 里读本值。"
         },
         "GEM_REMOVE_COST": {
           "type": "integer",

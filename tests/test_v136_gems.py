@@ -28,8 +28,8 @@ from content.panel import player_stats_detail
 
 
 def _mk_gem(stats, tier):
-    """构造一颗指定 stats/tier 的幸运宝石 dict（测试夹具）。"""
-    return {"name": "测试幸运宝石", "type": "幸运宝石", "gem": True, "stats": stats, "tier": tier, "icon": "💎"}
+    """构造一颗指定 stats/tier 的宝石 dict（测试夹具）。"""
+    return {"name": "测试宝石", "type": "宝石", "gem": True, "stats": stats, "tier": tier, "icon": "💎"}
 
 
 # ---------- 1. 数据表 ----------
@@ -38,7 +38,7 @@ def test_data_tables():
     assert abs(GEM_TIERS[10]["mult"] - 0.06) < 1e-9
     assert abs(GEM_TIERS[1]["mult"] - 0.01) < 1e-9
     assert len(GEM_TIER_NAMES) == 10
-    assert GEM_TIER_NAMES[1] == "碎裂的幸运宝石" and GEM_TIER_NAMES[10] == "神话的幸运宝石"
+    assert GEM_TIER_NAMES[1] == "碎裂的宝石" and GEM_TIER_NAMES[10] == "神话的宝石"
     assert len(GEM_STATS) == 23
     assert len(set(GEM_STATS)) == len(GEM_STATS)
     assert GEM_REMOVE_COST == 500
@@ -55,7 +55,7 @@ def test_roll_gem_structure():
     for _ in range(200):
         g = roll_gem(1, 10)
         assert isinstance(g.get("stats"), dict) and 1 <= len(g["stats"]) <= 2
-        assert g.get("type") == "幸运宝石" and g.get("gem") is True
+        assert g.get("type") == "宝石" and g.get("gem") is True
         assert 1 <= g.get("tier", 0) <= 10
         assert all(s in GEM_STATS for s in g["stats"])
         assert all(0.01 <= v <= 0.06 for v in g["stats"].values())
@@ -108,7 +108,7 @@ def test_gem_combine_same_tier():
     assert up["tier"] == 4
     assert set(up["stats"].keys()) == {"atk", "crit"}
     assert abs(up["stats"]["atk"] - GEM_TIERS[4]["mult"]) < 1e-9
-    assert "明亮的幸运宝石" in up["name"]
+    assert "明亮的宝石" in up["name"]
 
 
 def test_gem_combine_rejects_mixed():

@@ -41,7 +41,7 @@ def _assert_valid_gem(g, lo, hi):
     """掉落原石有效性：有 stats/tier/name，层数在 [lo, hi]，属性在属性池。"""
     assert isinstance(g, dict), "掉落必须是 dict"
     assert isinstance(g.get("stats"), dict) and 1 <= len(g["stats"]) <= 2, f"stats 异常: {g}"
-    assert g.get("type") in ("原石", "幸运宝石") and g.get("gem") is True, f"type/gem 异常: {g}"
+    assert g.get("type") == "宝石" and g.get("gem") is True, f"type/gem 异常: {g}"
     assert g.get("name"), f"name 缺失: {g}"
     # name 前缀 = 该层品质名（碎裂/普通/无瑕/完美/传说）
     assert g["name"].startswith(GEM_TIERS[g["tier"]]["name"]), f"name 与 tier 不符: {g}"

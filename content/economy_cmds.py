@@ -5205,7 +5205,7 @@ class EconomyImpl(CommandBase):
         return "\n".join(lines)
 
     def _ency_browse_gems(self, raw: str = "", qq_id: str = "") -> str:
-        """『百科 宝石 [阶名|页码]』：幸运宝石 10 阶编目（碎裂→神话）。
+        """『百科 宝石 [阶名|页码]』：宝石 10 阶编目（碎裂→神话）。
 
         每阶：全名 + 随机属性加成倍率（GEM_TIERS.mult）+ 合成链/可插孔位说明。
         带阶名/关键词 → 单阶详情（附传说特效与掉落来源）。
@@ -5236,7 +5236,7 @@ class EconomyImpl(CommandBase):
         return "\n".join(_lines)
 
     def _gem_tier_detail(self, tier: int) -> str:
-        """幸运宝石单阶详情（wiki 展示口径）"""
+        """宝石单阶详情（wiki 展示口径）"""
         _g = _b143.GEM_TIERS.get(tier) or {}
         _nm = _b143.GEM_TIER_NAMES.get(tier, str(tier))
         _pct = int(_g.get("mult", 0) * 100)
