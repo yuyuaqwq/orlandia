@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/classes.schema.json",
+  "title": "职业(classes) —— 一条 = 一个职业 id → 职业定义",
+  "description": "真源 = 包内 content/data/classes.json(读口 content/catalog_core.py → 引擎 records)。查询/显示走包内目录表: C.resolve(\"classes\", 中文名) / C.display(\"classes\", key)(content/apply.py:206-212 · content/combat_cmds.py:3436/3462/3485 · content/economy_cmds.py:1812/1843/1850/2277/2416/2452), 目录表构建 = content/index_build.py:151 build_index(\"classes\", CLASSES, prefix=\"cls_\", name_field=\"name\") => name 是查询与显示的真源(缺它 resolve/display 失效); content/tables.py:209 把 classes 列进 REQUIRED_DOMAINS(装载期 fail-closed)。实测 8 条 / 2 种字段组合(唯一异构 = cls_novice 无 cast_atk/cast_defend/cast_flee)。",
+  "x-primary": "class_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^cls_[a-z0-9_]+$",
+    "description": "键 = 职业 id(cls_ 前缀, 实测 8/8 合规; 与 build_index(prefix=\"cls_\") 同源)"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/class_entry"
+  },
+  "$defs": {
+    "class_entry": {
+      "type": "object",
+      "title": "一个职业",
+      "description": "name 必有; base/growth/basic_skill/evolve_branches 是嵌套对象(见各自说明)。",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "中文职业名",
+          "description": "查询与显示的真源(build_index(..., name_field=\"name\")); 实测 8/8 非空(刺客 / 法师 / 牧师 / 见习冒险者 / 食人 / 武僧 / 游侠 / 战士)。",
+          "minLength": 1
+        },
+        "desc": {
+          "type": "string",
+          "title": "职业描述",
+          "description": "职业速查面板与就职提示里的一句话介绍(实测 8/8)。"
+        },
+        "icon": {
+          "type": "string",
+          "title": "职业图标",
+          "description": "面板展示用 emoji(实测 8/8)。"
+        },
+        "role": {
+          "type": "string",
+          "title": "定位",
+          "description": "展示用分类: 输出 / 防御 / 辅助 / 见习...(实测 8/8)。"
+        },
+        "mech": {
+          "type": "string",
+          "title": "机制速览",
+          "description": "职业机制的一句话说明(文本); 机制参数本体在 mech_cfg_core / mech_cfg_class 域, 不在本域。"
+        },
+        "weapon_type": {
+          "type": "string",
+          "title": "武器类型",
+          "description": "如 dagger / sword / staff(取值与 weapon_names 域同源)。"
+        },
+        "attack_text": {
+          "type": "string",
+          "title": "普攻动作名",
+          "description": "面板与战斗日志里的普攻动词(如「匕首突刺」)。"
+        },
+        "rank_label": {
+          "type": "string",
+          "title": "阵位名",
+          "description": "前排 / 后排(战斗编队展示)。"
+        },
+        "reach": {
+          "type": "integer",
+          "title": "攻击距离",
+          "description": "实测 8/8 = 1。"
+        },
+        "default_rank": {
+          "type": "integer",
+          "title": "初始阶数",
+          "description": "实测 8/8 = 1。"
+        },
+        "cast_atk": {
+          "type": "number",
+          "title": "出招耗时·攻击",
+          "description": "引擎动作耗时倍率(cast 语义); 实测 7/8 有 —— 见习职业 cls_novice 三条都无 => 走引擎默认。"
+        },
+        "cast_defend": {
+          "type": "number",
+          "title": "出招耗时·防御",
+          "description": "同上; 实测 7/8 有。"
+        },
+        "cast_flee": {
+          "type": "number",
+          "title": "出招耗时·逃跑",
+          "description": "同上; 实测 7/8 有。"
+        },
+        "evolve": {
+          "type": "array",
+          "title": "转职序列",
+          "description": "「分支名(等级)」字符串数组; 实测 3 段(如 影舞者(30))。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evolve_branches": {
+          "type": "object",
+          "title": "转职分支表",
+          "description": "{阶: [分支名...]}; 实测 3 键(\"1\"/\"2\"/\"3\")。嵌套结构随内容变化, 字段名不当表单字段展开(编辑器退回 JSON 档编辑)。"
+        },
+        "tutor": {
+          "type": "array",
+          "title": "导师与地点",
+          "description": "[导师名, 地点] 两元数组(实测 2 元, 如 [暗影渡鸦, 铁港城·港口广场])。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "base": {
+          "type": "object",
+          "title": "初始属性表",
+          "description": "属性名 → 数值(键 = 属性名, 随职业增减)。嵌套结构随内容变化, 字段名不当表单字段展开(编辑器退回 JSON 档编辑)。"
+        },
+        "growth": {
+          "type": "object",
+          "title": "每级成长表",
+          "description": "属性名 → 每级增量。嵌套结构随内容变化, 字段名不当表单字段展开(编辑器退回 JSON 档编辑)。"
+        },
+        "basic_skill": {
+          "type": "object",
+          "title": "基础技能",
+          "description": "内联技能对象(name / kind / exprs / cast / cd / mp / basic / trigger_hit / cast_verb); 技能本体不在 skills 域, 故内联在此。嵌套结构随内容变化, 字段名不当表单字段展开(编辑器退回 JSON 档编辑)。"
+        }
+      }
+    }
+  }
+}

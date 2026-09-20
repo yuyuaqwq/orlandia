@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/stat_affix_fx.schema.json",
+  "title": "词缀·属性折算(stat_affix_fx) —— 一条 = 一个常驻属性词条 id → 折算方式",
+  "description": "真源 = 包内 content/data/stat_affix_fx.json(D6「数据进表」批: content/affix.py 原有字面量 _STAT_AFFIX_FX 搬入, 历史沿革注释原样留在 content/affix.py:77-99)。读口 = content/affix.py:99 read_seq_domain(\"stat_affix_fx\", where=...) —— 序域: 落盘规范要求外层键升序, 源插入序只能靠条目内 seq(1 基)带出(与 req_stat_by_slot / titles / weekly_quests 同形)。消费 = roll_affixes() 生成装备随机词条时把词条折算进装备 stats: crit/dodge/precise 等小数概率直接加(flat); hp/spd 按装备基础值百分比折算(pct); pene_flat/pene_mflat 按装备等级线性折算(lv_flat 系数 + min_flat 保底)。实测 26 条 / 3 种字段组合(22 条 flat · 2 条 pct · 2 条 lv_flat+min_flat)。",
+  "x-primary": "stat_affix_fx_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = 词条 id(ascii 小写下划线; 实测 26/26 合规, 如 crit_up / pene_flat / thirst_phys)"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/stat_affix_fx_entry"
+  },
+  "$defs": {
+    "stat_affix_fx_entry": {
+      "type": "object",
+      "title": "一条常驻属性词条折算规则",
+      "description": "stat + seq 必有; 折算系数三选一(flat / pct / lv_flat+min_flat)。",
+      "required": [
+        "stat",
+        "seq"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "stat": {
+          "type": "string",
+          "title": "目标属性键",
+          "description": "折算后写进装备 stats 的属性名。实测取值落在 optional_stats 域属性名里: crit / dodge / precise / pene_flat / pene_mflat / pene_phys / pene_magi / tenacity / luck / hp / spd / lifesteal / lifesteal_phys / lifesteal_magi / thorns / block / cdr / crit_dmg / phys_reduce / magic_reduce / elem_res / abyss_res / exp_bonus / gold_bonus / heal_power / shield_power。",
+          "minLength": 1
+        },
+        "seq": {
+          "type": "integer",
+          "title": "源插入序",
+          "description": "1 基源插入序; 读口按它还原顺序(实测 1..26 连续、无重复)。",
+          "minimum": 1
+        },
+        "pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "title": "百分比折算系数",
+          "description": "按装备基础值百分比折算(实测: hp_up / swift 两条 = 0.05); 其余 24 条该键显式为 null => 不吃百分比。"
+        },
+        "flat": {
+          "type": "number",
+          "title": "固定值折算",
+          "description": "直接并入属性的小数值(实测 22 条: 0.05 / 0.08 / 0.1 / 0.15 / 0.2); pene_flat / pene_mflat 两条不吃 flat。"
+        },
+        "lv_flat": {
+          "type": "number",
+          "title": "按等级线性系数",
+          "description": "固定穿透按装备等级线性折算的系数(实测仅 pene_flat / pene_mflat = 0.5)。"
+        },
+        "min_flat": {
+          "type": "number",
+          "title": "线性折算保底",
+          "description": "线性折算的保底值(实测仅 pene_flat / pene_mflat = 2)。"
+        }
+      }
+    }
+  }
+}

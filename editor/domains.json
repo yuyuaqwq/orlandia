@@ -20,8 +20,8 @@
   "classes": {
     "label": "职业",
     "kind": "data",
-    "schema": null,
-    "primary": null,
+    "schema": "classes.schema.json",
+    "primary": "class_entry",
     "icon": "🧙",
     "owner": "package",
     "tier": "portable"
@@ -794,8 +794,8 @@
   "stat_affix_fx": {
     "label": "词缀·属性折算",
     "kind": "data",
-    "schema": null,
-    "primary": null,
+    "schema": "stat_affix_fx.schema.json",
+    "primary": "stat_affix_fx_entry",
     "icon": "🎴",
     "owner": "package",
     "tier": "fixed"
