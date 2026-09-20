@@ -14,7 +14,8 @@
 ------------------------------------------
 ① **同图纸**（`blueprint` 非空）只许一条配方；
 ② **同显示名**（recipes 域 `display` 后的名字）只许一条配方；
-③ 键序声明 `content/data/key_order.json` 的键集合与域文件一致（增删条目必须同步声明）。
+③ 键序声明 `content/data/key_order.json` 的键集合与域文件一致（增删条目必须同步声明）；
+④ **带 `roster_id` 的配方**：`rec.lv` 必须 == `equip_roster[roster_id].lv`（#17 · 台账 §0 D12）。
 
 跑法：`python tests/test_craft_recipe_unique.py`（退出码 0 = 全绿）。
 """
@@ -48,6 +49,31 @@ FAMILIES = {
 def load(name):
     with io.open(os.path.join(DATA, name), encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def _roster_links(recipes):
+    """带 roster_id 的配方 → [(配方 key, roster_id)]（roster_id 空串 = 不是名册产物）。"""
+    out = []
+    for k, v in recipes.items():
+        if isinstance(v, dict):
+            rid = (v.get("roster_id") or "").strip()
+            if rid:
+                out.append((k, rid))
+    return out
+
+
+def _lv_mismatches(recipes, roster):
+    """带 roster_id 的配方 → [(配方 key, rid, rec.lv, roster.lv)]：lv 不一致 / 名册缺条目。
+
+    D12 口径：产物走 `generate_roster_equip` ⇒ 实物等级取 `roster.lv`；
+    `rec.lv` 只喂锻造门槛 / 图纸价 / 面板排序 ⇒ 是**派生副本**，逐条必须相等。
+    """
+    bad = []
+    for k, rid in _roster_links(recipes):
+        r = roster.get(rid)
+        if not isinstance(r, dict) or r.get("lv") != recipes[k].get("lv"):
+            bad.append((k, rid, recipes[k].get("lv"), (r or {}).get("lv")))
+    return bad
 
 
 def main() -> int:
@@ -89,6 +115,32 @@ def main() -> int:
             check("%s：key_order 键集合与域一致（缺 %d / 多 %d）" % (dom, len(miss), len(extra)),
                   not miss and not extra,
                   "缺 %s 多 %s" % (miss[:3], extra[:3]))
+
+    # ---------------- ④ 带 roster_id 的配方：等级 = 名册装备等级（#17 · 台账 §0 D12）----------------
+    # 依据（实测 + 代码）：① `C.resolve("recipes", 名)` / 锻造入口都按配方表取 `rec.lv` 做**门槛**判定；
+    #   ② 产物走 `generate_roster_equip(rid)`（`content/craft.py`）⇒ **实物 lv 取 `roster.lv`**；
+    #   ③ `rec.lv` 另喂图纸价 / 面板排序 ⇒ 是**派生副本**，不是第二真源。
+    # 曾实测 3 条错位（`72/72/85` vs `88/88/98`，`57027db` 已对齐）——本门禁守「不再漂回」。
+    craft_d = load("craft.json")
+    roster = load("equip_roster.json")
+    check("equip_roster 域非空（%d 条）" % len(roster), len(roster) > 0)
+    links = _roster_links(craft_d)
+    check("craft：带 roster_id 的配方 %d / %d 条" % (len(links), len(craft_d)), len(links) > 0)
+    dangling = [(k, rid) for k, rid in links if not isinstance(roster.get(rid), dict)]
+    check("craft：roster_id 全部指向存在的名册装备（断链 %d）" % len(dangling), not dangling,
+          "；".join("%s→%s" % (k, r) for k, r in dangling[:3]))
+    bad = _lv_mismatches(craft_d, roster)
+    check("craft：带 roster_id 的配方 lv 与名册逐条相等（一致 %d / 不一致 %d）"
+          % (len(links) - len(bad), len(bad)), not bad,
+          "；".join("%s(%s) rec.lv=%s vs roster.lv=%s" % t for t in bad[:3]))
+
+    # 反证：把一条配方的 lv 改掉 ⇒ 判据必须报出来（否则本门禁是恒真的）
+    probe = {k: dict(v) for k, v in craft_d.items()}
+    k0, rid0 = links[0]
+    probe[k0]["lv"] = int(probe[k0].get("lv") or 0) + 1
+    cp = _lv_mismatches(probe, roster)
+    check("反证：改一条 rec.lv ⇒ 判据必报（实测 %d 条 · 期望 1 条）" % len(cp),
+          len(cp) == 1 and cp[0][0] == k0, str(cp[:2]))
 
     print("\n结果：通过 %d / 共 %d" % (PASS, PASS + FAIL))
     if FAILURES:
