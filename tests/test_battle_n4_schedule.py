@@ -31,6 +31,7 @@ from content.panel import player_final_stats
 from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 
 PASS = 0
 FAIL = 0
@@ -118,7 +119,7 @@ def test_human_act_advance():
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
     hp0 = m["hp"]
     # 玩家出手普攻 → 应推进到怪物行动若干次
-    logs, ended, who = b.human_act("attack", None, p)
+    logs, ended, who = human_land(b, "attack", None, p)
     dmg = hp0 - m["hp"]
     check("玩家普攻打到怪", dmg > 0, f"dmg={dmg}")
     check("推进后未结束（怪血厚）", not ended, f"ended={ended}")
@@ -147,7 +148,7 @@ def test_flee():
     p = mk_player("战士", 10)
     m = mk_monster(hp=100000, atk=1)
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
-    logs, ended, who = b.human_act("flee", None, p)
+    logs, ended, who = human_land(b, "flee", None, p)
     check("逃跑结束", b.result == "fled", f"result={b.result}")
 
 
@@ -190,16 +191,16 @@ def test_time_effects_n72():
     # 1. mode=skip：被晕攻击跳过 + 清除
     p["effects"]["stun"] = {"stacks": 1, "expire": 99.0, "mode": "skip"}
     hp0 = e["hp"]
-    logs, ended, who = b.human_act("attack", None, p)
+    logs, ended, who = human_land(b, "attack", None, p)
     check("被晕攻击被跳过（怪满血）", e["hp"] == hp0)
     check("stun 消费清除", "stun" not in ((p).get("effects") or {}))
     hp0 = e["hp"]
-    b.human_act("attack", None, p)
+    human_land(b, "attack", None, p)
     check("清醒后攻击命中", e["hp"] < hp0, f"hp={e['hp']}")
     # 2. mode=no_skill：沉默技能转普攻（仍造成伤害），持续不消
     p["effects"]["silence"] = {"stacks": 1, "expire": 99.0, "mode": "no_skill"}
     hp0 = e["hp"]
-    b.human_act("skill", "猛击", p)
+    human_land(b, "skill", "猛击", p)
     check("沉默下技能仍造成伤害", e["hp"] < hp0, f"hp={e['hp']}")
     check("沉默持续未清除", "silence" in ((p).get("effects") or {}))
     # 3. shields 到期删
@@ -227,7 +228,7 @@ def test_time_effects_n72():
     p["effects"]["stun"] = {"stacks": 1, "expire": 1.0, "mode": "skip"}
     b2._now = 5.0
     hp0 = e2["hp"]
-    b2.human_act("attack", None, p)
+    human_land(b2, "attack", None, p)
     check("过期控制自然消失（不拦截）", "stun" not in ((p).get("effects") or {}))
     check("过期控制后正常攻击", e2["hp"] < hp0, f"hp={e2['hp']}")
 

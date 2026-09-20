@@ -63,11 +63,65 @@ from host.shell import HostShell                                              # 
 from host import _platform                                                    # noqa: E402
 from host import tlog_setup as _host_tlog_setup                               # noqa: E402  ★ P5F 前置④
 
+
+# ============================================================
+# T15 两段化（出招窗口）· 测试侧落地推进
+# ============================================================
+
+def land(b, logs=None, actor=None):
+    """把**已登记**的待发行动推进到落地并结算（引擎公开口 `settle_landing` 的测试侧口）。
+
+    两段化后 `act()` / `human_act()` / `actor_auto()` 只**登记**待发，伤害在 `T0+第一段`
+    才落地 —— 直调引擎 API 后立刻断言的用例读到的是**登记态旧值**（同一事实在驱动侧的
+    表现 = PVP『挥砍』后双方面板血量不动）。**生产口径 = 一次出手 = 落地后返回**
+    （包内 `content/bridge.land_pending`）⇒ 测试侧照此跟账，不另立第二套时序。
+    """
+    from saintess_engine import settle_landing
+    if logs is None:
+        logs = []
+    settle_landing(b, logs, actor)
+    return logs
+
+
+def _land_logs(out):
+    return out[0] if isinstance(out, tuple) and out else None
+
+
+def act_land(b, ctx):
+    """`b.act(ctx)` + 落地推进（返回与 `b.act()` 同形，`[0]` 即随落地补齐的日志表）。
+
+    ★ **锚定出手者**（`ctx.caster`）—— 生产口径 `bridge.land_pending(b, logs, actor=出手者)`
+    逐个调用点都点名了本次出手者（9 处接线）；不锚定 = 取「全场最早的那个待发」，
+    多 actor 在场时会走到**别人的**落地时刻（结算错人 + 推进过头），
+    与生产驱动不是同一套时序 ⇒ 记录端与回放端会分叉（v182 实测）。
+    """
+    out = b.act(ctx)
+    land(b, _land_logs(out), getattr(ctx, "caster", None))
+    return out
+
+
+def human_land(b, *a, **k):
+    """`b.human_act(...)` + 落地推进（返回与 `b.human_act()` 同形）。★ 锚定出手者（生产口径）。"""
+    out = b.human_act(*a, **k)
+    who = a[2] if len(a) > 2 else k.get("actor")
+    land(b, _land_logs(out), who)
+    return out
+
+
+def auto_land(b, *a, **k):
+    """`b.actor_auto(...)` + 落地推进（返回与 `b.actor_auto()` 同形）。★ 锚定出手者（生产口径）。"""
+    out = b.actor_auto(*a, **k)
+    who = a[0] if a else k.get("actor")
+    land(b, _land_logs(out), who)
+    return out
+
+
 __all__ = ["Main", "EngineHarness", "harness", "boot", "reset_for_tests", "C",
            "PKG_ROOT", "GameCmdFilter", "tlog_setup",
            # conftest 兼容面
            "FakeEvent", "run", "clean_db", "make_player", "new_main",
-           "TEST_DB", "PLUGIN_DIR", "QQBOT_DIR"]
+           "TEST_DB", "PLUGIN_DIR", "QQBOT_DIR",
+           "land", "act_land", "human_land", "auto_land"]
 
 _IDENTITY_KEYS = ("group_id", "qq_id", "uid")
 _PLATFORM_EXCEPTIONS = ("_maint_gate", "page_flip", "shortcut_trigger", "gm_play", "gm_spy")

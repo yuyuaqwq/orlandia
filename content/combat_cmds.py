@@ -1557,6 +1557,7 @@ async def attack(self, event: AstrMessageEvent, group_id, qq_id, player, target_
             yield event.plain_result(_st + _T.static("bt.food_tip"))
         return
     logs, ended, _who = b.human_act("attack", None, b.focus(), target=_target)
+    _BR.land_pending(b, logs, b.focus())  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     self._sync_battle_player(player, b)
     db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"])
     if ended:
@@ -1859,6 +1860,7 @@ async def skill(self, event: AstrMessageEvent, group_id, qq_id, player, skill_na
             yield event.plain_result(_st + _T.static("bt.food_tip"))
         return
     logs, ended, _who = b.human_act("skill", skill_name, b.focus(), target=_resolve_target_arg(b, _skill_target))
+    _BR.land_pending(b, logs, b.focus())  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     self._sync_battle_player(player, b)
     db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"])
     if ended:
@@ -2170,6 +2172,7 @@ async def defend(self, event: AstrMessageEvent, group_id, qq_id, player):
         yield event.plain_result(_T.static("bt.stale_explore"))
         return
     logs, ended, _who = b.human_act("defend", None, b.focus())
+    _BR.land_pending(b, logs, b.focus())  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     self._sync_battle_player(player, b)
     db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"])
     if ended and b.result == "defeat":
@@ -2228,6 +2231,7 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
             yield event.plain_result(_T.static("bt.stale_boss"))
             return
         logs, ended, _who = b.human_act("flee", None, b.focus())
+        _BR.land_pending(b, logs, b.focus())  # T15 两段化：本次出手推进到落地（包内唯一落地口）
         self._sync_battle_player(player, b)
         db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"])
         if ended and b.result == "fled":
@@ -2250,6 +2254,7 @@ async def flee(self, event: AstrMessageEvent, group_id, qq_id, player):
         yield event.plain_result(_T.static("bt.stale_explore"))
         return
     logs, ended, _who = b.human_act("flee", None, b.focus())
+    _BR.land_pending(b, logs, b.focus())  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     self._sync_battle_player(player, b)
     db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"])
     if ended:
@@ -2822,6 +2827,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     # DOT 由 saintess_engine schedule 在行动推进中自动结算（actor.state dot 规则，
     # 本地副本语义——旧"全局共享 debuffs + 每4次强制结算"补丁按鱼鱼拍板退役）。
     logs, ended, _who = b.human_act(action, skill_name, b.focus(), target=target)
+    _BR.land_pending(b, logs, b.focus())  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     self._sync_battle_player(player, b)
     db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"])
     after = sum(max(0, u.get("hp", 0)) for u in b.sides_of("enemy"))
@@ -3314,6 +3320,7 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
         if _info.get("kind") in (K_HEAL, K_BUFF):
             _tgt = None
     logs, ended, _who = b.human_act(action, skill_name, actor=my_actor, target=_tgt)
+    _BR.land_pending(b, logs, my_actor)  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     if action != "defend":
         my_actor["defending"] = False
         opp_actor["defending"] = False

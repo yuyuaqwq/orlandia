@@ -30,6 +30,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 
 PASS = 0
 FAIL = 0
@@ -253,7 +254,7 @@ def test_override_end_to_end():
                    else (None, None, None)))
     hp0 = p["hp"]
     # 纯 heal payload = 数字（模板 tpl_heal 产物），非 "heal:50"
-    logs, ended, who = b.human_act("use_item", "50", p)
+    logs, ended, who = human_land(b, "use_item", "50", p)
     check("喝药回血", p["hp"] > hp0, f"{hp0}→{p['hp']}")
     check("占刻推 ct", p.get("ct", 0) > 0, f"ct={p.get('ct')}")
     check("有日志", bool(logs), str(logs))
@@ -264,7 +265,7 @@ def test_override_end_to_end():
                     _tr(battle, actor, payload, target) if action == "use_item"
                     else (None, None, None)))
     ct_before = float(p2.get("ct", 0) or 0)
-    logs, ended, who = b2.human_act("use_item", "special:summon", p2)
+    logs, ended, who = human_land(b2, "use_item", "special:summon", p2)
     # N10-B6b：初始 ct 已播种（>0）；未消费动作 = ct 保持初始值不推
     check("缺口道具不推 ct", abs(p2.get("ct", 0) - ct_before) < 1e-6, f"ct={p2.get('ct')} before={ct_before}")
     check("回落未知提示", any("未知" in x or "无法" in x or "未迁移" in x for x in logs),

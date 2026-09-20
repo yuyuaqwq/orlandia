@@ -39,6 +39,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import act_land, human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 from saintess_engine import actions as AC          # noqa: E402
 from saintess_engine import effects as FX          # noqa: E402
 from saintess_engine import landing as L           # noqa: E402
@@ -121,12 +122,12 @@ def test_battle_start_once():
     b = new_battle(p, m)
     check("构造后未触发（buffs 空）", "atk_up" not in ((p).get("effects") or {}))
     logs = []
-    b.human_act("attack", None, actor=p, target=m)
+    human_land(b, "attack", None, actor=p, target=m)
     _au = ((p).get("effects") or {}).get("atk_up") or {}
     check("首动触发 → atk_up 挂上", "atk_up" in ((p).get("effects") or {}), f"buffs={((p).get('effects') or {})}")
     check("mult 快照 1.30", abs(float(_au.get("mult", 0)) - 1.30) < 1e-9, f"{_au}")
     logs2 = []
-    b.human_act("attack", None, actor=p, target=m)
+    human_land(b, "attack", None, actor=p, target=m)
     check("二动不再重复 battle_start", b._started is True)
     # 序列化续战：from_state 不重触发（_started=True）
     b2 = BT_NEW.from_state(b.to_state())
@@ -145,7 +146,7 @@ def test_turn_begin_cast_cycle():
     }
     b = new_battle(p, m)
     # b.act() 直调：只 p 行动一次（不推 CTB → 怪不反击，净回血 = 三个时点之和）
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     gained = 90 - (p["max_hp"] - p["hp"])
     check("一次行动触发三个时点（10+20+30）", gained == 60, f"回血 {gained}")
 
@@ -160,7 +161,7 @@ def test_turn_begin_cast_cycle():
         "on_act_consume":  [{"type": "heal", "value": 5,  "on": "caster"}],
     }
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     g2 = 100 - (p2["max_hp"] - p2["hp"])
     check("被晕：turn_start 10 + on_act_consume 5", g2 == 15, f"回血 {g2}")
     check("被晕：act_begin 不触发（stun 仍在？被消费删除）",

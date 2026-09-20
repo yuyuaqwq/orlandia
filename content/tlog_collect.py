@@ -6,7 +6,7 @@
       ★ **B10-L2 收口（2026-09-13）**：宿主已改**半边薄壳**（采集半边再导出本模块；回放半边 `:245-321` 留宿主）⇒ 本模块 = 采集唯一实现。
 
 切片口径（一条分界线：真源 :245 `# ==== 回放`）
-  · **采集半边 = 本文件**：`BattleTLog`（链 `battle.on_event` / 包 `human_act` / 包 `act`
+  · **采集半边 = 本文件**：`BattleTLog`（链 `battle.on_event` / 包 `human_act` / 包 `_dispatch_pending`（B 段落地）
     → 把战斗事件与人类行动成流水）+ `EVENT_KINDS`（引擎事件 → 流水 kind 的映射表，
     框架不认，映射表在内容侧）+ `REPRO_KEYS` + `_uid` / `_num` / `_rounds_of` / `_player_input`。
     **可拔插（红线）**：`tlog=None` 时**全部方法零行为** —— 不链观察者、不包 human_act、不写一个字段。
@@ -109,24 +109,26 @@ class BattleTLog:
             pass
         self._chain_observer(b)
         self._wrap_human_act(b)
-        self._wrap_act(b)
+        self._wrap_landing(b)
         self.on_start(b, btype=btype, seed=seed, player=player, enemies=enemies, extra=extra)
         return b
 
-    def _wrap_act(self, b) -> None:
-        """包 `b.act()`（引擎的统一行动入口：人类/AI/随从都走它）—— 行动**跑完后**再看一眼结果。
+    def _wrap_landing(self, b) -> None:
+        """包 `b._dispatch_pending()`（B 段 = **待发行动落地**）—— 落地**之后**再看一眼胜负。
 
-        为什么必须在这里看：胜负是在 `act()` 内部最后一步 `_check_side_end()` 里才置上的，
-        而事件观察者只在该行动产生的**事件**上被叫到 —— 胜负一旦由「不产生事件的那一步」
-        决定（例如最后一个怪被打死后的结算），事件侧就再也不会响了。
-        （2026-09-13：实测整场打完 0 条 `battle.end`，就是漏在这。）
+        为什么必须在落地段看（T15 两段化）：胜负是在 `_dispatch_pending` 末尾
+        `_check_side_end()` 里才置上的，而 A 段 `act()` 只**登记**待发（返回时
+        `b.result` 还没被引擎置上）；事件观察者又只在「该行动产生的事件」上被叫到 ——
+        胜负一旦由「不产生事件的那一步」决定（例如最后一个怪被打死后的结算），
+        事件侧就再也不会响了（2026-09-13 实测：整场打完 0 条 `battle.end`，就是漏在这；
+        两段化后同一缺口从 `act()` 尾部整体位移到 `_dispatch_pending` 尾部）。
         """
-        orig = getattr(b, "act", None)
+        orig = getattr(b, "_dispatch_pending", None)
         if not callable(orig) or getattr(orig, "_battle_tlog_wrapped", False):
             return
 
-        def wrapped(ctx):
-            out = orig(ctx)
+        def wrapped(actor, slot, logs):
+            out = orig(actor, slot, logs)
             try:
                 self._maybe_end(b)
             except Exception:                                    # noqa: BLE001
@@ -135,7 +137,7 @@ class BattleTLog:
 
         wrapped._battle_tlog_wrapped = True
         try:
-            b.act = wrapped
+            b._dispatch_pending = wrapped
         except Exception:                                        # noqa: BLE001
             pass
 
@@ -190,7 +192,7 @@ class BattleTLog:
                        action=str(action or ""), skill=str(skill_name or ""),
                        target_uid=_uid(target), p_acts=int(getattr(b, "_p_acts", 0) or 0))
         # ⚠️ 这里**不**查收尾：`on_act` 是 action **之前**叫的（`human_act` 包装器的前半段），
-        # 此刻 `b.result` 还没被引擎置上。收尾检查放在 `b.act()` 包装器的**后半段**（`_wrap_act`）。
+        # 此刻 `b.result` 还没被引擎置上。收尾检查放在**落地段**包装器的后半段（`_wrap_landing`）。
 
     def on_event(self, b, evt_name, ctx, logs=None) -> None:
         """引擎观察者形态：`on_event(battle, evt_name, ctx, logs)`。只读 ctx。"""

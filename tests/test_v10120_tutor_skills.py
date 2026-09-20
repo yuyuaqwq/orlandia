@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from conftest import C, db, clean_db, Main, FakeEvent, run
 
 passed = failed = 0
+from _engine_harness import act_land  # noqa: E402  T15 两段化：落地推进
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 
 check = bind_check(globals(), "passed", "failed", limit=300)
@@ -126,7 +127,7 @@ async def main():
     if _sk_info:
         from saintess_engine.battle.actors import ActCtx
         _logs = []
-        _b.act(ActCtx(caster=_st, action="skill", skill_name="魔力脉冲",
+        act_land(_b, ActCtx(caster=_st, action="skill", skill_name="魔力脉冲",
                       info=_sk_info, target=_e))
         check("战斗施放有伤害（saintess_engine）", int(_e.get("hp", 200)) < 200,
               f"hp={_e.get('hp')} logs={str(_logs)[:80]}")

@@ -29,6 +29,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config      # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import act_land, auto_land, human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 from saintess_engine import actors as A              # noqa: E402
 from saintess_engine import effects as FX            # noqa: E402
 from saintess_engine import schedule as SC           # noqa: E402
@@ -98,7 +99,7 @@ def test_defend_action():
     print("【CV3 防御动作 _do_defend 生效】")
     p, m = mk_ctx()
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
-    logs, ended, who = b.human_act("defend", None, p)
+    logs, ended, who = human_land(b, "defend", None, p)
     check("defend 置位 defending", p.get("defending") is True)
     check("defend 有日志", any("防御" in l or "姿态" in l for l in logs))
     # 防御中受伤减半（landing 走 defending；等级压制后减半）
@@ -229,13 +230,17 @@ def test_landing_branches():
     L.deal_damage(b, p, slp, 30, logs4)
     check("睡眠被打醒", "sleep" not in ((slp).get("effects") or {}))
     check("睡眠唤醒日志", any("惊醒" in l for l in logs4))
-    # 蓄力打断
+    # 蓄力中受击（T15 两段化 · 台账 §0 D15②）：**普通伤害不打断前摇** ——
+    # 打断只由「带打断动作的效果」（内容侧给控制类效果挂 `interrupt`）与技能级霸体开关负责。
     chg = make_actor(uid="c", name="蓄", side="enemy", kind="monster",
                      hp=100, max_hp=100, atk=1, **{"def": 0}, level=1)
-    chg["charging"] = {"skill": "大火球", "name": "大火球"}
+    chg["charging"] = {"action": "skill", "skill": "大火球",
+                       "cast_done_at": float(b._now) + 1.0, "cast_base": "skill"}
     logs5 = []
     L.deal_damage(b, p, chg, 30, logs5)
-    check("蓄力被打断", chg["charging"] is None)
+    check("普通伤害不打断前摇（D15②：槽仍在飞）", chg["charging"] is not None)
+    check("普通伤害照常结算（伤害真进血）", int(chg.get("hp", 100)) < 100,
+          f"hp={chg.get('hp')}")
     # 治疗边界
     logs6 = []
     r6 = L.heal_actor(b, None, 50, logs6)
@@ -313,7 +318,7 @@ def test_actions_branches():
     # do_skill 无目标（enemy 空）
     ctx_atk = ActCtx(caster=p, action="attack", skill_name=None, info=None)
     b3 = BT_NEW(btype="monster", sides={"player": [p], "enemy": []})
-    out2 = b3.act(ctx_atk)
+    out2 = act_land(b3, ctx_atk)
     check("attack 无目标有提示", len(out2[0]) > 0 or out2[0] == [])
     # buff pct_from_mech_val 折算（45 → 0.45）
     p2 = make_actor(uid="pb", name="增益者", side="player", kind="player", level=10,
@@ -350,7 +355,7 @@ def test_schedule_edge():
         if who is None:
             break
         if kind == "player":
-            sub, _ = b2.actor_auto(who)
+            sub, _ = auto_land(b2, who)
             logs2.extend(sub)
     check("怪vs怪能分胜负", b2.result in ("victory", "defeat"),
           f"result={b2.result} guard={guard}")
@@ -362,7 +367,7 @@ def test_human_kill_who_none():
     weak = make_actor(uid="wk", name="弱怪", side="enemy", kind="monster",
                       hp=30, max_hp=30, atk=1, **{"def": 0}, level=1)
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [weak]})
-    logs, ended, who = b.human_act("attack", None, p)
+    logs, ended, who = human_land(b, "attack", None, p)
     check("打死怪 ended=True", ended, f"ended={ended}")
     check("打死怪 who=None", who is None, f"who={who}")
     check("result=victory", b.result == "victory", f"result={b.result}")
@@ -387,7 +392,7 @@ def test_more_branches():
     ai["auto_act"] = {"act": {"type": "attack", "skill": None}}
     b3 = BT_NEW(btype="monster", sides={"player": [p], "enemy": [ai]})
     logs3 = []
-    sub, _ = b3.actor_auto(ai)
+    sub, _ = auto_land(b3, ai)
     check("auto_act 攻击配置可跑", len(sub) >= 0)
     # mech2 第二效果（技能带 mech2）
     sk = {"name": "双效果", "kind": "物理", "exprs": ["atk*1.0"],

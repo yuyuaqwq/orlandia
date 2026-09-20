@@ -33,6 +33,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402  ★ P5C-REPOINT：宿主装配壳已删
+from _engine_harness import act_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 from saintess_engine.battle.actors import ActCtx          # noqa: E402
 from saintess_engine.battle.effect_triggers import fire as _fire  # noqa: E402
 from saintess_engine.battle.landing import deal_damage as _dd     # noqa: E402
@@ -143,11 +144,11 @@ def test_war_spirit_end2end():
     equip_affix(p, "war_spirit", "weapon", quality="purple")
     EP.apply_to_actor(p)
     b = new_battle(p, m)
-    b.act(ActCtx(caster=p, action="attack", target=m))  # battle_start + 普攻命中
+    act_land(b, ActCtx(caster=p, action="attack", target=m))  # battle_start + 普攻命中
     check("普攻命中怒+1", stk(p, "rage") == 1, f"rage={stk(p, 'rage')}")
     # 技能（伤害类）命中 → skill_hit → 怒再 +1
     info = {"name": "斩击", "kind": "物理", "exprs": ["atk*1.0"]}
-    b.act(ActCtx(caster=p, action="skill", skill_name="斩击", info=info, target=m))
+    act_land(b, ActCtx(caster=p, action="skill", skill_name="斩击", info=info, target=m))
     check("技能命中怒+1", stk(p, "rage") == 2, f"rage={stk(p, 'rage')}")
     # cap clamp：直 fire 12 次 attack_hit → 怒封顶 10
     for _ in range(12):
@@ -170,10 +171,10 @@ def test_opening_stance():
     EP.apply_to_actor(p)
     b = new_battle(p, m)
     check("开局前无气", stk(p, "chi") == 0)
-    b.act(ActCtx(caster=p, action="attack", target=m))  # 触发 battle_start
+    act_land(b, ActCtx(caster=p, action="attack", target=m))  # 触发 battle_start
     check("开局气+1", stk(p, "chi") == 1, f"chi={stk(p, 'chi')}")
-    b.act(ActCtx(caster=p, action="attack", target=m))
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("battle_start 不重复触发", stk(p, "chi") == 1, f"chi={stk(p, 'chi')}")
 
 
@@ -206,7 +207,7 @@ def test_boiling_blood():
     EP.apply_to_actor(p2)
     b2 = new_battle(p2, m2)
     for _ in range(12):  # 普攻 12 次攒满（attack_hit 每次 +1，cap 10）
-        b2.act(ActCtx(caster=p2, action="attack", target=m2))
+        act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("攒怒闭环满 10", stk(p2, "rage") == 10, f"rage={stk(p2, 'rage')}")
     hp0 = p2["hp"]
     _dd(b2, m2, p2, 100, [])
@@ -241,7 +242,7 @@ def test_taken_and_kind_filters():
           and he[0].get("gain") == 2, f"{he}")
     b2 = new_battle(p2, m2)
     # 物理普攻（act_cast 也会 fire，kind=物理）→ 不触发
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("物理行动不加信仰", stk(p2, "faith") == 0, f"faith={stk(p2, 'faith')}")
     # 治疗技能施放 → faith +2
     _fire(b2, "act_cast", {"actor": p2, "target": m2,
@@ -269,7 +270,7 @@ def test_taken_and_kind_filters():
     equip_affix(p4, "arcana_flux", "weapon", quality="blue")
     EP.apply_to_actor(p4)
     b4 = new_battle(p4, m4)
-    b4.act(ActCtx(caster=p4, action="attack", target=m4))  # 普攻 act_cast(_basic)
+    act_land(b4, ActCtx(caster=p4, action="attack", target=m4))  # 普攻 act_cast(_basic)
     check("普攻施放不攒充能", stk(p4, "element") == 0, f"element={stk(p4, 'element')}")
     _fire(b4, "act_cast", {"actor": p4, "target": m4,
                            "info": {"name": "火球", "kind": "魔法"}}, [])
@@ -427,7 +428,7 @@ def test_regen_type_turn_start():
           and ts[0].get("cond_ge") is None, f"{ts}")
     b = new_battle(p, m)
     p.setdefault("effects", {})["energy"] = {"stacks": 50}
-    b.act(ActCtx(caster=p, action="attack", target=m))  # turn_start 回能
+    act_land(b, ActCtx(caster=p, action="attack", target=m))  # turn_start 回能
     check("energy_tide 每刻精力+5（50→55）", stk(p, "energy") == 55,
           f"energy={stk(p, 'energy')}")
     # orange tier：+10
@@ -451,18 +452,20 @@ def test_regen_type_turn_start():
     check("swift_tailwind 装配 cond_key=energy/cond_ge=80/gain=10",
           len(ts3) == 1 and ts3[0].get("cond_key") == "energy"
           and ts3[0].get("cond_ge") == 80 and ts3[0].get("gain") == 10, f"{ts3}")
-    b3 = new_battle(p3, m3)
-    p3.setdefault("effects", {})["energy"] = {"stacks": 75}
-    b3.act(ActCtx(caster=p3, action="attack", target=m3))  # 75 < 80 → 不触发
-    check("精力 75 <80 疾风余韵不触发", stk(p3, "energy") == 75,
-          f"energy={stk(p3, 'energy')}")
-    (p3.get("effects") or {})["energy"] = {"stacks": 85}
-    b3.act(ActCtx(caster=p3, action="attack", target=m3))  # 85 ≥80 → +10 → 95
-    check("精力 85 ≥80 疾风余韵 +10（85→95）", stk(p3, "energy") == 95,
-          f"energy={stk(p3, 'energy')}")
-    b3.act(ActCtx(caster=p3, action="attack", target=m3))  # 95 → +10 → 105 clamp 100
-    check("疾风余韵 cap 100 clamp（95→100）", stk(p3, "energy") == 100,
-          f"energy={stk(p3, 'energy')}")
+    # ★ T15 两段化跟账：一次出手 = 登记 + 落地（真时钟推进到 T0+出招）⇒ 同一场战斗里
+    #   连打 3 手会让「资源每刻自然回（time_advance 周期）」顺路叠进来（实测 +5/周期），
+    #   这 3 条判据各是**独立场景**（只看那一次 turn_start 的触发）⇒ 每场景独立一场战斗。
+    for _start, _want, _label in ((75, 75, "精力 75 <80 疾风余韵不触发"),
+                                  (85, 95, "精力 85 ≥80 疾风余韵 +10（85→95）"),
+                                  (95, 100, "疾风余韵 cap 100 clamp（95→100）")):
+        _p3 = mk_a("pi%d" % _start, "player")
+        _m3 = mk_a("ei%d" % _start, "enemy", hp=100000, atk=1)
+        equip_affix(_p3, "swift_tailwind", "armor", quality="orange")
+        EP.apply_to_actor(_p3)
+        _b3 = new_battle(_p3, _m3)
+        _p3.setdefault("effects", {})["energy"] = {"stacks": _start}
+        act_land(_b3, ActCtx(caster=_p3, action="attack", target=_m3))
+        check(_label, stk(_p3, "energy") == _want, f"energy={stk(_p3, 'energy')}")
     # 与上限词条联动：full_pack（purple bonus.cap+10）+ swift_tailwind 满 110
     p4 = mk_a("pj", "player")
     m4 = mk_a("ej", "enemy", hp=100000, atk=1)
@@ -471,7 +474,7 @@ def test_regen_type_turn_start():
     EP.apply_to_actor(p4)
     b4 = new_battle(p4, m4)
     p4.setdefault("effects", {})["energy"] = {"stacks": 100}
-    b4.act(ActCtx(caster=p4, action="attack", target=m4))  # 100 ≥80 → +10 → 110
+    act_land(b4, ActCtx(caster=p4, action="attack", target=m4))  # 100 ≥80 → +10 → 110
     check("full_pack 抬 cap 后疾风余韵攒满 110", stk(p4, "energy") == 110,
           f"energy={stk(p4, 'energy')}")
 

@@ -31,6 +31,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
+from _engine_harness import auto_land, human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 from saintess_engine import Battle as B2, make_actor, ActCtx  # noqa: E402
 from saintess_engine.battle.actions import _cd_left_of, _skill_usable  # noqa: E402
 from saintess_engine.battle.ai import resolve_ai_move, _skill_castable, _move_castable  # noqa: E402
@@ -120,6 +121,7 @@ def skill_key_by_name(actor, name):
 SPIN_NAME = "旋风斩"     # cls_zhan_shi，cd=12，物理
 MENG_NAME = "猛击"       # cls_zhan_shi，cd=8，物理
 HUI_NAME = "挥砍"        # cls_zhan_shi，无 cd（对照：不该被拦）
+CD_GUARD = 3.0           # T15：冷却剩余刻数护栏（必须 > 一次出招耗时；落地段校验同刻）
 
 
 def _battle_with(skills):
@@ -138,7 +140,7 @@ def test_p0_cooldown_written_and_enforced():
           f"cd={(p['_skill_index'][spin]).get('cd')}")
 
     # 1) 首次施放：出伤害 + 写冷却表（绝对到期时刻）
-    logs, ended, _ = b.human_act("skill", spin, target=e)
+    logs, ended, _ = human_land(b, "skill", spin, target=e)
     check("首放已结算（命中或闪避）", has_attack(logs, "怪"), f"logs={logs[:3]}")
     check("首放未被拦", not has_cd_block(logs), f"logs={logs[:3]}")
     tbl = p.get("cooldown") or {}
@@ -149,11 +151,15 @@ def test_p0_cooldown_written_and_enforced():
 
     # 2) 冷却中再放：拦截 + 零伤害 + 不扣蓝 + 冷却表不刷新
     cd_val = float(tbl.get(SPIN_NAME) or 0)
-    b._now = cd_val - 0.1          # 距到期 0.1 刻（确定性：不借 advance 时序）
+    # ★ T15 两段化跟账：技能/资源/冷却校验**随落地段**（引擎 `_dispatch_pending` 口径：
+    #   与落地时刻同刻）⇒「冷却中」必须在**这一手落地那一刻**仍成立。旧的「距到期 0.1 刻」
+    #   在这一手下必然已过期（出招 1.x 刻）⇒ 剩余刻数取 `CD_GUARD`（> 一次出招耗时）。
+    b._now = cd_val - CD_GUARD
     left_now = _cd_left_of(b, p, p["_skill_index"][spin])
-    check("_cd_left_of 反映剩余 0.1 刻", abs(left_now - 0.1) < 1e-6, f"left={left_now}")
+    check("_cd_left_of 反映剩余 %g 刻" % CD_GUARD, abs(left_now - CD_GUARD) < 1e-6,
+          f"left={left_now}")
     mp_before = int(p.get("mp") or 0)
-    logs2, _, _ = b.human_act("skill", spin, target=e)
+    logs2, _, _ = human_land(b, "skill", spin, target=e)
     check("冷却中：出现冷却拦截文案", has_cd_block(logs2), f"logs={logs2[:3]}")
     check("冷却中：零输出（无命中无闪避）", not has_attack(logs2, "怪"), f"logs={logs2[:3]}")
     check("冷却中：不扣蓝", int(p.get("mp") or 0) == mp_before,
@@ -164,7 +170,7 @@ def test_p0_cooldown_written_and_enforced():
 
     # 3) 到期放行
     b._now = cd_val + 0.1
-    logs3, _, _ = b.human_act("skill", spin, target=e)
+    logs3, _, _ = human_land(b, "skill", spin, target=e)
     check("到期后恢复可放（已结算）", has_attack(logs3, "怪"), f"logs={logs3[:3]}")
     check("到期后未再被拦", not has_cd_block(logs3), f"logs={logs3[:3]}")
     check("到期条目被惰性清理后重写（新到期 > 旧到期）",
@@ -179,8 +185,8 @@ def test_p0_no_cd_not_blocked():
     check("索引解析出【挥砍】", bool(hui), f"key={hui}")
     check("【挥砍】无 cd 声明", not (p["_skill_index"][hui]).get("cd"),
           f"cd={(p['_skill_index'][hui]).get('cd')}")
-    l1, _, _ = b.human_act("skill", hui, target=e)
-    l2, _, _ = b.human_act("skill", hui, target=e)
+    l1, _, _ = human_land(b, "skill", hui, target=e)
+    l2, _, _ = human_land(b, "skill", hui, target=e)
     check("第 1 次已结算", has_attack(l1, "怪"), f"logs={l1[:3]}")
     check("第 2 次仍结算（无 cd 不写表不拦）", has_attack(l2, "怪"), f"logs={l2[:3]}")
     check("无 cd 技能不写冷却表", HUI_NAME not in (p.get("cooldown") or {}),
@@ -316,7 +322,7 @@ def test_p1_deadlock_regression():
           not _skill_castable(b, e, "sk_leng_jing"), "")
     frames = []
     for _ in range(3):
-        logs, ended = b.actor_auto(e)
+        logs, ended = auto_land(b, e)
         frames.append(logs)
         if ended:
             break
@@ -335,7 +341,7 @@ def test_p1_auto_act_fallback():
     e = b.sides_of("enemy")[0]
     e["auto_act"] = {"act": {"type": "skill", "skill": "sk_leng_jing"}}
     e["effects"] = {"zhan_yi": {"stacks": 0}}
-    logs, ended = b.actor_auto(e)
+    logs, ended = auto_land(b, e)
     check("显式指定放不出的招 → 引擎回落普攻（真出手）", has_attack(logs, "玩家"),
           f"logs={logs[:3]}")
     check("未产生冷却中拦截文案（AI 侧静默改判，玩家侧才展示）",
@@ -346,7 +352,7 @@ def test_p1_auto_act_fallback():
     p["skills"] = ["sk_leng_jing"]
     p["learned_skills"] = ["sk_leng_jing"]
     b.refresh_skill_index(p)
-    logs2, _, _ = b.human_act("skill", "sk_leng_jing", target=e)
+    logs2, _, _ = human_land(b, "skill", "sk_leng_jing", target=e)
     check("玩家人控仍展示冷却拦截文案（行为不变）", has_cd_block(logs2), f"logs={logs2[:3]}")
 
 
@@ -380,7 +386,7 @@ def test_p3_actor_auto_picks_up_new_skill():
     # 模拟 Boss 剧本转阶段：追加技能 + 指定 auto_act（不手动调 refresh_skill_index）
     e["skills"].append("sk_meng_ji")
     e["auto_act"] = {"act": {"type": "skill", "skill": "sk_meng_ji"}}
-    logs, ended = b.actor_auto(e)
+    logs, ended = auto_land(b, e)
     check("actor_auto 后索引自动补上【猛击】", bool(skill_key_by_name(e, MENG_NAME)),
           f"idx={list((e.get('_skill_index') or {}).keys())}")
     check("新招真的出手（非静默空放）", has_attack(logs, "玩家"), f"logs={logs[:3]}")

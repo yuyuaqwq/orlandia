@@ -24,6 +24,7 @@ from _engine_harness import C  # noqa: E402,F401
 import numeric_sim as NS  # noqa: E402
 from saintess_engine import Battle as B2  # noqa: E402
 from saintess_engine.tlog import JSONLSink, MemorySink, TLog  # noqa: E402
+from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进
 from content import tlog_collect as BT  # noqa: E402
 from content.tlog_replay import replay  # noqa: E402
 from content.bridge import (apply_battle_loadout, build_sides,  # noqa: E402
@@ -60,7 +61,7 @@ def run_battle(b, max_turns=300):
     """打到结束；返回 (result, 玩家出手次数)。"""
     n = 0
     while b.result is None and n < max_turns:
-        b.human_act("attack", None, b.focus())
+        human_land(b, "attack", None, b.focus())
         n += 1
     return b.result, n
 

@@ -40,6 +40,7 @@ from . import reroll as _reroll      # V2 批新增：『重铸』数值/规则�
 from .panel import STAT_NAMES  # 既有读口（原 `_HostRef("STAT_NAMES")`，门禁证明与宿主面同值同序）
 from ._pkgref import HANDLES   # ★ R2（终态补债）：库路径真源 `content/persistence/handles.db_path()`
 from . import texts as _T      # ★ B 批 B-1：文案表（属性名）
+from . import bridge as _BR  # T15：待发行动落地唯一出口（真人入口口径）
 # ★ D5（数据进表）：本文件内联字面量表 → 包内域文件（唯一真源 = `editor/domains.json`；
 #   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
 #   读口 = `content/_domainio.py::keyed_values`（P0-4d 单源；底层仍是引擎 `records_from_domain`）。
@@ -6210,6 +6211,7 @@ class EconomyImpl(CommandBase):
                 yield event.plain_result(_T.static("use.state_odd"))
                 return
             logs, ended, _who = b.human_act("use_item", payload, _my)
+            _BR.land_pending(b, logs, _my)  # T15 两段化：本次出手推进到落地（包内唯一落地口）
             # saintess_engine 行动后回写 player dict（副本 actor 改动不自动落回）
             try:
                 sync_player_from_actor = _h('sync_player_from_actor')  # ← from ..services.battle_bridge import sync_player_from_actor

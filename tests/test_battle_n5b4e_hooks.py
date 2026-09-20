@@ -25,6 +25,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import auto_land, human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 from content.persistence.handles import init_db  # noqa: E402
 init_db()
 
@@ -64,7 +65,7 @@ def test_target_picker():
     b = B2("monster", sides={"player": [p1, p2], "enemy": [e]},
            target_picker=lambda battle, actor: battle.sides_of("player")[1])
     hp1, hp2 = p1.get("hp"), p2.get("hp")
-    logs, ended = b.actor_auto(e)
+    logs, ended = auto_land(b, e)
     check("自动怪行动产生日志", bool(logs))
     check("p2 被选为目标掉血", p2.get("hp", 0) < hp2, f"p2 {hp2}->{p2.get('hp')}")
     check("p1 未被选中不掉血", p1.get("hp", 0) == hp1, f"p1 {hp1}->{p1.get('hp')}")
@@ -78,7 +79,7 @@ def test_target_picker_none_fallback():
     b = B2("monster", sides={"player": [p1, p2], "enemy": [e]},
            target_picker=lambda battle, actor: None)  # 放弃决策
     hp1, hp2 = p1.get("hp"), p2.get("hp")
-    logs, ended = b.actor_auto(e)
+    logs, ended = auto_land(b, e)
     # 默认 = hostile 首个存活 → p1
     check("回落默认打 p1", p1.get("hp", 0) < hp1, f"p1 {hp1}->{p1.get('hp')}")
     check("p2 不掉血", p2.get("hp", 0) == hp2, f"p2 {hp2}->{p2.get('hp')}")
@@ -93,7 +94,7 @@ def test_target_picker_dead_target_resolves():
     b = B2("monster", sides={"player": [p1, p2], "enemy": [e]},
            target_picker=lambda battle, actor: battle.sides_of("player")[1])
     hp1 = p1.get("hp")
-    logs, ended = b.actor_auto(e)
+    logs, ended = auto_land(b, e)
     # 引擎落地对死者不重复结算；不崩即可（目标无效 → 无伤害或回落）
     check("目标已死场景不崩", isinstance(logs, list) and p1.get("hp", 0) <= hp1,
           f"logs={logs[:2]} p1={p1.get('hp')}")
@@ -121,7 +122,7 @@ def test_on_event_observer():
     b = B2("monster", sides={"player": [p1], "enemy": [e]},
            on_event=_mk_observer(seen))
     # 玩家普攻 → do_skill 内 act_cast（带 info）+ act 尾部 act_done
-    logs, ended, who = b.human_act("attack", None, p1)
+    logs, ended, who = human_land(b, "attack", None, p1)
     evts = [s[0] for s in seen]
     check("观察者收到 act_cast", "act_cast" in evts, f"seen={evts}")
     check("观察者收到 act_done", "act_done" in evts, f"seen={evts}")
@@ -129,7 +130,7 @@ def test_on_event_observer():
           f"seen={seen[:3]}")
     # 怪自动行动也通知（敌方段）
     seen.clear()
-    logs, ended = b.actor_auto(e)
+    logs, ended = auto_land(b, e)
     evts2 = [s[0] for s in seen]
     check("自动怪行动也通知", "act_done" in evts2, f"seen={evts2}")
 
@@ -145,13 +146,13 @@ def test_on_event_error_isolated():
 
     b = B2("monster", sides={"player": [p1], "enemy": [e]}, on_event=bad_obs)
     hp = p1.get("hp")
-    logs, ended, who = b.human_act("attack", None, p1)
+    logs, ended, who = human_land(b, "attack", None, p1)
     check("观察者异常不阻断", isinstance(logs, list))
     # 玩家普攻后怪还在/战斗正常
     check("战斗对象可用", getattr(b, "result", None) is None or b.result in (None,))
     # 不带观察者的对照也正常（回归）
     b2 = B2("monster", sides={"player": [mk_player_actor("p9")], "enemy": [mk_auto_enemy("e9")]})
-    logs2, ended2, who2 = b2.human_act("attack", None, b2.sides_of("player")[0])
+    logs2, ended2, who2 = human_land(b2, "attack", None, b2.sides_of("player")[0])
     check("无钩子战斗正常", isinstance(logs2, list))
 
 
@@ -178,7 +179,7 @@ def test_action_override_custom():
         return None, None, None
 
     b = B2("monster", sides={"player": [p1], "enemy": [e]}, action_override=ov)
-    logs, ended, who = b.human_act("use_item", "heal:20", p1)
+    logs, ended, who = human_land(b, "use_item", "heal:20", p1)
     check("override 回调被调用", calls == ["heal:20"], str(calls))
     check("道具回血日志", any("恢复 20" in l for l in logs), str(logs[:2]))
     check("道具效果写回 actor hp>700", p1.get("hp", 0) > 700, f"hp={p1.get('hp')}")
@@ -193,7 +194,7 @@ def test_action_override_unconsumed():
     b = B2("monster", sides={"player": [p1], "enemy": [e]},
            action_override=lambda battle, action, actor, payload, target: (None, None, None))
     ct_before = float(p1.get("ct", 0) or 0)
-    logs, ended, who = b.human_act("weird_thing", None, p1)
+    logs, ended, who = human_land(b, "weird_thing", None, p1)
     check("回落未知提示", any("未知" in l for l in logs), str(logs))
     # N10-B6b：初始 ct 已播种（>0）；未消费动作 = ct 保持初始值不推
     check("未消费不推 ct", abs(p1.get("ct", 0) - ct_before) < 1e-6, f"ct={p1.get('ct')} before={ct_before}")

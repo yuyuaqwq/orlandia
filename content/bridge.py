@@ -561,9 +561,31 @@ def restore_battle(state: dict):
     return _B.from_state(state, text=_text_table())
 
 
+
+# ============================================================
+# 引擎「待发行动落地」统一出口（T15 两段化 · 真人入口口径）
+# ============================================================
+
+def land_pending(b, logs, actor=None):
+    """把**已登记**的待发行动推进到落地并结算（真人入口的「一次出手 = 落地后返回」口径）。
+
+    引擎两段化（出招窗口）后 `human_act` **只登记**待发，伤害在 `T0+第一段` 才落地。
+    真人轮流制（PVP / 多人副本）下下一个决策点就在当刻 ⇒ `schedule.advance()` 一步不推时钟
+    ⇒ 本次落地被挂起到对手那一回合，驱动方返回前读到的面板/血量是**登记态旧值**。
+
+    本函数 = 引擎公开口 `saintess_engine.settle_landing` 的**包内唯一出口**（命令层不许
+    直接 import 排程内部件）：只把时钟推到落地时刻并结算，**不驱动任何 actor 决策**
+    （口径与 `advance()` 一致）；`actor` 给本次出手者 ⇒ 锚定它这一手落地（早于它的其它
+    待发按时刻顺路结算），`actor=None` ⇒ 全场最早。无待发 ⇒ 引擎返回 None（零行为）。
+    """
+    from saintess_engine import settle_landing as _settle
+    return _settle(b, logs, actor)
+
+
 __all__ = [
     "player_to_actor", "monster_to_actor", "enemies_to_actors", "build_sides",
     "apply_battle_loadout", "prepare_player_for_battle",
     "sync_player_from_actor", "attach_tlog", "bind_host",
     "make_battle", "restore_battle",
+    "land_pending",
 ]

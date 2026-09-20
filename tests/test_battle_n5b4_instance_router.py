@@ -33,6 +33,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 
 from _engine_harness import db  # noqa: E402
 from _engine_harness import C  # noqa: E402
@@ -601,7 +602,7 @@ def test_14_team_heal_broadcast():
     pa1 = next(a for a in b.sides_of("player") if str(a.get("qq_id")) == "70121")
     pa2 = next(a for a in b.sides_of("player") if str(a.get("qq_id")) == "70122")
     hp2_before = int(pa2.get("hp", 0) or 0)
-    logs, ended, _who = b.human_act("skill", "救赎之光", pa1)
+    logs, ended, _who = human_land(b, "skill", "救赎之光", pa1)
     hp2_after = int(pa2.get("hp", 0) or 0)
     check("队友被全队治疗（hp 上升）", hp2_after > hp2_before, f"hp {hp2_before}->{hp2_after}")
     check("广播日志含队友恢复", any("恢复" in x for x in logs), str(logs[-2:]))
@@ -612,7 +613,7 @@ def test_14_team_heal_broadcast():
     b2 = B2.from_state(st2["battle"])
     _attach_instance_hooks(b2, st2)
     pa3 = next(a for a in b2.sides_of("player"))
-    logs2, ended2, _who2 = b2.human_act("skill", "救赎之光", pa3)
+    logs2, ended2, _who2 = human_land(b2, "skill", "救赎之光", pa3)
     check("单人广播不崩", isinstance(logs2, list), str(logs2)[:60])
 
 

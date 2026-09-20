@@ -107,8 +107,12 @@ def replay(records: Iterable[Record], *, seed: Optional[int] = None,
         if who is None:
             continue
         tgt = by_uid.get(str(r.fields.get("target_uid") or ""))
-        b.human_act(str(r.fields.get("action") or "attack"),
-                    (r.fields.get("skill") or None), who, tgt)
+        _l, _e, _ = b.human_act(str(r.fields.get("action") or "attack"),
+                                (r.fields.get("skill") or None), who, tgt)
+        # ★ T15 两段化：回放 = **重演生产驱动**（一次出手 = 落地后返回）⇒ 同样要推落地，
+        #   否则重演只写到登记态（结果/回合数/p_acts 与流水记录对不上）。
+        from . import bridge as _BR
+        _BR.land_pending(b, _l, who)
 
     got = {"result": str(b.result or ""), "rounds": _rounds_of(b),
            "p_acts": int(getattr(b, "_p_acts", 0) or 0)}

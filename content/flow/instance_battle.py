@@ -633,6 +633,7 @@ def act(st: dict, group_id, qq_id, action: str, skill_name=None,
         except Exception:
             pass
     logs, ended, who = b.human_act(_action, _skill, actor=my, target=_tgt)
+    BR.land_pending(b, logs, my)  # T15 两段化：本次出手推进到落地（包内唯一落地口）
     st["battle"] = b.to_state()
     nxt = None
     if not ended:

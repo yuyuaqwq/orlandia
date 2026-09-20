@@ -109,7 +109,8 @@ from _engine_harness import Main as _CmdHostBase  # noqa: E402
 from content.instance_cmds import InstanceImpl as _InstImpl  # noqa: E402  （打桩落点：包内实现类）
 from _check import bind_check
 from _econ_text_intent import (ECONOMY_TEXT_INTENT, INSTANCE_LOG_TEXT_INTENT,
-                               INSTANCE_LOG_TPL_INTENT)
+                               INSTANCE_LOG_TPL_INTENT, INSTANCE_SETTLE_TEXT_INTENT,
+                               INSTANCE_PANEL_TEXT_INTENT)
 
 
 # `_PD` = 旧插件根语义（见上 `_paths.HOST_ROOT`）；宿主各扫描根（`game/**`）按插件根拼。
@@ -1288,11 +1289,15 @@ def t9_instance_settle_frozen():
     print("\n[9] 副本结算域逐字冻结：迁移前 11 分支（探索/肃清/等待/嘲讽/异常/密室/房间/切怪/层/轮转）复跑比对")
     check("冻结基准已内嵌（11 分支）", len(INSTANCE_SETTLE_FROZEN) == 11,
           len(INSTANCE_SETTLE_FROZEN))
+    check("★ 副本结算文案有意差异登记自洽（登记项 ∈ 冻结面 · 新值 ≠ 旧值）",
+          all(k in INSTANCE_SETTLE_FROZEN and v and v != INSTANCE_SETTLE_FROZEN[k]
+              for k, v in INSTANCE_SETTLE_TEXT_INTENT.items()), list(INSTANCE_SETTLE_TEXT_INTENT))
     now = _instance_settle_scenarios()
-    bad = [k for k in INSTANCE_SETTLE_FROZEN if INSTANCE_SETTLE_FROZEN[k] != now.get(k)]
+    bad = [k for k in INSTANCE_SETTLE_FROZEN
+           if (INSTANCE_SETTLE_TEXT_INTENT.get(k) or INSTANCE_SETTLE_FROZEN[k]) != now.get(k)]
     for k in bad:
         print("     · %s 现=%r" % (k, (now.get(k) or "")[:140]))
-    check("★ 副本结算 11 分支输出与迁移前**逐字一致**", not bad, bad)
+    check("★ 副本结算 11 分支输出与迁移前**逐字一致**（登记项按 `_econ_text_intent`）", not bad, bad)
     _single = ("B1_无敌人_探索", "B4_等待行动", "B6_战斗异常")   # 单行分支（本身无换行结构）
     check("冻结基准非空且含换行结构（防基准写空）",
           all(v and "\n" in v for k, v in INSTANCE_SETTLE_FROZEN.items() if k not in _single))
@@ -3041,11 +3046,15 @@ def t11_instance_panel_frozen():
     print("\n[11] 副本面板域逐字冻结：迁移前 31 分支（开本三种形态/加入/深入/调查/探索/撤退/离开/移动/地图/"
           "列表/状态/行动序/暗格/宝箱/调查点/战斗异常/Boss房通关）复跑比对")
     check("冻结基准已内嵌（31 分支）", len(INSTANCE_PANEL_FROZEN) == 31, len(INSTANCE_PANEL_FROZEN))
+    check("★ 副本面板文案有意差异登记自洽（登记项 ∈ 冻结面 · 新值 ≠ 旧值）",
+          all(k in INSTANCE_PANEL_FROZEN and v and v != INSTANCE_PANEL_FROZEN[k]
+              for k, v in INSTANCE_PANEL_TEXT_INTENT.items()), list(INSTANCE_PANEL_TEXT_INTENT))
     now = _pb_scenarios()
-    bad = [k for k in INSTANCE_PANEL_FROZEN if INSTANCE_PANEL_FROZEN[k] != now.get(k)]
+    bad = [k for k in INSTANCE_PANEL_FROZEN
+           if (INSTANCE_PANEL_TEXT_INTENT.get(k) or INSTANCE_PANEL_FROZEN[k]) != now.get(k)]
     for k in bad:
         print("     · %s 现=%r" % (k, (now.get(k) or "")[:160]))
-    check("★ 副本面板 31 分支输出与迁移前**逐字一致**", not bad, bad)
+    check("★ 副本面板 31 分支输出与迁移前**逐字一致**（登记项按 `_econ_text_intent`）", not bad, bad)
     _single = ("PB03_开本_名字不存在", "PB04_加入战斗_队长与队员", "PB08_副本过期提示",
                "PB09_深入_房间模式", "PB14_调查_已处理", "PB15_探索_通关后",
                "PB17_探索_旧层路径两态", "PB20_移动_非队长", "PB23_宝箱_开启",

@@ -27,6 +27,7 @@ sys.path.insert(0, _PLUGIN_DIR)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
+from _engine_harness import auto_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 
 from _engine_harness import C  # noqa: E402
 from _engine_harness import db  # noqa: E402
@@ -244,7 +245,7 @@ def test_7_actor_auto_real_monster():
     used = set()
     random.seed(7)
     for i in range(20):
-        logs, ended = b.actor_auto(mon)
+        logs, ended = auto_land(b, mon)
         # 日志里应有技能名（若放了技能）
         for l in logs:
             for sk in ("连斩", "怒吼", "掠夺"):

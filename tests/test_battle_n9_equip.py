@@ -27,6 +27,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
+from _engine_harness import act_land, land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
 from saintess_engine import effects as FX          # noqa: E402
 from saintess_engine import landing as L           # noqa: E402
 from saintess_engine.battle.actors import ActCtx          # noqa: E402
@@ -148,7 +149,7 @@ def test_weapon_battle_start():
           f"{tr.get('battle_start')}")
     b = new_battle(p, m)
     check("构造后未触发", not (p.get("shields") or {}), f"shields={p.get('shields')}")
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     _sh = (p.get("shields") or {}).get("we_starlight") or {}
     check("起手盾 10% maxhp（80）", int(_sh.get("value", 0)) == 80, f"shields={p.get('shields')}")
     _b = ent(p, "gale_step") or {}
@@ -167,7 +168,7 @@ def test_weapon_abyss_and_multi():
     check("两件都装配", len(tr.get("battle_start", [])) == 2, f"{tr.get('battle_start')}")
     b = new_battle(p, m)
     hp0, mhp0 = p["hp"], p["max_hp"]
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("abyss maxhp +8%（864）", p["max_hp"] == int(mhp0 * 1.08), f"max_hp={p['max_hp']}")
     check("hp 同步 +bonus", p["hp"] == hp0 + (p["max_hp"] - mhp0), f"hp={p['hp']}")
     _sh = p.get("shields") or {}
@@ -182,7 +183,7 @@ def test_no_equip_no_trigger():
     EP.apply_to_actor(p)
     check("无 triggers 注入", not (p.get("triggers") or {}), f"{p.get('triggers')}")
     b = new_battle(p, m)
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("无盾无 buff", not (p.get("shields") or {}) and not ((p).get("effects") or {}))
 
 
@@ -210,7 +211,7 @@ def test_regen_turn_start():
           f"{tr}")
     b = new_battle(p, m)
     p["hp"] = p["max_hp"] - 100  # 缺 100
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     # max_hp 800 × 2% = 16
     check("dawn_regen 回 2% maxhp", p["hp"] == p["max_hp"] - 100 + 16,
           f"hp={p['hp']} expect={p['max_hp']-100+16}")
@@ -221,7 +222,7 @@ def test_regen_turn_start():
     EP.apply_to_actor(p2)
     b2 = new_battle(p2, m2)
     p2["hp"] = 500  # 缺 300
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("guard_regen 回 5% 缺口（15）", p2["hp"] == 515, f"hp={p2['hp']}")
     # 满血空转不溢出
     p3 = mk_a("p3", "player")
@@ -229,7 +230,7 @@ def test_regen_turn_start():
     equip(p3, "dawn_regen", slot="armor", we_data={"pct": 0.02})
     EP.apply_to_actor(p3)
     b3 = new_battle(p3, m3)
-    b3.act(ActCtx(caster=p3, action="attack", target=m3))
+    act_land(b3, ActCtx(caster=p3, action="attack", target=m3))
     check("满血 regen 不溢出", p3["hp"] == p3["max_hp"], f"hp={p3['hp']}")
 
 
@@ -244,11 +245,11 @@ def test_wind_mark_stack():
           "attack_hit" in tr and "skill_hit" in tr, f"keys={list(tr.keys())}")
     b = new_battle(p, m)
     from saintess_engine.battle.actors import ActCtx as _Ctx
-    b.act(_Ctx(caster=p, action="attack", target=m))
+    act_land(b, _Ctx(caster=p, action="attack", target=m))
     check("一次命中叠 1 层", stk(p, "wind_mark", 0) == 1, f"state={((p).get('effects') or {})}")
-    b.act(_Ctx(caster=p, action="attack", target=m))
-    b.act(_Ctx(caster=p, action="attack", target=m))
-    b.act(_Ctx(caster=p, action="attack", target=m))
+    act_land(b, _Ctx(caster=p, action="attack", target=m))
+    act_land(b, _Ctx(caster=p, action="attack", target=m))
+    act_land(b, _Ctx(caster=p, action="attack", target=m))
     check("四次命中 cap 4", stk(p, "wind_mark", 0) == 4, f"state={((p).get('effects') or {})}")
     # spd 面板折算：stat_scale spd 0.02/层 → 4 层 spd×1.08
     from saintess_engine import stats as S
@@ -269,11 +270,13 @@ def test_dot_ext_action():
     b = new_battle(p, m)
     from saintess_engine.battle.schedule import _settle_time_effects as _ste
     b._now = 0.0
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("命中挂 blaze 1 层", stk(m, "blaze", 0) == 1, f"state={((m).get('effects') or {})}")
     hp_after_act = m["hp"]   # 普攻伤害后、DOT 跳前
-    _ste(b, [])  # 登记 dot_next=1.0
-    b._now = 1.5
+    # ★ T15 两段化跟账：这一手的**落地**本身已把时钟推到 T0+出招 ⇒ DOT 的 `dot_next`
+    #   基准是「落地时刻」而不是 T0 ⇒ 不写死 1.5，改成**跨一个 DOT 周期**（恰好多一跳）。
+    _ste(b, [])  # 登记 dot_next（基准 = 当刻）
+    b._now = float(b._now) + 1.0
     _ste(b, [])
     hp1 = m["hp"]
     check("第 1 跳 15 伤", hp_after_act - hp1 == 15,
@@ -293,7 +296,7 @@ def test_dot_blood_trace_curhp():
     b = new_battle(p, m)
     from saintess_engine.battle.schedule import _settle_time_effects as _ste
     b._now = 0.0
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("败血挂 1 层", stk(m, "blood_trace", 0) == 1, f"state={((m).get('effects') or {})}")
     _ste(b, [])
     b._now = 1.5
@@ -358,7 +361,7 @@ def test_next_atk_and_retort_marks():
                           info={"name": "斩", "kind": "物理", "exprs": ["atk*1.0"]}, target=m))
     check("技能命中挂 we_mountain", "we_mountain" in ((p).get("effects") or {}), f"buffs={p.get('buffs')}")
     # 下次普攻出手消费 → 增伤（dmg_mult 1.25）
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("出手消费标记", "we_mountain" not in ((p).get("effects") or {}), f"buffs={p.get('buffs')}")
     # 受击反击势能（titan_retort）
     p2 = mk_a("p2", "player")
@@ -390,13 +393,13 @@ def test_trinity_thunder():
           f"buffs={bf}")
     # 下次普攻出手：atk_pct 增伤 + bonus 附雷段（atk=40 → 附雷 6）
     hp_before = m["hp"]
-    logs = b.act(ActCtx(caster=p, action="attack", target=m))
+    logs = act_land(b, ActCtx(caster=p, action="attack", target=m))
     dmg = hp_before - m["hp"]
     check("出手消费标记清空", "we_trinity" not in ((p).get("effects") or {}), f"buffs={p.get('buffs')}")
     check("附雷段伤害 = atk×0.15", dmg >= 40 * 0.15, f"总掉血 {dmg}（主伤害+附雷）")
     # 第二击普攻：标记已消费 → 不再附雷（只普通伤害）
     hp2 = m["hp"]
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     dmg2 = hp2 - m["hp"]
     check("第二击无附雷（正常普攻伤害）", dmg2 < dmg, f"第二击 {dmg2} vs 首击 {dmg}")
     # we_data 显式覆盖 thunder_pct=0 → 无附雷段（覆盖层语义：we_data 覆盖表字段）
@@ -485,7 +488,7 @@ def test_shield_cond_overflow_crit():
     equip(p3, "endless_radiance", slot="weapon")
     EP.apply_to_actor(p3)
     b3 = new_battle(p3, m3)
-    b3.act(ActCtx(caster=p3, action="attack", target=m3))
+    act_land(b3, ActCtx(caster=p3, action="attack", target=m3))
     check("暴击给盾 5%（40）", int((p3["shields"] or {}).get("we_radiance", {}).get("value", 0)) == 40,
           f"shields={p3.get('shields')}")
 
@@ -501,7 +504,7 @@ def test_extra_dmg():
     hp0 = m["hp"]
     from saintess_engine.battle.landing import deal_damage as _dd
     # 直接命中模拟：攻击 40 防 5 → ~35；普攻后 fire hit → 追加 atk 40×0.5=20 vs def5 → ~15
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     total = hp0 - m["hp"]
     check("普攻+追击都造成伤害", 30 < total < 80, f"dmg={total}")
     # 计数真伤：siren_fang 每 3 次命中触发 atk×40% 真伤（直调扩展动作避免普攻波动）
@@ -561,9 +564,9 @@ def test_control_ext():
                    "freeze_turns": 1})
     EP.apply_to_actor(p2)
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("首击减速", "spd_down" in ((m2).get("effects") or {}), f"effects={m2.get('effects')}")
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("再击冻结", ((m2).get("effects") or {}).get("freeze", {}).get("mode") == "skip",
           f"effects={m2.get('effects')}")
     # frost_crown：受击冻结攻击者（taken 事件反冻）
@@ -578,7 +581,7 @@ def test_control_ext():
     check("受击反冻攻击者", ((m3).get("effects") or {}).get("freeze", {}).get("mode") == "skip",
           f"effects={m3.get('effects')}")
     # 被冻敌行动跳过（freeze 消费）
-    b3.act(ActCtx(caster=m3, action="attack", target=p3))
+    act_land(b3, ActCtx(caster=m3, action="attack", target=p3))
     check("冻结敌行动被跳过", ((m3).get("effects") or {}).get("freeze") is None, f"effects={m3.get('effects')}")
 
 
@@ -605,9 +608,9 @@ def test_heal_amp_and_mana():
     check("首蓝装配 act_cast", "act_cast" in tr2, f"keys={list(tr2.keys())}")
     b2 = new_battle(p2, m2)
     p2["mp"] = 20
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))  # 普攻也走 do_skill → act_cast
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))  # 普攻也走 do_skill → act_cast
     check("首次施法回蓝", p2["mp"] == 30, f"mp={p2['mp']}")
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("整场仅一次", p2["mp"] == 30, f"mp={p2['mp']}")
 
 
@@ -633,7 +636,7 @@ def test_death_guard():
     equip(p2, "undying_will", slot="necklace")
     EP.apply_to_actor(p2)
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))  # 首动触发 battle_start
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))  # 首动触发 battle_start
     check("undying 挂 death_guard 1", stk(p2, "death_guard", 0) == 1,
           f"state={p2.get('state')}")
     _dd(b2, m2, p2, 9999, [])
@@ -651,11 +654,11 @@ def test_dmg_taken_calc_hooks():
                                    "cond": "hp_target_lt", "threshold": 0.30, "mult": 1.3}]}
     b = new_battle(p, m_full, m_low)
     # 打满血目标
-    b.act(ActCtx(caster=p, action="attack", target=m_full))
+    act_land(b, ActCtx(caster=p, action="attack", target=m_full))
     dmg_full = 100000 - m_full["hp"]
     # 打 5% 血目标
     m_low["hp"] = 5000
-    b.act(ActCtx(caster=p, action="attack", target=m_low))
+    act_land(b, ActCtx(caster=p, action="attack", target=m_low))
     dmg_low = 100000 - m_low["hp"]
     check("低血触发 ×1.3", dmg_low > dmg_full * 1.15,
           f"full={dmg_full} low={dmg_low}")
@@ -681,10 +684,10 @@ def test_cond_mult_and_stacks():
     equip(p, "twilight_execute", slot="weapon")
     EP.apply_to_actor(p)
     b = new_battle(p, m)
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     d_full = 100000 - m["hp"]
     m["hp"] = 30000  # 30%
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     d_low = 100000 - m["hp"]
     check("暮光低血 ×1.25", d_low > d_full * 1.15, f"full={d_full} low={d_low}")
     # death_dance_armor：受击减伤 8%
@@ -732,7 +735,7 @@ def test_death_dance():
           and "turn_start" in (p.get("triggers") or {}),
           f"triggers={p.get('triggers')}")
     b = new_battle(p, m)
-    b.act(ActCtx(caster=p, action="attack", target=m))  # 首动 battle_start + turn_start
+    act_land(b, ActCtx(caster=p, action="attack", target=m))  # 首动 battle_start + turn_start
     # 受击 100（收 35 进池，扣 100 血）
     hp0 = p["hp"]
     _dd(b, m, p, 100, [])
@@ -747,7 +750,7 @@ def test_death_dance():
     check("缓伤池累计 105", abs(pool - 105.0) < 1e-9, f"pool={pool}")
     # turn_start 结算：pay = max(1, int(105×0.10)) = 10，扣血 + 池减 10
     hp0 = p["hp"]
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("结算扣 10", p["hp"] == hp0 - 10, f"hp={p['hp']} expect {hp0-10}")
     pool = (p.get("ext", {}).get("we_proc", {}) or {}).get("we_death_pool", 0)
     check("池减到 95", abs(pool - 95.0) < 1e-9, f"pool={pool}")
@@ -757,7 +760,7 @@ def test_death_dance():
     while pool > 0 and guard < 100:
         guard += 1
         turns += 1
-        b.act(ActCtx(caster=p, action="attack", target=m))
+        act_land(b, ActCtx(caster=p, action="attack", target=m))
         pool = (p.get("ext", {}).get("we_proc", {}) or {}).get("we_death_pool", 0)
     check("池最终耗尽", pool <= 0 and turns > 1, f"pool={pool} turns={turns}")
     # 序列化续战保留池：先受击收池 → to_state → from_state → 池还在
@@ -766,7 +769,7 @@ def test_death_dance():
     equip(p2, "death_dance", slot="armor")
     EP.apply_to_actor(p2)
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     _dd(b2, m2, p2, 100, [])
     st = b2.to_state()
     b2r = BT_NEW.from_state(st)
@@ -786,7 +789,7 @@ def test_act_done_randuin():
           f"triggers={p.get('triggers')}")
     b = new_battle(p, m)
     # 敌方行动 1 次 → 敌方叠 1 层（speed 从 50 → ×(1-0.06) = 47）
-    b.act(ActCtx(caster=m, action="attack", target=p))
+    act_land(b, ActCtx(caster=m, action="attack", target=p))
     ef = m.get("effects") or {}
     check("敌方行动叠 1 层", stk(m, "randuin_weary", 0) == 1,
           f"effects={ef}")
@@ -794,8 +797,8 @@ def test_act_done_randuin():
     spd1 = S.actor_spd(b, m)
     check("减速 -6%（47）", spd1 == 47, f"spd={spd1}")
     # 敌方再行动 2 次 → 叠满 3 层 → ×(1-0.18) = 41
-    b.act(ActCtx(caster=m, action="attack", target=p))
-    b.act(ActCtx(caster=m, action="attack", target=p))
+    act_land(b, ActCtx(caster=m, action="attack", target=p))
+    act_land(b, ActCtx(caster=m, action="attack", target=p))
     ef = m.get("effects") or {}
     check("敌行动叠满 3 层", stk(m, "randuin_weary", 0) == 3,
           f"effects={ef}")
@@ -803,7 +806,7 @@ def test_act_done_randuin():
     check("减速 -18%（41）", spd3 == 41, f"spd={spd3}")
     # 玩家自己行动不叠（旁观者不误触发——玩家侧声明的监听不叠自己）
     n_before = stk(m, "randuin_weary", 0)
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     n_after = stk(m, "randuin_weary", 0)
     check("玩家行动不额外叠层", n_after == n_before, f"{n_before}→{n_after}")
     # ice_vein：每层 -8%
@@ -812,14 +815,14 @@ def test_act_done_randuin():
     equip(p2, "ice_vein", slot="armor")
     EP.apply_to_actor(p2)
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=m2, action="attack", target=p2))
+    act_land(b2, ActCtx(caster=m2, action="attack", target=p2))
     spd_i1 = S.actor_spd(b2, m2)
     check("冰脉一层 -8%（46）", spd_i1 == 46, f"spd={spd_i1}")
     # 我方随从（同阵营）行动不叠
     pet = mk_a("pet1", "player", hp=200, atk=5)
     b2.sides["player"].append(pet)
     n2 = stk(m2, "ice_vein", 0)
-    b2.act(ActCtx(caster=pet, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=pet, action="attack", target=m2))
     n2b = stk(m2, "ice_vein", 0)
     check("友方行动不叠层", n2b == n2, f"{n2}→{n2b}")
     # PVP：对手（enemy 阵营但 human_controlled）行动也叠（敌对判定按 side 不按 human）
@@ -829,7 +832,7 @@ def test_act_done_randuin():
     equip(p3, "randuin_weary", slot="armor")
     EP.apply_to_actor(p3)
     b3 = new_battle(p3, foe)
-    b3.act(ActCtx(caster=foe, action="attack", target=p3))
+    act_land(b3, ActCtx(caster=foe, action="attack", target=p3))
     check("PVP 对手行动也叠层", stk(foe, "randuin_weary", 0) == 1,
           f"foe state={foe.get('state')}")
 
@@ -867,7 +870,7 @@ def test_affix_basic():
     check("shield 词条装配 battle_start", "battle_start" in (p2.get("triggers") or {}),
           f"triggers={p2.get('triggers')}")
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     sh = (p2.get("shields") or {}).get("affix_shield")
     check("battle_start 盾 = 10% maxhp（80）", sh is not None and abs(int(sh.get("value", 0)) - 80) <= 1,
           f"shields={p2.get('shields')}")
@@ -882,7 +885,7 @@ def test_affix_basic():
           f"triggers={p3.get('triggers')}")
     b3 = new_battle(p3, m3)
     p3["hp"] = p3["max_hp"] - 100  # 缺 100
-    b3.act(ActCtx(caster=p3, action="attack", target=m3))
+    act_land(b3, ActCtx(caster=p3, action="attack", target=m3))
     check("regen 回合回 1% maxhp（+8）", p3["hp"] == p3["max_hp"] - 100 + 8,
           f"hp={p3['hp']} expect {p3['max_hp']-100+8}")
     # --- meditate 同 regen 语义 ---
@@ -894,7 +897,7 @@ def test_affix_basic():
     EP.apply_to_actor(p4)
     b4 = new_battle(p4, m4)
     p4["hp"] = p4["max_hp"] - 50
-    b4.act(ActCtx(caster=p4, action="attack", target=m4))
+    act_land(b4, ActCtx(caster=p4, action="attack", target=m4))
     check("meditate 回合回 1% maxhp（+8）", p4["hp"] == p4["max_hp"] - 50 + 8,
           f"hp={p4['hp']}")
 
@@ -1108,11 +1111,11 @@ def test_novice_hunt_combo():
     # 端到端：crit=1.0 → 每次暴击命中叠 1 层，cap 5 封顶
     p["crit"] = 1.0
     b = new_battle(p, m)
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("首次暴击叠 1 层", stk(p, "novice_combo", 0) == 1,
           f"effects={p.get('effects')}")
     for _ in range(6):
-        b.act(ActCtx(caster=p, action="attack", target=m))
+        act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("连击暴击叠层 cap 5（6 次暴击后仍 5）", stk(p, "novice_combo", 0) == 5,
           f"stacks={stk(p, 'novice_combo', 0)}")
     # 条件不满足不触发：无暴击（crit=0）的攻击不叠层
@@ -1124,7 +1127,7 @@ def test_novice_hunt_combo():
     b2 = new_battle(p2, m2)
     logs2 = []
     for _ in range(3):
-        logs2.extend(b2.act(ActCtx(caster=p2, action="attack", target=m2))[0])
+        logs2.extend(act_land(b2, ActCtx(caster=p2, action="attack", target=m2))[0])
     check("非暴击不叠层", "novice_combo" not in (p2.get("effects") or {}),
           f"effects={p2.get('effects')}")
     check("非暴击无猎影文案", not any("猎影" in x for x in logs2), str(logs2))
@@ -1199,7 +1202,7 @@ def test_combo_end():
     logs_base = []
     for _ in range(8):
         hp0 = m2["hp"]
-        logs_base.extend(b2.act(ActCtx(caster=p2, action="attack", target=m2))[0])
+        logs_base.extend(act_land(b2, ActCtx(caster=p2, action="attack", target=m2))[0])
         base_sum += hp0 - m2["hp"]
     p2["effects"] = {"lian_duan": {"stacks": 3}}
     m2["hp"] = 1000000
@@ -1207,7 +1210,7 @@ def test_combo_end():
     boost_sum = 0
     for _ in range(8):
         hp0 = m2["hp"]
-        logs2.extend(b2.act(ActCtx(caster=p2, action="attack", target=m2))[0])
+        logs2.extend(act_land(b2, ActCtx(caster=p2, action="attack", target=m2))[0])
         boost_sum += hp0 - m2["hp"]
     check("连段 0 基线无连击终点日志", not any("连击终点" in x for x in logs_base), str(logs_base))
     check("连段≥3 每次暴击出连击终点日志", sum("连击终点" in x for x in logs2) >= 8,
@@ -1265,7 +1268,7 @@ def test_affix_purify():
     m.setdefault("effects", {})["atk_up"] = {"stacks": 1, "expire": 99999,
                                              "stat": "atk", "op": "mul", "mult": 1.30}
     m.setdefault("effects", {})["burn"] = {"stacks": 2}
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     ef = m.get("effects") or {}
     check("驱散 1 层增益（atk_up 清）", "atk_up" not in ef, f"effects={list(ef.keys())}")
     check("DOT（burn）非增益不清", "burn" in ef, f"effects={list(ef.keys())}")
@@ -1286,7 +1289,7 @@ def test_affix_purify():
                 e["chance"] = 1.0
     m2 = mk_a("e2", "enemy", hp=99999, atk=100)
     b2 = new_battle(p2, m2)
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
+    act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("无增益目标不驱散不削弱", "holy_weaken" not in (m2.get("effects") or {}),
           f"effects={list((m2.get('effects') or {}).keys())}")
     # 减益（spd_down mul<1 / reduce 值型）不是增益，purify 不清
@@ -1296,7 +1299,7 @@ def test_affix_purify():
                                                 "stat": "spd", "op": "mul", "mult": 0.50}
     m3.setdefault("effects", {})["atk_up"] = {"stacks": 1, "expire": 99999,
                                               "stat": "atk", "op": "mul", "mult": 1.30}
-    b3.act(ActCtx(caster=p2, action="attack", target=m3))
+    act_land(b3, ActCtx(caster=p2, action="attack", target=m3))
     ef3 = m3.get("effects") or {}
     check("减益不清、增益被清", "spd_down" in ef3 and "atk_up" not in ef3,
           f"effects={list(ef3.keys())}")
@@ -1316,7 +1319,7 @@ def test_affix_regen_tail():
           f"{ts}")
     b = new_battle(p, m)
     p.setdefault("effects", {})["energy"] = {"stacks": 30}
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("每刻精力 +5（30→35）", stk(p, "energy") == 35,
           f"energy={stk(p, 'energy')}")
     # swift_tailwind（orange）：cond energy_ge_80 折算参数
@@ -1330,14 +1333,17 @@ def test_affix_regen_tail():
           len(ts2) == 1 and ts2[0].get("cond_key") == "energy"
           and ts2[0].get("cond_ge") == 80 and ts2[0].get("gain") == 10,
           f"{ts2}")
-    b2 = new_battle(p2, m2)
-    p2.setdefault("effects", {})["energy"] = {"stacks": 79}
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
-    check("精力 79 <80 不触发", stk(p2, "energy") == 79, f"energy={stk(p2, 'energy')}")
-    (p2.get("effects") or {})["energy"] = {"stacks": 80}
-    b2.act(ActCtx(caster=p2, action="attack", target=m2))
-    check("精力 80 ≥80 触发 +10", stk(p2, "energy") == 90,
-          f"energy={stk(p2, 'energy')}")
+    # ★ T15 两段化跟账：一次出手 = 真时钟推进 ⇒ 两场景各自独立一场战斗
+    #   （同一场连打两手的第二手会把「资源每刻自然回」叠进来，实测 90 → 100）。
+    for _st0, _want, _lbl in ((79, 79, "精力 79 <80 不触发"), (80, 90, "精力 80 ≥80 触发 +10")):
+        _p2 = mk_a("p2_%d" % _st0, "player")
+        _m2 = mk_a("e2_%d" % _st0, "enemy", hp=100000, atk=1)
+        _affix_item(_p2, "swift_tailwind", "ring", "orange")
+        EP.apply_to_actor(_p2)
+        _b2 = new_battle(_p2, _m2)
+        _p2.setdefault("effects", {})["energy"] = {"stacks": _st0}
+        act_land(_b2, ActCtx(caster=_p2, action="attack", target=_m2))
+        check(_lbl, stk(_p2, "energy") == _want, f"energy={stk(_p2, 'energy')}")
     # v181.M-bonus：cost_reduce 3 词条（energy_blade/arcane_focus/sigil_blessing）已装
     # → 走 bonus.cost 容器（非事件 → 仍零 triggers）；其余未注册词条仍零装配
     # （D3 2026-09-13：ember_brand/combo_recover/combo_ward 已补翻译器 → 不再零装配，
@@ -1391,9 +1397,13 @@ def test_d3_gap_fixes():
           and bs[0].get("op") == "add" and int(bs[0].get("turns") or 0) == 1, f"{bs}")
     b = new_battle(p, m)
     d0 = float(_S.actor_stats(b, p).get("dodge") or 0)
-    b.act(ActCtx(caster=p, action="attack", target=m))
+    # ★ T15 两段化跟账：battle_start 给的「首刻 +5% 闪避」声明 `expire=1.0`（一个整刻），
+    #   而这**一手**的落地时刻正好也是 T0+出招 ⇒ 落地后它已按到期清掉（实测 0.05 → 0）。
+    #   面板读数因此取「出手登记（T0）的当刻」—— 那正是「首刻」这个窗口。
+    _out = b.act(ActCtx(caster=p, action="attack", target=m))
     d1 = float(_S.actor_stats(b, p).get("dodge") or 0)
     check("首刻 dodge 面板 +5%（真生效）", abs(d1 - (d0 + 0.05)) < 1e-9, f"{d0} → {d1}")
+    land(b, _out[0], p)   # 落地推进（收尾仍走正常驱动口径）
     # 首刻后失效：turns=1 → expire=now+1；时刻推进 1 刻（ACT_TICK=1）后引擎
     # `schedule._settle_time_effects` 清过期条目（b.act 不推 `_now`，故走时刻推进）
     _SCH._advance_time(b, 1.0, [])
