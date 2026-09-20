@@ -11,7 +11,7 @@ saintess_engine actor 效果。核心不变式：效果全部落到 saintess_eng
     economy.use() 副本/野外战斗内分支
       → action_override 回调 (battle, action, actor, payload, target)
       → 本模块 translate(battle, actor, payload)
-      → 返回 (logs, cast) 或 (None, None)（未覆盖 → 调用方提示不扣道具不占刻）
+      → 返回 (logs, cast, recover) 或 None（未覆盖 → 调用方提示不扣道具不占刻）
 
 payload 全谱（对齐旧 battle._do_use_item 解析序）：
     "123"              绝对恢复 HP（半身人 item_effect 加成）
@@ -23,7 +23,8 @@ payload 全谱（对齐旧 battle._do_use_item 解析序）：
                        词条执行 = 装配层批，见设计 §8）
     "hot:hp%,mp%,turns"  持续恢复（写 actor["hot"]，schedule 周期结算）
     "0"                无数值（stamina 已由 economy 处理）
-    ";cast:N" 尾缀     行动耗时（有 → 数字秒；无 → 1.0 对齐旧 CAST_ITEM/FOOD）
+    ";cast:N" / ";recovery:M" 尾缀  **两段**耗时（各自数字秒，相加落 ct；
+                       cast 缺省 1.0 对齐旧 CAST_ITEM/FOOD，recovery 缺省 0.0）
 
 数值路径（零硬编码）：buff 族查 EFFECT_ACTIONS（game/data/battle_rules.py，
 N7.5b 药水/食物别名已对齐 BUFF_MULT）；shield 族读 payload json 或
@@ -44,7 +45,7 @@ engine.race_stats。缺字段 = 无此行为。
 | `from ..content_rules.panel import race_stats`（:320） | `from ..panel import race_stats` | 面板已进包（content/panel.py，D3 批次） |
 
 调用方契约不变（宿主命令层 `game/commands/battle_item_use.py` 薄壳再导出）：
-    translate(battle, actor, payload[, target]) -> (logs, cast) | None
+    translate(battle, actor, payload[, target]) -> (logs, cast, recover) | None
     can_translate(payload) -> bool
     make_override() -> callable(battle, action, actor, skill_name, target)
 对拍证据：`overnight/_l4_snapshot.py`（改包前后逐字节等价）+ `_l4_dep_audit.py`（依赖同源）。
@@ -66,6 +67,8 @@ _CAST_RE = re.compile(r"(?:^|[;&,])\s*(?:cast|recovery):[\d.]+")
 # 默认道具耗时（对齐旧引擎 CAST_ITEM=CAST_FOOD=1.0——use_item 走绝对秒，
 # 不按 spd 缩放；旧 _after_actor_ct cast_mult 直用）
 _DEFAULT_CAST = 1.0
+# 默认**第二段**（收招）耗时：payload 没写 `recovery:` 就是 0（= 只有一段，行为不变）
+_DEFAULT_RECOVER = 0.0
 
 
 def _food_params() -> dict:
@@ -114,8 +117,8 @@ def make_override():
     """saintess_engine action_override 回调工厂（I3：instance_battle/野外 from_state 后注入）。
 
     引擎 act() 遇非内置 action（use_item）问回调：签名
-    (battle, action, actor, skill_name, target) -> (logs, cast)；
-    logs=None → 未消费（回落「未知行动类型」，命令层不占刻不扣道具）。
+    (battle, action, actor, skill_name, target) -> (logs, cast, recover)；
+    logs=None（或整条返回 None）→ 未消费（回落「未知行动类型」，命令层不占刻不扣道具）。
     翻译器把 payload（经 skill_name 参数透传）→ 引擎动词。
     """
     def _override(battle, action, actor, skill_name, target):
@@ -156,7 +159,7 @@ def can_translate(payload: str) -> bool:
 
 def translate(battle, actor: dict, payload: str,
               target: Optional[dict] = None) -> Optional[tuple]:
-    """道具 payload → (logs, cast)。未覆盖（机制型缺口）→ (None, None)。
+    """道具 payload → (logs, cast, recover)。未覆盖（机制型缺口）→ None。
 
     调用方（action_override 回调）收到 None → 提示「战斗内效果未迁移，
     请在战斗外使用」，不扣道具不占刻。
@@ -165,17 +168,18 @@ def translate(battle, actor: dict, payload: str,
         return None
     logs: list = []
     cast = _DEFAULT_CAST
-    # 剥离 cast/recovery（耗时由调用方推进，不污染效果解析）
+    recover = _DEFAULT_RECOVER
+    # 剥离 cast/recovery **两段**（耗时由调用方推进，不污染效果解析）
+    # ★ T14 修掉旧「二选一降级」：两段并存时旧码只取 cast、静默吞掉 recovery。
     _payload = payload.strip()
     _m = re.search(r"(?:^|[;&,])\s*cast:([\d.]+)", _payload)
     if _m:
         cast = float(_m.group(1))
+    _m2 = re.search(r"(?:^|[;&,])\s*recovery:([\d.]+)", _payload)
+    if _m2:
+        recover = float(_m2.group(1))
+    if _m or _m2:
         _payload = _CAST_RE.sub("", _payload).rstrip(";,")
-    else:
-        _m2 = re.search(r"(?:^|[;&,])\s*recovery:([\d.]+)", _payload)
-        if _m2:
-            cast = float(_m2.group(1))
-            _payload = _CAST_RE.sub("", _payload).rstrip(";,")
 
     # ---- 1. foodfx（食物效果：本场战斗词条族；落容器 + shield 特判 + N10-B7 装配）----
     if _payload.startswith("foodfx:"):
@@ -210,7 +214,7 @@ def translate(battle, actor: dict, payload: str,
                 pass  # 数据异常不阻断（护盾段可选）
         _names = [(_food_params().get(a) or {}).get("name", a) for a in aids]
         logs.append(_T.text("iu.food_fx", names='、'.join(_names)))
-        return logs, cast
+        return logs, cast, recover
 
     # ---- 1.5 purify 净化卷轴（I5：模板只判定，清除在翻译器）----
     # 清玩家侧全部存活 actor 的可净化负面（EFFECT_RULES period/on=target/cleanse；
@@ -239,7 +243,7 @@ def translate(battle, actor: dict, payload: str,
             logs.append(_T.text("iu.purify_ok", lines='; '.join(_lines)))
         else:
             logs.append(_T.static("iu.purify_none"))
-        return logs, cast
+        return logs, cast, recover
 
     # ---- 2. hot（持续恢复：effects["regen_hot"] period 声明，schedule 周期结算）----
     if _payload.startswith("hot:"):
@@ -261,7 +265,7 @@ def translate(battle, actor: dict, payload: str,
         if mpct > 0:
             _desc.append(_T.text("iu.hot_mp", pct=int(mpct * 100)))
         logs.append(_T.text("iu.food_hot", desc='、'.join(_desc), turns=turns))
-        return logs, cast
+        return logs, cast, recover
 
     # ---- 3. mana 回蓝 ----
     if _payload.startswith("mana:"):
@@ -272,7 +276,7 @@ def translate(battle, actor: dict, payload: str,
             actor["mp"] = min(_mx, before + mv)
             _real = int(actor["mp"]) - before
             logs.append(_T.text("iu.mana", real=_real, mp=actor['mp'], mx=_mx))
-        return logs, cast
+        return logs, cast, recover
 
     # ---- 4. hm 双恢复 ----
     if _payload.startswith("hm:"):
@@ -294,7 +298,7 @@ def translate(battle, actor: dict, payload: str,
             if _real > 0:
                 msgs.append(_T.text("item.mana_flat", mp=_real))
         logs.append(_T.text("iu.hm", msgs='、'.join(msgs)))
-        return logs, cast
+        return logs, cast, recover
 
     # ---- 5. special 特殊分发 ----
     if _payload.startswith("special:"):
@@ -309,7 +313,7 @@ def translate(battle, actor: dict, payload: str,
                     kind = _k
             except Exception:
                 pass
-        return _translate_special(battle, actor, kind, value, logs, cast)
+        return _translate_special(battle, actor, kind, value, logs, cast, recover)
 
     # ---- 6. buff 属性增益（EFFECT_ACTIONS 查表）----
     if _payload.startswith("buff:"):
@@ -335,7 +339,7 @@ def translate(battle, actor: dict, payload: str,
         _food = any(k.startswith("food_") for k in applied)
         _nm = "、".join(applied)
         logs.append(_T.text("iu.buff", head='🍖 你吃下了料理' if _food else '🧪 你饮下战斗药水', nm=_nm))
-        return logs, cast
+        return logs, cast, recover
 
     # ---- 7. 纯数字 heal ----
     try:
@@ -361,7 +365,7 @@ def translate(battle, actor: dict, payload: str,
             logs.append(_T.static("iu.item_used"))
     else:
         logs.append(_T.static("iu.item_used"))
-    return logs, cast
+    return logs, cast, recover
 
 
 # ------------------------------------------------------------
@@ -387,7 +391,8 @@ _SHIELD_KINDS = {
 }
 
 
-def _translate_special(battle, actor, kind: str, value, logs: list, cast: float):
+def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
+                       recover: float):
     """special 分诊：EFFECT_ACTIONS 直映射 / shield 动词 / 缺口 None。"""
     if not kind:
         return None
@@ -402,7 +407,7 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float)
             apply_effects(battle, actor, actor,
                           [{"type": kind, "turns": 999, "on": "caster"}], logs)
             logs.append(_T.static("iu.potion_ready"))
-            return logs, cast
+            return logs, cast, recover
     # 2. shield 动词族（value=物品 effect_data 或 DEFAULTS；turns 缺省 3）
     if kind in _SHIELD_KINDS:
         _key = _SHIELD_KINDS[kind]
@@ -417,6 +422,6 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float)
                       [{"action": "shield", "key": _key, "pct": pct,
                         "turns": turns, "on": "caster"}], logs)
         logs.append(_T.text("iu.shield", pct=int(pct * 100), turns=turns))
-        return logs, cast
+        return logs, cast, recover
     # 3. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None

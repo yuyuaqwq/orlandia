@@ -13,6 +13,7 @@
 import os
 import sys
 import random
+import math
 
 PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # tests/：引擎根发现（_paths）
@@ -266,6 +267,68 @@ def test_dot_interval_n74():
     check("同刻重复 settle 不重复跳", e["hp"] == hp3)
 
 
+def test_recover_second_segment_t14():
+    """【N4.10 第二段（收招）耗时：内容侧供体 + 两段相加 + 零段逐位等值（T14）】
+
+    引擎只做「两段相加」（`schedule.recover_time` / `recover_base_of`），
+    形状与数值全在内容侧（`TIME_MODEL.recover` / `.recover_shape`）。
+    本包现 `recover` 段全 0 ⇒ 行为与「只有一段」逐位相同；反证把 0.5 灌进去证明第二段是活的。
+    """
+    from saintess_engine.battle import schedule as _sch
+    from saintess_engine.battle.stats import actor_spd as _aspd
+    from content.mech import time_model as TM
+    from content.mech import params as PR
+
+    _recs = [TM.recover_base(k) for k in ("attack", "skill", "defend", "item")]
+    check("recover 段读得到（4 个类别全 0 = 只有一段）", _recs == [0.0] * 4, str(_recs))
+    check("未声明类别回落默认项", TM.recover_base("不存在的类别") == 0.0)
+    check("供体转发（params.recover_model / recover_base）",
+          PR.recover_model(50, 0.0) == 0.0 and PR.recover_base("skill") == 0.0)
+    check("引擎第二段口可调（recover_time）", _sch.recover_time(50, 0.0) == 0.0)
+
+    p = mk_player("战士", 12)
+    b = BT_NEW("monster", sides={"player": [p], "enemy": [mk_monster(hp=99999, atk=1)]})
+    now = float(b._now)
+    p["ct"] = now
+    spd = _aspd(b, p)
+    _sch._after_act(b, p, "attack")
+    check("★零段等值：ct - now 逐位等于第一段",
+          p["ct"] == now + _sch.action_time(spd, _sch.action_base_of("attack")),
+          f"ct={p['ct']} now={now} spd={spd}")
+
+    # 反证（有牙）：临时把 recover 段改成非 0 ⇒ 第二段真的进 ct；recover_shape=flat ⇒ 不吃速度
+    _orig = TM.time_model
+    _cfg = dict(TM.time_model())
+    try:
+        _rec = dict(_cfg.get("recover") or {})
+        _rec["attack"] = 0.5
+        _m1 = dict(_cfg)
+        _m1["recover"] = _rec
+        TM.time_model = lambda: _m1
+        check("反证：recover.attack=0.5 ⇒ 引擎读得到 0.5", _sch.recover_base_of("attack") == 0.5)
+        p2 = mk_player("战士", 12)
+        b2 = BT_NEW("monster", sides={"player": [p2], "enemy": [mk_monster(hp=99999, atk=1)]})
+        now2 = float(b2._now)
+        p2["ct"] = now2
+        spd2 = _aspd(b2, p2)
+        _sch._after_act(b2, p2, "attack")
+        # 手算第二段（sqrt 形状：base × sqrt(spd_ref / spd)），不调被测函数
+        _exp2 = 0.5 * math.sqrt(50.0 / max(float(spd2 or 0), 1.0))
+        check("反证：ct = now + 第一段 + 第二段(0.5×sqrt(50/spd))",
+              p2["ct"] == now2 + _sch.action_time(spd2, _sch.action_base_of("attack")) + _exp2,
+              f"ct={p2['ct']} now={now2} spd={spd2} exp2={_exp2}")
+
+        _m2 = dict(_cfg)
+        _m2["recover"] = _rec
+        _m2["recover_shape"] = "flat"
+        TM.time_model = lambda: _m2
+        check("recover_shape=flat ⇒ 收招不吃速度（spd=1 与 spd=200 同值）",
+              TM.recover_time(1, 0.5) == TM.recover_time(200, 0.5) == 0.5)
+    finally:
+        TM.time_model = _orig
+    check("还原后第二段归零（等值）", TM.recover_base("attack") == 0.0)
+
+
 def main():
     print("=== N4 saintess_engine CTB 调度测试 ===")
     test_full_battle_victory()
@@ -277,6 +340,7 @@ def main():
     test_real_data_spd0_player()
     test_time_effects_n72()
     test_dot_interval_n74()
+    test_recover_second_segment_t14()
     print(f"\n=== 结果 PASS={PASS} FAIL={FAIL} ===")
     if FAILURES:
         for f in FAILURES:

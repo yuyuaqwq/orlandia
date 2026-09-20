@@ -4541,6 +4541,13 @@
           "defend": 0.6,
           "item": 1.0
         },
+        "recover": {
+          "attack": 0.0,
+          "skill": 0.0,
+          "defend": 0.0,
+          "item": 0.0
+        },
+        "recover_shape": null,
         "spd_cap": null
       }
     }

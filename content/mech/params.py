@@ -28,7 +28,7 @@
 | `BASIC_FALLBACK`      | `game/bootstrap.py:123 _basic_fallback()` | 全量 |
 | `FORMULA_SKELETON`    | **包内 `content/rules/formula_skeleton.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联字面量，谱系见右） | **子集 + 新增**：引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）来自游戏仓 `game/data/formula_skeleton.py:FORMULA_SKELETON`；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬。**V4（2026-09-16）新增 7 组战斗落地常量**（原文写死在引擎字面量，谱系 = 引擎原值、非游戏仓 data）：`shield_default_pct` / `block` / `heal_down` / `anti_heal` / `reduce` / `gauge` / `skill_max_level` —— 与包内 `content/rules/game_config.json` 同组**两份独立来源**（逐值相等由 `tests/test_v4_formula_skeleton.py` 钉住） |
 | `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON`（搬前谱系） | **子集**：只留引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬 |
-| `time_model`（供体函数） | `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（**包内真源**；V3 下沉，无宿主对应物） | 全量（`shape` / `spd_ref` / `cast` / `spd_cap` 四键，读口 `catalog_rules.time_model()`） |
+| `time_model`（供体函数） | `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（**包内真源**；V3 下沉，无宿主对应物） | 全量（`shape` / `spd_ref` / `cast` / **`recover`** / **`recover_shape`** / `spd_cap` 六键，读口 `catalog_rules.time_model()`） |
 | `SKILL_FLAT`          | `game/data/skill_up.py:SKILL_FLAT_BASE/_PER_PLAYER_LV/_PER_SKILL_LV` | 全量（3 常量） |
 | `TIER_GROWTH`         | `game/data/battle_config.py:379` | 全量（4 个档位；切片面板公式用） |
 | `LINEAR_STATS`        | **包内 `content/rules/linear_stats.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联 tuple，谱系 `game/data/base_growth.py:PLAYER_BASE_GROWTH["linear_stats"]`） | 全量（7 键；类型还原成 tuple） |
@@ -186,15 +186,17 @@ def bar_prefix() -> str:
 # ------------------------------------------------------------
 # 引擎 `battle/schedule.py` 只留机制（谁 ct 小谁先动、行动后推进 ct），
 # 「一次行动耗时多少」走本包注入面：
-#     time_model_fn  `fn(spd, base) -> float`
-#     action_base_fn `fn(action) -> float`
+#     time_model_fn    `fn(spd, base) -> float`   第一段
+#     action_base_fn   `fn(action) -> float`      行动类别 → 第一段基准
+#     recover_model_fn `fn(spd, base) -> float`   第二段（收招）
+#     recover_base_fn  `fn(action) -> float`      行动类别 → 第二段基准
 # 形状 + 参数 = `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`
 # （单源；读口 `content/catalog_rules.py::time_model()`；构造点见 `time_model.py`）。
 # 本文件只做转发 —— **不在这里留第二份数值**。
 # ============================================================
 
 def time_model(spd, base):
-    """`time_model_fn` 供体：一次行动耗时（游戏秒）。
+    """`time_model_fn` 供体：**第一段**行动耗时（游戏秒）。
 
     调用时经域读口取值（hydration 口径与仓内其它域一致：改 JSON 后由『gm_重载』生效），形状分发见 `time_model.py`。
     """
@@ -203,6 +205,21 @@ def time_model(spd, base):
 
 
 def action_base(action: str) -> float:
-    """`action_base_fn` 供体：行动类别（通用键）→ 基准耗时（活读数据表）。"""
+    """`action_base_fn` 供体：行动类别（通用键）→ 第一段基准耗时（活读数据表）。"""
     from .time_model import action_base as _ab
     return _ab(action)
+
+
+def recover_model(spd, base):
+    """`recover_model_fn` 供体：**第二段**耗时（游戏秒）——形状 = `recover_shape`（缺省回落 `shape`）。
+
+    数据单源同上（`TIME_MODEL.recover` / `.recover_shape`）；全 0 段 ⇒ 返回值恒 0。
+    """
+    from .time_model import recover_time as _rt
+    return _rt(spd, base)
+
+
+def recover_base(action: str) -> float:
+    """`recover_base_fn` 供体：行动类别（通用键）→ 第二段基准耗时（活读数据表）。"""
+    from .time_model import recover_base as _rb
+    return _rb(action)

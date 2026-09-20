@@ -69,12 +69,12 @@ def test_heal_direct():
     p = mk_player(hp_ratio=0.5)
     b = mk_battle(p)
     hp0 = p["hp"]
-    logs, cast = translate(b, p, "123")
+    logs, cast, recover = translate(b, p, "123")
     check("回血 123", p["hp"] == min(p["max_hp"], hp0 + 123), f"{hp0}→{p['hp']}")
     check("有日志", any("恢复" in x for x in logs), str(logs))
     check("cast 默认 1.0", cast == 1.0, f"cast={cast}")
     # clamp
-    logs, cast = translate(b, p, "99999")
+    logs, cast, recover = translate(b, p, "99999")
     check("clamp max_hp", p["hp"] == p["max_hp"], f"hp={p['hp']}")
 
 
@@ -85,7 +85,7 @@ def test_heal_race_bonus():
     p = mk_player(hp_ratio=0.3, race="halfling")
     b = mk_battle(p)
     hp0 = p["hp"]
-    logs, cast = translate(b, p, "123")
+    logs, cast, recover = translate(b, p, "123")
     expect = min(p["max_hp"], hp0 + int(123 * 1.1))
     check("加成后回血 135（clamp）", p["hp"] == expect,
           f"{p['hp']} vs {expect}")
@@ -97,14 +97,14 @@ def test_mana_hm():
     p = mk_player(hp_ratio=0.5, mp_ratio=0.5)
     b = mk_battle(p)
     mp0 = p["mp"]
-    logs, cast = translate(b, p, "mana:60")
+    logs, cast, recover = translate(b, p, "mana:60")
     expect = min(p["max_mp"], mp0 + 60)
     check("回蓝 60（clamp）", p["mp"] == expect, f"{mp0}→{p['mp']} (期望 {expect})")
     # hm 双恢复（新玩家避免 mana 已被 clamp 打满）
     p2 = mk_player(hp_ratio=0.5, mp_ratio=0.5)
     b2 = mk_battle(p2)
     hp0, mp0 = p2["hp"], p2["mp"]
-    logs, cast = translate(b2, p2, "hm:50,40")
+    logs, cast, recover = translate(b2, p2, "hm:50,40")
     check("hm 回血 50", p2["hp"] == min(p2["max_hp"], hp0 + 50), f"{hp0}→{p2['hp']}")
     check("hm 回蓝 40", p2["mp"] == min(p2["max_mp"], mp0 + 40), f"{mp0}→{p2['mp']}")
 
@@ -114,7 +114,7 @@ def test_buff_effect_actions():
     from content.mech.item_use import translate
     p = mk_player(hp_ratio=1.0)
     b = mk_battle(p)
-    logs, cast = translate(b, p, "buff:atk_up")
+    logs, cast, recover = translate(b, p, "buff:atk_up")
     bf = (p.get("effects") or {}).get("atk_up")
     check("atk_up 挂上结构化条目", isinstance(bf, dict) and bf.get("stat") == "atk",
           f"bf={bf}")
@@ -125,7 +125,7 @@ def test_buff_effect_actions():
     # 复合 buff（龙涎 buff:atk_up,def_up 语义）
     p2 = mk_player(hp_ratio=1.0)
     b2 = mk_battle(p2)
-    logs, cast = translate(b2, p2, "buff:atk_up,def_up")
+    logs, cast, recover = translate(b2, p2, "buff:atk_up,def_up")
     check("复合双 buff", "atk_up" in (p2.get("effects") or {}) and "def_up" in (p2.get("effects") or {}),
           f"keys={list(((p2).get('effects') or {}).keys())}")
 
@@ -135,7 +135,7 @@ def test_hot_container():
     from content.mech.item_use import translate
     p = mk_player(hp_ratio=0.5)
     b = mk_battle(p)
-    logs, cast = translate(b, p, "hot:0.05,0.10,3")
+    logs, cast, recover = translate(b, p, "hot:0.05,0.10,3")
     entry = (p.get("effects") or {}).get("regen_hot") or {}
     per = entry.get("period") or {}
     check("regen_hot 条目挂上", bool(entry), f"entry={entry}")
@@ -155,7 +155,7 @@ def test_special_next_atk_up():
     from content.mech.item_use import translate
     p = mk_player(hp_ratio=1.0)
     b = mk_battle(p)
-    logs, cast = translate(b, p, "special:next_atk_up")
+    logs, cast, recover = translate(b, p, "special:next_atk_up")
     bf = (p.get("effects") or {}).get("next_atk_up")
     check("next_atk_up 挂上", isinstance(bf, dict), f"bf={bf}")
     check("hit dmg_mult", bf is not None and isinstance(bf.get("hit"), dict)
@@ -168,7 +168,7 @@ def test_special_cc_immune():
     from content.mech.item_use import translate
     p = mk_player(hp_ratio=1.0)
     b = mk_battle(p)
-    logs, cast = translate(b, p, "special:cc_immune")
+    logs, cast, recover = translate(b, p, "special:cc_immune")
     check("cc_immune 挂上", "cc_immune" in (p.get("effects") or {}), f"effects={list(((p).get('effects') or {}))}")
 
 
@@ -178,7 +178,7 @@ def test_special_shield():
     p = mk_player(hp_ratio=0.5)
     b = mk_battle(p)
     mx = p["max_hp"]
-    logs, cast = translate(b, p, 'special:shield_big:{"pct":0.30}')
+    logs, cast, recover = translate(b, p, 'special:shield_big:{"pct":0.30}')
     sh = p["shields"].get("potion_shield")
     check("护盾挂上", isinstance(sh, dict) and sh.get("value", 0) > 0,
           f"sh={sh}")
@@ -203,14 +203,14 @@ def test_foodfx():
     from content.mech.item_use import translate
     p = mk_player(hp_ratio=1.0)
     b = mk_battle(p)
-    logs, cast = translate(b, p, "foodfx:regen,meditate")
+    logs, cast, recover = translate(b, p, "foodfx:regen,meditate")
     check("food_effects 落容器", sorted(p.get("food_effects", [])) == ["meditate", "regen"],
           f"fe={p.get('food_effects')}")
     check("播报日志", any("获得" in x for x in logs), str(logs))
     # shield 特判：圣餐面包立即给盾
     p2 = mk_player(hp_ratio=0.5)
     b2 = mk_battle(p2)
-    logs, cast = translate(b2, p2, "foodfx:shield")
+    logs, cast, recover = translate(b2, p2, "foodfx:shield")
     sh = p2["shields"].get("food_shield")
     check("foodfx shield 立即给盾", isinstance(sh, dict) and sh.get("value", 0) > 0,
           f"sh={sh}")
@@ -223,12 +223,17 @@ def test_cast_suffix():
     from content.mech.item_use import translate
     p = mk_player(hp_ratio=0.5)
     b = mk_battle(p)
-    logs, cast = translate(b, p, "123;cast:2.0")
-    check("cast:N → 数字秒", cast == 2.0, f"cast={cast}")
-    logs, cast = translate(b, p, "123;recovery:0.5")
-    check("recovery:N → 数字秒", cast == 0.5, f"cast={cast}")
+    logs, cast, recover = translate(b, p, "123;cast:2.0")
+    check("cast:N → 第一段数字秒（第二段缺省 0）", cast == 2.0 and recover == 0.0,
+          f"cast={cast} rec={recover}")
+    logs, cast, recover = translate(b, p, "123;recovery:0.5")
+    check("recovery:N → 第二段数字秒（第一段走缺省 1.0）", cast == 1.0 and recover == 0.5,
+          f"cast={cast} rec={recover}")
+    # ★ T14：两段并存 —— 旧码「二选一」会静默吞掉 recovery，现在两段都取
+    logs, cast, recover = translate(b, p, "123;cast:2.0;recovery:0.5")
+    check("两段并存 → 两段都取", cast == 2.0 and recover == 0.5, f"cast={cast} rec={recover}")
     hp0 = p["hp"]
-    logs, cast = translate(b, p, "hot:0.1,0,3;cast:1.4")
+    logs, cast, recover = translate(b, p, "hot:0.1,0,3;cast:1.4")
     check("hot+cast 剥离", cast == 1.4 and ((p.get("effects") or {}).get("regen_hot") or {}).get("period", {}).get("turns") == 3,
           f"cast={cast} hot={(p.get('effects') or {}).get('regen_hot')}")
 
@@ -245,7 +250,7 @@ def test_override_end_to_end():
     b = Battle(btype="monster", sides={"player": [p], "enemy": [e]},
                action_override=lambda battle, action, actor, payload, target: (
                    _tr(battle, actor, payload, target) if action == "use_item"
-                   else (None, None)))
+                   else (None, None, None)))
     hp0 = p["hp"]
     # 纯 heal payload = 数字（模板 tpl_heal 产物），非 "heal:50"
     logs, ended, who = b.human_act("use_item", "50", p)
@@ -257,7 +262,7 @@ def test_override_end_to_end():
     b2 = Battle(btype="monster", sides={"player": [p2], "enemy": [e]},
                 action_override=lambda battle, action, actor, payload, target: (
                     _tr(battle, actor, payload, target) if action == "use_item"
-                    else (None, None)))
+                    else (None, None, None)))
     ct_before = float(p2.get("ct", 0) or 0)
     logs, ended, who = b2.human_act("use_item", "special:summon", p2)
     # N10-B6b：初始 ct 已播种（>0）；未消费动作 = ct 保持初始值不推
@@ -299,7 +304,7 @@ def test_purify():
     _bstate1 = b.to_state()
     check("_b2_has_purifiable 有负面判定 True", _b2_has_purifiable(_bstate1) is True)
     # 翻译器清除：stun 清、sleep 不可净化保留、atk_up 正面保留
-    logs, cast = _tr(b, p, "purify:1")
+    logs, cast, recover = _tr(b, p, "purify:1")
     ef = p.get("effects") or {}
     check("stun 被净化", "stun" not in ef, f"effects={list(ef)}")
     check("sleep 保留（不可净化）", "sleep" in ef, f"effects={list(ef)}")

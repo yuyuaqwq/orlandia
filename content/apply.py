@@ -128,7 +128,7 @@ def install_engine() -> None:
 
     ⚠️ 两张规则表走 **`config.load_game_rules(P)`**（P = `content/mech/params.py`，带
     `EFFECT_RULES` / `EFFECT_ACTIONS` 两个属性）——**不要**写
-    `config.mount(effect_rules=…)`：`mount` 只认 `config._HOOKS` 里那 15 个名字，
+    `config.mount(effect_rules=…)`：`mount` 只认 `config._HOOKS` 里那 17 个名字，
     表名不在名单里 → **静默丢弃**（分析报告 §1.3 实测复现：`get_effect_rules()` 仍是空表，
     且不报错）。脚手架模板踩的正是这个坑（G2）。
     """
@@ -160,8 +160,13 @@ def install_engine() -> None:
         #   形状与数值经这两条 hook 注入。数据单源 = `content/rules/game_config.json`
         #   → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（读口 `catalog_rules.time_model()`）；
         #   形状构造点 = `content/mech/time_model.py`；本文件只做 hook 挂载。
-        time_model_fn=P.time_model,            # fn(spd, base) -> float（一次行动耗时，游戏秒）
-        action_base_fn=P.action_base,          # fn(action) -> float（行动类别 → 基准耗时）
+        #   ★ T14 两段：`time_model_fn`/`action_base_fn` = 第一段，`recover_*` = 第二段。
+        time_model_fn=P.time_model,            # fn(spd, base) -> float（第一段耗时，游戏秒）
+        action_base_fn=P.action_base,          # fn(action) -> float（行动类别 → 第一段基准耗时）
+        # ★ T14：第二段（收招）同款两 hook —— 引擎只做「两段相加」，
+        #   本包 `recover` 段现全 0 ⇒ 行为与单段逐字节相同（数值要配时改 JSON 即可）。
+        recover_model_fn=P.recover_model,      # fn(spd, base) -> float（第二段耗时，游戏秒）
+        recover_base_fn=P.recover_base,        # fn(action) -> float（行动类别 → 第二段基准耗时）
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
     config.load_game_rules(P)
