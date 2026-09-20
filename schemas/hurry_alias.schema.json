@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/hurry_alias.schema.json",
+  "title": "赶路别名（hurry_alias）—— 一条 = 一个玩家输入词 → 赶路类型域",
+  "description": "原宿主 `game/commands/world.py` 类属性 `_HURRY_ALIAS`（P5E「壳去逻辑」批搬回包内），D8 进包内域。读口 = `content/world_cmds.py:1065-1068` `records_from_domain(_PKG_ROOT, \"hurry_alias\", order=(9 键真源插入序))` `.into(lambda _e: _e.get(\"target\"))`；消费 = `_hurry_type()`（`content/world_cmds.py:1071-1076`）归一『赶路』可选参数 → `npc` / `monster` / `scene` / `facility` 四域之一（`\"\"` = 全量，`None` = 无效）。实测 9 键（5 ascii + 4 中文）。",
+  "x-primary": "hurry_alias_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[^\\s]+$",
+    "description": "键 = 玩家输入词（实测 ascii 与中文并存；禁空白）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/hurry_alias_entry"
+  },
+  "$defs": {
+    "hurry_alias_entry": {
+      "type": "object",
+      "title": "一条赶路别名",
+      "description": "`{target}` 单字段（读口只取 `target`）。",
+      "required": [
+        "target"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "target": {
+          "type": "string",
+          "title": "赶路类型域",
+          "description": "下游 `_hurry_section` 按此分支；实测 9/9 条 ∈ 这 4 个值。",
+          "enum": [
+            "npc",
+            "monster",
+            "scene",
+            "facility"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/equip_event_map.schema.json",
+  "title": "装备事件映射（equip_event_map）—— 一段 = {旧 weapon proc 时机 → 引擎事件名}",
+  "description": "旧 `weapon_effects._WE_KEY_EVENTS` 的 key → saintess_engine 19 事件名的映射表，D7（2026-09-17）进包内域（`content/mech/equip.py:113-128`）。读口 = `content/mech/equip.py:129-136` `domain_section(\"equip_event_map\", \"EVENT_MAP\")` —— **tuple 还原**：JSON 只有 array，值不是非空字符串数组 → `RecordsDeclarationError`；不还原 = 值型漂成 list，`tests/test_u1d2_triggers_frozen.py` 的直取断言（必须是 tuple）当场红。实测 12 条（可一对多：`hit` → attack_hit + skill_hit）；`taken_after` / `turn_end` / `passive` 三个旧时机**全仓无消费者**（死名，未迁）。",
+  "x-primary": "equip_event_map_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：EVENT_MAP）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/equip_event_map_group"
+  },
+  "$defs": {
+    "equip_event_map_group": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "title": "引擎事件名列表",
+        "description": "至少 1 个；实测 hit → [attack_hit, skill_hit]。",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "title": "引擎事件名",
+          "minLength": 1
+        }
+      },
+      "minProperties": 1,
+      "title": "旧时机 → 引擎事件名（可一对多）",
+      "description": "实测 12 键；值 = 非空字符串数组（引擎事件名）。"
+    }
+  }
+}

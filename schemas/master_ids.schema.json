@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/master_ids.schema.json",
+  "title": "生活导师（master_ids）—— 一段 = {keys: [导师 NPC id]}",
+  "description": "8 位生活导师的 NPC id 清单（D8 进包内域）。读口 = content/cmds_world.py:60-63 (records_from_domain(_PKG_ROOT, master_ids).get(ids) or {}).get(keys) —— 空 / 形状不符 → ValueError 点名（**拒绝静默空表**）。实测 8 条（npc_herb_master / npc_mine_master / npc_fish_master / npc_cook_master / npc_alchemy_master / npc_craft_master / npc_enhance_master / npc_rune_master）。",
+  "x-primary": "master_ids_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：ids）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/master_ids_group"
+  },
+  "$defs": {
+    "master_ids_group": {
+      "type": "object",
+      "additionalProperties": true,
+      "minProperties": 1,
+      "title": "导师 NPC id 清单",
+      "description": "只有 keys 一个字段。",
+      "required": [
+        "keys"
+      ],
+      "properties": {
+        "keys": {
+          "type": "array",
+          "title": "导师 NPC id",
+          "description": "实测 8 条，序 = 表内序；与 npcs 域的 NPC id 同面。",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "title": "导师 NPC id",
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/slot_aliases.schema.json",
+  "title": "部位别名（slot_aliases）—— 一条 = 一个玩家输入别名 → 装备部位 id",
+  "description": "真源 = 包内 `content/data/slot_aliases.json`（D5 2026-09-17「数据进表」：原三处内联 `_slot_map` / `_slot_map_c` / `_slot_map0` 逐键逐序相等的字面量合为**一张域**，实测 17 条）。读口 = `content/economy_cmds.py:141` `keyed_values(\"slot_aliases\")` → 剥壳成 `{别名: value}`；引擎侧 `keyed_values`（`content/_domainio.py:178-195`）**强制条目形状 `{name, value}`**（缺 `value` 直接 `RecordsDeclarationError`，不静默）。消费 = 『装备』等指令的部位输入归一；别名→id 是**按名查值**（`.update()` 合并，无迭代 ⇒ 键序不可观测）。实测 17 键：3 条 ascii id 自称 + 14 条中文别名（头/头盔/帽子 → helm …）。",
+  "x-primary": "slot_alias_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[^\\s]+$",
+    "description": "键 = 玩家输入别名（实测中文 + ascii 混排；禁空白、禁空串）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/slot_alias_entry"
+  },
+  "$defs": {
+    "slot_alias_entry": {
+      "type": "object",
+      "title": "一个部位别名",
+      "description": "`{name, value}` 两字段；`name` 实测 17/17 == 外层键（域形状约定，读口只吃 `value`）。",
+      "required": [
+        "name",
+        "value"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "别名原样",
+          "description": "与外层键等值（实测 17/17）；编辑器按条目名展示。",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "title": "装备部位 id",
+          "description": "玩家输入归一后的内部部位 id。实测 7 个取值：`armor` / `boots` / `helm` / `legs` / `necklace` / `ring` / `weapon` = `content/catalog_b143.EQUIP_SLOTS` 的 id 集。",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        }
+      }
+    }
+  }
+}

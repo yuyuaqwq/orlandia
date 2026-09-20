@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/exp_table.schema.json",
+  "title": "升级经验表（exp_table）—— 一条 = 一个等级 → 升到下一级所需经验",
+  "description": "100 档逐级经验（原 `_EXP_TABLE` 字面量），D1（2026-09-17）进包内域，本文件不再留第二份数值。读口 = `content/stats.py:51` `set_from_module(__file__, (\"exp_table\",), overrides={\"exp_table\": {\"key_type\": int}})` —— ★ 键是 **int 等级**，JSON 只有字符串键 ⇒ 必须 `key_type=int` 还原（不还原 = 查表恒 miss，整表静默走兜底公式，见 `content/stats.py:45-47`）。实测键 **1..100 连续**、值 2,600（Lv.1）→ 1,607,650（Lv.100）。",
+  "x-primary": "exp_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[1-9][0-9]*$",
+    "description": "键 = 等级 1..100（读口 `key_type=int` 还原；实测 100 键连续不缺档）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/exp_entry"
+  },
+  "$defs": {
+    "exp_entry": {
+      "type": "object",
+      "title": "一个等级的经验档",
+      "description": "`{exp}` 单字段（读口只取 `exp`）。",
+      "required": [
+        "exp"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "exp": {
+          "type": "integer",
+          "title": "升到下一级所需经验",
+          "description": "实测 Lv.1 = 2,600 … Lv.100 = 1,607,650，全为正整数。",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

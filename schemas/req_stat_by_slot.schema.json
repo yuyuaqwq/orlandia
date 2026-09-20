@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/req_stat_by_slot.schema.json",
+  "title": "装备·属性需求（req_stat_by_slot）—— 一条 = 一个装备部位 → 随机词条主属性",
+  "description": "与 `stat_affix_fx` 同批 D6（2026-09-17）进包内域（`content/affix.py:77-82`）。读口 = `content/affix.py:86` `read_seq_domain(\"req_stat_by_slot\", field=\"pool\", where=\"content/affix.py\")` —— 读口要求 ① 条目必须是 dict ② 必须有 `seq` 且 **1..N 连续**（`content/_domainio.py:131-172`，缺 / 重复 / 不连续一律点名抛）。消费 = 随机装备属性需求估算（按部位 / 武器类型定主属性）。实测 7 条：6 条 `pool` 是属性 id 串（vit / agi / int），**`weapon` 那条是「武器类型 → 主属性」子映射（实测 8 键）** ⇒ `pool` 允两形。",
+  "x-primary": "req_stat_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = 装备部位 id（实测 7 个：weapon/armor/helm/legs/boots/ring/necklace）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/req_stat_entry"
+  },
+  "$defs": {
+    "req_stat_entry": {
+      "type": "object",
+      "title": "一个部位的属性需求",
+      "description": "`{pool, seq}` 两字段；`seq` = 1 基源插入序（落盘规范外层键升序 ⇒ 序只能靠它带出）。",
+      "required": [
+        "pool",
+        "seq"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "pool": {
+          "anyOf": [
+            {
+              "type": "string",
+              "title": "主属性 id",
+              "description": "实测 6 条：vit / agi / int。",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            {
+              "type": "object",
+              "title": "武器类型 → 主属性",
+              "description": "仅 `weapon` 那条（实测 8 键：sword/mace/fist/spear/shield → str，bow/dagger → agi，staff → int）。",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "string",
+                "title": "主属性 id",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          ],
+          "title": "随机词条主属性",
+          "description": "按部位定主属性；`weapon` 因武器类型而异 ⇒ 该条是子映射（消费点按武器类型再查一层）。"
+        },
+        "seq": {
+          "type": "integer",
+          "title": "源插入序",
+          "description": "1 基源插入序；读口 fail-closed 要求 1..N 连续（实测 1..7）。",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

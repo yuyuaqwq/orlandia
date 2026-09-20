@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/affix_res_gain_on.schema.json",
+  "title": "词条资源回复时机（affix_res_gain_on）—— 一段 = {时机名 → [事件名, 附加参数]}",
+  "description": "资源型词条 `on` → 引擎事件 + 附加参数的映射，D7（2026-09-17）进包内域（`content/mech/equip.py:647-659`）。读口 = `content/mech/equip.py:651-659` `domain_section(\"affix_res_gain_on\", \"AFFIX_RES_GAIN_ON\")` —— **内层 tuple 还原**：值必须是 `[事件名, 附加参数 dict]` 二元数组（下游 `ev, extra = ...get(t, (None, None))` 解包），形状不符 → `RecordsDeclarationError`。实测 9 条；附加参数键实测 = `not_basic` / `kind`。",
+  "x-primary": "affix_res_gain_on_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：AFFIX_RES_GAIN_ON）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/affix_res_gain_on_group"
+  },
+  "$defs": {
+    "affix_res_gain_on_group": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "title": "[引擎事件名, 附加参数]",
+        "description": "二元数组：`[事件名, 附加参数 dict]`；实测事件名 = act_cast / attack_hit / battle_start / crit / on_taken / skill_hit。",
+        "minItems": 2,
+        "maxItems": 2,
+        "prefixItems": [
+          {
+            "type": "string",
+            "title": "引擎事件名",
+            "minLength": 1
+          },
+          {
+            "type": "object",
+            "title": "附加参数",
+            "description": "过滤条件（实测键：`not_basic` / `kind`）；空对象 = 无附加条件。"
+          }
+        ],
+        "items": false
+      },
+      "minProperties": 1,
+      "title": "时机名 → [事件名, 附加参数]",
+      "description": "实测 9 键（on_attack / on_skill / on_cast / on_crit / on_taken / on_heal / battle_start / buff_skill / combo_skill）。"
+    }
+  }
+}

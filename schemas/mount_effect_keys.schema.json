@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/mount_effect_keys.schema.json",
+  "title": "坐骑特效字段（mount_effect_keys）—— 一段 = {keys: [坐骑特效字段名]}",
+  "description": "坐骑特效可用的字段名清单（D9 进包内域；原模块级字面量元组，序 = 表内序）。读口 = content/mounts.py:63-69（_MOUNT_TBL.get(mount_effect_keys)）—— fail-closed：域缺 / 空 / 键型不符 → 点名抛。实测 7 条（discount / elite_bonus / stamina_reduce / sell_bonus / collect_bonus / fish_bonus / exp_mult）。",
+  "x-primary": "mount_effect_keys_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：mount_effect_keys）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/mount_effect_keys_group"
+  },
+  "$defs": {
+    "mount_effect_keys_group": {
+      "type": "object",
+      "additionalProperties": true,
+      "minProperties": 1,
+      "title": "坐骑特效字段清单",
+      "description": "只有 keys 一个字段。",
+      "required": [
+        "keys"
+      ],
+      "properties": {
+        "keys": {
+          "type": "array",
+          "title": "坐骑特效字段名",
+          "description": "实测 7 条；序 = 表内序。",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "title": "坐骑特效字段名",
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      }
+    }
+  }
+}

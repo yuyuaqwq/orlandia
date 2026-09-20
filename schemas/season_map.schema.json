@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/season_map.schema.json",
+  "title": "月份季节表（season_map）—— 一条 = 一个月份 → 季节",
+  "description": "原 `_roll_fish` 内联字面量（12 键 / 4 行；键 = int 月份 3..12,1,2），D8 进包内域。读口 = `content/loot.py:79-82` `records_from_domain(_PKG_ROOT, \"season_map\", key_type=int, order=(3,4,5,6,7,8,9,10,11,12,1,2))` —— **int 键还原**（JSON 只有字符串键）+ `order=` 还原真源插入序。消费 = 垂钓（`_roll_fish`）按月取季节。实测 12 条（1..12 全月）。",
+  "x-primary": "season_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^(?:[1-9]|1[0-2])$",
+    "description": "键 = 月份 1..12（读口 `key_type=int` 还原；实测 12 键不缺月）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/season_entry"
+  },
+  "$defs": {
+    "season_entry": {
+      "type": "object",
+      "title": "一个月份的季节",
+      "description": "`{season}` 单字段（读口只取 `season`）。",
+      "required": [
+        "season"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "season": {
+          "type": "string",
+          "title": "季节 id",
+          "description": "实测：1/2/12 = winter，3~5 = spring，6~8 = summer，9~11 = autumn。",
+          "enum": [
+            "winter",
+            "spring",
+            "summer",
+            "autumn"
+          ]
+        }
+      }
+    }
+  }
+}

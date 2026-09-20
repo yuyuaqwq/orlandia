@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/mat_facility.schema.json",
+  "title": "材料·回收设施（mat_facility）—— 一条 = 一个材料类型 → 回收设施",
+  "description": "v101.25e 鱼鱼拍板「不同设施收不同材料」；D6（2026-09-17）进包内域（`content/shop.py:62-70`）。读口 = `content/shop.py:70` `read_seq_domain(\"mat_facility\", field=\"facility\", where=\"content/shop.py\")`（`seq` 校验同 `content/_domainio.py:131-172`）。消费 = 出售材料时的回收设施路由 + `_MAT_FACILITY_HINT` 文案（`content/shop.py:72-74`）。实测 12 条，`facility` 取值 = `shop` / `smith` / `alchemy`（3 个）。",
+  "x-primary": "mat_facility_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[^\\s]+$",
+    "description": "键 = 材料类型（实测 12 条中文类目：矿石 / 木材 / 兽材 / 传说 / 任务道具 …）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/mat_facility_entry"
+  },
+  "$defs": {
+    "mat_facility_entry": {
+      "type": "object",
+      "title": "一个材料类型的回收设施",
+      "description": "`{facility, seq}` 两字段；`seq` = 1 基源插入序。",
+      "required": [
+        "facility",
+        "seq"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "facility": {
+          "type": "string",
+          "title": "回收设施 id",
+          "description": "实测 12/12 条 ∈ 这 3 个值；与 `_MAT_FACILITY_HINT`（同文件 :72-74）的设施名一一对应。",
+          "enum": [
+            "shop",
+            "smith",
+            "alchemy"
+          ]
+        },
+        "seq": {
+          "type": "integer",
+          "title": "源插入序",
+          "description": "1 基源插入序；读口要求 1..N 连续（实测 1..12）。",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

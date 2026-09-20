@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/kind_meta.schema.json",
+  "title": "种类元信息（kind_meta）—— 一段 = {技能类型 → 类型元数据}",
+  "description": "技能类型的行为元数据表（段类型 / 是否伤害 / 吸血通道），D7（2026-09-17）进包内域（content/mech/kinds.py:72-136）。读口 = content/mech/kinds.py:85-136 _read_kind_meta() —— fail-closed：声明缺 / 落点不符 / 文件缺 / 形状错 → 点名抛；★ 键还原成 SkillKind 成员（SkillKind 是 str, Enum，成员 == 其值但 hash 不同 ⇒ 不还原 = 查表恒 KeyError；非成员名 → 抛）。消费 = SkillKind.seg（:57-60）/ lifesteal_channel_of（:175-181）。实测 8 键（物理 / 魔法 / 治疗 / 增益 / 被动 / 召唤 / 真伤 / 嘲讽）。",
+  "x-primary": "kind_meta_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：KIND_META）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/kind_meta_group"
+  },
+  "$defs": {
+    "kind_meta_group": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "title": "一个技能类型的元数据",
+        "description": "三字段齐备（读口按成员取值，缺字段 = KeyError）。",
+        "required": [
+          "seg",
+          "damage",
+          "lifesteal"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "seg": {
+            "type": "string",
+            "title": "伤害段类型",
+            "description": "engine.calc_damage 的 dmg_type；实测 3 值。",
+            "enum": [
+              "phys",
+              "magi",
+              "true"
+            ]
+          },
+          "damage": {
+            "type": "boolean",
+            "title": "是否造成伤害",
+            "description": "JSON 布尔原样还原（不是 0/1）。"
+          },
+          "lifesteal": {
+            "type": "string",
+            "title": "吸血通道",
+            "description": "lifesteal_channel_of() 返回值；实测 4 值，空串 = 无吸血通道。",
+            "enum": [
+              "phys",
+              "magi",
+              "true",
+              ""
+            ]
+          }
+        }
+      },
+      "minProperties": 1,
+      "title": "技能类型 → 元数据",
+      "description": "实测 8 键 = SkillKind 的 8 个成员值（中文）。"
+    }
+  }
+}

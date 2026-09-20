@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/boss_dex.schema.json",
+  "title": "BOSS 图鉴（boss_dex）—— 一条 = 一个 Boss 怪 id → 图鉴条目",
+  "description": "2026-09-20 ⑦ 实证演练新增的数据域（`content/player_events.py:250-264`）。消费 = 结算日志订阅方 7：只在 `battle_victory` 上回填一行图鉴文本，**无副作用、无 DB 写入**（`content/player_events.py:253` 明注）；`role != \"boss\"` 或没有 `text` ⇒ 回 `[]`（不报错）。实测 30 条，键 = `monster_roster` 的 Boss 怪 id（实测全部 `b_` 前缀）。",
+  "x-primary": "boss_dex_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = Boss 怪 id（实测 30 个，全部 `b_` 前缀，与 `monster_roster` 同 id 面）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/boss_dex_entry"
+  },
+  "$defs": {
+    "boss_dex_entry": {
+      "type": "object",
+      "title": "一条 BOSS 图鉴",
+      "description": "`{name, text}` 两字段。",
+      "required": [
+        "name",
+        "text"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "BOSS 名",
+          "description": "实测 30/30 非空（深海龙王·敖澜 …）。",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "title": "图鉴文本",
+          "description": "一行展示文本（含 emoji 前缀，实测 30/30 非空）；空串 = 该 Boss 不出现图鉴行。",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

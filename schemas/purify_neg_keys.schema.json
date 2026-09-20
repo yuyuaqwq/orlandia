@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/purify_neg_keys.schema.json",
+  "title": "净化负面键清单（purify_neg_keys）—— 一段 = {keys: [可净化的负面状态键]}",
+  "description": "净化药水可解除的负面状态键清单（D9 进包内域；原模块级字面量）。读口 = content/effects/potion_effects.py:56-94（_NEG_TBL.get(purify_neg_keys)）—— fail-closed：域缺 / 空 / 键型不符 → 点名抛。**序 = 表内序**（净化回显按此序 join，见 content/effects/potion_effects.py:88 注）。实测 9 条（stun / freeze / silence / spd_down / atk_down / def_down / matk_down / mdef_down / reduce_all）。",
+  "x-primary": "purify_neg_keys_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：purify_neg_keys）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/purify_neg_keys_group"
+  },
+  "$defs": {
+    "purify_neg_keys_group": {
+      "type": "object",
+      "additionalProperties": true,
+      "minProperties": 1,
+      "title": "可净化负面键清单",
+      "description": "只有 keys 一个字段。",
+      "required": [
+        "keys"
+      ],
+      "properties": {
+        "keys": {
+          "type": "array",
+          "title": "负面状态键",
+          "description": "实测 9 条；序 = 表内序（回显按此序）。",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "title": "负面状态键",
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      }
+    }
+  }
+}

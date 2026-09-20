@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/prof_fields.schema.json",
+  "title": "副业字段表（prof_fields）—— 一段 = {副业字段 id → 中文名}",
+  "description": "副业字段（key → 中文名）表，D9 进包内域（content/persistence/professions.py:33-39）。读口 = content/persistence/professions.py:35-39（_PROF_TBL.get(prof_fields)）—— fail-closed：域缺 / 空 / 键型不符 → 点名抛。实测 8 键（gather 采集 / mining 挖掘 / fishing 垂钓 / alchemy 炼金 / craft 锻造 / cooking 烹饪 / enhance 强化 / enchant 附魔）。",
+  "x-primary": "prof_fields_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：prof_fields）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/prof_fields_group"
+  },
+  "$defs": {
+    "prof_fields_group": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "title": "中文副业名",
+        "description": "实测 8/8 非空。",
+        "minLength": 1
+      },
+      "minProperties": 1,
+      "title": "副业字段 id → 中文名",
+      "description": "实测 8 键；与 achievements 的 prof_lv / prof_count 条件字段同集。",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "description": "键 = 副业字段 id（实测全 ascii 小写）。"
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/affix_res_gain_ids.schema.json",
+  "title": "词条资源回复清单（affix_res_gain_ids）—— 一段 = {ids: [已装配词条 id]}",
+  "description": "R4 已装配的 res+gain+on 词条清单，D7（2026-09-17）进包内域（`content/mech/equip.py:664-687`，逐条语义随表留档）。读口 = `content/mech/equip.py:680-687` `domain_section(\"affix_res_gain_ids\", \"AFFIX_RES_GAIN_IDS\").get(\"ids\")` —— **fail-closed**：缺失 / 不是非空字符串数组 → `RecordsDeclarationError`；代码侧 `tuple()` 还原。实测 11 条（war_spirit / warcry_echo / blood_bath / arcana_flux / crit_charge / holy_echo / crit_return / pious_charm / rock_rest / opening_stance / combo_recover）。",
+  "x-primary": "affix_res_gain_ids_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：AFFIX_RES_GAIN_IDS）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/affix_res_gain_ids_group"
+  },
+  "$defs": {
+    "affix_res_gain_ids_group": {
+      "type": "object",
+      "additionalProperties": true,
+      "minProperties": 1,
+      "title": "已装配词条 id 清单",
+      "description": "只有 `ids` 一个字段。",
+      "required": [
+        "ids"
+      ],
+      "properties": {
+        "ids": {
+          "type": "array",
+          "title": "已装配词条 id",
+          "description": "实测 11 条；序 = 表内序。",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "title": "词条 id",
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      }
+    }
+  }
+}

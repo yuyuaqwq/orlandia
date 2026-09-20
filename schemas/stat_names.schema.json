@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/stat_names.schema.json",
+  "title": "属性名（stat_names）—— 一条 = 一个属性 id → 中文显示名",
+  "description": "两块原表（面板属性名 / 百科属性名）合为**单源**（`content/economy_cmds.py:230` 注）；读口 = `content/economy_cmds.py:360` `stat_names = _STAT_NAMES`，取值点同文件 `:364` / `:376` `stat_names.get(k, k)`（面板 + 百科两处）。条目形状同 `keyed_values` 的 `{name, value}` 口径（`content/_domainio.py:191-194`：条目不是 `{name, value}` 直接抛）。实测 32 条，`name == value` **32/32**（`name` = 条目名，`value` = 对外显示名）。",
+  "x-primary": "stat_name_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = 属性 id（实测 32 个：atk / def / hp / luck / abyss_res …，禁空白）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/stat_name_entry"
+  },
+  "$defs": {
+    "stat_name_entry": {
+      "type": "object",
+      "title": "一个属性",
+      "description": "`{name, value}` 两字段；实测两字段值相同 32/32（域形状约定，读口只吃 `value`）。",
+      "required": [
+        "name",
+        "value"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "条目名（= 属性 id 的中文名）",
+          "description": "实测 == `value` 32/32。",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "title": "对外显示名",
+          "description": "面板 / 百科展示用中文名。",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

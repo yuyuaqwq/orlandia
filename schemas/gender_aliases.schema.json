@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/gender_aliases.schema.json",
+  "title": "性别输入别名（gender_aliases）—— 一段 = {玩家输入词 → male/female}",
+  "description": "真源 = 包内 `content/data/gender_aliases.json`（键序 = 表内序）。读口 = `content/player_cmds.py:135-139` `_GENDER_TBL = _read_json(\"gender_aliases.json\", {})` → `_GENDER_ALIASES = _GENDER_TBL.get(\"gender_aliases\")`（**fail-closed**：域缺 / 空 / 键型不符 → 点名抛）。消费 = 『性别』指令的输入归一。实测 8 键（男 / male / ♂ / m / 女 / female / ♀ / f）。",
+  "x-primary": "gender_aliases_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+    "description": "键 = 源段名（实测 1 键：gender_aliases）"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/gender_aliases_group"
+  },
+  "$defs": {
+    "gender_aliases_group": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "title": "性别 id",
+        "enum": [
+          "male",
+          "female"
+        ]
+      },
+      "minProperties": 1,
+      "title": "玩家输入词 → 性别 id",
+      "description": "实测 8 键（中文 / 英文 / 符号并存）；值只有 `male` / `female` 两种。"
+    }
+  }
+}
