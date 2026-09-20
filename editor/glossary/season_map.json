@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "season": {
+      "zh": "季节 id",
+      "note": "实测：1/2/12 = winter，3~5 = spring，6~8 = summer，9~11 = autumn。"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "name": {
+      "zh": "别名原样",
+      "note": "与外层键等值（实测 17/17）；编辑器按条目名展示。"
+    },
+    "value": {
+      "zh": "装备部位 id",
+      "note": "玩家输入归一后的内部部位 id。实测 7 个取值：`armor` / `boots` / `helm` / `legs` / `necklace` / `ring` / `weapon` = `content/catalog_b143.EQUIP_SLOTS` 的 id 集。"
+    }
+  }
+}

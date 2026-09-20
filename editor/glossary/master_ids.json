@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "keys": {
+      "zh": "导师 NPC id",
+      "note": "实测 8 条，序 = 表内序；与 npcs 域的 NPC id 同面。"
+    }
+  }
+}
