@@ -1035,6 +1035,26 @@ def _we_value_diff() -> list:
     return out
 
 
+# ★ 有意差异登记（T14 第 2 轮 · 2026-09-20）：`contract:content/apply.py` 是「装配契约」文件
+#   sha —— 本轮只在该文件的**装配点**多挂两条 hook（`recover_model_fn` / `recover_base_fn`
+#   = 引擎第二段（收招）注入面；数值全 0 ⇒ 战斗行为逐字节不变），语义与 U1-D2 盯的东西无关。
+#   同构既有 `_ECONOMY_DB_SHA_INTENT` / `_AUX_SHA_INTENT`（T4 第 4 轮起）：**不重采**，
+#   登记表写清 old（冻结基准）→ new（实跑值），并断言 new 就是当前实跑 sha。
+#   ⚠ 若将来合法重采（`_u1d2_triggers_gen.py --emit-aux`），本登记须同步移除或改值。
+_AUX_SHA_INTENT = {
+    'contract:content/apply.py': (
+        '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
+        '26886d9033864e77c2ceaae159cd5876a90de7de2a814ff5422187f031f60bb2',
+    ),
+}
+
+
+def _aux_expected(k: str) -> str:
+    """该 aux 项「当前口径」的值：有意差异登记优先，其余 = `_PIN['aux']` 冻结基准。"""
+    it = _AUX_SHA_INTENT.get(k)
+    return it[1] if it else _PIN["aux"][k]
+
+
 def test_aux():
     print("【9. aux 指纹：4 张数据表 + 装配契约 + 引擎侧（读 base/pkg 基线）】")
     aux = _PIN.get("aux") or {}
@@ -1047,8 +1067,14 @@ def test_aux():
     check("★ D2：we_data.py 活表 == base/pkg 搬前字面量表（键序/值/类型逐名相等，diff 空）",
           not badv, badv[:3])
     badc = [k for k, want in aux.items() if k.startswith("contract:")
-            and want != _file_sha(k.split(":", 1)[1])]
-    check("`content/apply.py` sha256 == aux（装配契约未被本线动过）", not badc, badc)
+            and _aux_expected(k) != _file_sha(k.split(":", 1)[1])]
+    check("`content/apply.py` sha256 == aux（有意差异登记优先：装配契约只多挂两条 hook）",
+          not badc, badc)
+    check("★ 有意差异登记自洽（旧值 = 冻结基准 · 新值 = 实跑值 · 条数恒 1）",
+          len(_AUX_SHA_INTENT) == 1
+          and all(k in aux and old == aux[k] and new == _file_sha(k.split(":", 1)[1])
+                  for k, (old, new) in _AUX_SHA_INTENT.items()),
+          _AUX_SHA_INTENT)
     bade = []
     for k, want in aux.items():
         if k.startswith("engine:"):

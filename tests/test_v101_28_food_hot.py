@@ -173,7 +173,7 @@ _e2 = _mk2(uid="e_0", name="野狗", side="enemy", kind="monster", level=1,
            **{"def": 0, "mdef": 0})
 _b2 = _B2(btype="monster", sides={"player": [_p2], "enemy": [_e2]})
 from content.mech.item_use import translate as _tr_food
-_l2, _c2 = _tr_food(_b2, _p2, "buff:food_def_up")
+_l2, _c2, _r2 = _tr_food(_b2, _p2, "buff:food_def_up")
 check("料理播报(非'饮下战斗药水')", any("吃下了料理" in str(l) for l in (_l2 or [])), str(_l2)[:120])
 
 # ---- 7. food_effect 效果料理 ----

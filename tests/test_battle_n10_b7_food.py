@@ -64,7 +64,7 @@ def mk_enemy(hp=99999, name="测试怪", atk=1, matk=1, **kw):
 
 
 def eat_food(battle, actor, aids):
-    """走 battle_item_use.translate 吃料理（真实入口），返回 (logs, cast)。"""
+    """走 battle_item_use.translate 吃料理（真实入口），返回 (logs, cast, recover)。"""
     from content.mech.item_use import translate
     return translate(battle, actor, f"foodfx:{','.join(aids)}")
 
@@ -82,7 +82,7 @@ def test_snake_soup_lifesteal():
     # 怪 atk 要能打穿 50 防（默认 atk=1 打不动满血战士 → 吸血无空间，并发下测试失效）
     e = mk_enemy(atk=300)
     b = B2(btype="monster", sides={"player": [p], "enemy": [e]})
-    logs, cast = eat_food(b, p, ["lifesteal"])
+    logs, cast, recover = eat_food(b, p, ["lifesteal"])
     check("吃料理播报", any("蛇羹" in x or "吸血" in x for x in (logs or [])),
           f"logs={logs}")
     check("triggers 挂 skill_hit", any(
@@ -212,7 +212,7 @@ def test_sacred_bread_shield():
     p = mk_fighter()
     e = mk_enemy()
     b = B2(btype="monster", sides={"player": [p], "enemy": [e]})
-    logs, cast = eat_food(b, p, ["shield"])
+    logs, cast, recover = eat_food(b, p, ["shield"])
     check("盾已上（shields 容器）", bool(p.get("shields") or {}),
           f"shields={p.get('shields')}")
 
@@ -298,7 +298,7 @@ def test_translation_table_full():
                 "element_ice", "pierce", "charge", "static", "counter",
                 "thorns", "aurora_guard", "regen", "meditate", "dawn_crown",
                 "execute", "precise", "shield", "dragon_tongue"]
-    logs, cast = eat_food(b, p, all_aids)
+    logs, cast, recover = eat_food(b, p, all_aids)
     check("吃全表不崩且播报", bool(logs), f"logs={logs}")
     tr = p.get("triggers") or {}
     hit_n = len([x for x in tr.get("skill_hit", []) if str(x.get("key")).startswith("food_")])
