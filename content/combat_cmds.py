@@ -2546,7 +2546,7 @@ def _handle_victory(self, event, group_id, qq_id, player, monster, result, extra
     """击败怪物：经验/金币/掉落/任务进度（P4-9 壳，async generator 语义保留）
 
     v181.P4-9（方案 A）：1803–2201 段纯同步结算已随迁 services.battle_settlement.victory_settle
-    （等级差曲线/组队/公会/宠物/坐骑/世界事件/运势/统计声望/图纸/装备/蛋/缰绳/符文/原石/
+    （等级差曲线/组队/公会/宠物/坐骑/世界事件/运势/统计声望/图纸/装备/蛋/缰绳/符文/宝石/
     符文收益/护符/材料/求知/exp 落库重读/rule_fire(battle_win,win)/进度条面板行骨架）；
     命令层保留 async generator yield 流（v3.4 铁律）+ 战斗锁解锁/清战斗 + 2202–2297 段
     （公会任务推进/升级/quest 进度/野王广播/塔卫/成就/rule 公告/下一步指引/收尾行）。

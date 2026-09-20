@@ -525,8 +525,8 @@ def roll_rune_drop(host, group_id, qq_id, monster):
 
 @_host_tolerant
 def roll_gem_drop(host, group_id, qq_id, monster):
-    """v136 原石随机掉落（Phase 2 定稿：普通 2% / 精英 5% / 野外 Boss 15% / 副本 Boss 20%）。
-    命中 1 颗随机原石（layer 范围按怪档查 GEM_DROP_TIER；Boss 专属固定属性倾向查
+    """v136 宝石随机掉落（Phase 2 定稿：普通 2% / 精英 5% / 野外 Boss 15% / 副本 Boss 20%）。
+    命中 1 颗随机宝石（layer 范围按怪档查 GEM_DROP_TIER；Boss 专属固定属性倾向查
     GEM_BOSS_FIXED[怪物名]——裂鬃=pene_phys 破甲等）。掉落只吃 1 次 random.random()
     （roll_gem_drop 内部命中判定），不破坏存量战斗回归的随机序列（v103 确定性铁律）。
     不掉 999 上限：与材料/图纸同逻辑，正常随机 1 颗入包（key gem_<uuid8>）。"""
@@ -823,7 +823,7 @@ def victory_settle(host, group_id, qq_id, player, monster, result, extra_kills=N
     mount_line = roll_mount_drop(host, group_id, qq_id, monster)
     # ---- 段13 符文 ----
     rune_line = roll_rune_drop(host, group_id, qq_id, monster)
-    # ---- 段14 原石 ----
+    # ---- 段14 宝石 ----
     gem_line = roll_gem_drop(host, group_id, qq_id, monster)
     # ---- 段15 符文收益 ----
     exp, gold = rune_income(host, group_id, qq_id, player, exp, gold)

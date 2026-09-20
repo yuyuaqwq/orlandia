@@ -272,7 +272,7 @@ def validate_gather_cond():
 #   白(垃圾)/0% · 绿 2% · 蓝 5% · 紫(含陈旧的宝箱) 15% · 鱼王/橙 30%
 #   彩蛋收藏鱼命中 → 必给惊喜且升级「传说档」（必橙装）
 # 惊喜内容池（按玩家等级合理出，克制不膨胀）：图纸 30% / 装备 25% / 稀有符文 20% /
-# 原石宝石 15% / 罕见材料 10%。档位互斥、一杆最多一条惊喜；命中触发但内容池意外全空时
+# 宝石 15% / 罕见材料 10%。档位互斥、一杆最多一条惊喜；命中触发但内容池意外全空时
 # 静默跳过（不喧宾夺主，也不造一句假惊喜）。
 FISHING_SURPRISE_TRIGGER = {  # 鱼获品质 → 惊喜触发率
     "white": 0.0, "green": 0.02, "blue": 0.05, "purple": 0.15, "orange": 0.30,
@@ -892,10 +892,10 @@ def fishing_surprise_fn(group_id, qq_id, player, fish, force_legend=False):
                             f"rune_{r_def['effect']}_{rune_data['lvl']}", rune_data)
                 return (_T.text("fish.sv_rune", name=rune_data['name']))
         roll = FISHING_SURPRISE_RUNE  # 蓝紫符文池空 → 落入宝石档，不额外吃随机
-    if roll < FISHING_SURPRISE_GEM:     # 原石宝石档 15%（必给 1 颗原石，层数 1-6）
+    if roll < FISHING_SURPRISE_GEM:     # 宝石档 15%（必给 1 颗宝石，层数 1-6）
         # roll_gem_drop 带 normal 2% 底率——宝石惊喜档命中了却大概率空手（98% miss 会
         # 顺落罕见材料档，实测材料占比 24.7% 膨胀 2.5 倍）。改为：优先 roll_gem_drop
-        # （对照 instance.py 原石掉落写法），未命中直接 roll_gem 兜底——宝石档=必给原石。
+        # （对照 instance.py 宝石掉落写法），未命中直接 roll_gem 兜底——宝石档=必给宝石。
         _gem = C.roll_gem_drop({"lv": lv, "is_boss": False, "name": fish.get("name", "")},
                                boss_fixed={})
         if not _gem:

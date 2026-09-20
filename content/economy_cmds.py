@@ -437,7 +437,7 @@ def _render_equip(d, lines, equipped):
         info = _cit.ENHANCE_TABLE.get(enh)
         # v104R3 M11 P3-6：括号前补空格（数值+两侧空格排版），× 倍率防误读为 +136%
         lines.append(_T.text("item.eq_enh_mult", enh=enh, mult=info['mult']) if info else _T.text("item.eq_enh", enh=enh))
-    # v136 原石孔位展示
+    # v136 宝石孔位展示
     _socks = d.get("sockets") or {}
     if _socks:
         _sock_lines = []
@@ -2771,7 +2771,11 @@ class EconomyImpl(CommandBase):
         C.check_achievements(group_id, qq_id, player)
         yield event.plain_result("\n".join(lines))
 
-    # ================= v136 原石系统：打孔/镶嵌/拆卸/合成/查看 =================
+    # ================= v136 宝石系统：打孔/镶嵌/拆卸/合成/查看 =================
+    # ★ T13-②：宝石判定 = 只认 `gem` 标记（`gems.py::roll_gem` / `gem_combine` 恒带），
+    #   历史 type 值（『宝石』『幸运宝石』）双值残留已删净 —— 实测生产库该形状 **0 行**
+    #   （2026-09-20 只读探针：`qqbot/data/data_v4.db` · `qqbot/game_data.db` 全表无
+    #   『宝石』／『幸运宝石』）；将来若要导入 v136 早期存档，兼容**只在下述三处筛选里加**。
 
     def _gem_find_equip(self, group_id, qq_id, player, item_name):
         """查找装备目标（背包连续编号 + 背包名匹配 + 已装备槽位，与强化/升级同语义）。
@@ -2801,7 +2805,7 @@ class EconomyImpl(CommandBase):
         return None, _T.text("gem.no_equip", name=item_name)
 
     def _gem_find_gem(self, group_id, qq_id, raw):
-        """按 名称子串/背包序号 找背包里的原石（type=原石 或 gem=True）。
+        """按 名称子串/背包序号 找背包里的宝石（type=宝石 或 gem=True）。
 
         返回 (gem_item, err)：gem_item 含 key/data/count，失败时 (None, 提示)。
         """
@@ -2809,7 +2813,7 @@ class EconomyImpl(CommandBase):
         if not raw:
             return None, _T.static("gem.pick_usage")
         gems = [it for it in db.get_inventory(group_id, qq_id)
-                if it["data"].get("gem") or it["data"].get("type") in ("原石", "幸运宝石")]
+                if it["data"].get("gem")]
         if raw.isdigit():
             idx = int(raw)
             if idx < 1 or idx > len(gems):
@@ -2824,7 +2828,7 @@ class EconomyImpl(CommandBase):
     @require_player()
 
     async def gem_drill(self, event: AstrMessageEvent):
-        """v136 原石系统：『打孔 <装备名/序号>』——铁匠铺为蓝/紫/橙装打出 S1/S2/S3 孔位。
+        """v136 宝石系统：『打孔 <装备名/序号>』——铁匠铺为蓝/紫/橙装打出 S1/S2/S3 孔位。
 
         费用+锻造副业门槛查 GEM_DRILL（蓝 500 金/锻造 Lv.1，紫 1500/Lv.3，橙 4000/Lv.5）；
         白/绿装无孔位；已有孔位无需再打（防重复扣费）。
@@ -2893,10 +2897,10 @@ class EconomyImpl(CommandBase):
     @require_player()
 
     async def gem_socket(self, event: AstrMessageEvent):
-        """v136 原石系统：『镶嵌 <装备名> <原石名/序号> [孔位]』——把原石镶入装备孔位。
+        """v136 宝石系统：『镶嵌 <装备名> <宝石名/序号> [孔位]』——把宝石镶入装备孔位。
 
-        孔位可选（默认第一个空孔）；原石层数须在孔位层数范围（GEM_SOCKETS[quality]）；
-        孔位已占/无空孔/层数超范围均拦截。原石扣出背包，写 sockets[孔位]=原石 dict。
+        孔位可选（默认第一个空孔）；宝石层数须在孔位层数范围（GEM_SOCKETS[quality]）；
+        孔位已占/无空孔/层数超范围均拦截。宝石扣出背包，写 sockets[孔位]=宝石 dict。
         """
         group_id, qq_id = self._uid(event)
         raw = self._strip_cmd(event, "镶嵌")
@@ -2974,9 +2978,9 @@ class EconomyImpl(CommandBase):
     @require_player()
 
     async def gem_remove(self, event: AstrMessageEvent):
-        """v136 原石系统：『拆卸 <装备名> <孔位>』——铁匠铺拆下孔位里的原石。
+        """v136 宝石系统：『拆卸 <装备名> <孔位>』——铁匠铺拆下孔位里的宝石。
 
-        拆卸费 500×原石层数（GEM_REMOVE_COST × tier）；原石回背包（key=gem_<uuid8>）。
+        拆卸费 500×宝石层数（GEM_REMOVE_COST × tier）；宝石回背包（key=gem_<uuid8>）。
         """
         group_id, qq_id = self._uid(event)
         raw = self._strip_cmd(event, "拆卸")
@@ -3025,22 +3029,22 @@ class EconomyImpl(CommandBase):
     @require_player()
 
     async def gem_combine(self, event: AstrMessageEvent):
-        """v136 原石系统：『原石合成 [原石名/序号]』——3 个同级原石 → 1 个上级。
+        """v136 宝石系统：『宝石合成 [宝石名/序号]』——3 个同级宝石 → 1 个上级。
 
-        无参 → 列出背包里可合成的原石（按 tier 分组）；带参 → 消耗 3 个同名同级原石合成；
+        无参 → 列出背包里可合成的宝石（按 tier 分组）；带参 → 消耗 3 个同名同级宝石合成；
         传说II(tier=10) 无法再合成。
         """
         group_id, qq_id = self._uid(event)
-        raw = self._strip_cmd(event, "原石合成")
+        raw = self._strip_cmd(event, "宝石合成")
         player = self._player(group_id, qq_id)
         if not self._at_smith(player):
             yield event.plain_result(_T.static("gem.combine_need_smith"))
             return
         items = db.get_inventory(group_id, qq_id)
         gems = [it for it in items
-                if it["data"].get("gem") or it["data"].get("type") in ("原石", "幸运宝石")]
+                if it["data"].get("gem")]
         if not raw:
-            # 无参：列出可合成原石（按 tier 分组，≥3 颗可合成）
+            # 无参：列出可合成宝石（按 tier 分组，≥3 颗可合成）
             by_tier = {}
             for it in gems:
                 by_tier.setdefault(it["data"].get("tier", 0), []).append(it)
@@ -3072,7 +3076,7 @@ class EconomyImpl(CommandBase):
         if tier >= 10:
             yield event.plain_result(_T.text("gem.combine_max", name=gd['name']))
             return
-        # 统计同 tier 全部原石数量（跨堆）
+        # 统计同 tier 全部宝石数量（跨堆）
         same_tier = [it for it in gems if it["data"].get("tier") == tier]
         total = sum(it["count"] for it in same_tier)
         if total < 3:
@@ -3096,11 +3100,11 @@ class EconomyImpl(CommandBase):
     @require_player()
 
     async def gem_view(self, event: AstrMessageEvent):
-        """v136 原石系统：『原石』——查看背包全部原石（名称/层数/属性/孔位需求）。"""
+        """v136 宝石系统：『宝石』——查看背包全部宝石（名称/层数/属性/孔位需求）。"""
         group_id, qq_id = self._uid(event)
         items = db.get_inventory(group_id, qq_id)
         gems = [it for it in items
-                if it["data"].get("gem") or it["data"].get("type") in ("原石", "幸运宝石")]
+                if it["data"].get("gem")]
         if not gems:
             yield event.plain_result(
                 _T.static("gem.view_none"))
@@ -3237,7 +3241,7 @@ class EconomyImpl(CommandBase):
         附魔槽 enchant 列表里 effect 项即符文（与属性附魔 stat 项区分）：
         按 装备名(序号/子串/已装备) 匹配装备 → 拆最后一段符文（默认）或 <孔位> 指定第 N 个符文效果。
         手续费 1000×符文等级（C.RUNE_REMOVE_COST × lvl）；回收 符文碎片×等级。
-        （原石走『拆卸 <装备> <孔位>』500×层数，两命令并行不冲突。）
+        （宝石走『拆卸 <装备> <孔位>』500×层数，两命令并行不冲突。）
         """
         group_id, qq_id = self._uid(event)
         raw = self._strip_cmd(event, "符文拆卸")
@@ -3446,7 +3450,7 @@ class EconomyImpl(CommandBase):
         else:  # half
             new_equip["enhance"] = (d.get("enhance", 0) or 0) // 2
             new_equip["lv"] = new_equip.get("lv", 0) + _upg_boost // 2
-        # 原石/炼成不继承（新装备重新追求）
+        # 宝石/炼成不继承（新装备重新追求）
         import uuid
         key = f"eq_{uuid.uuid4().hex[:8]}"
         db.add_item(group_id, qq_id, key, new_equip)

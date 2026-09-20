@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""奥兰迪亚·余烬纪年内容包 —— 原石系统核心逻辑（B13-L1 端口，2026-09-14）。
+"""奥兰迪亚·余烬纪年内容包 —— 宝石系统核心逻辑（B13-L1 端口，2026-09-14）。
 
 真源：游戏仓 `game/core/gems.py`（163 行）**逐字端口**。宿主同名文件已改薄壳。
 
@@ -18,12 +18,12 @@
 
 
 # -*- coding: utf-8 -*-
-"""奥兰迪亚·余烬纪年核心层 - gems.py（v136 原石系统核心逻辑）
+"""奥兰迪亚·余烬纪年核心层 - gems.py（v136 宝石系统核心逻辑）
 
-原石=怪猎护石式随机属性+伊甸属性绑定：
+宝石=怪猎护石式随机属性+伊甸属性绑定：
 - roll_gem：随机 1-2 属性 × 随机层数（属性值 = 层数 mult），Boss 可固定属性倾向
 - gem_combine：3 同级（同 tier）→ 1 个 tier+1，无失败（调用方负责游戏内校验）
-- gem_socket_cost：原石拆卸费 = 500 × max(stats 层数)
+- gem_socket_cost：宝石拆卸费 = 500 × max(stats 层数)
 - sockets_capacity：孔位表查询（GEM_SOCKETS[quality]）
 """
 import random
@@ -47,7 +47,7 @@ def _stat_label(stat: str) -> str:
 
 
 def roll_gem(min_tier: int = 1, max_tier: int = 10, boss_fixed: dict | None = None) -> dict:
-    """护石式随机原石。
+    """护石式随机宝石。
 
     - 随机 1-2 个属性（从 GEM_STATS 抽），每属性独立随机层数（min_tier..max_tier）
     - stats 值 = 层数 mult（百分比属性为小数，数值属性也是小数比率——引擎直接加）
@@ -72,7 +72,7 @@ def roll_gem(min_tier: int = 1, max_tier: int = 10, boss_fixed: dict | None = No
             break
         s = random.choice(pool)
         chosen.append(s)
-        pool.remove(s)  # 同一颗原石不重复属性
+        pool.remove(s)  # 同一颗宝石不重复属性
     # 每属性独立随机层数（同属性只存在一次，直接取第一颗的层数）
     stats = {}
     for s in chosen:
@@ -96,10 +96,10 @@ def roll_gem(min_tier: int = 1, max_tier: int = 10, boss_fixed: dict | None = No
 
 
 def roll_gem_drop(monster: dict, boss_fixed: dict | None = None) -> dict | None:
-    """v136 原石随机掉落：胜利结算消费端调用（野外/副本掉落逻辑统一挂这里）。
+    """v136 宝石随机掉落：胜利结算消费端调用（野外/副本掉落逻辑统一挂这里）。
 
     - 按怪物类型查 GEM_DROP_RATE 掉率（normal/elite/field_boss/instance_boss），
-      命中返回 1 颗随机原石（roll_gem），未命中返回 None
+      命中返回 1 颗随机宝石（roll_gem），未命中返回 None
     - 层数范围查 GEM_DROP_TIER；Boss 专属固定属性倾向：boss_fixed（怪物名 → 属性）优先，
       否则查 GEM_BOSS_FIXED[怪物名]（如 野猪王·裂鬃 → pene_phys 破甲倾向）
     - 怪物类型判定：is_boss + map_area == "instance" → instance_boss（副本 Boss），
@@ -142,10 +142,10 @@ def gem_combine(gems: list) -> dict:
     继承 3 颗中最优属性（同属性取最高值），合成后层数 = 原 tier+1。
     """
     if not gems:
-        raise ValueError("gem_combine 需要至少 1 颗原石")
+        raise ValueError("gem_combine 需要至少 1 颗宝石")
     base_tier = gems[0]["tier"]
     if any(g.get("tier") != base_tier for g in gems):
-        raise ValueError("gem_combine 要求 3 颗同级原石")
+        raise ValueError("gem_combine 要求 3 颗同级宝石")
     new_tier = min(base_tier + 1, 10)
     stats = {}
     for g in gems:

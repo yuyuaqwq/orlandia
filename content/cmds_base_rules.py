@@ -93,7 +93,7 @@ REGISTER_HINT = _guards.NO_PLAYER_HINT
 BATTLE_NONE_HINT = _guards.BATTLE_NONE_HINT
 
 #: 框架钩子 `command_aliases`（剥参数时的指令别名；逐字 = 宿主旧 `base.CommandBase.command_aliases`）
-COMMAND_ALIASES = ("我的角色", "位置", "主线", "help")
+COMMAND_ALIASES = ("我的角色", "位置", "主线", "help", "原石合成")
 
 #: 框架钩子 `_tip_pool_map` 的来源（提示语分类库）
 TIP_POOL = TIPS

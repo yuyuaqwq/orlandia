@@ -112,7 +112,7 @@ class _PackageContent:
 
       · `equip:` 引用一律 `None`（`generate_roster_equip` 抛）⇒ 副本 Boss 装备掉落整族消失
         （实测：`test_texts_table` [10] IN16 少 `⚔️ 拾取 Boss 珍藏`、IN20 少 `⚔️/👑` 两行，
-        且 random 消耗位次变化 → 后续图纸/原石档位整片漂移）；
+        且 random 消耗位次变化 → 后续图纸/宝石档位整片漂移）；
       · `roll_drop_equip` / `roll_blueprint` / `roll_gem_drop` 返 `None` ⇒ 精英专属出装、
         垂钓档、暗格装备/符文/蛋五档全抽不出（实测 `test_numeric_drop_unify` 4 条红）。
 

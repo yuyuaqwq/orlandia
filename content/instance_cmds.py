@@ -3040,8 +3040,8 @@ class InstanceImpl:
                 continue
             self._unlock_battle(group_id, m)
         # 通关奖励
-        # H3 修复（2026-09-18）：原石收件人显式跟踪——循环内逐员记录「最后一名存活、在队、
-        # 玩家记录可得」的成员；循环外不再用残留变量 m/p（此前原石可能发给已退队/阵亡者，
+        # H3 修复（2026-09-18）：宝石收件人显式跟踪——循环内逐员记录「最后一名存活、在队、
+        # 玩家记录可得」的成员；循环外不再用残留变量 m/p（此前宝石可能发给已退队/阵亡者，
         # 日志却写另一人名字；全员不可发时还会 NameError 被吞、整颗静默丢失）。
         _gem_to, _gem_to_p = None, None
         for m in IR.roster_of(st).members:
@@ -3053,7 +3053,7 @@ class InstanceImpl:
             p = self._player(group_id, m)
             if not p:
                 continue
-            _gem_to, _gem_to_p = m, p   # H3 修复：原石收件人 = 最后一名存活且在队成员
+            _gem_to, _gem_to_p = m, p   # H3 修复：宝石收件人 = 最后一名存活且在队成员
             gold = inst.get("gold", 100)
             exp = inst.get("exp", 150)
             snap = st["players"][str(m)]
@@ -3134,11 +3134,11 @@ class InstanceImpl:
                     })
                     lines.append(T.text("instance.日志_通关_材料", name=p['name'], mat_name=mname))
         # 贡献最高 → 职业图纸
-        # v136 副本 Boss 原石掉落（Phase 2 定稿：20% 掉 1 颗随机原石，3-10 层；Boss 专属
+        # v136 副本 Boss 宝石掉落（Phase 2 定稿：20% 掉 1 颗随机宝石，3-10 层；Boss 专属
         # 固定属性倾向查 GEM_BOSS_FIXED[boss 名]——深海龙王·敖澜=pene_magi 法穿等）。
         # H3 修复（2026-09-18）：全队单次判定（只吃 1 次 random.random()，不影响副本其余
         # 随机序列），发给上面显式记录的收件人 _gem_to（存活且在队）；无可发对象 → 本次
-        # 命中的原石不发放（不再抛 NameError、也不再写错人/错名）。
+        # 命中的宝石不发放（不再抛 NameError、也不再写错人/错名）。
         gem_drop_line = ""
         try:
             _gem = _roll_gem_drop(boss)

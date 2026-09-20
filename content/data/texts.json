@@ -4844,7 +4844,7 @@
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
   },
   "ency.gem_tip": {
-    "value": "💡 『百科 宝石 <阶名>』看单阶详情（如『百科 宝石 碎裂』）｜『原石』看你背包的宝石",
+    "value": "💡 『百科 宝石 <阶名>』看单阶详情（如『百科 宝石 碎裂』）｜『宝石』看你背包的宝石",
     "category": "世界百科",
     "desc": "搬自 content/economy_cmds.py:_ency_browse_materials/_gems/_runes（B 批 C 档 4）"
   },
@@ -6857,7 +6857,7 @@
     "desc": "搬自 content/profession.py:fishing_surprise_fn（B 批 C 档）"
   },
   "fish.sv_gem": {
-    "value": "\n💎 惊喜！鱼肚子里嵌着一颗【{name}】——原石入包，可『原石』镶嵌到装备孔位！",
+    "value": "\n💎 惊喜！鱼肚子里嵌着一颗【{name}】——宝石入包，可『宝石』镶嵌到装备孔位！",
     "params": [
       "name"
     ],
@@ -7149,7 +7149,7 @@
     "desc": "搬自 content/profession.py:settle_gather（B 批 C 档）"
   },
   "gem.combine_head": {
-    "value": "💎 【原石合成】3 个同级原石 → 1 个上级，无失败！",
+    "value": "💎 【宝石合成】3 个同级宝石 → 1 个上级，无失败！",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
@@ -7171,7 +7171,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
   "gem.combine_need_smith": {
-    "value": "需要到铁匠铺/锻造坊才能合成原石！(先『地图』移动到铁匠铺)",
+    "value": "需要到铁匠铺/锻造坊才能合成宝石！(先『地图』移动到铁匠铺)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
@@ -7195,7 +7195,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
   "gem.combine_tip": {
-    "value": "💡 『原石合成 <原石名/序号>』消耗 3 颗同级宝石合成 1 颗上级(神话 不可再合成)",
+    "value": "💡 『宝石合成 <宝石名/序号>』消耗 3 颗同级宝石合成 1 颗上级(神话 不可再合成)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_combine（B 批 C 档）"
   },
@@ -7240,7 +7240,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_drill（B 批 C 档）"
   },
   "gem.drill_ok": {
-    "value": "🔨 打孔成功！【{name}】现在有 {n} 个孔位({quota})！『镶嵌 {slot_hint} <原石>』放入宝石～",
+    "value": "🔨 打孔成功！【{name}】现在有 {n} 个孔位({quota})！『镶嵌 {slot_hint} <宝石>』放入宝石～",
     "params": [
       "name",
       "n",
@@ -7282,7 +7282,7 @@
     "desc": "搬自 content/economy_cmds.py:_gem_find_equip（B 批 C 档）"
   },
   "gem.no_gem": {
-    "value": "背包里没有『{name}』！『原石』查看背包里的宝石～",
+    "value": "背包里没有『{name}』！『宝石』查看背包里的宝石～",
     "params": [
       "name"
     ],
@@ -7290,7 +7290,7 @@
     "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
   },
   "gem.no_gem_idx": {
-    "value": "背包里没有第 {idx} 颗宝石(共 {total} 颗)！『原石』查看～",
+    "value": "背包里没有第 {idx} 颗宝石(共 {total} 颗)！『宝石』查看～",
     "params": [
       "idx",
       "total"
@@ -7328,7 +7328,7 @@
     "desc": "搬自 content/economy_cmds.py:_gem_find_equip（B 批 C 档）"
   },
   "gem.pick_usage": {
-    "value": "哪颗宝石？输入『原石』查看背包里的宝石～",
+    "value": "哪颗宝石？输入『宝石』查看背包里的宝石～",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:_gem_find_gem（B 批 C 档）"
   },
@@ -7342,12 +7342,12 @@
     "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
   },
   "gem.remove_need_smith": {
-    "value": "需要到铁匠铺/锻造坊才能拆卸原石！(先『地图』移动到铁匠铺)",
+    "value": "需要到铁匠铺/锻造坊才能拆卸宝石！(先『地图』移动到铁匠铺)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_remove（B 批 C 档）"
   },
   "gem.remove_ok": {
-    "value": "🔧 拆卸成功！取回 {gem}，花费 {gold} 金币(已放回背包，『原石』查看～)",
+    "value": "🔧 拆卸成功！取回 {gem}，花费 {gold} 金币(已放回背包，『宝石』查看～)",
     "params": [
       "gem",
       "gold"
@@ -7382,7 +7382,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.socket_need_smith": {
-    "value": "需要到铁匠铺/锻造坊才能镶嵌原石！(先『地图』移动到铁匠铺)",
+    "value": "需要到铁匠铺/锻造坊才能镶嵌宝石！(先『地图』移动到铁匠铺)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
@@ -7396,7 +7396,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.socket_ok": {
-    "value": "💎 镶嵌成功！【{name}】{slot} 镶入 {gem}！『原石』查看背包剩余宝石～",
+    "value": "💎 镶嵌成功！【{name}】{slot} 镶入 {gem}！『宝石』查看背包剩余宝石～",
     "params": [
       "name",
       "slot",
@@ -7418,12 +7418,12 @@
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.socket_usage": {
-    "value": "镶嵌哪颗宝石到哪件装备？输入『镶嵌 <装备名> <原石名/序号> [孔位]』\n如：『镶嵌 铁剑 碎裂的宝石』『镶嵌 铁剑 1』『镶嵌 铁剑 碎裂 S2』(孔位默认第一个空孔)",
+    "value": "镶嵌哪颗宝石到哪件装备？输入『镶嵌 <装备名> <宝石名/序号> [孔位]』\n如：『镶嵌 铁剑 碎裂的宝石』『镶嵌 铁剑 1』『镶嵌 铁剑 碎裂 S2』(孔位默认第一个空孔)",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_socket（B 批 C 档）"
   },
   "gem.tier_combine": {
-    "value": "合成：3 颗『{from_name}』→ 1 颗『{to_name}』（『原石合成』）",
+    "value": "合成：3 颗『{from_name}』→ 1 颗『{to_name}』（『宝石合成』）",
     "params": [
       "from_name",
       "to_name"
@@ -7472,7 +7472,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
   "gem.view_none": {
-    "value": "💎 背包里还没有宝石！打怪有概率掉落宝石～\n💡 『打孔 <装备>』给蓝/紫/橙装开孔，『镶嵌 <装备> <原石>』镶入获得属性！",
+    "value": "💎 背包里还没有宝石！打怪有概率掉落宝石～\n💡 『打孔 <装备>』给蓝/紫/橙装开孔，『镶嵌 <装备> <宝石>』镶入获得属性！",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
@@ -7489,7 +7489,7 @@
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
   "gem.view_tip": {
-    "value": "💡 『镶嵌 <装备> <原石>』镶入装备 ｜ 『原石合成 <原石>』3 合 1 升级 ｜ 『拆卸 <装备> <孔位>』取下",
+    "value": "💡 『镶嵌 <装备> <宝石>』镶入装备 ｜ 『宝石合成 <宝石>』3 合 1 升级 ｜ 『拆卸 <装备> <孔位>』取下",
     "category": "宝石",
     "desc": "搬自 content/economy_cmds.py:gem_view（B 批 C 档）"
   },
@@ -9865,13 +9865,13 @@
     "desc": "通关结算：成员通关奖励行（金币 + 经验）"
   },
   "instance.日志_通关_宝石": {
-    "value": "  💎 {name} 获得宝石：{gem_name}！(『原石』镶嵌到装备孔位)",
+    "value": "  💎 {name} 获得宝石：{gem_name}！(『宝石』镶嵌到装备孔位)",
     "params": [
       "name",
       "gem_name"
     ],
     "category": "副本日志",
-    "desc": "通关结算：Boss 原石掉落行（含镶嵌引导）"
+    "desc": "通关结算：Boss 宝石掉落行（含镶嵌引导）"
   },
   "instance.日志_通关_宠物升级": {
     "value": "，升至 Lv.{lv}！",
@@ -16836,7 +16836,7 @@
     "desc": "搬自 combat_cmds.py:RESOURCE_STACK_CN（B 批 B-1）"
   },
   "rgem": {
-    "value": "💎 获得宝石：{name}！(『原石』镶嵌到装备孔位)",
+    "value": "💎 获得宝石：{name}！(『宝石』镶嵌到装备孔位)",
     "params": [
       "name"
     ],

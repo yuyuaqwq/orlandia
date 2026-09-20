@@ -515,7 +515,7 @@ def open_chest(group_id: str, qq_id: str, map_id: str) -> tuple:
 
 def _roll_chest_rewards(group_id: str, qq_id: str, king: dict, tier: dict,
                         is_loot: bool) -> tuple:
-    """宝箱奖励 roll：图纸保底（战利箱 100% / 公共箱 50%）+ 原石 + 装备 + 符文 + 材料 + 金币。
+    """宝箱奖励 roll：图纸保底（战利箱 100% / 公共箱 50%）+ 宝石 + 装备 + 符文 + 材料 + 金币。
 
     返回 (展示行列表, 是否需广播)。
 

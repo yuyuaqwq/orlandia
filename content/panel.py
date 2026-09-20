@@ -315,9 +315,9 @@ def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int 
             k, v = en.get("stat"), en.get("value", 0)
             if k in STAT_NAMES:
                 item_src[k] = item_src.get(k, 0) + v
-        # v136 原石系统：孔位里镶嵌的原石属性加成（stats 值=百分比/数值，直接加）
+        # v136 宝石系统：孔位里镶嵌的宝石属性加成（stats 值=百分比/数值，直接加）
         # sockets: {孔位1: gem_dict, 孔位2: gem_dict, ...}，gem_dict 形如 {"stats": {"atk": 0.01}, ...}
-        # 原石 stats 键全在 STAT_NAMES 面板属性内；百分比/数值统一直接加，
+        # 宝石 stats 键全在 STAT_NAMES 面板属性内；百分比/数值统一直接加，
         # 后续 PENE_PCT_STATS/PCT_STATS 分支统一处理 cap（见下方汇总循环）
         for _gk, _gv in (item.get("sockets") or {}).items():
             if not isinstance(_gv, dict):
