@@ -51,9 +51,15 @@ async def main():
 
     print("【4. find 条件探索事件】")
     # 错误地图不触发（v101.19c 确定性修复：探索事件随机给金币/经验/战斗，前后重置消除污染）
+    # ★ T11（2026-09-20）确定性修复：原断言含 `handled is True` —— 它依赖「常规探索事件随机触发」，
+    #   而常规池里 `merchant`（权重 1/487）的模板在本架构下未注册（该次返回 (False, "")）⇒ 偶发假红
+    #   （实测 400 次 1 红 ≈0.25%）。改为：① 直核 find 判定口（错误地图恒返回 None，与随机无关）；
+    #   ② 再走组合入口，只断言「文本不含目标名」这条确定性性质。
     db.update_player("g1", "w1", gold=50, exp=0, cur_map="oak_plain", cur_subarea="")
-    handled, ev_text = m._handle_explore_event("g1", "w1", db.get_player("g1", "w1"), C.MAP_BY_ID["oak_plain"])
-    check("错误地图不触发(正常事件)", handled is True and "虎斑" not in str(ev_text), str(ev_text)[:200])
+    _wrong = m._roll_find_quest_events("g1", "w1", db.get_player("g1", "w1"), C.MAP_BY_ID["oak_plain"])
+    check("错误地图不触发(find 判定口)", not _wrong, str(_wrong)[:200])
+    _handled, ev_text = m._handle_explore_event("g1", "w1", db.get_player("g1", "w1"), C.MAP_BY_ID["oak_plain"])
+    check("错误地图探索文本不含虎斑", "虎斑" not in str(ev_text), str(ev_text)[:200])
     _p0 = db.get_player("g1", "w1")
     db.update_player("g1", "w1", gold=50, exp=0, hp=_p0["max_hp"], mp=_p0["max_mp"])
     qs = db.get_quests("g1", "w1")
