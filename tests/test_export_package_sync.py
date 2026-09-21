@@ -232,7 +232,12 @@ FROZEN_COUNTS = {
     # ★ C 档 21b（商店·买卖，35 新键 / 52 处替换，17 处同值幂等复用）⇒ 2173 → 2208
     #     · buy 名称路径 8 新键（shop.gold_short / buy_ok / equip_one … 共 17 处同值复用 21a 键）
     #     · sell 全分支 27 新键（新分类 商店出售）
-    "commands": 196, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
+    # ★ T12 第 3 轮「有意差异登记」（不重采）：commands 196 → 195 —— 本账取的是**编辑器口径**
+    #   （`editor.packages.domain_status().count`），该口径排除**私有 `_` 前缀键**（`_maint_gate`
+    #   = 平台停服 gate，不是指令；项目既有约定见 `tests/_engine_harness.py:379` /
+    #   `test_command_parse.py:28` / `test_v1304_use_batch.py:29`）。文件顶层仍是 **196 键**
+    #   （`content/data/commands.json`），本轮只统一「私有键不算条目」的口径，不改数据、不改指令行为。
+    "commands": 195, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
     "achievements": 119, "item_templates": 99, "effect_rules": 85, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
     "pets": 16, "runes": 16, "passive_proc": 42, "dialogues": 39, "titles": 68,

@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "keys": {
+      "zh": "可选属性名（有序）",
+      "note": "装备可选属性白名单，**顺序即源插入序**（读口 `orders_of` 保序）。实测 14 项：lifesteal / crit_dmg / block / thorns / phys_reduce / magic_reduce / lifesteal_phys / lifesteal_magi / summon_power / pene_flat / pene_mflat / pene_phys / pene_magi / tenacity。"
+    }
+  }
+}

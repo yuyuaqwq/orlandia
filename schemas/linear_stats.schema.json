@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/linear_stats.schema.json",
+  "title": "线性成长属性（linear_stats）—— 一段 = 面板线性成长属性名的清单",
+  "description": "真源 = 包内 `content/rules/linear_stats.json`（D7 批，原 `content/mech/params.py` 内联 tuple 搬入，谱系 `game/data/base_growth.py::PLAYER_BASE_GROWTH`）。读口 = `content/mech/params.py:114` `domain_section(\"linear_stats\", \"LINEAR_STATS\").get(\"keys\")` + `:117` —— `keys` 缺失/非非空数组 ⇒ fail-closed 点名。另 `content/catalog_rules.py:396-400` 把 `panel_rules.json` 里的 `linear_stats` 组还原成 tuple。消费 = 面板逐级线性成长属性的循环键集（`content/panel.py:65-67`）。实测 1 段 / `keys` 7 项。",
+  "x-primary": "linear_stats_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Z][A-Z0-9_]*$",
+    "description": "键 = 段名（实测 1 键：LINEAR_STATS —— 读口按这个段名取 `keys`）。"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/linear_stats_group"
+  },
+  "$defs": {
+    "linear_stats_group": {
+      "type": "object",
+      "title": "线性成长属性清单（一段）",
+      "description": "`{keys: [...]}` 单字段；keys = 属性名数组。",
+      "required": [
+        "keys"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "keys": {
+          "type": "array",
+          "title": "线性成长属性名",
+          "description": "面板按级线性成长的属性集（读口要求非空数组，否则装载期点名报错）。实测 7 项：hp / mp / atk / def / matk / mdef / spd。",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

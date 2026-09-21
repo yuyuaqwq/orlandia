@@ -92,8 +92,8 @@
   "text_specs": {
     "label": "文案真源",
     "kind": "data",
-    "schema": null,
-    "primary": null,
+    "schema": "text_specs.schema.json",
+    "primary": "text_spec",
     "icon": "💬",
     "owner": "engine",
     "tier": "fixed"
@@ -695,8 +695,8 @@
   "optional_stats": {
     "label": "可选属性词表",
     "kind": "rules",
-    "schema": null,
-    "primary": null,
+    "schema": "optional_stats.schema.json",
+    "primary": "optional_stats_group",
     "icon": "🎛️",
     "owner": "package",
     "tier": "portable"
@@ -704,8 +704,8 @@
   "dot_max_trigger": {
     "label": "DOT 触发上限档位表",
     "kind": "rules",
-    "schema": null,
-    "primary": null,
+    "schema": "dot_max_trigger.schema.json",
+    "primary": "dot_max_entry",
     "icon": "☠️",
     "owner": "package",
     "tier": "portable"
@@ -740,8 +740,8 @@
   "mech_cash": {
     "label": "机制兑现声明",
     "kind": "rules",
-    "schema": null,
-    "primary": null,
+    "schema": "mech_cash.schema.json",
+    "primary": "mech_cash_entry",
     "icon": "💰",
     "owner": "package",
     "tier": "portable"
@@ -776,8 +776,8 @@
   "affix_feature_rules": {
     "label": "词缀特性规则",
     "kind": "rules",
-    "schema": null,
-    "primary": null,
+    "schema": "affix_feature_rules.schema.json",
+    "primary": "affix_feature_rule",
     "icon": "💠",
     "owner": "package",
     "tier": "fixed"
@@ -785,8 +785,8 @@
   "passive_stat_apply": {
     "label": "被动属性施加",
     "kind": "rules",
-    "schema": null,
-    "primary": null,
+    "schema": "passive_stat_apply.schema.json",
+    "primary": "passive_stat_rule",
     "icon": "🌀",
     "owner": "package",
     "tier": "fixed"
@@ -857,8 +857,8 @@
   "linear_stats": {
     "label": "线性成长属性",
     "kind": "rules",
-    "schema": null,
-    "primary": null,
+    "schema": "linear_stats.schema.json",
+    "primary": "linear_stats_group",
     "icon": "📈",
     "owner": "package",
     "tier": "portable"

@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "value": {
+      "zh": "归类关键词表",
+      "note": "命中即归入该标签的关键词（词条 trigger/effect 的子串）；读口还原成元组后按 `for label, keys in …` 迭代。实测长度 2~6，全为字符串，如 `[\"lifesteal\", \"lifesteal_phys\", \"lifesteal_magi\", \"thirst_phys\", \"thirst_magi\", \"血\"]`。"
+    }
+  }
+}

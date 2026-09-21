@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/mech_cash.schema.json",
+  "title": "机制兑现声明（mech_cash）—— 一条 = 一个职业机制 id → 兑现参数",
+  "description": "真源 = 包内 `content/rules/mech_cash.json`。读口 = `content/mech/class_data.py:136` `_domain(\"mech_cash\", _ORDER_MECH_CASH)`（`content/mech/class_data.py:11` 表列第 3 行），序声明 = `content/mech/class_data.py:69` `orders_of(_PKG_ROOT, \"mech_cash\", domain=\"key_order\")`（= `content/data/key_order.json` 的 `mech_cash` 段）。消费 = `content/class_mech.py` 的「机制兑现」执行器族（按 `mode` 分支：层数满/资源满时结算伤害倍率、治疗、狂暴进入…），把 §mech_cash 段填进效果 dict / 动作 params（`content/mech/class_data.py:49`）。★ 字段随 `mode` 取值而变 —— 本 schema 的必填只收**公共骨架**（name + mode，实测 9/9 都有），其余字段按 mode 声明为可选（字段名与类型全部实测得来，不发明）。实测 9 条 / 7 种字段组合；mode 实测 5 种：dmg_mult_clear（3）· dmg_mult_clear_target（3）· per_system_clear_target（1）· heal_clear（1）· fury_enter（1）。",
+  "x-primary": "mech_cash_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = 机制 id（ascii 小写下划线，实测 9/9 合规：arcane_burst / element_burst_3 / element_burst_all / faith_unload / finisher / guard_core_burst / poison_burst / poison_burst_finisher / zhan_yi_fury）；**键序真源 = `content/data/key_order.json` 的 `mech_cash` 段**（读口 `orders_of`）。"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/mech_cash_entry"
+  },
+  "$defs": {
+    "mech_cash_entry": {
+      "type": "object",
+      "title": "一个职业机制的兑现参数",
+      "description": "name + mode 必有；其余字段按 mode 可选（见各字段说明里的实测条数）。",
+      "required": [
+        "name",
+        "mode"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "机制显示名",
+          "description": "兑现提示里展示的机制名（实测 9/9 非空：燃尽 / 元素裁决 / 元素迸发 / 卸负 / 终结技 / 磐核 / 荆棘爆 / 毒爆 / 狂暴）。",
+          "minLength": 1
+        },
+        "mode": {
+          "type": "string",
+          "title": "兑现模式",
+          "description": "决定哪些字段参与结算（执行器按它分支；引擎不认识具体词，取值由内容侧声明）。实测 5 种：dmg_mult_clear · dmg_mult_clear_target · per_system_clear_target · heal_clear · fury_enter。",
+          "minLength": 1
+        },
+        "key": {
+          "type": [
+            "string",
+            "array"
+          ],
+          "title": "层/资源键",
+          "description": "被兑现的层名或资源名；可为单个字符串或字符串数组（实测 8/9 有 —— 6 条单键、2 条三键（元素印记 fire_mark / ice_mark / thunder_mark）；`zhan_yi_fury` 无该键、走 `res`）。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "per_layer": {
+          "type": "number",
+          "title": "每层倍率",
+          "description": "按层数计的单层倍率（实测 6 条：0.1 / 0.12 / 0.14 / 0.15 / 0.15 / 0.7）。"
+        },
+        "per_system": {
+          "type": "number",
+          "title": "每体系倍率",
+          "description": "按体系计的单体系倍率（实测仅 element_burst_3 = 0.2）。"
+        },
+        "amount": {
+          "type": "integer",
+          "title": "数量",
+          "description": "固定数量（实测仅 faith_unload 卸负 = 3）。",
+          "minimum": 1
+        },
+        "clear": {
+          "type": "boolean",
+          "title": "是否清空层",
+          "description": "兑现后是否清空该层（实测 7/9 为 true）。"
+        },
+        "clear_extra": {
+          "type": "array",
+          "title": "额外清理项",
+          "description": "要一并清掉的旁支层（元素为 `{owner, key}` 对象）。嵌套结构随内容变化，字段名不当表单字段展开（编辑器退回 JSON 档编辑）。"
+        },
+        "upgrade": {
+          "type": "object",
+          "title": "升级参数",
+          "description": "兑现参数的追加升级（实测仅 finisher：`{proc, per_layer_add}`）。嵌套结构随内容变化，字段名不当表单字段展开（编辑器退回 JSON 档编辑）。"
+        },
+        "crit_at": {
+          "type": "integer",
+          "title": "暴击层阈值",
+          "description": "达到该层数时兑现按暴击结算（实测仅 finisher = 4）。",
+          "minimum": 1
+        },
+        "layer_label": {
+          "type": "string",
+          "title": "层显示名",
+          "description": "该机制层的展示名（实测 7 条：奥术充能 / 元素印记 / 连段 / 磐核 / 毒）。"
+        },
+        "unit": {
+          "type": "string",
+          "title": "层单位",
+          "description": "层数的量词（实测 3 条：层 / 层 / 枚）。"
+        },
+        "icon": {
+          "type": "string",
+          "title": "图标",
+          "description": "兑现提示里的 emoji（实测 8/9）。"
+        },
+        "label": {
+          "type": "string",
+          "title": "资源标签",
+          "description": "资源侧的展示名（实测仅 zhan_yi_fury = 血祭）。"
+        },
+        "res": {
+          "type": "string",
+          "title": "资源键",
+          "description": "资源名（实测仅 zhan_yi_fury = zhan_yi；该条无 `key`，改由它带出被兑现的资源）。"
+        },
+        "note": {
+          "type": "string",
+          "title": "实现备注",
+          "description": "设计侧备注（实测仅 faith_unload：`兑现走 skills.py sk_xie_fu res_cost={faith:3} + kind=治疗 heal_formula`）。"
+        }
+      }
+    }
+  }
+}

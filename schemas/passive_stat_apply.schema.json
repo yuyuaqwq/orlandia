@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/passive_stat_apply.schema.json",
+  "title": "被动属性施加（passive_stat_apply）—— 一条 = 一个 stat → 面板修正三元组",
+  "description": "真源 = 包内 `content/rules/passive_stat_apply.json`（D5 批，原 `content/panel.py` 20 行映射表搬入，装载期 fail-closed）。读口 = `content/panel.py:125` `{k: tuple(v) for k, v in keyed_values(\"passive_stat_apply\").items()}`（JSON 无元组 ⇒ 读口还原成元组）；消费 = `content/panel.py:118-124` 注释所载：按 `ps[\"stat\"]` **按名查值** + `key, op, need_cond_none = rule` 解包。★ 条目 id **必须就是 stat 本身**（条目 id 取序号会让 20 个 stat 全 miss、被动静默失效）。不在表内的 stat（条件型 rage>=5 / battle_start / dual_stat、战斗内机制 chi_gain / proc 型）由 `battle.py` 结算，面板不处理 —— 故本表是「面板口径的被动属性映射」，不是全部被动。实测 20 条 / 1 种字段组合。",
+  "x-primary": "passive_stat_rule",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = stat 名（ascii 小写下划线，实测 20/20 合规；键序不可观测 —— 本表按名查值、无迭代读点，故按名升序落盘，见 `content/panel.py:120-121`）。"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/passive_stat_rule"
+  },
+  "$defs": {
+    "passive_stat_rule": {
+      "type": "object",
+      "title": "一个 stat 的面板施加规则",
+      "description": "name + value 必有；value = `[bonus_key, op, need_cond_none]` 三元组（实测 20/20 长度为 3：str, str, bool）。",
+      "required": [
+        "name",
+        "value"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "stat 名",
+          "description": "展示用属性名；**必须与条目 id 相同**（读点按名查值，见上）。实测 20/20 与键同名（block / cdr / crit / crit_dmg / dodge / elem_res / heal_power / lifesteal / lifesteal_magi / lifesteal_phys / luck / magic_reduce / mp / pene_magi / pene_phys / phys_reduce / spd / spd_crit / summon_power / thorns）。",
+          "minLength": 1
+        },
+        "value": {
+          "type": "array",
+          "title": "修正三元组",
+          "description": "`[bonus_key, op, need_cond_none]`：① 写进面板修正表的键（如 `block_add` / `spd_mult`）；② 运算 `add` 或 `mul`（实测 19 条 add · 1 条 mul = spd）；③ 是否要求该被动 cond 为空（实测仅 mp 为 true）。读口还原成元组后按 `key, op, need_cond_none = rule` 解包，与源逐字等价。",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -33,7 +33,8 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN_DIR = os.path.dirname(_HERE)
 # ★ P5F-REPOINT: 原宿主壳 `game/commands` + `game/data/command_specs.json`（随删壳批消失）
 #   → 包内真源 `content`（实现/登记目录）+
-#     `content/data/commands.json`（声明真源，196 条）。删壳后此处仍有落点。
+#     `content/data/commands.json`（声明真源，196 个顶层键 —— 其中 `_maint_gate` 是**私有**停服
+#     gate、不是条目；编辑器条目口径 = 195，见 test_export_package_sync.py 的「有意差异登记」）。删壳后此处仍有落点。
 PKG_ROOT = PLUGIN_DIR
 CMD_DIR = os.path.join(PKG_ROOT, "content")
 SPEC_FILE = os.path.join(CMD_DIR, "data", "commands.json")

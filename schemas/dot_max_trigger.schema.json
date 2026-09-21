@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/dot_max_trigger.schema.json",
+  "title": "DOT 触发上限档位表（dot_max_trigger）—— 一条 = 一个异常 id → 每场上限",
+  "description": "真源 = 包内 `content/rules/dot_max_trigger.json`（D1「数据进表」批，原 `content/constants.py` 字面量搬入）。读口 = `content/constants.py:58` `set_from_domains(..., overrides={\"dot_max_trigger\": {\"order\": _DOT_MAX_TRIGGER_ORDER}})` + `:224-244` `_dot_max_trigger_load()` —— 逐条校验 `{max: <int>}`（显式排掉 bool），**缺表 / 空表 / 形状坏一律 raise 点名**（不许静默给空表：饱和上限会静默全失效）。序真源 = `content/constants.py:57` 的 `_DOT_MAX_TRIGGER_ORDER`（域文件外层键按落盘规范是字典序 ⇒ 顺序只能显式声明；键集与声明不一致 ⇒ `RecordsOrderMismatch`）。消费 = 战斗律二「每场触发上限 + 达上限置饱和标记」。实测 7 档：伤害类 poison / burn / bleed / corros = 5 次，控制类 freeze / stun / sleep = 2 次。",
+  "x-primary": "dot_max_entry",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$",
+    "description": "键 = 异常 id（实测 7/7 合规：poison / burn / bleed / corros / freeze / stun / sleep）；**键集必须与 `content/constants.py:57` 的序声明逐名一致**（缺项/多项 ⇒ 装载期点名报错）。"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/dot_max_entry"
+  },
+  "$defs": {
+    "dot_max_entry": {
+      "type": "object",
+      "title": "一个异常的每场上限",
+      "description": "`{max}` 单字段（读口只取 `max`）。",
+      "required": [
+        "max"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "max": {
+          "type": "integer",
+          "title": "每场触发上限",
+          "description": "该异常每场可结算的次数上限（达上限置饱和标记）。读点要求恰好是 int 且非 bool （`content/constants.py:238-242`）。实测 7 档：5（poison/burn/bleed/corros）或 2（freeze/stun/sleep）。",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

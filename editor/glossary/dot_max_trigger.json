@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "max": {
+      "zh": "每场触发上限",
+      "note": "该异常每场可结算的次数上限（达上限置饱和标记）。读点要求恰好是 int 且非 bool （`content/constants.py:238-242`）。实测 7 档：5（poison/burn/bleed/corros）或 2（freeze/stun/sleep）。"
+    }
+  }
+}

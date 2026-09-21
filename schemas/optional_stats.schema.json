@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saintessengine.local/schema/optional_stats.schema.json",
+  "title": "可选属性词表（optional_stats）—— 一段 = 装备可选属性名的插入序清单",
+  "description": "真源 = 包内 `content/rules/optional_stats.json`（D1「数据进表」批，原 `content/constants.py` tuple 字面量搬入）。读口 = `content/constants.py:155` `tuple(orders_of(_PKG_ROOT, \"OPTIONAL_STATS\", domain=\"optional_stats\"))` —— 引擎序声明读口，**保留源插入序**（`content/constants.py:150-151`）。消费 = 随机词条/装备生成时的「可选属性」白名单。实测 1 段 / `keys` 14 项（源侧注释记 23 项，以现表为准）。",
+  "x-primary": "optional_stats_group",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^[A-Z][A-Z0-9_]*$",
+    "description": "键 = 段名（实测 1 键：OPTIONAL_STATS —— 读口按这个段名取 `keys`）。"
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/optional_stats_group"
+  },
+  "$defs": {
+    "optional_stats_group": {
+      "type": "object",
+      "title": "可选属性名清单（一段）",
+      "description": "`{keys: [...]}` 单字段；keys = 属性名数组（插入序有意义）。",
+      "required": [
+        "keys"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "keys": {
+          "type": "array",
+          "title": "可选属性名（有序）",
+          "description": "装备可选属性白名单，**顺序即源插入序**（读口 `orders_of` 保序）。实测 14 项：lifesteal / crit_dmg / block / thorns / phys_reduce / magic_reduce / lifesteal_phys / lifesteal_magi / summon_power / pene_flat / pene_mflat / pene_phys / pene_magi / tenacity。",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

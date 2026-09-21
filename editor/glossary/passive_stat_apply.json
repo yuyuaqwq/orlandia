@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "value": {
+      "zh": "修正三元组",
+      "note": "`[bonus_key, op, need_cond_none]`：① 写进面板修正表的键（如 `block_add` / `spd_mult`）；② 运算 `add` 或 `mul`（实测 19 条 add · 1 条 mul = spd）；③ 是否要求该被动 cond 为空（实测仅 mp 为 true）。读口还原成元组后按 `key, op, need_cond_none = rule` 解包，与源逐字等价。"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "fields": {
+    "amount": {
+      "zh": "数量",
+      "note": "固定数量（实测仅 faith_unload 卸负 = 3）。"
+    },
+    "clear": {
+      "zh": "是否清空层",
+      "note": "兑现后是否清空该层（实测 7/9 为 true）。"
+    },
+    "clear_extra": {
+      "zh": "额外清理项",
+      "note": "要一并清掉的旁支层（元素为 `{owner, key}` 对象）。嵌套结构随内容变化，字段名不当表单字段展开（编辑器退回 JSON 档编辑）。"
+    },
+    "crit_at": {
+      "zh": "暴击层阈值",
+      "note": "达到该层数时兑现按暴击结算（实测仅 finisher = 4）。"
+    },
+    "icon": {
+      "zh": "图标",
+      "note": "兑现提示里的 emoji（实测 8/9）。"
+    },
+    "key": {
+      "zh": "层/资源键",
+      "note": "被兑现的层名或资源名；可为单个字符串或字符串数组（实测 8/9 有 —— 6 条单键、2 条三键（元素印记 fire_mark / ice_mark / thunder_mark）；`zhan_yi_fury` 无该键、走 `res`）。"
+    },
+    "label": {
+      "zh": "资源标签",
+      "note": "资源侧的展示名（实测仅 zhan_yi_fury = 血祭）。"
+    },
+    "layer_label": {
+      "zh": "层显示名",
+      "note": "该机制层的展示名（实测 7 条：奥术充能 / 元素印记 / 连段 / 磐核 / 毒）。"
+    },
+    "mode": {
+      "zh": "兑现模式",
+      "note": "决定哪些字段参与结算（执行器按它分支；引擎不认识具体词，取值由内容侧声明）。实测 5 种：dmg_mult_clear · dmg_mult_clear_target · per_system_clear_target · heal_clear · fury_enter。"
+    },
+    "note": {
+      "zh": "实现备注",
+      "note": "设计侧备注（实测仅 faith_unload：`兑现走 skills.py sk_xie_fu res_cost={faith:3} + kind=治疗 heal_formula`）。"
+    },
+    "per_layer": {
+      "zh": "每层倍率",
+      "note": "按层数计的单层倍率（实测 6 条：0.1 / 0.12 / 0.14 / 0.15 / 0.15 / 0.7）。"
+    },
+    "per_system": {
+      "zh": "每体系倍率",
+      "note": "按体系计的单体系倍率（实测仅 element_burst_3 = 0.2）。"
+    },
+    "res": {
+      "zh": "资源键",
+      "note": "资源名（实测仅 zhan_yi_fury = zhan_yi；该条无 `key`，改由它带出被兑现的资源）。"
+    },
+    "unit": {
+      "zh": "层单位",
+      "note": "层数的量词（实测 3 条：层 / 层 / 枚）。"
+    },
+    "upgrade": {
+      "zh": "升级参数",
+      "note": "兑现参数的追加升级（实测仅 finisher：`{proc, per_layer_add}`）。嵌套结构随内容变化，字段名不当表单字段展开（编辑器退回 JSON 档编辑）。"
+    }
+  }
+}
