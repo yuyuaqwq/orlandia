@@ -164,7 +164,7 @@ _PIN = {
     },
     'aux': {
         'class_mech_action::class_faith_load_tier': '7444f5dda57ac810e3a3a6f2b27cea678a3b7f59d1dc74846560ea9cdfdfb99a',
-        'class_mech_action::class_faith_overload': '460b3c89db249af82d30d8596782beeea716adfb71f866d435da76dbf24a2c5d',
+        'class_mech_action::class_faith_overload': '927633f7837552a4b95626ad9092d4d4eda10948b612a3e9b55d5ed5f5aaaead',
         'class_mech_action::class_guard_stance_enter': '16aee4fad695f931ee04a8658615deb4a819a88055382b8f71becb552ffc3d49',
         'class_mech_action::class_melody_act': 'f0535d951fd2b88bcd9dd03db9f14785600448c5d93b4fc885c93dfbee281877',
         'class_mech_action::class_melody_dirge_tick': 'dcd3132b8c54257d1daf3e2267b9eca3377ff1570bce11ccc3eb4a84a829f8ca',
@@ -202,8 +202,8 @@ _PIN = {
         'class_mech_action::passive_revive_guard': '94948d0c59d3a364ef59c61503b80038820d0f65ec6ace5e2152f0a7acc1a44f',
         'class_mech_action::passive_shadow_buff': '75d6446c3dee1e07e218d68e6712ad500d2c04f2a5d93f7ea9f66880ea18bc54',
         'class_mech_action::passive_taken_reduce': '6e6e259dece0ede0f1e4ddfe1165e4c96e55a55a7c610e2a5ed1d185427a606e',
-        'class_mech_actions': '80943e8eb9227e40d8f435474ee2d86f6ca593e4c10ef9b96796df53a6b4d1a8',
-        'class_mech_actions_37': 'f46669022de4e3494c2afa634dfd57bd03f0f66e8c3c63ef138bba5b88604380',
+        'class_mech_actions': '09a72f9cdfa7ec53c12627f3b01642ef16c8f1ffa8ee5693cded22c69c50c9bb',
+        'class_mech_actions_37': '6123c0287200a42b5af9cfd4e60e8bc4145826ef3dfaba5ebe7309caeb1cb172',
     },
     'segments': {
         'E': [
