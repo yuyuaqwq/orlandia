@@ -1046,12 +1046,15 @@ def _we_value_diff() -> list:
 #   登记表写清 old（冻结基准）→ new（实跑值），并断言 new 就是当前实跑 sha。
 #   ⚠ 若将来合法重采（`_u1d2_triggers_gen.py --emit-aux`），本登记须同步移除或改值。
 _AUX_SHA_INTENT = {
-    # T14 第 2 轮登记；new 值随包栈重构的搬迁更新（2026-09-24 第 7 批 `config` 取件搬进
-    # `ext_combat.battle.game_config` 后 `content/apply.py` 的装配契约再漂一次）——
-    # 语义仍是「装配契约只多挂两条 hook」，与 U1-D2 盯的触发面无关。
+    # T14 第 2 轮登记；new 值随**装配契约**的合法变更推进：
+    #   · 2026-09-23 包栈重构（第 2/7 批）：hook 取件路径改指 `ext_combat.battle.*`
+    #   · 2026-09-24 B7b：装配期多一行「药水效果层注入面」（
+    #     `from .effects import bind_effects` + `_bind_effects()`，把文案/三张域表注入
+    #     扩展包 `ext_effect`；数值与行为不变，见包仓提交 6caee95）
+    # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        'e78326d762423cba40112eba99e67b0d4a0f6659f47bcb1130a7bbaa4f3649ff',
+        'a5833a7b8506ac662d8076cf59378556ac9deddf26311483e74315e641c994af',
     ),
 }
 
