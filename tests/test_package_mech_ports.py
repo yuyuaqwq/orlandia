@@ -189,7 +189,7 @@ EXPECT_ACTION_KEYS = {
     ),
     "bar_procs": (
         # ★ U1-I1：本族 4 动词（bar_gain / bar_phase_preserve / bar_time_settle /
-        #   passive_reflect_bar）已整块上移引擎 `saintess_engine/gauge/actions.py`
+        #   passive_reflect_bar）已整块上移引擎 `extends/ext_combat/gauge/actions.py`
         #   ⇒ 包内端口 = 纯装配置（0 动作，与 equip 同形）；4 个注册名由**引擎侧**
         #   冻结门禁 `saintess_engine` 仓 `tests/test_gauge_actions_frozen.py` 逐名钉住。
         #   本表保留 `apply_bar_procs` 装配器名断言（端口顶层必须有它，宿主调用面不消失）。
@@ -1220,7 +1220,7 @@ def dead_event_audit(pkg_root: str, game_root: str, rep: Rep) -> None:
     if not rep.quiet:
         print("\n【7】事件名反静默失效（死名 = 触发器装了却永不生效）")
 
-    eng = _p(FW_ROOT, "saintess_engine", "battle", "effect_triggers.py")
+    eng = _p(FW_ROOT, "extends", "ext_combat", "battle", "effect_triggers.py")
     events: set = set()
     try:
         for n in ast.walk(ast.parse(_read(eng))):

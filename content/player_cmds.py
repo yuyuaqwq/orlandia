@@ -69,7 +69,7 @@ import json
 import re
 import time
 
-from saintess_engine.battle.formulas import skill_buff_turns, skill_cond_mult, skill_expr_preview, skill_formula_expr, skill_formula_expr_for_seg, skill_lifesteal_pct, skill_max_level, skill_mech_val, skill_power_mult
+from ext_combat.battle.formulas import skill_buff_turns, skill_cond_mult, skill_expr_preview, skill_formula_expr, skill_formula_expr_for_seg, skill_lifesteal_pct, skill_max_level, skill_mech_val, skill_power_mult
 
 from .panel import player_final_stats, player_stats_detail, race_name, race_stats, skill_learn_cost_for
 from .skills import _sk_table, branch_path_index, branch_skill_owner, is_skill_learned, skill_info, skill_level_of, skill_upgrade_cost
@@ -1066,7 +1066,7 @@ async def attributes(self, event: AstrMessageEvent, group_id, qq_id, player):
                 _st_src = _bstate["state"]
                 if _st_src.get("sides"):
                     from . import bridge as _BR
-                    from saintess_engine.battle.stats import actor_stats as _as
+                    from ext_combat.battle.stats import actor_stats as _as
                     _b = _BR.restore_battle(_st_src)
                     _my = None
                     for _a in _b.sides_of("player"):

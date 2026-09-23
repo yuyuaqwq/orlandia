@@ -320,8 +320,8 @@ async def test_pvp_skill_and_turn_guard():
 
 async def test_pvp_stat_bonus_per_actor():
     print("【N5b4-4 per-actor 面板增幅 bonus.panel（v181.M-bonus 统一容器）】")
-    from saintess_engine import make_actor, Battle as B2
-    from saintess_engine.battle.stats import actor_stats
+    from ext_combat import make_actor, Battle as B2
+    from ext_combat.battle.stats import actor_stats
     _base = dict(class_name="战士", level=15, equipment={}, skills=[], learned_skills=[])
 
     def _mk(uid, side):

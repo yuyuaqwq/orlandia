@@ -29,10 +29,10 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine import actions as A  # noqa: E402
-from saintess_engine import landing as L  # noqa: E402
-from saintess_engine.battle.actors import ActCtx  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle import actions as A  # noqa: E402
+from ext_combat.battle import landing as L  # noqa: E402
+from ext_combat.battle.actors import ActCtx  # noqa: E402
 
 PASS = 0
 FAIL = 0

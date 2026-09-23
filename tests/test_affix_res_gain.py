@@ -30,14 +30,14 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
+from ext_combat import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402  ★ P5C-REPOINT：宿主装配壳已删
 from _engine_harness import act_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
-from saintess_engine.battle.actors import ActCtx          # noqa: E402
-from saintess_engine.battle.effect_triggers import fire as _fire  # noqa: E402
-from saintess_engine.battle.landing import deal_damage as _dd     # noqa: E402
-from saintess_engine.battle.state_effects import state_def        # noqa: E402
+from ext_combat.battle.actors import ActCtx          # noqa: E402
+from ext_combat.battle.effect_triggers import fire as _fire  # noqa: E402
+from ext_combat.battle.landing import deal_damage as _dd     # noqa: E402
+from ext_combat.battle.state_effects import state_def        # noqa: E402
 from content.mech import equip as EP      # noqa: E402  ★ P5C-REPOINT：直取包内真源
 from content.mech.we_procs import we_affix_res_gain  # noqa: E402  ★ B18-REPOINT：直取包内实现本体
 
@@ -371,7 +371,7 @@ def test_gap_affixes_no_noise():
 
 def test_affix_gain_dynamic_cap():
     print("【R4.8 affix 附赠通道 cap 收敛：full_pack 抬 cap 后暴击蓄能可攒满 110】")
-    from saintess_engine.battle.effects import _cap_of
+    from ext_combat.battle.effects import _cap_of
     # full_pack（purple +10 bonus.cap）+ crit_charge：crit 事件 energy+3 → cap 110
     p = mk_a("pd", "player")
     m = mk_a("ed", "enemy", hp=100000, atk=1)

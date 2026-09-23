@@ -16,7 +16,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -47,8 +47,8 @@ def mk_battle(player, hp=5000):
 
 def fire_overload(b, owner):
     """模拟信仰叠满 cap 的 threshold 广播（过载触发点）。"""
-    from saintess_engine.battle.effect_triggers import fire
-    from saintess_engine.battle.effects import _cap_of
+    from ext_combat.battle.effect_triggers import fire
+    from ext_combat.battle.effects import _cap_of
     cap = _cap_of(owner, "faith")
     logs = []
     fire(b, "threshold", {"key": "faith", "value": float(cap),

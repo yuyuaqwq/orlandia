@@ -50,7 +50,7 @@
 
 包内直取（**不是**宿主）：`IR`（`content/flow/instance_run.py`，逐字端口）、`TIER_GROWTH`
 （`content/tables.py`）、`player_final_stats`（`content/panel.py`）、`skill_info`（`content/skills.py`）、
-`formation_view`/`alive_units`（引擎 `saintess_engine.formation`）。
+`formation_view`/`alive_units`（引擎 `ext_combat.formation`）。
 """
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ import re
 import time
 
 from saintess_engine.dialogue import Cursor
-from saintess_engine.formation import alive_units, formation_view
+from ext_combat.formation import alive_units, formation_view
 from saintess_engine.presence import Lookup, Presence, minutes_left
 from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
@@ -1562,7 +1562,7 @@ async def move(self, event: AstrMessageEvent, group_id, qq_id):
         # N5b4-6：撞怪开战 saintess_engine 化（同 _open_battle 仪式，跨图伏击 = 普通战斗形态）
         _grp = _drops().build_monster_group(ambush, target, player)
         # T6⑧（2026-09-20）：旧兜底分支已删 —— 它经别名
-        # `from saintess_engine import Battle as B2` 裸造 Battle（**不带 `text=`**）⇒ 绕过「玩家可见文案唯一真源」。
+        # `from ext_combat import Battle as B2` 裸造 Battle（**不带 `text=`**）⇒ 绕过「玩家可见文案唯一真源」。
         # `_open_battle`（真源 `content/combat_cmds.py`）与 move 同属包内聚合面（facade
         # AGGREGATE_MODULES）⇒ 终态不可能缺席；缺即 AttributeError 大声失败（fail-closed，不静默兜底）。
         _nb = self._open_battle(player, _grp, "monster", group_id=group_id, qq_id=qq_id)

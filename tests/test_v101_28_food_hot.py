@@ -160,8 +160,8 @@ ro = IT.TEMPLATES["food_buff"](BufCtx(battle=False))
 check("汉堡战斗外即时回血+体力", "恢复 30 点生命" in ro.text and "恢复 35 点体力" in ro.text, ro.text)
 
 # 战斗内吃料理播报（food_ 前缀 → 料理文案；saintess_engine N10：buff: 翻译走 battle_item_use）
-from saintess_engine import Battle as _B2
-from saintess_engine import make_actor as _mk2
+from ext_combat import Battle as _B2
+from ext_combat import make_actor as _mk2
 from saintess_engine import config as _b2cfg
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
 _p2 = _mk2(uid="p_q1", name="试吃", side="player", kind="player", human_controlled=True,

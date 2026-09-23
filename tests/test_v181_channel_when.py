@@ -33,7 +33,8 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor, effects as EFX  # noqa: E402
+from ext_combat.battle import effects as EFX  # noqa: E402
+from ext_combat import Battle as B2, make_actor
 from content.mech import class_mech as CM  # noqa: E402
 
 PASS = 0

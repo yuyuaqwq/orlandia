@@ -28,8 +28,8 @@ from content.persistence.handles import init_db  # noqa: E402
 init_db()
 
 from _engine_harness import C  # noqa: E402
-from saintess_engine import ai as AI  # noqa: E402
-from saintess_engine import Battle as B2  # noqa: E402
+from ext_combat.battle import ai as AI  # noqa: E402
+from ext_combat import Battle as B2  # noqa: E402
 
 PASS = 0
 FAIL = 0

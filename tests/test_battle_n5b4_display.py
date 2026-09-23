@@ -28,7 +28,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
 from _engine_harness import Main as CombatCmds  # noqa: E402  （原 game.commands.combat 壳 → 驱动口）
 
 PASS = 0

@@ -11,7 +11,7 @@
 |---|---|---|
 | `from .. import content as C` | 下面 `class _ContentShim` + `C = _ContentShim()`（**W6 后只剩 `resolve`**） | 真源读聚合层 5 个符号（`PLAYER_SKILLS` / `BRANCH_SKILLS` / `TUTOR_SKILLS` / `SKILL_UP` + `resolve`）；W6 起 4 张表调用点直接读**本模块**同名模块级对象（shim 当年就是回指它们 = 同一个对象，值零变化），`C` 上只剩函数名句柄 `resolve` |
 | （隐式）三张源表 | `_shape_three_tables(_T.SKILLS, _T.CLASSES)` | 包内 `content/data/skills.json` 是三表**扁平化**产物（305 条，条目带 `owner_class` / `source` / `tier` / `branch`，见游戏仓 `scripts/export_game_package.py:161 derive_skills`）→ 这里按导出器追加的 4 个字段**逆折回**真源形状（`{cls:{name,skills}}` / `{cls:{name,branches:{tier:{线:{名:info}}}}}` / `{cls:{sk:info}}`），并从条目里剥掉那 4 个追加字段 —— 于是 `skill_info` 返回的 info **与真源逐字段相等**（导出器只追加、不改值，`_put` 源码可查） |
-| `from saintess_engine.battle.formulas import skill_max_level` | 同左（引擎侧纯公式，路径不变） | `skill_upgrade_cost` 用 |
+| `from ext_combat.battle.formulas import skill_max_level` | 同左（引擎侧纯公式，路径不变） | `skill_upgrade_cost` 用 |
 | `game/data/skill_up.py:SKILL_UP` | `content/data/skill_up.json`（`skill_up` 域）→ `saintess_engine.records` 读入本模块 `SKILL_UP` | 305 条，键值逐一等于源表；落盘外层键是**字典序**（落盘规范），消费点只按 key 取、`_skill_up_name_index()` 只按 `name`（305 个 `name` 互不相同）定位，故键序不参与取值。读不到 / 坏 JSON → 导入期 raise（技能成长是引擎 `skill_up` hook，缺表 = 全技能无声无成长） |
 
 真源读的游戏仓表（4 张）↔ 包内读口（W6 后调用点直读模块级同名对象）：
@@ -37,7 +37,7 @@ from __future__ import annotations
 
 import os
 
-from saintess_engine.battle.formulas import skill_max_level  # noqa: F401
+from ext_combat.battle.formulas import skill_max_level  # noqa: F401
 from saintess_engine.records import Records
 
 from . import tables as _T

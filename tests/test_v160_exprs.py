@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _engine_harness import C, db, clean_db, make_player  # noqa: E402
 from _engine_harness import Main  # noqa: E402
-from saintess_engine.battle.formulas import (  # noqa: E402
+from ext_combat.battle.formulas import (  # noqa: E402
     skill_expr_preview,
     skill_formula_expr,
     skill_formula_expr_for_seg,

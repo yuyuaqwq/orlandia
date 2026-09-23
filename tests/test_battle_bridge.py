@@ -49,8 +49,8 @@ from _engine_harness import boot as _eng_cfg; _eng_cfg()
 
 from _engine_harness import db
 db.init_db()
-from saintess_engine import Battle as B2Battle
-from saintess_engine import actors as B2A
+from ext_combat import Battle as B2Battle
+from ext_combat.battle import actors as B2A
 from content import bridge as BR
 
 PASS = 0
@@ -223,7 +223,7 @@ check("空 actor 安全", BR.sync_player_from_actor(_p4, {}) is _p4)
 # 🔒 T6⑨（2026-09-20）：引擎 Battle「构造 / 恢复」出口唯一性（防复发门禁）
 #
 # 背景（T6 第 1 轮实测教训）：`content/world_cmds.py::move` 的撞怪兜底分支经
-# `from saintess_engine import Battle as B2` **裸造 Battle**（不带 `text=`）⇒ 绕过
+# `from ext_combat import Battle as B2` **裸造 Battle**（不带 `text=`）⇒ 绕过
 # 「玩家可见文案唯一真源」。★ 该分支按字面量 grep `Battle(` 扫不出来（走的别名）⇒
 # 本门禁按 **import 绑定**扫：别名（`Battle as B2`）与模块别名（`import saintess_engine as SE`
 # → `SE.Battle(...)`）两条绕行路都盯。
@@ -303,7 +303,7 @@ check("content/** 零处绕过 bridge 出口的 Battle 构造/恢复", not _bad,
 check("白名单两处（bridge.make_battle / bridge.restore_battle）确实被扫到",
       {(h[0], h[1], h[4]) for h in _hits} >= _ALLOWED_OUTLETS,
       sorted({(h[0], h[1], h[4]) for h in _hits}))
-_neg1 = _scan_tree("<反证:改前段>", 'from saintess_engine import Battle as B2\n'
+_neg1 = _scan_tree("<反证:改前段>", 'from ext_combat import Battle as B2\n'
                                       'def f(self):\n'
                                       '    return B2("monster", sides={})\n')
 check("反证①：改前那段（别名 B2 裸造）必被扫到",

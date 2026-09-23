@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # tests/：引擎根发现（_paths）
 import _paths  # noqa: E402,F401  ← 包根/引擎根/宿主壳根装配（GWEN_FRAMEWORK_DIR 优先；缺失即醒目报错）
 
-from saintess_engine.battle.formulas import resolve_formula, calc_damage# noqa: E402
+from ext_combat.battle.formulas import resolve_formula, calc_damage# noqa: E402
 
 passed = failed = 0
 

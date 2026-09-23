@@ -127,8 +127,8 @@ CONTRACT_RELS = ("content/apply.py",)
 
 #: 引擎侧（本线**引擎零改动**；判据 9/10 的交叉证据）
 ENG_RELS = (
-    "saintess_engine/battle/effect_triggers.py",
-    "saintess_engine/battle/declarations.py",
+    "extends/ext_combat/battle/effect_triggers.py",
+    "extends/ext_combat/battle/declarations.py",
 )
 
 #: 判据 9 的只读面 = 4 个源文件 + 4 张数据表

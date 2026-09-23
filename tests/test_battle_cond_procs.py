@@ -21,12 +21,12 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.effect_triggers import fire  # noqa: E402
 from content.mech.class_mech import apply_class_mech  # ★ P5C-REPOINT：直取包内真源
 from content.mech import cond_procs as CP  # ★ P5C-REPOINT：直取包内真源（原 battle_cond_procs）
 from content import skills as _SK  # noqa: E402
-from saintess_engine.gauge import bar_effect_key# noqa: E402
+from ext_combat.gauge import bar_effect_key# noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -62,7 +62,7 @@ def _has_trigger(actor, ev):
 
 def _fire_dmg(b, p, e, info, logs=None):
     """触发 dmg_calc 并返回乘区（模拟引擎插桩点）。"""
-    from saintess_engine.battle.effect_triggers import fire as _fire
+    from ext_combat.battle.effect_triggers import fire as _fire
     _fire(b, "dmg_calc", {"actor": p, "target": e, "dmg": 100,
                           "is_crit": False, "info": info, "mult": 1.0}, logs or [])
     return float((getattr(b, "_fire_ctx", {}) or {}).get("mult", 1.0) or 1.0)
@@ -185,7 +185,7 @@ def test_unknown_type_and_heal():
     check("未注册 type → 静默 1.0（不崩）", _fire_dmg(b, p, e, info) == 1.0)
     check("未注册 type 已注册表中不存在", "not_registered_yet" not in CP.COND_PREDICATES)
     # heal_calc：治疗旋使用同一动作
-    from saintess_engine.battle.effect_triggers import fire as _fire
+    from ext_combat.battle.effect_triggers import fire as _fire
     e.setdefault("effects", {})[bar_effect_key("shaken")] = {
         "trigger_count": 1, "immune_until": 2.0, "_at": 0.0}
     hinfo = {"name": "治疗试技", "kind": "治疗", "cond": {"type": "enemy_broken", "mult": 1.3}}
@@ -197,7 +197,7 @@ def test_unknown_type_and_heal():
 
 def test_end_to_end_damage():
     print("【7. 端到端：真实技能管线（侧踢）破防前后伤害对比】")
-    from saintess_engine import actions as A
+    from ext_combat.battle import actions as A
     from content.skills import skill_info  # ★ P5C-REPOINT
     real = skill_info("cls_wu_seng", "sk_ce_ti")
     check("取到真实侧踢数据且带 cond", isinstance(real, dict) and isinstance(real.get("cond"), dict),

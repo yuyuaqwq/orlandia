@@ -33,7 +33,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
 from saintess_engine import config as CFG  # noqa: E402
-from saintess_engine import formulas as F  # noqa: E402
+from ext_combat.battle import formulas as F  # noqa: E402
 
 PASS = 0
 FAIL = 0

@@ -2,7 +2,7 @@
 """《奥兰迪亚》敌身条族**装配器** —— bar_procs（P4-D2 搬运物；U1-I1 动词上移引擎）。
 
 ★ U1-I1（本次）：本族 4 个战斗动词 + 5 个模块级助手已**整块搬进引擎**
-`saintess_engine/gauge/actions.py`（注册名不变：`bar_gain` / `bar_time_settle` /
+`extends/ext_combat/gauge/actions.py`（注册名不变：`bar_gain` / `bar_time_settle` /
 `bar_phase_preserve` / `passive_reflect_bar`；`import saintess_engine` 即完成注册）。
 本文件**只剩装配**：扫 actor 已学技能 → 命中 `BAR_INJECT_FIELDS` 字段则挂 `skill_hit` 注入。
 **不留转发壳、不再导出同名动词** —— 引擎那份是唯一实现。
@@ -20,13 +20,13 @@
 · 条数值/阈值/衰减 = `MECH_CFG["enemy_bar"]`（`content/mech/class_data.py` 单源，切片已含 shaken）。
 
 ★ U1-D2 L7（装配形状迁移）：`apply_bar_procs` 里的「手写判重 + `insert(0)`」已改走引擎
-声明编译器 `saintess_engine.battle.declarations`（去重键 `(action, key)`、写策略 `prepend`；
+声明编译器 `ext_combat.battle.declarations`（去重键 `(action, key)`、写策略 `prepend`；
 模块级 `_DECL`）——**执行序与行为逐字不变**（门禁④ 144 格 + 旧实现 exec 逐格比）。
 """
 from __future__ import annotations
 
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
 #: 声明编译器（U1-D2 L7）：去重键 = `(action, key)`、写策略 = **前插**
 #: （`insert(0)` 的执行序语义 —— 见下方 `apply_bar_procs` 的顺序契约）。
@@ -47,7 +47,7 @@ _DECL = Compiler(events=_ENGINE_EVENTS,
 #         `game/content_rules/skills.py:104` 同形，且同为**惰性 import**
 #         （留在函数体内，不与 apply.py 形成导入环）。
 # ★ U1-I1：动词块（原 `:38-202` 5 助手 + 4 动作）已整块上移引擎
-#   `saintess_engine/gauge/actions.py`；本块**函数体一字未动**。
+#   `extends/ext_combat/gauge/actions.py`；本块**函数体一字未动**。
 # ============================================================
 def apply_bar_procs(actor: dict) -> None:
     """装配：扫 actor 已学技能 → 命中 BAR_INJECT_FIELDS 字段则挂 skill_hit 注入。

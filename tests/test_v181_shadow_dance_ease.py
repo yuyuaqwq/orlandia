@@ -28,12 +28,12 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
 from _engine_harness import boot as _eng_cfg  # noqa: E402
 _eng_cfg()
 from content.skills import skill_info  # noqa: E402
 from content.mech import class_mech as CMP  # noqa: E402  (import 即注册动作)
-from saintess_engine.battle.effects import ACTION_HANDLERS  # noqa: E402
+from ext_combat.battle.effects import ACTION_HANDLERS  # noqa: E402
 
 CLS = "cls_ci_ke"
 

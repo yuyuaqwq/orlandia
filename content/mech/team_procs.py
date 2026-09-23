@@ -26,8 +26,8 @@
 2. 无「闭包 → 模块级」提取：核实真源**没有** `install()` / `_registered`（grep 零命中），
    20 个动作与全部助手**本就在模块顶层** —— 故无需提层，纯搬运。
 3. 装饰器注册：真源已在模块顶层用 `@register_action("…")` 注册 → 逐字保留
-   （引擎 `saintess_engine.battle.effects.register_action` 是 import 即注册，无装配器）。
-4. import 路径：真源 :44 的 `from saintess_engine.battle.effects import apply_effects, register_action`
+   （引擎 `ext_combat.battle.effects.register_action` 是 import 即注册，无装配器）。
+4. import 路径：真源 :44 的 `from ext_combat.battle.effects import apply_effects, register_action`
    本身已是绝对导入 → 原样保留；函数体内的惰性 import（`act_shield` / `deal_damage` /
    `state_def` / `stats`）逐字未动。
 5. 其它：零改写。
@@ -35,9 +35,9 @@
 ✅ **B10-L2 收口（2026-09-13）**：宿主 `game/services/battle_team_procs.py` 已改**薄壳**
 （`from content.mech.team_procs import …` 再导出，零实现）⇒ **本模块 = 唯一实现**。
 """
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
-from saintess_engine.battle.effects import apply_effects, register_action
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.effects import apply_effects, register_action
 
 from .. import texts as _T                    # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
 
@@ -51,7 +51,7 @@ PREFIX = "team:"
 
 def _now(battle) -> float:
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         return float(now_of(battle) or 0.0)
     except Exception:
         return float(getattr(battle, "_now", 0) or 0)
@@ -206,7 +206,7 @@ def _stat_of(battle, actor, name: str) -> float:
     if not name:
         return 0.0
     try:
-        from saintess_engine import stats as _S
+        from ext_combat.battle import stats as _S
         st = _S.actor_stats(battle, actor) or {}
         return float(st.get(name, 0) or 0)
     except Exception:
@@ -260,7 +260,7 @@ def _shield_value(battle, src, params) -> tuple:
 @register_action("team_shield")
 def team_shield(battle, caster, target, params, logs):
     """全队护盾（盾值口径见 `_shield_value`：pct / per_stack / value 三形态可叠加）。"""
-    from saintess_engine.battle.effects import act_shield
+    from ext_combat.battle.effects import act_shield
 
     src = caster if isinstance(caster, dict) else target
     if src is None:
@@ -283,7 +283,7 @@ def team_shield(battle, caster, target, params, logs):
 @register_action("self_shield")
 def self_shield(battle, caster, target, params, logs):
     """自身护盾（同口径；装备/药水/自身技能用）。"""
-    from saintess_engine.battle.effects import act_shield
+    from ext_combat.battle.effects import act_shield
 
     src = caster if isinstance(caster, dict) else target
     if src is None:
@@ -330,7 +330,7 @@ def _reduce_of(params) -> float:
         elif mv > 0:
             r = mv
     if r <= 0:
-        from saintess_engine.battle.state_effects import state_def
+        from ext_combat.battle.state_effects import state_def
         cfg = state_def(params.get("key") or params.get("type") or "") or {}
         r = float((cfg.get("stat_scale") or {}).get("reduce") or 0)
     return _norm_pct(r)
@@ -632,8 +632,8 @@ def guard_reflect(battle, caster, target, params, logs):
 
     语义对齐 `passive_reflect_bar` / `we_reflect`：无来源（DOT/环境伤）不反制。
     """
-    from saintess_engine.battle.actors import actor_alive
-    from saintess_engine.battle.landing import deal_damage
+    from ext_combat.battle.actors import actor_alive
+    from ext_combat.battle.landing import deal_damage
 
     holder = params.get("_owner") or target
     key = params.get("key") or ""
@@ -684,8 +684,8 @@ def block_once(battle, caster, target, params, logs):
 @register_action("block_once_apply")
 def block_once_apply(battle, caster, target, params, logs):
     """taken_calc 触发器：格挡态在 → 本次伤害归零（引擎 clamp 到 1）+ 反伤 + 消耗态。"""
-    from saintess_engine.battle.actors import actor_alive
-    from saintess_engine.battle.landing import deal_damage
+    from ext_combat.battle.actors import actor_alive
+    from ext_combat.battle.landing import deal_damage
 
     ctx = getattr(battle, "_fire_ctx", None)
     holder = params.get("_owner")
@@ -708,8 +708,8 @@ def block_once_apply(battle, caster, target, params, logs):
 @register_action("block_reflect_hit")
 def block_reflect_hit(battle, caster, target, params, logs):
     """on_taken 触发器：格挡成功后按记录的原始伤害反伤攻击者（铁山靠 40%）。"""
-    from saintess_engine.battle.actors import actor_alive
-    from saintess_engine.battle.landing import deal_damage
+    from ext_combat.battle.actors import actor_alive
+    from ext_combat.battle.landing import deal_damage
 
     holder = params.get("_owner") or target
     if not isinstance(holder, dict) or not actor_alive(holder):

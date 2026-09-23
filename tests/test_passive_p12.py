@@ -17,7 +17,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -73,7 +73,7 @@ def test_1_enter():
 
 def test_2_cd_mult():
     print("【2. 影舞态内技能 CD−20%（cd_mult 0.8）】")
-    from saintess_engine.battle.battle import _now_of
+    from ext_combat.battle.battle import _now_of
     # 用暗影步自身 cd=16：先不进态时施放记 cd 16；进态后放带 cd 技能
     a = mk_assassin(["暗影步", "幻影连刺"])
     apply_class_mech(a)
@@ -101,7 +101,7 @@ def test_2_cd_mult():
 
 def test_3_shadow_bonus():
     print("【3. 暗影步·极：态内 spd ×1.25】")
-    from saintess_engine.battle.stats import actor_stats as _as
+    from ext_combat.battle.stats import actor_stats as _as
     a = mk_assassin(["暗影步·极", "影刃"])
     apply_class_mech(a)
     base_spd = float((_as(None, a) or {}).get("spd", 0) or 0)

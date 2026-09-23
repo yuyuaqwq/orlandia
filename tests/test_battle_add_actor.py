@@ -26,9 +26,9 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine import schedule as SC  # noqa: E402
-from saintess_engine import serialize as SER  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle import schedule as SC  # noqa: E402
+from ext_combat.battle import serialize as SER  # noqa: E402
 
 PASS = 0
 FAIL = 0

@@ -22,7 +22,7 @@ for _p in (_HERE, _PD):
 from _engine_harness import C  # noqa: E402,F401
 
 import numeric_sim as NS  # noqa: E402
-from saintess_engine import Battle as B2  # noqa: E402
+from ext_combat import Battle as B2  # noqa: E402
 from saintess_engine.tlog import JSONLSink, MemorySink, TLog  # noqa: E402
 from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进
 from content import tlog_collect as BT  # noqa: E402

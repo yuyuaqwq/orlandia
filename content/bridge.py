@@ -62,7 +62,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from saintess_engine import make_actor  # 只读 saintess_engine 工厂，不改 saintess_engine
+from ext_combat import make_actor  # 只读 saintess_engine 工厂，不改 saintess_engine
 
 
 # ============================================================
@@ -546,7 +546,7 @@ def make_battle(btype: str, **kwargs):
     表里有该 key ⇒ 取表；没有 ⇒ 引擎调用点兜底模板逐字输出（= 迁移前文案）。
     所以「表未收录该 key」与「整个未注入」两条路径输出**逐字节相同**（T2 判据①/⑤）。
     """
-    from saintess_engine import Battle as _B
+    from ext_combat import Battle as _B
     return _B(btype, text=_text_table(), **kwargs)
 
 
@@ -557,7 +557,7 @@ def restore_battle(state: dict):
     一类运行回调同款）。实例副本「每刻 from_state → human_act → to_state」的循环全靠这里
     把表接回来 —— 否则首战之后每一刻的日志都会退回兜底模板。
     """
-    from saintess_engine import Battle as _B
+    from ext_combat import Battle as _B
     return _B.from_state(state, text=_text_table())
 
 
@@ -578,7 +578,7 @@ def land_pending(b, logs, actor=None):
     （口径与 `advance()` 一致）；`actor` 给本次出手者 ⇒ 锚定它这一手落地（早于它的其它
     待发按时刻顺路结算），`actor=None` ⇒ 全场最早。无待发 ⇒ 引擎返回 None（零行为）。
     """
-    from saintess_engine import settle_landing as _settle
+    from ext_combat import settle_landing as _settle
     return _settle(b, logs, actor)
 
 

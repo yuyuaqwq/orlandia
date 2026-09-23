@@ -27,10 +27,10 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.landing import deal_damage  # noqa: E402
-from saintess_engine.battle.effects import apply_action  # noqa: E402
-from saintess_engine.battle.schedule import _settle_time_effects  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.landing import deal_damage  # noqa: E402
+from ext_combat.battle.effects import apply_action  # noqa: E402
+from ext_combat.battle.schedule import _settle_time_effects  # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -136,7 +136,7 @@ def test_2_dmg_type_passthrough():
     check("物免 40% + 空 kind：100 → 100（DOT 旧行为）", hit_none == 100, f"={hit_none}")
 
     # 透传是否真的发生：monkeypatch landing.deal_damage 抓 schedule 的实参
-    import saintess_engine.battle.landing as L
+    import ext_combat.battle.landing as L
     from saintess_engine import config as _cfg
     cap = {}
     orig = L.deal_damage

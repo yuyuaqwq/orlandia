@@ -39,7 +39,7 @@
 
 注入扇出（`bind_host(**inject)`）
 --------------------------------
-`game.json` 的 `bind` 指向本模块的 `bind_host`；引擎（`saintess_engine.host.load_package`）
+`game.json` 的 `bind` 指向本模块的 `bind_host`；引擎（`saintess_engine.host.load_stack`）
 在 import 包命令模块**之前**调用它，把「包运行期要用的宿主对象」一次分发到各模块既有注入槽。
 **真·宿主能力只有四类**：
 
@@ -476,7 +476,7 @@ def _surface_item(item):
 def bind_host(**inject):
     """**包侧唯一注入扇出**（引擎在 import 包命令模块之前调用；各被调方 `bind_host` 幂等）。
 
-    :param inject: 宿主注入对象。引擎（`load_package(root, inject=…)`）原样转发，键由包解释：
+    :param inject: 宿主注入对象。引擎（`load_stack(root, inject=…)`）原样转发，键由包解释：
 
         * 真·宿主能力（四类）：`db_path` / `clock` / `flush_log` / `lock` / `db`（存档层）·
           `log` / `tlog`（观测口 + 各模块日志槽）· `grant_reward`（发奖）

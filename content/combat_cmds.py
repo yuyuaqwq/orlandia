@@ -99,8 +99,8 @@ import re
 import sys
 import time
 
-from saintess_engine.battle.formulas import skill_buff_turns, skill_cond_mult, skill_lifesteal_pct, skill_max_level, skill_mech_val, skill_mp_pay_of, skill_power_mult
-from saintess_engine.formation import formation_view
+from ext_combat.battle.formulas import skill_buff_turns, skill_cond_mult, skill_lifesteal_pct, skill_max_level, skill_mech_val, skill_mp_pay_of, skill_power_mult
+from ext_combat.formation import formation_view
 
 from . import texts as _T          # 文案表（B 批 B-1：效果名等）
 from .player_cmds import _BRANCH_KEY_DISPLAY as _BRANCH_DISPLAY  # ★ 2026-09-19 单源化（P0-10 续）：本文件与 combat_cmds 原先各持一份同值副本
@@ -645,9 +645,9 @@ def _res_display_name(key: str) -> str:
 def _target_by_label(b, raw: str):
     """站位图编号 → actor（`a2`/`A2`/`2` = 敌方第 2 个；`b1` = 我方第 1 个）。
 
-    编号与站位图**同源**：`saintess_engine.formation.numbered_units`（存活单位、rank 升序 + 层内原序）。
+    编号与站位图**同源**：`ext_combat.formation.numbered_units`（存活单位、rank 升序 + 层内原序）。
     """
-    from saintess_engine.formation import numbered_units
+    from ext_combat.formation import numbered_units
     s = (raw or "").strip()
     if not s:
         return None
@@ -2331,7 +2331,7 @@ def _status_line(self, player: dict, b) -> str:
     # O96：burn/poison/mark 是敌方减益叠层，不在玩家栏显示）
     stacks = {}
     if isinstance(player.get("effects"), dict):
-        from saintess_engine.battle.state_effects import all_state_effects as _ase
+        from ext_combat.battle.state_effects import all_state_effects as _ase
         _stk_table = _ase()
         for _k, _ent in (player.get("effects") or {}).items():
             if isinstance(_ent, dict) and (_k in _stk_table or _k in _STACK_NAMES):
@@ -2394,7 +2394,7 @@ def _status_line(self, player: dict, b) -> str:
     # 挂敌身条（破绽/诅咒等）：effects[BAR_STATE_PREFIX+key] → 显示当刻积蓄/阈值
     # （结算到当前刻再读；阈值随触发递增，玩家据此决策「继续推还是换目标」）
     try:
-        from saintess_engine.gauge import bar_settle, bar_def, _state_prefix
+        from ext_combat.gauge import bar_settle, bar_def, _state_prefix
         _pfx = _state_prefix()
         _now_b = float(getattr(b, "_now", 0.0) or 0.0)
         for _k, _v in list(_eb_disp.items()):
@@ -2505,7 +2505,7 @@ def _battle_formation_panel(self, player: dict, b) -> str:
 
     v127.3 目标编号：敌方 a1/a2…（A{n}层），我方 b1（B{n}层）——『技能1 a2』指定目标。
     """
-    from saintess_engine.formation import alive_units
+    from ext_combat.formation import alive_units
     allies = [self._player_unit_for_formation(player)]
     ally_rows = formation_view(alive_units(allies), side="ally")
     _enemies = (getattr(b, "sides", None) or {}).get("enemy") or []

@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from _engine_harness import C  # noqa: E402
-from saintess_engine.battle.formulas import skill_power_mult, skill_flat_value
+from ext_combat.battle.formulas import skill_power_mult, skill_flat_value
 from content.panel import player_final_stats
 from content.skills import skill_info# noqa: E402
 from content.catalog_core import CLASSES  # noqa: E402
@@ -63,7 +63,7 @@ def _calc_dps_direct(st, power, cast, is_phys, flat=0):
     """DPS 直接口径（variance=0）：dps = calc_damage(atk*power + flat, 0) / cast。
     用 def=0 简化（防御在技能/普攻间同比例抵消，比值不变）。
     flat = v156 技能基础值（保底伤害），与引擎同口径。"""
-    from saintess_engine.battle.formulas import calc_damage
+    from ext_combat.battle.formulas import calc_damage
     stat = st["atk"] if is_phys else st["matk"]
     d = calc_damage(int(stat * power) + flat, 0, variance=0.0,
                     dmg_type="phys" if is_phys else "magi")
@@ -101,7 +101,7 @@ def check_class(cls, lv, branch=False):
     is_phys = cls in ("cls_zhan_shi", "cls_you_xia", "cls_ci_ke", "cls_wu_seng")
     cast_atk = float(CLASSES.get(cls, {}).get("cast_atk", 1.0) or 1.0)
     # 普攻 DPS（def=0 口径）
-    from saintess_engine.battle.formulas import calc_damage
+    from ext_combat.battle.formulas import calc_damage
     stat = st["atk"] if is_phys else st["matk"]
     dps_basic = calc_damage(int(stat), 0, variance=0.0,
                             dmg_type="phys" if is_phys else "magi") / cast_atk

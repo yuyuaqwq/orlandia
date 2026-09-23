@@ -30,8 +30,8 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.effect_triggers import fire  # noqa: E402
 from content.mech import class_mech as CMP  # noqa: E402
 
 PASS = 0
@@ -66,7 +66,7 @@ def new_battle(p, e):
 
 
 def bar_of(a):
-    from saintess_engine.gauge import bar_effect_key
+    from ext_combat.gauge import bar_effect_key
     return (a.get("effects") or {}).get(bar_effect_key("shaken")) or {}
 
 
@@ -133,7 +133,7 @@ def test_2_awareness():
     p = mk_player(["钢拳", "气力之心"])
     CMP.apply_class_mech(p)
     e = mk_enemy()
-    from saintess_engine.gauge import bar_gain as _bg
+    from ext_combat.gauge import bar_gain as _bg
     _bg(e, "shaken", 15, [])
     m, logs = calc_mult(p, e)
     check("val=15 命中门槛 → mult 1.2", abs(m - 1.2) < 1e-9, f"mult={m} logs={logs}")
@@ -152,7 +152,7 @@ def test_2_awareness():
 
 def test_3_broken_mult():
     print("【3. 破绽·极乘区段：破防态 → ×1.5】")
-    from saintess_engine.gauge import bar_effect_key
+    from ext_combat.gauge import bar_effect_key
     p = mk_player(["钢拳", "破绽·极"])
     CMP.apply_class_mech(p)
     e = mk_enemy()
@@ -217,7 +217,7 @@ def test_4_extend():
 
 def test_5_combined():
     print("【5. 三段叠加：破防态下气力之心 + 破绽·极 = ×1.8】")
-    from saintess_engine.gauge import bar_effect_key
+    from ext_combat.gauge import bar_effect_key
     p = mk_player(["钢拳", "气力之心", "破绽·极"])
     CMP.apply_class_mech(p)
     e = mk_enemy()

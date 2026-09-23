@@ -83,9 +83,9 @@ from content.mech import equip as EQ                                    # noqa: 
 from content.mech import food_proc as FP                                # noqa: E402
 from content.mech import team_procs as TP                               # noqa: E402
 from content.mech import worldboss as WB                                # noqa: E402
-from saintess_engine.battle.declarations import Compiler, Declaration   # noqa: E402
-from saintess_engine.battle.effects import register_action              # noqa: E402
-from saintess_engine.battle.effect_triggers import EVENTS as EV, fire   # noqa: E402
+from ext_combat.battle.declarations import Compiler, Declaration   # noqa: E402
+from ext_combat.battle.effects import register_action              # noqa: E402
+from ext_combat.battle.effect_triggers import EVENTS as EV, fire   # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -123,7 +123,7 @@ READONLY_FILES = (
 # 冻结侧读 `base/pkg/**`（改动前基线）；`_PIN["live"]` 由 --emit-live 重生成。
 
 _FROZEN_TEXT = {
-    'content/mech/equip.py::_known_engine_events': 'def _known_engine_events() -> frozenset:\n    """引擎事件全集；**取不到就返回空集 = 不告警**（告警本身不允许成为新的故障点）。"""\n    try:\n        from saintess_engine.battle.effect_triggers import EVENTS as _E\n        return frozenset(_E)\n    except Exception:      # noqa: BLE001\n        return frozenset()\n',
+    'content/mech/equip.py::_known_engine_events': 'def _known_engine_events() -> frozenset:\n    """引擎事件全集；**取不到就返回空集 = 不告警**（告警本身不允许成为新的故障点）。"""\n    try:\n        from ext_combat.battle.effect_triggers import EVENTS as _E\n        return frozenset(_E)\n    except Exception:      # noqa: BLE001\n        return frozenset()\n',
     'content/mech/equip.py::map_event': 'def map_event(old_ev: str) -> tuple:\n    """旧事件 → saintess_engine 事件展开；不在表 = 假定已是 saintess_engine 原生事件名，同名直通\n    （dmg_calc/taken_calc/battle_start 等装配层可直接用 saintess_engine 事件名）。\n\n    ★ 2026-09-13 反静默失效：直通的名字若不在引擎 EVENTS 全集里，`fire()` 会静默忽略 →\n    触发器永不生效且无痕迹。此处**只告警不改行为**（仍直通返回，语义与改造前逐字一致），\n    未知名去重缓存（装配器每场战斗都装，不去重会刷屏）。\n    """\n    got = _EVENT_MAP.get(old_ev)\n    if got is not None:\n        return got\n    _known = _known_engine_events()\n    if _known and old_ev not in _known and old_ev not in _UNKNOWN_EVENTS:\n        _UNKNOWN_EVENTS.append(old_ev)\n        logging.getLogger(__name__).warning(\n            "装配层事件名 %r 不在引擎事件全集里（fire 会静默忽略 → 该触发器永不生效）", old_ev)\n    return (old_ev,)\n',
     'content/mech/equip.py::weapon_triggers': 'def weapon_triggers(actor: dict) -> dict:\n    """actor 全部已装备武器特效 → {saintess_engine事件: [效果 dict]}。\n\n    内部先把 key 翻译成 {old_event: [效果]}，再把 old_event 映射展开到\n    saintess_engine 事件（hit → attack_hit + skill_hit 双事件注册）。\n    """\n    out: dict = {}\n    for key in equipped_weapon_keys(actor):\n        raw = triggers_for_key(key, actor)\n        if not raw:\n            continue  # 未支持 key：静默跳过（范围外）\n        for old_ev, effs in raw.items():\n            for b2_ev in map_event(old_ev):\n                out.setdefault(b2_ev, []).extend(list(effs))\n    return out\n',
     'content/mech/equip.py::affix_triggers': 'def affix_triggers(actor: dict) -> dict:\n    """actor 全部已装备词条（事件型）→ {saintess_engine事件: [效果 dict]}。\n\n    - stat 型词条（生成时已折算进 item.stats）不产生 triggers（面板自动含）\n    - 事件型走翻译器 + 事件映射展开（hit → attack_hit + skill_hit）\n    - 资源型：R4 已装事件 gain 型 10 + boiling_blood；上限型 max_bonus 走\n      _apply_bonus_domains（actor.bonus cap/cost 分域容器，非事件——apply_to_actor 第\n      0 步；面板外部增幅 bonus.panel 由开战仪式播种，装配不动）；\n      m_affixtail 已装 regen 型 2（energy_tide/swift_tailwind turn_start 回能）+\n      purify（命中驱散）；D3 已装 3 条事件型词条（combo_recover/combo_ward/ember_brand\n      ——取舍见 overnight/d3-gap-fix.md）；其余 cond 修正型/职业机制词条翻译器未注册\n      → 静默跳过（缺口清单见模块头注释与 affixes.py）\n    """\n    out: dict = {}\n    for aid in equipped_affix_ids(actor):\n        raw = affix_triggers_for_key(aid, actor)\n        if not raw:\n            continue\n        for old_ev, effs in raw.items():\n            for b2_ev in map_event(old_ev):\n                out.setdefault(b2_ev, []).extend(list(effs))\n    return out\n',
@@ -173,8 +173,8 @@ _PIN = {
         'data:content/data/food_effects.json': '4888c26020b5fbb4d5abe2b0b497c6b7ce396d8850cd02f98a9b4353e7b76400',
         'data:content/data/legendary_effects.json': '4f5b2cf476b09880e49121acf186a72893164e56c03ea087946ac61bd79dd51a',
         'data:content/mech/we_data.py': '111ea69b3da481660ebc6ff2807a57935fbf53163ef02baba17f85a55c39d9fe',
-        'engine:saintess_engine/battle/declarations.py': '7b0dcba4982af2477b1708ac651f8843385b37ee56d4a40a173a7a058ec099b9',
-        'engine:saintess_engine/battle/effect_triggers.py': 'db1a4c7ab1d94799acb9f2c7383f552cc2dec6f10ba6489eb18dbdbdf98eeead',
+        'engine:extends/ext_combat/battle/declarations.py': '7b0dcba4982af2477b1708ac651f8843385b37ee56d4a40a173a7a058ec099b9',
+        'engine:extends/ext_combat/battle/effect_triggers.py': 'db1a4c7ab1d94799acb9f2c7383f552cc2dec6f10ba6489eb18dbdbdf98eeead',
         'src_base:content/mech/equip.py': '61c2e8e3b453c2f8fa50e3c67986a26ca59f9ecc11f34c79ca4b4e6224cbff18',
         'src_base:content/mech/food_proc.py': 'caca7c1116448006d298fa5fb94b13e4fd087c01c8b51d276a41c94eae7fe998',
         'src_base:content/mech/team_procs.py': '50d3f1e78ba263bb7a873066e4da1f34df4e995c6ee9aa2d7b6f02e61433bca4',
@@ -680,7 +680,7 @@ def test_owner():
           bool(mounted) and all(e.get("_owner") is actor for e in mounted),
           [(e.get("key"), type(e.get("_owner")).__name__) for e in mounted][:3])
 
-    from saintess_engine.battle.effects import register_action
+    from ext_combat.battle.effects import register_action
 
     @register_action("u1d2_owner_probe")
     def _probe(battle, caster, target, params, logs):               # noqa: ANN001

@@ -19,7 +19,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech  # ★ P5C-REPOINT：直取包内真源
 
 PASS = 0
@@ -81,7 +81,7 @@ def test_2_fury_enter():
 
 def test_3_fury_atk():
     print("【3. 狂暴中面板 atk +20%】")
-    from saintess_engine.battle.stats import actor_stats as _as
+    from ext_combat.battle.stats import actor_stats as _as
     w = mk_warrior(["血祭"])
     apply_class_mech(w)
     base = float((_as(None, w) or {}).get("atk", 0) or 0)
@@ -94,7 +94,7 @@ def test_3_fury_atk():
 
 def test_4_revive():
     print("【4. 血怒复活：狂暴中致死 → 复活 30% + 清战意退狂暴】")
-    from saintess_engine.battle.landing import deal_damage
+    from ext_combat.battle.landing import deal_damage
     w = mk_warrior(["血怒·不灭"], hp=5000)
     apply_class_mech(w)
     w['effects']['fury'] = {'stacks': 1, 'expire': None}
@@ -115,7 +115,7 @@ def test_4_revive():
 
 def test_5_no_revive():
     print("【5. 负向：非狂暴致死不复活；已用二次致死不复活】")
-    from saintess_engine.battle.landing import deal_damage
+    from ext_combat.battle.landing import deal_damage
     # 非狂暴
     w = mk_warrior(["血怒·不灭"], hp=5000)
     apply_class_mech(w)

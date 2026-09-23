@@ -28,7 +28,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from _engine_harness import C            # noqa: E402
 from content.panel import player_final_stats
-from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
+from ext_combat import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
@@ -106,7 +106,7 @@ def test_speed_order():
     p = mk_player("战士", 10)
     m = mk_monster(hp=100000, atk=1, spd=30, name="快怪")
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
-    from saintess_engine import schedule as SC
+    from ext_combat.battle import schedule as SC
     ct_p = SC.initial_ct(p["spd"])
     ct_m = SC.initial_ct(m["spd"])
     check("快怪初始 ct < 玩家", ct_m < ct_p, f"m={ct_m:.2f} p={ct_p:.2f}")
@@ -133,7 +133,7 @@ def test_dot_tick():
     p = mk_player("战士", 20)
     m = mk_monster(hp=10000, atk=1, spd=100, name="靶怪")
     # 挂 burn 3 层（state_add on=target）
-    from saintess_engine import effects as FX
+    from ext_combat.battle import effects as FX
     FX.apply_effects(b := BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]}),
                      p, m, [{"type": "apply", "op": "add", "key": "burn", "amount": 3, "on": "target"}], [])
     check("burn 3 层挂上", stk(m, "burn", 0) == 3)
@@ -178,7 +178,7 @@ def test_real_data_spd0_player():
 def test_time_effects_n72():
     """N7.2 时效收口：控制 skip/no_skill 消费 + buff/shield 到期删。"""
     print("【N4.8 N7.2 时效：控制消费 + buffs/shields 到期】")
-    from saintess_engine.battle.schedule import _settle_time_effects
+    from ext_combat.battle.schedule import _settle_time_effects
     p = make_actor(uid="p_p1", name="玩家", side="player", kind="player",
                    human_controlled=True, class_name="战士", level=10,
                    hp=1000, max_hp=1000, atk=50, mp=100, max_mp=100, spd=50,
@@ -236,14 +236,14 @@ def test_time_effects_n72():
 def test_dot_interval_n74():
     """N7.4 DOT interval：绝对时刻跳、跨多刻补跳、同刻不重复。"""
     print("【N4.9 N7.4 DOT interval：按 interval 绝对时刻跳】")
-    from saintess_engine.battle.schedule import _settle_time_effects as _ste
+    from ext_combat.battle.schedule import _settle_time_effects as _ste
     e = make_actor(uid="e_dot", name="靶", side="enemy", kind="monster", hp=1000,
                    max_hp=1000, atk=1, spd=10, level=1)
     b = BT_NEW(btype="monster", sides={"player": [], "enemy": [e]})
     # 本测试只验「跳刻/补跳节奏」，伤害值按**当前规则表**推算（2026-09-11 DOT 公式统一后
     #   burn = matk×0.6 + max_hp 0.5%，且 pct 受 pct_cap 单层上限约束），不写死数字：
     #   条目 pct 覆盖 3% → 被 pct_cap(1%) 压住 → 1000×0.01×2 层 = 20/跳
-    from saintess_engine.battle.state_effects import state_def as _sd
+    from ext_combat.battle.state_effects import state_def as _sd
     _per = (_sd("burn") or {}).get("period") or {}
     _cap = float(_per.get("pct_cap") or 0)
     _pct = min(0.03, _cap) if _cap else 0.03
@@ -275,8 +275,8 @@ def test_recover_second_segment_t14():
     形状与数值全在内容侧（`TIME_MODEL.recover` / `.recover_shape`）。
     本包现 `recover` 段全 0 ⇒ 行为与「只有一段」逐位相同；反证把 0.5 灌进去证明第二段是活的。
     """
-    from saintess_engine.battle import schedule as _sch
-    from saintess_engine.battle.stats import actor_spd as _aspd
+    from ext_combat.battle import schedule as _sch
+    from ext_combat.battle.stats import actor_spd as _aspd
     from content.mech import time_model as TM
     from content.mech import params as PR
 

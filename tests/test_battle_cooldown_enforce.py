@@ -32,9 +32,9 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
 from _engine_harness import auto_land, human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
-from saintess_engine import Battle as B2, make_actor, ActCtx  # noqa: E402
-from saintess_engine.battle.actions import _cd_left_of, _skill_usable  # noqa: E402
-from saintess_engine.battle.ai import resolve_ai_move, _skill_castable, _move_castable  # noqa: E402
+from ext_combat import Battle as B2, make_actor, ActCtx  # noqa: E402
+from ext_combat.battle.actions import _cd_left_of, _skill_usable  # noqa: E402
+from ext_combat.battle.ai import resolve_ai_move, _skill_castable, _move_castable  # noqa: E402
 
 PASS = 0
 FAIL = 0

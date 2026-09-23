@@ -37,8 +37,8 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
 _HERE = os.path.dirname(os.path.abspath(__file__))   # <pkg>/content/mech（端口新增：读包内域文件用）
 

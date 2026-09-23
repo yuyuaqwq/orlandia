@@ -50,7 +50,7 @@ if _paths.ENGINE_ROOT not in sys.path:
     sys.path.insert(0, _paths.ENGINE_ROOT)
 
 # ★ P5D-REPOINT：装配口从宿主薄壳 `game.bootstrap.package_apply()`（随 game/** 退役）
-#   换成测试侧引擎通道装配口 `_engine_harness.boot`（幂等；内部即 load_package）。
+#   换成测试侧引擎通道装配口 `_engine_harness.boot`（幂等；内部即 load_stack）。
 from _engine_harness import boot as _eng_boot  # noqa: E402
 _eng_boot()
 

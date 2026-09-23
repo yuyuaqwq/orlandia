@@ -26,13 +26,13 @@
 |---|---|---|
 | `KIND_NAMES`          | `game/bootstrap.py:117 _kinds()`（值 = `saintess_engine.kinds.K_*`） | 全量（5 值，引擎词表就 5 个） |
 | `BASIC_FALLBACK`      | `game/bootstrap.py:123 _basic_fallback()` | 全量 |
-| `FORMULA_SKELETON`    | **包内 `content/rules/formula_skeleton.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联字面量，谱系见右） | **子集 + 新增**：引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）来自游戏仓 `game/data/formula_skeleton.py:FORMULA_SKELETON`；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬。**V4（2026-09-16）新增 7 组战斗落地常量**（原文写死在引擎字面量，谱系 = 引擎原值、非游戏仓 data）：`shield_default_pct` / `block` / `heal_down` / `anti_heal` / `reduce` / `gauge` / `skill_max_level` —— 与包内 `content/rules/game_config.json` 同组**两份独立来源**（逐值相等由 `tests/test_v4_formula_skeleton.py` 钉住） |
-| `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON`（搬前谱系） | **子集**：只留引擎 `saintess_engine/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬 |
+| `FORMULA_SKELETON`    | **包内 `content/rules/formula_skeleton.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联字面量，谱系见右） | **子集 + 新增**：引擎 `extends/ext_combat/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）来自游戏仓 `game/data/formula_skeleton.py:FORMULA_SKELETON`；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬。**V4（2026-09-16）新增 7 组战斗落地常量**（原文写死在引擎字面量，谱系 = 引擎原值、非游戏仓 data）：`shield_default_pct` / `block` / `heal_down` / `anti_heal` / `reduce` / `gauge` / `skill_max_level` —— 与包内 `content/rules/game_config.json` 同组**两份独立来源**（逐值相等由 `tests/test_v4_formula_skeleton.py` 钉住） |
+| `FORMULA_SKELETON`    | `game/data/formula_skeleton.py:FORMULA_SKELETON`（搬前谱系） | **子集**：只留引擎 `extends/ext_combat/battle/formulas.py` 读的两段（`skill_growth` / `skill_learn_cost`）；其余段（exp_fallback / monster_exp / monster_gold / prof_exp_need / equip_crit / necklace_mdef / boss_atk_legacy）由宿主结算读，切片不搬 |
 | `time_model`（供体函数） | `content/rules/game_config.json` → `formula_skeleton.FORMULA_SKELETON.TIME_MODEL`（**包内真源**；V3 下沉，无宿主对应物） | 全量（`shape` / `spd_ref` / `cast` / **`recover`** / **`recover_shape`** / `spd_cap` 六键，读口 `catalog_rules.time_model()`） |
 | `SKILL_FLAT`          | `game/data/skill_up.py:SKILL_FLAT_BASE/_PER_PLAYER_LV/_PER_SKILL_LV` | 全量（3 常量） |
 | `TIER_GROWTH`         | `game/data/battle_config.py:379` | 全量（4 个档位；切片面板公式用） |
 | `LINEAR_STATS`        | **包内 `content/rules/linear_stats.json`**（★ D7 2026-09-17 进表；搬前 = 本文件内联 tuple，谱系 `game/data/base_growth.py:PLAYER_BASE_GROWTH["linear_stats"]`） | 全量（7 键；类型还原成 tuple） |
-| `MECH_CFG`            | `game/data/battle_config.py:455 MECH_CFG` | **子集**：只留 `enemy_bar`（`saintess_engine/gauge` 的条机制读它；切片 3 个动作用到的 `target_bar_*` judge 依赖 `enemy_bar.shaken`）。`enemy_bar` 内只留 `shaken`（`curse` 属 D2 敌身条族，随 `bar_procs.py` 一起搬） |
+| `MECH_CFG`            | `game/data/battle_config.py:455 MECH_CFG` | **子集**：只留 `enemy_bar`（`extends/ext_combat/gauge` 的条机制读它；切片 3 个动作用到的 `target_bar_*` judge 依赖 `enemy_bar.shaken`）。`enemy_bar` 内只留 `shaken`（`curse` 属 D2 敌身条族，随 `bar_procs.py` 一起搬） |
 | `MECH_CASH`           | `game/data/battle_rules.py:624 MECH_CASH` | **空**：切片 3 个动作都不读它（读它的是 `mech_cash_*` 兑现执行器族，属 D2）。留空 = 明确"本切片不采用"，不是忘了搬 |
 | `BAR_STATE_PREFIX`    | `game/data/battle_rules.py:749` | 全量 |
 | `EFFECT_RULES`        | 包内 `content/rules/effect_rules.json`（85 条，导出物） | 全量（本包自己的声明表） |
@@ -69,7 +69,7 @@ KIND_NAMES = {
 BASIC_FALLBACK = {"name": "攻击", "kind": KIND_NAMES["phys"], "exprs": ["atk*1.0"]}
 
 # ============================================================
-# ③ 公式骨架参数表（引擎 saintess_engine/battle/formulas.py 的读点）
+# ③ 公式骨架参数表（引擎 extends/ext_combat/battle/formulas.py 的读点）
 #    ← game/data/formula_skeleton.py（只搬引擎读的两段；见文件头真源对照表）
 #    ★ V4（2026-09-16）：引擎侧最后 7 处「写死游戏数值」下沉到此表 —— 除下面两个历史段
 #      （skill_growth / skill_learn_cost，谱系 = 游戏仓 data/formula_skeleton.py）外，
@@ -123,7 +123,7 @@ LINEAR_STATS = tuple(_LINEAR_STATS_KEYS)
 #      原状：MECH_CFG **三份**（class_data 全量 15 组 = 逐键等于真源 ✅ /
 #            element_data 仅 `element` 一档（零消费者）/ 本文件仅 `enemy_bar` 一档**且截断**：
 #            真源 battle_config.py:284 的 ENEMY_BAR_CFG 是 `{curse, shaken}`，本文件只抄了 `shaken`）。
-#      后果：本文件那份挂在引擎 hook `mech_cfg_fn` 上（`saintess_engine/gauge/__init__.py:51`
+#      后果：本文件那份挂在引擎 hook `mech_cfg_fn` 上（`extends/ext_combat/gauge/__init__.py:51`
 #            `config.mech_cfg(name)`）→ 走 gauge 的敌身条读到的配置**缺 curse**（静默少一档），
 #            而走 class_data 的装配层读到的是完整的 —— 同一机制名、两条入口、两套值。
 #      MECH_CASH 两份：class_data 9 条 ✅ / 本文件空 `{}`（零消费者，切片遗留）。

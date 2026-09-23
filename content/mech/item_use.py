@@ -57,7 +57,7 @@ import re
 from typing import Optional
 
 from saintess_engine import config as _b2config
-from saintess_engine.battle.landing import heal_actor
+from ext_combat.battle.landing import heal_actor
 
 from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
 
@@ -205,7 +205,7 @@ def translate(battle, actor: dict, payload: str,
                 _sh = _food_params().get("shield") or {}
                 _sh_pct = float(_sh.get("pct", 0.10) or 0.10)
                 _sh_turns = int(_sh.get("turns", 3) or 3)
-                from saintess_engine.battle.effects import apply_effects
+                from ext_combat.battle.effects import apply_effects
                 apply_effects(battle, actor, actor,
                               [{"action": "shield", "key": "food_shield",
                                 "pct": _sh_pct, "turns": _sh_turns,
@@ -220,7 +220,7 @@ def translate(battle, actor: dict, payload: str,
     # 清玩家侧全部存活 actor 的可净化负面（EFFECT_RULES period/on=target/cleanse；
     # sleep 不可净化）。旧模板直改 p_buffs 已随 saintess_engine 失效——负面权威在 actor.effects。
     if _payload == "purify:1":
-        from saintess_engine.battle.effects import apply_effects
+        from ext_combat.battle.effects import apply_effects
         _cleaned = []
         _holders = []
         try:
@@ -324,7 +324,7 @@ def translate(battle, actor: dict, payload: str,
         table = _load_effect_actions()
         # payload key（= buffs 容器键 atk_up/food_atk_up/...）→ EFFECT_ACTIONS
         # 名词（N7.5b 药水别名 buff_atk/... 的动作 key 字段即容器键）——扫表反查
-        from saintess_engine.battle.effects import apply_effects
+        from ext_combat.battle.effects import apply_effects
         applied = []
         for _k in keys:
             _name = _find_effect_action_name(table, _k)
@@ -401,7 +401,7 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
         table = _load_effect_actions()
         mapped = table.get(kind)
         if isinstance(mapped, list) and mapped:
-            from saintess_engine.battle.effects import apply_effects
+            from ext_combat.battle.effects import apply_effects
             # hit 型 buff 出手消费，expire 仅兜底 → turns 给大（装配层同族惯例），
             # 消费即清；无 turns 的动作（act_buff 要求 turns>0）会不挂
             apply_effects(battle, actor, actor,
@@ -417,7 +417,7 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
         turns = int(_ed.get("turns", 3) or 3)
         if pct <= 0:
             pct = 0.10  # 兜底（无数据声明 = 旧 shield 药默认 10% max_hp）
-        from saintess_engine.battle.effects import apply_effects
+        from ext_combat.battle.effects import apply_effects
         apply_effects(battle, actor, actor,
                       [{"action": "shield", "key": _key, "pct": pct,
                         "turns": turns, "on": "caster"}], logs)

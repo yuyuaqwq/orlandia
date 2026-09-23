@@ -3,8 +3,8 @@
 
 背景（V4 作业书 §3）
 --------------------
-引擎 `saintess_engine/battle/{effects,landing,actions,formulas}.py` 与
-`saintess_engine/gauge/__init__.py` 里最后 7 处写死的游戏数值，下沉到**既有的**
+引擎 `extends/ext_combat/battle/{effects,landing,actions,formulas}.py` 与
+`extends/ext_combat/gauge/__init__.py` 里最后 7 处写死的游戏数值，下沉到**既有的**
 `FORMULA_SKELETON` / `formula_skeleton_fn` 注入面（不新开第二张表）：
 
     shield_default_pct  护盾兜底（含 shield_pct 缺省）      0.20
@@ -75,7 +75,7 @@ except Exception as exc:                                                # noqa: 
           % (type(exc).__name__, str(exc)[:80]))
 
 from saintess_engine import config as CFG                                # noqa: E402
-from saintess_engine.battle import formulas as F                         # noqa: E402
+from ext_combat.battle import formulas as F                         # noqa: E402
 from content.mech import params as P                                     # noqa: E402
 
 #: 本批下沉的 7 组（JSON 真源 ↔ 引擎挂载面）

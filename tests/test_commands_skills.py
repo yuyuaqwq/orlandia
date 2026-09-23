@@ -10,7 +10,7 @@
 import sys, os, sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _engine_harness import C, db, clean_db, Main, FakeEvent, run
-from saintess_engine.battle.formulas import skill_buff_turns, skill_cond_mult, skill_max_level, skill_mech_val, skill_power_mult
+from ext_combat.battle.formulas import skill_buff_turns, skill_cond_mult, skill_max_level, skill_mech_val, skill_power_mult
 from content.skills import skill_info, skill_upgrade_cost
 
 passed = failed = 0

@@ -27,15 +27,15 @@
 `REACTION_TABLE`(`:147-152`) / `ELEMENT_MARKS_MAX`(`:142`) / `MECH_CFG["element"]`(`:474-480`)。
 ★ B10-L2 收口（2026-09-13）：宿主 `battle_element_procs.py` 已改**薄壳**（再导出本模块）⇒ 本模块 = 唯一实现。
 ★ U1-D2 L7（装配形状迁移）：`apply_element_procs` 里的「手写判重 + `append`」已改走引擎
-声明编译器 `saintess_engine.battle.declarations`（去重键 `action`、写策略 `replace`；
+声明编译器 `ext_combat.battle.declarations`（去重键 `action`、写策略 `replace`；
 模块级 `_DECL`）——**追加序铁律**（`elem_counter` 恒先于 `elem_reaction`）与行为**逐字不变**
 （门禁④ 144 格 + 旧实现 exec 逐格比）。
 """
 from __future__ import annotations
 
-from saintess_engine.battle.effects import register_action
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.effects import register_action
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
 from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
 
@@ -182,7 +182,7 @@ def elem_reaction(battle, caster, target, params, logs):
 def _apply_freeze(battle, tgt: dict, logs) -> None:
     """反应附带冻结：写控制态（mode=skip，1.5 刻 → 取整 2 刻）。"""
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         now = float(now_of(battle) or 0)
     except Exception:
         now = float(getattr(battle, "_now", 0) or 0)
@@ -233,7 +233,7 @@ def elem_counter(battle, caster, target, params, logs):
             logs.append(_T.static("ep.cleanse_melt"))
     if rule.get("interrupt"):
         try:
-            from saintess_engine.battle.effects import apply_effects
+            from ext_combat.battle.effects import apply_effects
             apply_effects(battle, actor, tgt, [{"type": "interrupt"}], logs)
         except Exception:
             pass

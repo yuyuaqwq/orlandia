@@ -28,7 +28,7 @@ from _engine_harness import boot as _eng_cfg; _eng_cfg()
 from content import drops as D
 from _engine_harness import db
 from content import bridge as BR
-from saintess_engine import Battle as B2
+from ext_combat import Battle as B2
 db.init_db()
 
 PASS = 0

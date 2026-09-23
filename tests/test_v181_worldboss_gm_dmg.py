@@ -30,8 +30,8 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.landing import deal_damage  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.landing import deal_damage  # noqa: E402
 from _engine_harness import boot as _eng_cfg  # noqa: E402
 _eng_cfg()
 from content.mech import worldboss as WBP  # noqa: E402
@@ -131,7 +131,7 @@ def test_compose_with_taken_calc():
     e.setdefault("triggers", {}).setdefault("taken_calc", []).append(
         {"action": "wb_test_half"})
 
-    from saintess_engine.battle.effects import register_action
+    from ext_combat.battle.effects import register_action
 
     @register_action("wb_test_half")
     def _half(battle, caster, target, params, logs):

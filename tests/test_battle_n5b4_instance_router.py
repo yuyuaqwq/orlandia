@@ -536,7 +536,7 @@ def test_12_use_item_router():
 
 def test_13_target_picker():
     print("【13. 5b target_picker：仇恨选目标 / 嘲讽强制 / policy 缺省】")
-    from saintess_engine import Battle as B2
+    from ext_combat import Battle as B2
     from content.flow import instance_battle as IB
     st = mk_st([70111, 70112], enemy=mk_enemy(hp=5000, spd=1, role="boss"))
     _build_battle(st)
@@ -575,7 +575,7 @@ def test_13_target_picker():
 
 def test_14_team_heal_broadcast():
     print("【14. 5b G2 on_event：team=heal_all 全队广播（牧师救赎之光）】")
-    from saintess_engine import Battle as B2
+    from ext_combat import Battle as B2
     from content.flow import instance_battle as IB
     # 双人副本：牧师 + 战士，战士残血
     st = mk_st([70121, 70122], enemy=mk_enemy(hp=5000, spd=1))

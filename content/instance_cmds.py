@@ -421,7 +421,7 @@ class InstanceImpl:
             cands = [c for c in (ec + pc) if c is not None]
             if cands:
                 ref = min(cands)
-            from saintess_engine.battle.schedule import action_time as _b2_at
+            from ext_combat.battle.schedule import action_time as _b2_at
             cost = _b2_at(int(_spd))
             snap["ct"] = (ref if ref is not None else 0.0) + cost
         except Exception:
@@ -1303,7 +1303,7 @@ class InstanceImpl:
         for key, snap in (st.get("players") or {}).items():
             if IR.alive_of(st, key):
                 _spd = int(snap.get("spd", 0) or 0)
-                from saintess_engine.battle.schedule import action_time as _b2_at
+                from ext_combat.battle.schedule import action_time as _b2_at
                 _cost = _b2_at(_spd)
                 ref = min(refs) if refs else 0.0
                 snap["ct"] = ref + _cost
@@ -1359,7 +1359,7 @@ class InstanceImpl:
         ★ V3：公式形状/参数归内容侧（`content/rules/game_config.json` 的
         `formula_skeleton.TIME_MODEL`；构造点 `content/mech/time_model.py`）——
         旧注释写的 `BASE_DELAY/spd`（线性旧模型）与实现早已不符，此处已改。"""
-        from saintess_engine.battle.schedule import initial_ct as _ict
+        from ext_combat.battle.schedule import initial_ct as _ict
         boss = boss or {}
         if not boss:
             return []
@@ -1607,8 +1607,8 @@ class InstanceImpl:
 
         单人副本也走同一面板（我方一行 = 自己），保证观感与野外一致。
         """
-        from saintess_engine import formation as FM
-        from saintess_engine.formation import alive_units
+        from ext_combat import formation as FM
+        from ext_combat.formation import alive_units
         # 显示名表：★ L7 起真源 = 包内 `content/combat_cmds.py` 的**模块级常量**
         # （`_P_BUFF_NAMES` / `_E_BUFF_NAMES`，见该文件头「L7 正位」）——
         # 不再 `getattr(self, …)`：壳上取不到会**静默回落空表**（线上表现为 buff 行整段消失），
@@ -2175,7 +2175,7 @@ class InstanceImpl:
         return reward
 
     async def _instance_start(self, event, group_id, qq_id, player, arg):
-        from saintess_engine.battle.schedule import initial_ct as _ict
+        from ext_combat.battle.schedule import initial_ct as _ict
         kid = None
         for k, inst in _cat_space.INSTANCES.items():
             if inst["name"] == arg or k == arg:

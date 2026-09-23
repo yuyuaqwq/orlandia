@@ -27,7 +27,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from content.panel import player_final_stats
-from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
+from ext_combat import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 
 PASS = 0
@@ -77,7 +77,7 @@ def test_roundtrip_full():
     m = mk_monster()
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
     # 打一半状态：玩家放技能/挂 state
-    from saintess_engine import effects as FX
+    from ext_combat.battle import effects as FX
     p["effects"]["zhan_yi"] = {"stacks": 3}
     p["effects"]["atk_up"] = {"stacks": 4}
     m["effects"]["burn"] = {"stacks": 2}

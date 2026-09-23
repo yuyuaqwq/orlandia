@@ -28,13 +28,13 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402  ★ P5C-REPOINT：宿主装配壳已删
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.effect_triggers import fire  # noqa: E402
 from content.mech import class_mech as CMP  # noqa: E402  ★ P5C-REPOINT：直取包内真源
-from saintess_engine.gauge import (bar_def, bar_effect_key, bar_gain, bar_settle,# noqa: E402
+from ext_combat.gauge import (bar_def, bar_effect_key, bar_gain, bar_settle,# noqa: E402
                                    bar_state, _state_prefix)
 from content.catalog_rules import ENEMY_BAR_CFG  # noqa: E402  ★ P5C-REPOINT：真源 = 包内聚合层（同值，域 `rules/game_config.json` 的 battle_config 组）
-from saintess_engine.battle.state_effects import all_state_effects  # noqa: E402
+from ext_combat.battle.state_effects import all_state_effects  # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -198,7 +198,7 @@ def test_7_container_safety():
     for bad in ("expire", "period", "mode", "stacks", "stat", "mult"):
         check(f"条条目不带 {bad}（避开容器自动化）", bad not in entry, f"entry={entry}")
     # 面板折算不受污染：有破绽条的单位 spd/atk 不因条变化
-    from saintess_engine.battle.stats import actor_stats
+    from ext_combat.battle.stats import actor_stats
     s1 = dict(actor_stats(b, e))
     bar_gain(e, "shaken", 40, [], now=b._now)
     s2 = dict(actor_stats(b, e))

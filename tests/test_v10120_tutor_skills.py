@@ -100,8 +100,8 @@ async def main():
     out = await cmd(m, "skill_upgrade", "g1", "w1", "技能升级 魔力脉冲")
     check("升级成功", "Lv.2" in out, out[:150])
     # saintess_engine 验证升级后专属技能真实打出伤害（N10 删旧：saintess_engine 施放语义）
-    from saintess_engine import Battle as _B2
-    from saintess_engine import make_actor as _mk2
+    from ext_combat import Battle as _B2
+    from ext_combat import make_actor as _mk2
     bp = db.get_player("g1", "w1")
     _st = _mk2(uid="p_q1", name=bp.get("name", "勇者"), side="player", kind="player",
                human_controlled=True, class_name=bp.get("class_name") or "cls_fa_shi",
@@ -125,7 +125,7 @@ async def main():
                 if isinstance(_sk, dict) and str(_sk.get("name")) == "魔力脉冲":
                     _sk_id, _sk_info = _sid, dict(_sk)
     if _sk_info:
-        from saintess_engine.battle.actors import ActCtx
+        from ext_combat.battle.actors import ActCtx
         _logs = []
         act_land(_b, ActCtx(caster=_st, action="skill", skill_name="魔力脉冲",
                       info=_sk_info, target=_e))

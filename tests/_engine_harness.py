@@ -9,7 +9,7 @@
 内容规则转引包内真源 + 平台面），本文件只补**测试专有的三件事**：
 
     ① 平台适配器（三函数 `recv` / `load_player`+`save_player` / `say`）—— 存档走包内存档半边；
-    ② 引擎通道装配（`load_package(inject=…)` → `install_engine()` → 声明注册表 → 处理器表）；
+    ② 引擎通道装配（`load_stack(inject=…)` → `install_engine()` → 声明注册表 → 处理器表）；
     ③ `Main`：保留旧测试的调用面（`getattr(m, "<handler>")(event)` / `await Main.register(...)`），
        把 handler 名按**包内声明表**派到引擎通道，并按旧宿主壳的**消息框定口径**返回。
 
@@ -45,7 +45,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 import _paths                                                            # noqa: E402
 PLUGIN_DIR = _paths.PKG_ROOT        # 包仓根（旧名保留：测试里 from _engine_harness import PLUGIN_DIR）
-PKG_ROOT = _paths.PKG_ROOT          # 包仓根（`load_package()` 的 root）
+PKG_ROOT = _paths.PKG_ROOT          # 包仓根（`load_stack()` 的 root）
 _ENGINE_ROOT = _paths.ENGINE_ROOT  # 引擎根（候选发现 + 醒目报错见 _paths）
 HOST_ROOT = _paths.HOST_ROOT        # 宿主壳根（`host/shell.py` 所在部署树）
 
@@ -58,7 +58,7 @@ HOST_ROOT = _paths.HOST_ROOT        # 宿主壳根（`host/shell.py` 所在部�
 #   真仓里 `plugins/` 下没有 `host/`，不会发生）。置前后 `host` = `PLUGIN_DIR/host`（真宿主壳）。
 
 from saintess_engine.host import Host as _EngineHost                          # noqa: E402
-from saintess_engine.host import load_package, run_guards                     # noqa: E402
+from saintess_engine.package import load_stack, run_guards                     # noqa: E402
 from host.shell import HostShell                                              # noqa: E402
 from host import _platform                                                    # noqa: E402
 from host import tlog_setup as _host_tlog_setup                               # noqa: E402  ★ P5F 前置④
@@ -76,7 +76,7 @@ def land(b, logs=None, actor=None):
     表现 = PVP『挥砍』后双方面板血量不动）。**生产口径 = 一次出手 = 落地后返回**
     （包内 `content/bridge.land_pending`）⇒ 测试侧照此跟账，不另立第二套时序。
     """
-    from saintess_engine import settle_landing
+    from ext_combat import settle_landing
     if logs is None:
         logs = []
     settle_landing(b, logs, actor)
@@ -325,7 +325,7 @@ class EngineHarness(object):
         kwargs = {"seed": self.seed, "id_key": "qq_id", "inject": inject}
         self.host = host_cls(self.adapter, PKG_ROOT, **kwargs)
         # ---- 装配四步（与引擎 Host.boot 同序同内容，用公开 API 逐项调）----
-        self.host.pkg = load_package(PKG_ROOT, inject=inject)   # ① 先 bind 扇出
+        self.host.pkg = load_stack(PKG_ROOT, inject=inject)   # ① 先 bind 扇出
         self.facade = importlib.import_module("content.facade")
         self.db = importlib.import_module("content.persistence")
         self.rules = importlib.import_module("content.cmds_base_rules")

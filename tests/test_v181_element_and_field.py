@@ -27,15 +27,15 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.landing import deal_damage  # noqa: E402
-from saintess_engine.battle.effects import apply_effects  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.landing import deal_damage  # noqa: E402
+from ext_combat.battle.effects import apply_effects  # noqa: E402
+from ext_combat.battle.effect_triggers import fire  # noqa: E402
 from _engine_harness import boot as ensure_engine_configured  # noqa: E402
 
 # 测试稳定性：屏蔽承伤侧的**闪避随机**（角色面板自带 ~3% dodge；本文件断言的是
 # 减伤/护盾乘区数值，闪避未命中会让断言偶发失败）。格挡同理（block=0 时本就不 roll）。
-import saintess_engine.battle.landing as _LD  # noqa: E402
+import ext_combat.battle.landing as _LD  # noqa: E402
 _LD._roll_dodge = lambda *a, **k: False  # noqa: E731
 
 
@@ -99,7 +99,7 @@ def load_skill(p, name, effect, element=None, **extra):
 
 def cast_dmg(b, p, e, info, amount=1000):
     """按技能施放走一遍伤害管线（含 dmg_calc 事件）。返回实际扣血。"""
-    from saintess_engine.battle.actions import _single_target_pipeline
+    from ext_combat.battle.actions import _single_target_pipeline
     e["hp"] = e["max_hp"]
     logs = []
     p.setdefault("_skill_index", {})[info["name"]] = info
@@ -297,7 +297,7 @@ def test_reduce_alt():
 
 def test_arcane_field():
     print("【E. 奥术力场两档（盾 / 刃）】")
-    from saintess_engine import stats as _S
+    from ext_combat.battle import stats as _S
 
     # 盾档（默认）
     b, p, e = setup()

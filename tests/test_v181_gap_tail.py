@@ -31,13 +31,14 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor, effects as EFX  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire  # noqa: E402
-from saintess_engine.gauge import bar_effect_key, bar_gain# noqa: E402
+from ext_combat.battle import effects as EFX  # noqa: E402
+from ext_combat import Battle as B2, make_actor
+from ext_combat.battle.effect_triggers import fire  # noqa: E402
+from ext_combat.gauge import bar_effect_key, bar_gain# noqa: E402
 from content.mech import class_mech as CMP  # noqa: E402
 # ★ B18-REPOINT：直取包内实现本体；★ U1-I1：敌身条族 4 动词 + 5 助手已整块上移引擎
-#   `saintess_engine/gauge/actions.py`（包侧只剩装配器）⇒ 助手改从引擎取。
-from saintess_engine.gauge.actions import _ensure_tick  # noqa: E402
+#   `extends/ext_combat/gauge/actions.py`（包侧只剩装配器）⇒ 助手改从引擎取。
+from ext_combat.gauge.actions import _ensure_tick  # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -90,7 +91,7 @@ def bar_val(host, key="shaken"):
 
 def advance(b, dt):
     """真实时钟推进：schedule._advance_time（广播 time_advance，ctx dt/now）。"""
-    from saintess_engine.battle.schedule import _advance_time
+    from ext_combat.battle.schedule import _advance_time
     logs = []
     _advance_time(b, dt, logs)
     return logs

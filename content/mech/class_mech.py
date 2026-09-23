@@ -34,7 +34,7 @@
    BAR_STATE_PREFIX`（原表真源 = `game/data/battle_rules.py:624/742/749` +
    `game/data/battle_config.py:455`；本族动作经装配层消费它们）。
 5. **★ U1-D2 L7（装配形状迁移）**：6 处挂载点的「手写判重 + 手写追加」已改走引擎声明编译器
-   `saintess_engine.battle.declarations`（去重键/写策略**逐处**不同，见 `_DECL*` 定义块的注释）；
+   `ext_combat.battle.declarations`（去重键/写策略**逐处**不同，见 `_DECL*` 定义块的注释）；
    39 个动作体**只有 2 个**（`class_stance_guard_enter` / `class_guard_stance_enter`，各自含挂载点）
    的挂载动作被换，其余 37 个 `getsource` **逐字节不变**；执行序（含旋律基础叠层的前插）与行为
    **逐字不变**（门禁④ 144 格 + 旧实现 exec 逐格比）。
@@ -93,9 +93,9 @@
 """
 from __future__ import annotations
 
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
-from saintess_engine.battle.effects import register_action
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.effects import register_action
 
 # 包内参数表单源（真源见 class_data.py 头注）。本族 39 个动作不直接读这些表（由装配层
 # 消费），此处 import = 保持「表 → 装配层 → 动作」的包内单源缝，并为后续接线预置。
@@ -290,7 +290,7 @@ def _act_target(battle, ctx, actor, target):
     if tgt is not None:
         return tgt
     try:
-        from saintess_engine.battle.actors import hostile_sides, actor_alive as _alive
+        from ext_combat.battle.actors import hostile_sides, actor_alive as _alive
         for _sn in hostile_sides(battle, actor.get("side", "")):
             for _a in (battle.sides.get(_sn) or []):
                 if _alive(_a):
@@ -319,7 +319,7 @@ def _clear_actor(actor, key, logs):
 def _faith_tiers() -> list:
     """EFFECT_RULES faith 条目 load_tiers 档位表（缺省 []——零默认值铁律）。"""
     try:
-        from saintess_engine.battle.state_effects import state_def
+        from ext_combat.battle.state_effects import state_def
         _t = (state_def("faith") or {}).get("load_tiers")
         return _t if isinstance(_t, list) else []
     except Exception:
@@ -448,7 +448,7 @@ def _melody_ctrl_apply(battle, actor, foe, ckey: str, turns: float, logs) -> Non
     """对敌施加控制：走引擎 apply 动词（EFFECT_RULES[key].consume.mode 语义 +
     Boss 控制减半天然生效，不自造控制通道）。turns 由引擎 int 化（半刻不支持）。"""
     _t = max(1, int(turns or 0))
-    from saintess_engine.battle.effects import act_apply
+    from ext_combat.battle.effects import act_apply
     act_apply(battle, actor, foe, {"key": ckey, "on": "target", "turns": _t}, logs)
 
 
@@ -529,7 +529,7 @@ def mech_cash_finisher_crit(battle, caster, target, params, logs):
     cur = float(_e.get("stacks", 0) or 0) if isinstance(_e, dict) else 0.0
     if cur < need:
         return
-    from saintess_engine.battle.effects import apply_action
+    from ext_combat.battle.effects import apply_action
     hit_key = params.get("hit_key") or "finisher_crit_ready"
     apply_action(battle, actor, actor, "apply",
                  {"key": hit_key, "turns": 1, "on": "caster",
@@ -637,8 +637,8 @@ def class_res_channel_gain(battle, caster, target, params, logs):
     - 写后广播 threshold（v181.M-R2e B2：渠道攒到满 cap 的当次触发——过载钩子
       依赖；对齐 effects.apply op=add 的 threshold 广播口径）
     """
-    from saintess_engine.battle.actors import actor_alive
-    from saintess_engine.battle.effects import cap_of as _cap_fn, norm_stack as _ns
+    from ext_combat.battle.actors import actor_alive
+    from ext_combat.battle.effects import cap_of as _cap_fn, norm_stack as _ns
     owner = params.get("_owner") or caster
     if owner is None or not actor_alive(owner):
         return
@@ -683,7 +683,7 @@ def class_res_channel_gain(battle, caster, target, params, logs):
     # ★ R5（静默降级扫描）：原写法把「还原」放在 try 体内、异常被 `except Exception: pass`
     #   吞掉 —— `fire` 一旦抛，`battle._fire_ctx` 就**永久停在 threshold ctx**（正是注释警告的
     #   那种静默失效）。改为 `finally` 还原 + import/广播失败照原样抛（装配缺陷不吞）。
-    from saintess_engine.battle.effect_triggers import fire as _fire
+    from ext_combat.battle.effect_triggers import fire as _fire
     _prev_ctx = getattr(battle, "_fire_ctx", None)
     try:
         _fire(battle, "threshold", {"actor": owner, "key": res, "value": n}, logs)
@@ -754,7 +754,7 @@ def class_faith_overload(battle, caster, target, params, logs):
     if owner is None:
         return
     try:
-        from saintess_engine.battle.effects import cap_of as _cap_fn
+        from ext_combat.battle.effects import cap_of as _cap_fn
         cap = _cap_fn(owner, "faith")
     except Exception:
         return
@@ -773,7 +773,7 @@ def class_faith_overload(battle, caster, target, params, logs):
         fentry["stacks"] = 0
     pct = 0.015
     try:
-        from saintess_engine.battle.state_effects import state_def
+        from ext_combat.battle.state_effects import state_def
         pct = float((state_def("faith") or {}).get("overload_heal_pct", 0.015) or 0.015)
     except Exception:
         pct = 0.015
@@ -793,8 +793,8 @@ def class_faith_overload(battle, caster, target, params, logs):
                     break
         except Exception:
             pass  # 圣化增强异常不阻断过载（容错铁律）
-    from saintess_engine.battle.actors import actor_alive
-    from saintess_engine.battle.landing import heal_actor
+    from ext_combat.battle.actors import actor_alive
+    from ext_combat.battle.landing import heal_actor
     healed = 0
     side = owner.get("side") or "player"
     for _a in (getattr(battle, "sides", None) or {}).get(side, []) or []:
@@ -1043,7 +1043,7 @@ def passive_dmg_mult(battle, caster, target, params, logs):
         _per = float(params.get("per_debuff") or 0)
         _cap = float(params.get("cap") or 0)
         if tg is not None and _per > 0 and _cap > 0:
-            from saintess_engine.battle.state_effects import state_def as _sd
+            from ext_combat.battle.state_effects import state_def as _sd
             _kinds = 0
             for _k, _v in (tg.get("effects") or {}).items():
                 if not isinstance(_v, dict):
@@ -1059,7 +1059,7 @@ def passive_dmg_mult(battle, caster, target, params, logs):
         # 速度比 ≥ ratio_field → ×(1+dmg_add)（疾风·极；旧挂点4 语义：
         # 敌方无速度按 0 防御性跳过——速度比恒 ≥2 不触发）
         try:
-            from saintess_engine.battle.stats import actor_stats as _as
+            from ext_combat.battle.stats import actor_stats as _as
             _spd_a = float((_as(battle, actor) or {}).get("spd", 0) or 0)
             _spd_t = float((_as(battle, tg) or {}).get("spd", 0) or 0) if tg is not None else 0.0
         except Exception:
@@ -1080,7 +1080,7 @@ def passive_dmg_mult(battle, caster, target, params, logs):
         _bar = judge.get("bar") or params.get("bar") or ""
         _bs_j = None
         if tg is not None and _bar:
-            from saintess_engine.gauge import bar_settle, bar_effect_key
+            from ext_combat.gauge import bar_settle, bar_effect_key
             _now_j = float(getattr(battle, "_now", 0.0) or 0.0)
             bar_settle(tg, _bar, _now_j)
             _bs_j = (tg.get("effects") or {}).get(bar_effect_key(_bar))
@@ -1126,7 +1126,7 @@ def passive_bar_extend(battle, caster, target, params, logs):
         ext = 0.0
     if not bar or ext <= 0 or not isinstance(host, dict):
         return
-    from saintess_engine.gauge import bar_effect_key
+    from ext_combat.gauge import bar_effect_key
     bs = (host.get("effects") or {}).get(bar_effect_key(bar))
     if not isinstance(bs, dict):
         return
@@ -1147,7 +1147,7 @@ def passive_kill_gain(battle, caster, target, params, logs):
     if actor is None:
         return
     key = params.get("key") or "energy"
-    from saintess_engine.battle.effects import cap_of as _cap_fn
+    from ext_combat.battle.effects import cap_of as _cap_fn
     cap = _cap_fn(actor, key)
     if cap <= 0:
         return
@@ -1171,7 +1171,7 @@ def passive_counter(battle, caster, target, params, logs):
         return
     ctx = getattr(battle, "_fire_ctx", None) or {}
     attacker = ctx.get("source")  # on_taken 攻击方
-    from saintess_engine.battle.actors import actor_alive
+    from ext_combat.battle.actors import actor_alive
     if attacker is None or not actor_alive(attacker):
         return
     import random as _r
@@ -1179,8 +1179,8 @@ def passive_counter(battle, caster, target, params, logs):
     if chance <= 0 or _r.random() >= chance:
         return
     try:
-        from saintess_engine.battle.landing import deal_damage
-        from saintess_engine.battle.stats import actor_stats as _as
+        from ext_combat.battle.landing import deal_damage
+        from ext_combat.battle.stats import actor_stats as _as
         st = _as(battle, owner) or {}
         dmg = max(1, int(float(st.get("atk", 0) or 0)
                            * float(params.get("atk_pct") or 0.80)))
@@ -1419,7 +1419,7 @@ def passive_heal_overflow_shield(battle, caster, target, params, logs):
         return
     val = max(1, int(overflow * pct))
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         now = now_of(battle)
     except Exception:
         now = 0.0
@@ -1528,7 +1528,7 @@ def passive_poison_weaken(battle, caster, target, params, logs):
     if spd_pct <= 0 and def_pct <= 0:
         return
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         exp = now_of(battle) + float(params.get("hold") or 2.0)
     except Exception:
         exp = None
@@ -1578,7 +1578,7 @@ def class_stance_guard_enter(battle, caster, target, params, logs):
     if actor is None:
         return
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         now = now_of(battle)
     except Exception:
         now = 0.0
@@ -1602,7 +1602,7 @@ def class_stance_counter(battle, caster, target, params, logs):
     if not isinstance((owner.get("effects") or {}).get("stance_guard"), dict):
         return  # 姿态已过期 → 不反击
     attacker = ctx.get("source")
-    from saintess_engine.battle.actors import actor_alive
+    from ext_combat.battle.actors import actor_alive
     if attacker is None or not actor_alive(attacker):
         return
     import random as _r
@@ -1610,8 +1610,8 @@ def class_stance_counter(battle, caster, target, params, logs):
     if chance <= 0 or _r.random() >= chance:
         return
     try:
-        from saintess_engine.battle.landing import deal_damage
-        from saintess_engine.battle.stats import actor_stats as _as
+        from ext_combat.battle.landing import deal_damage
+        from ext_combat.battle.stats import actor_stats as _as
         st = _as(battle, owner) or {}
         dmg = max(1, int(float(st.get("atk", 0) or 0)
                            * float(params.get("atk_pct") or 1.0)))
@@ -1646,11 +1646,11 @@ def class_guard_stance_enter(battle, caster, target, params, logs):
         turns = 0
     if turns <= 0:
         return  # 缺字段 = 无此行为（零默认值铁律）
-    from saintess_engine.battle.state_effects import state_def
+    from ext_combat.battle.state_effects import state_def
     cfg = state_def(key) or {}
     reduce_v = float((cfg.get("stat_scale") or {}).get("reduce") or 0)
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         now = now_of(battle)
     except Exception:
         now = 0.0
@@ -1678,7 +1678,7 @@ def passive_low_hp_core(battle, caster, target, params, logs):
     """
     ctx = getattr(battle, "_fire_ctx", None) or {}
     owner = params.get("_owner") or ctx.get("actor") or caster
-    from saintess_engine.battle.actors import actor_alive
+    from ext_combat.battle.actors import actor_alive
     if owner is None or not actor_alive(owner):
         return
     res = params.get("res") or ""
@@ -1693,7 +1693,7 @@ def passive_low_hp_core(battle, caster, target, params, logs):
     mhp = int(owner.get("max_hp", 1) or 1)
     if int(owner.get("hp", 0) or 0) >= int(mhp * hp_lt):
         return  # 未跌破阈值
-    from saintess_engine.battle.effects import cap_of as _cap_fn, norm_stack as _ns
+    from ext_combat.battle.effects import cap_of as _cap_fn, norm_stack as _ns
     cap = _cap_fn(owner, res)
     entry = ef.get(res)
     cur = float(entry.get("stacks", 0) or 0) if isinstance(entry, dict) else 0.0
@@ -1739,7 +1739,7 @@ def passive_overflow_shield(battle, caster, target, params, logs):
     if val <= 0:
         return
     try:
-        from saintess_engine.battle import now_of
+        from ext_combat.battle import now_of
         now = now_of(battle)
     except Exception:
         now = 0.0
@@ -1801,7 +1801,7 @@ def passive_res_gain_turn(battle, caster, target, params, logs):
     entry = ef.get(res)
     if not isinstance(entry, dict):
         entry = ef[res] = {}
-    from saintess_engine.battle.effects import cap_of as _cap_fn
+    from ext_combat.battle.effects import cap_of as _cap_fn
     cap = _cap_fn(actor, res)
     if cap <= 0:
         return
@@ -1998,8 +1998,8 @@ def passive_bar_decay_half(battle, caster, target, params, logs):
     if not isinstance(owner, dict) or not bar:
         return
     try:
-        from saintess_engine.battle.actors import hostile_sides
-        from saintess_engine.gauge import bar_def, bar_effect_key, bar_settle
+        from ext_combat.battle.actors import hostile_sides
+        from ext_combat.gauge import bar_def, bar_effect_key, bar_settle
     except Exception:
         return
     bd = bar_def(bar) or {}
@@ -2073,7 +2073,7 @@ def passive_lian_duan_soft(battle, caster, target, params, logs):
     cur = float(entry.get("stacks", 0) or 0) if isinstance(entry, dict) else 0.0
     if cur <= 0:
         return
-    from saintess_engine.battle.effects import norm_stack
+    from ext_combat.battle.effects import norm_stack
     nv = norm_stack(max(0.0, cur - lose))
     entry["stacks"] = nv
     ef[rec_key] = {"t": now}   # 断连已结算 → 重开窗（防每刻连续掉段）
@@ -2123,12 +2123,12 @@ def passive_poison_spread(battle, caster, target, params, logs):
     n = int(((dead.get("effects") or {}).get(key) or {}).get("stacks", 0) or 0)
     if n <= 0:
         return  # 死者无毒层 = 无此行为
-    from saintess_engine.battle.actors import actor_alive
+    from ext_combat.battle.actors import actor_alive
     lst = battle.sides_of(dead.get("side") or "")
     idx = next((i for i, a in enumerate(lst) if a is dead), None)
     if idx is None:
         return
-    from saintess_engine.battle.effects import act_apply
+    from ext_combat.battle.effects import act_apply
     spread = 0
     for i in (idx - 1, idx + 1):
         if not 0 <= i < len(lst) or not actor_alive(lst[i]):

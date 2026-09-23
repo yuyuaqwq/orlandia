@@ -58,7 +58,7 @@ from saintess_engine import config
 
 # ★ 动作注册有两个来源：
 #   ① 引擎内置：敌身条族 4 动词（bar_gain / bar_time_settle / bar_phase_preserve /
-#      passive_reflect_bar）已归 `saintess_engine/gauge/actions.py`（U1-I1）——
+#      passive_reflect_bar）已归 `extends/ext_combat/gauge/actions.py`（U1-I1）——
 #      `import saintess_engine` 即注册，本文件**不再**为它们做注册 import；
 #   ② 包内各族：模块顶层有 @register_action，**import 即注册**。少 import 一个族 =
 #      那一族的动作在 fire() 里**静默跳过**（引擎对未注册动作不报错），所以这里**必须列全**
@@ -135,7 +135,7 @@ def install_engine() -> None:
     global _MOUNTED
     if _MOUNTED:
         return
-    from saintess_engine import formulas as _formulas
+    from ext_combat.battle import formulas as _formulas
 
     config.register_hook_provider(_lazy_mount)
     config.mount(
@@ -143,7 +143,7 @@ def install_engine() -> None:
         kinds=P.KIND_NAMES,                    # 本游戏 kind 词表（5 值）
         # 职业面板**完整版**（D3 搬入）：装备/强化/词条/套装/属性点/种族/转职/分支/被动全在
         # `content/panel.py`（逐字搬，读表走 `content/tables.py`）。签名与引擎 `panel_fn` 一致
-        # （saintess_engine/battle/stats.py:101 传 8 个位置参数），返回玩家属性 dict。
+        # （extends/ext_combat/battle/stats.py:101 传 8 个位置参数），返回玩家属性 dict。
         panel_fn=_panel.player_final_stats,
         skill_lookup=_skills,                  # 模块对象即可（引擎按属性取 .skill_info / .skill_by_key）
         monster_skill_fn=monster_skill,        # 怪物技能表（包内 monsters.json）
@@ -207,7 +207,7 @@ def basic_skill_of(class_name):
     """职业普攻配置（包内 classes.json 的 `basic_skill`；缺 → None 回落 basic_fallback）。
 
     ★ B8 修（2026-09-13）：表 key 是**职业 id**（`cls_fa_shi`），而引擎
-    `saintess_engine/battle/actions.py:36 resolve_basic_skill(actor["class_name"])` 传进来的是
+    `extends/ext_combat/battle/actions.py:36 resolve_basic_skill(actor["class_name"])` 传进来的是
     **中文职业名** —— 必须先 `tables.resolve("classes", …)`（= 游戏仓 `game/core/index.py:47
     resolve`；退役的宿主取件器 `game/bootstrap.py::_basic_skill_of` 正是这么做的，端口漏抄这步）。
     漏 resolve 的症状：查不到 → 引擎回落 `basic_fallback`（物理 `atk*1.0`）→ 法师/牧师（全 int、

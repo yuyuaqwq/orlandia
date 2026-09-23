@@ -363,7 +363,7 @@ def _instance_target_picker(st: dict):
     """
     def pick(battle, actor):
         try:
-            from saintess_engine import formation as FM
+            from ext_combat import formation as FM
             alive_p = [a for a in battle.sides_of("player")
                        if int(a.get("hp", 0) or 0) > 0]
             if not alive_p:
@@ -426,9 +426,9 @@ def _instance_team_event(st: dict, team_heal_text=None):
             if not caster or int(caster.get("hp", 0) or 0) <= 0:
                 return
             # 治疗量 = 施法者面板公式（对齐 _do_heal/_heal_amount，独立算全队口径）
-            from saintess_engine.battle.actions import heal_amount as _hcalc
-            from saintess_engine import stats as _S
-            from saintess_engine.battle.landing import heal_actor as _heal
+            from ext_combat.battle.actions import heal_amount as _hcalc
+            from ext_combat.battle import stats as _S
+            from ext_combat.battle.landing import heal_actor as _heal
             from .. import skills as _SK
             _stp = _S.actor_stats(battle, caster)
             _lv = _SK.skill_level_of(caster, info.get("name", "")) if caster.get("class_name") else 0

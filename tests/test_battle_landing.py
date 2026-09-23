@@ -28,10 +28,10 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
+from ext_combat import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
-from saintess_engine import landing as L                        # noqa: E402
+from ext_combat.battle import landing as L                        # noqa: E402
 
 PASS = 0
 FAIL = 0

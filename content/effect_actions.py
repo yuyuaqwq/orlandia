@@ -3,7 +3,7 @@
 
 真源 = 「效果动作」（成功触发后做什么）的共享实现：装备词条 affix / 食物 food / 药剂 potion
 各自保留触发判断，动作只此一份。**本文件正文与真源逐字相同**（一字未改）——它零宿主依赖
-（包外依赖只有 `saintess_engine.battle.formulas.calc_damage`，方向合法：内容 → 引擎）。
+（包外依赖只有 `ext_combat.battle.formulas.calc_damage`，方向合法：内容 → 引擎）。
 
 宿主 `game/core/effect_actions.py` 现在是薄壳（全名单再导出），消费者 1 处
 （`game/core/potion_effects.py:136` 函数内 `from .effect_actions import action_def_down`）名字/签名不变。
@@ -162,7 +162,7 @@ def action_pierce_dmg(battle, player, logs, *, atk_pct=0.60, tag="🏹", name="�
     按玩家 atk × atk_pct 计算，防御=0 直伤（无视防御语义）。
     target=None → 主目标 battle._hit_tgt()。
     """
-    from saintess_engine.battle.formulas import calc_damage
+    from ext_combat.battle.formulas import calc_damage
     pst = battle._player_stats(player)
     pd = calc_damage(int(pst.get("atk", 0) * float(atk_pct)), 0)
     if pd <= 0:
@@ -179,7 +179,7 @@ def action_counter(battle, player, logs, *, atk_pct=0.60, tag="⚔️", name="�
     tgt = _ea_tgt(battle, target)
     if not tgt.get("hp", 0) or tgt.get("hp", 0) <= 0:
         return 0
-    from saintess_engine.battle.formulas import calc_damage
+    from ext_combat.battle.formulas import calc_damage
     pst = battle._player_stats(player)
     est = battle._enemy_stats(tgt)
     cd = calc_damage(int(pst.get("atk", 0) * float(atk_pct)), est.get("def", 0))

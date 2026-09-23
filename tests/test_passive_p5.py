@@ -20,7 +20,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -68,7 +68,7 @@ def test_1_quench_assemble():
 
 def test_2_quench_buff():
     print("【2. 淬血触发：战意 5 → lifesteal buff +0.075】")
-    from saintess_engine.battle.stats import actor_stats as _as
+    from ext_combat.battle.stats import actor_stats as _as
     w = mk(["淬血", "怒斩"], cls="cls_zhan_shi", hp=5000)
     apply_class_mech(w)
     w['effects']['zhan_yi'] = {'stacks': 5, 'expire': None}

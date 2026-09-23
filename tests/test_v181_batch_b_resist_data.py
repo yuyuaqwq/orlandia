@@ -30,9 +30,9 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.landing import deal_damage  # noqa: E402
-from saintess_engine.battle.effects import apply_action  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.landing import deal_damage  # noqa: E402
+from ext_combat.battle.effects import apply_action  # noqa: E402
 from content import drops as D  # noqa: E402
 
 PASS = 0
@@ -211,7 +211,7 @@ def test_4_open_items():
                encoding="utf-8").read()
     check("dot_res 仍**不在** mod→实例白名单（结算端无读点，本批有意不配）",
           '"dot_res": ' not in src, "意外出现在白名单")
-    from saintess_engine.battle import landing as L
+    from ext_combat.battle import landing as L
     check("elem_res 仍为标量读法（分系抗性需求未支持——本批改用 element_weak 走通）",
           "elem_res" in open(L.__file__, encoding="utf-8").read(), "")
 

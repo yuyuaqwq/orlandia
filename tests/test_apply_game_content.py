@@ -34,7 +34,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
-from saintess_engine import make_actor
+from ext_combat import make_actor
 from _engine_harness import C  # ★ P5C-REPOINT：包内聚合门面（原 game.content）
 from content import apply as APPLY  # ★ P5C-REPOINT：装配入口真源 = 包内 content.apply（宿主壳已删）
 from content.mech import bar_procs as BAR  # ★ B18-REPOINT：直取包内实现本体（宿主同名壳不再被测试引用）
@@ -269,7 +269,7 @@ def t_c():
     # C2（★ P5C-REPOINT 退休）：原断言 = 猴补 `BST.package_apply` 观测
     #   `ensure_engine_configured` 委托「宿主唯一包加载口」。该中转层（`game/bootstrap.py`，
     #   `package_apply()`）随 game/** 整棵树删除；测试侧等价入口 `_engine_harness.boot()`
-    #   直接返回已装配的 harness 单例（其内部就是 `load_package`），**不存在**可被观测的
+    #   直接返回已装配的 harness 单例（其内部就是 `load_stack`），**不存在**可被观测的
     #   宿主委托点 —— 判据不再存在，整条退休（不是放宽阈值）。
     r = _b2c.get_effect_rules() or {}
     a = _b2c.get_effect_actions() or {}

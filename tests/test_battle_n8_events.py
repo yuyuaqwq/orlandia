@@ -36,16 +36,16 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as BT_NEW, make_actor  # noqa: E402
+from ext_combat import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from _engine_harness import act_land, human_land  # noqa: E402  T15 两段化：落地推进（一次出手 = 落地后返回）
-from saintess_engine import actions as AC          # noqa: E402
-from saintess_engine import effects as FX          # noqa: E402
-from saintess_engine import landing as L           # noqa: E402
-from saintess_engine import effect_triggers as TR  # noqa: E402
-from saintess_engine.battle.actors import ActCtx          # noqa: E402
-from saintess_engine.battle.schedule import _settle_time_effects as _ste  # noqa: E402
+from ext_combat.battle import actions as AC          # noqa: E402
+from ext_combat.battle import effects as FX          # noqa: E402
+from ext_combat.battle import landing as L           # noqa: E402
+from ext_combat.battle import effect_triggers as TR  # noqa: E402
+from ext_combat.battle.actors import ActCtx          # noqa: E402
+from ext_combat.battle.schedule import _settle_time_effects as _ste  # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -261,7 +261,7 @@ def test_dot_tick():
     print("【N8.8 dot_tick：DOT 每跳】")
     e = mk_a("e1", "enemy", hp=1000)
     # 伤害按当前规则表推算（burn 0.5% + pct_cap 1% 上限；条目覆盖 3% → 压到 1%）
-    from saintess_engine.battle.state_effects import state_def as _sd8
+    from ext_combat.battle.state_effects import state_def as _sd8
     _p8 = (_sd8("burn") or {}).get("period") or {}
     _c8 = float(_p8.get("pct_cap") or 0)
     _pct8 = min(0.03, _c8) if _c8 else 0.03

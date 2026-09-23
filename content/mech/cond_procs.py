@@ -26,7 +26,7 @@
    `skill_info(class_name, skill_key)` 与真源 `game/content_rules/skills.py:104` **同形**；
    `skill_level_of` 是 apply.py 的模块级函数，签名同真源 `skills.py:209`）。
    **惰性 import 位置不变**（仍在函数体内，与真源同点）→ 不与 `apply.py` 形成导入环。
-   其余 import（`:23` register_action、`:47` `from saintess_engine import stats as S`）一字未动
+   其余 import（`:23` register_action、`:47` `from ext_combat.battle import stats as S`）一字未动
    （`saintess_engine.stats` 在框架仓与游戏仓子模块里**都不存在** → 真源 `_spd_of` 实际一直走
    `except` 分支读 `actor["spd"]`；逐字搬运 = 行为一致，见 `overnight/d2-misc_procs.md` 备注）。
 3. **★ U1-I5 条件族去双源**（2026-09-15）：真源模块级自建注册表
@@ -43,15 +43,15 @@
    · 动作查表改用引擎 `has()` 先探（未注册 / 非法键一律静默不崩）—— 本批**唯一**行为差异，
      方向 = 变安全，详见设计稿 §4.3。
 4. **★ U1-D2 L7（装配形状迁移）**：`apply_cond_procs` 里的「手写判重 + `append`」已改走引擎
-   声明编译器 `saintess_engine.battle.declarations`（去重键 `action`、写策略 `replace`；
+   声明编译器 `ext_combat.battle.declarations`（去重键 `action`、写策略 `replace`；
    模块级 `_DECL`）——**行为逐字不变**（门禁④ 144 格 + 旧实现 exec 逐格比）。
 """
 from __future__ import annotations
 
 
-from saintess_engine.battle.effects import register_action
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.effects import register_action
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.conditions import Conditions        # ★ U1-I5：条件注册表 = 引擎 conditions.Conditions
 from .. import texts as _T                    # 文案表（39b：条件达成播报行）
 from .._domainio import read_data_json as _read_json
@@ -91,7 +91,7 @@ def _spd_of(battle, actor) -> float:
     if not isinstance(actor, dict):
         return 0.0
     try:
-        from saintess_engine import stats as S
+        from ext_combat.battle import stats as S
         st = S.actor_stats(battle, actor) or {}
         return float(st.get("spd", 0) or 0)
     except Exception:
@@ -131,7 +131,7 @@ def _p_enemy_broken(battle, actor, target, cond) -> bool:
     """
     if not isinstance(target, dict):
         return False
-    from saintess_engine.gauge import bar_settle, bar_effect_key
+    from ext_combat.gauge import bar_settle, bar_effect_key
     _now = float(getattr(battle, "_now", 0.0) or 0.0)
     bar_settle(target, "shaken", _now)
     bs = (target.get("effects") or {}).get(bar_effect_key("shaken"))
@@ -191,7 +191,7 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
     except Exception:
         return  # 判定异常不阻断战斗
     try:
-        from saintess_engine.battle.formulas import skill_cond_mult
+        from ext_combat.battle.formulas import skill_cond_mult
         from ..apply import _SKILL_LOOKUP as _PKG_SKILLS, skill_level_of
         skill_info = _PKG_SKILLS.skill_info
         name = info.get("name") or ""
@@ -234,7 +234,7 @@ def apply_cond_procs(actor: dict) -> None:
     names = actor.get("learned_skills") or []
     if not cn or not names:
         return
-    from saintess_engine.battle.formulas import skill_cond_mult
+    from ext_combat.battle.formulas import skill_cond_mult
     from ..apply import _SKILL_LOOKUP as _PKG_SKILLS, skill_level_of
     skill_info = _PKG_SKILLS.skill_info
     has_cond = False

@@ -20,7 +20,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -131,7 +131,7 @@ def test_5_on_kill_gain():
     apply_class_mech(r)
     b = mk_battle([r])
     # 追风是被动技能吗？查 kind——若是被动才装配
-    from saintess_engine.battle.formulas import skill_mp_pay_of
+    from ext_combat.battle.formulas import skill_mp_pay_of
     from content.skills import skill_info
     info = skill_info("cls_you_xia", "追风") or {}
     check("追风是 kind=被动", info.get("kind") == "被动", repr(info.get("kind")))
@@ -142,8 +142,8 @@ def test_5_on_kill_gain():
 
 def test_6_static_domain():
     print("【6. 静态域：cap/cost 直接写 bonus 容器（纯配置量）】")
-    from saintess_engine.battle.effects import _cap_of
-    from saintess_engine.battle.formulas import skill_mp_pay_of
+    from ext_combat.battle.effects import _cap_of
+    from ext_combat.battle.formulas import skill_mp_pay_of
     from content.skills import skill_info
     # cap 域：淬毒之心 poison cap +3
     a = make_actor(uid="p_k", name="毒刃", side="player", kind="player",

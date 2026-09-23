@@ -27,7 +27,7 @@ saintess_engine/stats.py 的 `_player_base_stats` 消费；纯怪路径不经过
 # （D1 期的线性段切片版 `class_panel` 已删：两份同义实现并存 = 双源）。
 
 
-from saintess_engine.battle.formulas import skill_learn_cost
+from ext_combat.battle.formulas import skill_learn_cost
 # ★ D5（数据进表 · 去重复拷贝）：本文件两张内联表进包内域（唯一真源 = `editor/domains.json`；
 #   落点由声明的 kind 派生，声明缺项 / 文件缺 / 声明与磁盘不符 / 坏 JSON → 装载期报错点名）。
 #   读口 = `content/_domainio.py::keyed_values`（P0-4d 单源；底层仍是引擎 `records_from_domain`）。

@@ -29,9 +29,9 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.landing import deal_damage  # noqa: E402
-from saintess_engine.battle.schedule import _settle_time_effects  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.landing import deal_damage  # noqa: E402
+from ext_combat.battle.schedule import _settle_time_effects  # noqa: E402
 from saintess_engine import config as EC  # noqa: E402
 
 PASS = 0
@@ -97,7 +97,7 @@ def test_1_wake_on_hit():
           f"effects={e3.get('effects')}")
 
     # (d) 引擎源码里不应再有硬编码的 "sleep" 判断（纯度违规已修）
-    from saintess_engine.battle import landing as L
+    from ext_combat.battle import landing as L
     src = open(L.__file__, encoding="utf-8").read()
     check("引擎 landing 内不再硬编码 get(\"effects\", {}).get(\"sleep\")",
           'get("effects", {}).get("sleep")' not in src, "仍存在硬编码")

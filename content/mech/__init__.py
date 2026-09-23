@@ -12,7 +12,7 @@
 
 族清单（D2 全量 96 个动作 + D1 切片 3 个 = 99 个装饰器 / 96 个唯一动词；
 ★ U1-I1 后包内 = **95 个装饰器 / 92 个唯一动词** —— 敌身条族 4 动词已整块上移引擎
-`saintess_engine/gauge/actions.py`，注册名不变，`import saintess_engine` 即注册）
+`extends/ext_combat/gauge/actions.py`，注册名不变，`import saintess_engine` 即注册）
 
 | 文件 | 机制族 | 动作数 | 真源（游戏仓 `game/services/`） |
 |---|---|---:|---|

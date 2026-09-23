@@ -32,7 +32,7 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.dirname(_HERE))
 
 import numeric_sim as NS  # noqa: E402  (触发引擎路径装配)
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
 
 WINDOW = 20                    # 玩家出手多少次后停止计数
 RATIO_TOL = 0.005

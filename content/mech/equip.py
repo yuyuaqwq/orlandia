@@ -100,8 +100,8 @@ import logging
 
 from typing import Optional
 
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from saintess_engine.records import RecordsDeclarationError
 from .._domainio import domain_section   # P0-4d 域读口单源
 
@@ -138,7 +138,7 @@ def _event_map() -> dict:
 
 _EVENT_MAP = _event_map()
 
-# 引擎事件全集（权威 = `saintess_engine/battle/effect_triggers.py` 的 EVENTS 常量）
+# 引擎事件全集（权威 = `extends/ext_combat/battle/effect_triggers.py` 的 EVENTS 常量）
 # ★ 2026-09-13 反静默失效：`fire()` 对**不在 EVENTS 全集**的事件名**静默 return**，
 #   于是"翻译器/数据写了个拼错或过期的时机名"= 触发器装上了却永不触发、且没有任何痕迹。
 #   这里把"直通但引擎不认"的名字收集起来（去重）+ 告警一条，供门禁与自检读取。
@@ -153,7 +153,7 @@ _UNSUPPORTED_LEGENDARY: list = []
 def _known_engine_events() -> frozenset:
     """引擎事件全集；**取不到就返回空集 = 不告警**（告警本身不允许成为新的故障点）。"""
     try:
-        from saintess_engine.battle.effect_triggers import EVENTS as _E
+        from ext_combat.battle.effect_triggers import EVENTS as _E
         return frozenset(_E)
     except Exception:      # noqa: BLE001
         return frozenset()

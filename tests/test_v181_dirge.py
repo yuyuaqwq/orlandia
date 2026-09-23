@@ -42,9 +42,10 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor, effects as EFX  # noqa: E402
-from saintess_engine.battle.stats import actor_stats  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire as bfire  # noqa: E402
+from ext_combat.battle import effects as EFX  # noqa: E402
+from ext_combat import Battle as B2, make_actor
+from ext_combat.battle.stats import actor_stats  # noqa: E402
+from ext_combat.battle.effect_triggers import fire as bfire  # noqa: E402
 from content.skills import skill_info
 from content.mech import class_mech as CM  # noqa: E402  (import 即注册 39 动作)
 from _engine_harness import boot as _eng_boot  # noqa: E402

@@ -20,9 +20,9 @@ B10-L4 判定依据：宿主 75 行 = 动作 22 行（已搬）+ 装配 25 行�
 
 from __future__ import annotations
 
-from saintess_engine.battle.declarations import Compiler
-from saintess_engine.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
-from saintess_engine.battle.effects import register_action
+from ext_combat.battle.declarations import Compiler
+from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
+from ext_combat.battle.effects import register_action
 
 
 # 数据行 → `actor["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。

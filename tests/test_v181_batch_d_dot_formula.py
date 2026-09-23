@@ -37,13 +37,13 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 
 from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
 from saintess_engine import config as EC  # noqa: E402
-from saintess_engine.battle.effects import apply_action  # noqa: E402
-from saintess_engine.battle.schedule import _settle_time_effects  # noqa: E402
-from saintess_engine.battle.actions import _consume_hit_buffs  # noqa: E402
-from saintess_engine.battle.stats import actor_stats  # noqa: E402
-from saintess_engine.battle.effect_triggers import fire  # noqa: E402
+from ext_combat.battle.effects import apply_action  # noqa: E402
+from ext_combat.battle.schedule import _settle_time_effects  # noqa: E402
+from ext_combat.battle.actions import _consume_hit_buffs  # noqa: E402
+from ext_combat.battle.stats import actor_stats  # noqa: E402
+from ext_combat.battle.effect_triggers import fire  # noqa: E402
 from content.mech.params import EFFECT_RULES  # noqa: E402
 from content.catalog_legacy import DOT_DEFS  # ★ B16-W11d
 

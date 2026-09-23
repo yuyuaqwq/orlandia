@@ -30,14 +30,14 @@ _shim = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shim_astrbot")
 if os.path.isdir(_shim) and _shim not in sys.path:
     sys.path.insert(0, _shim)
 
-from saintess_engine import Battle as B2, make_actor  # noqa: E402
-from saintess_engine.battle.landing import deal_damage  # noqa: E402
-from saintess_engine.battle.effects import apply_effects  # noqa: E402
+from ext_combat import Battle as B2, make_actor  # noqa: E402
+from ext_combat.battle.landing import deal_damage  # noqa: E402
+from ext_combat.battle.effects import apply_effects  # noqa: E402
 from _engine_harness import boot as ensure_engine_configured  # noqa: E402
 
 # 测试稳定性：屏蔽承伤侧的**闪避随机**（角色面板自带 ~3% dodge；本文件断言的是
 # 减伤/护盾乘区数值，闪避未命中会让断言偶发失败）。格挡同理（block=0 时本就不 roll）。
-import saintess_engine.battle.landing as _LD  # noqa: E402
+import ext_combat.battle.landing as _LD  # noqa: E402
 _LD._roll_dodge = lambda *a, **k: False  # noqa: E731
 
 
@@ -162,7 +162,7 @@ def test_shield():
     check("缺字段 = 无行为（不给默认盾）", all(shield_sum(a) == 0 for a in allies5))
 
     # 按属性基数（相位偏折：每层 8% 魔攻）——期望值从引擎聚合面板现算（勿手算）
-    from saintess_engine import stats as _S
+    from ext_combat.battle import stats as _S
     b6, p6, allies6, _ = team_battle(2)
     for a in allies6:
         a["effects"]["arcane"] = {"stacks": 5}
@@ -209,7 +209,7 @@ def test_reduce_expire():
     b, p, allies, e = team_battle(2)
     cast(b, p, "reduce_all", {"name": "战吼·守", "reduce": 0.50}, turns=3)
     check("生效期 1000→500", hit(b, e, p) == 500)
-    from saintess_engine.battle import schedule as SC
+    from ext_combat.battle import schedule as SC
     b._now = 10.0
     SC._settle_time_effects(b, [])
     check("态已被引擎清理（effects 无 team:reduce:*）",
@@ -227,7 +227,7 @@ def test_vuln():
           any(k.startswith("team:vuln:") for k in (e.get("effects") or {})),
           f"ef={list((e.get('effects') or {}).keys())}")
     check("目标受到伤害 ×1.25 → 1250", hit(b, p, e) == 1250, f"got={hit(b, p, e)}")
-    from saintess_engine.battle import schedule as SC
+    from ext_combat.battle import schedule as SC
     b._now = 100.0
     SC._settle_time_effects(b, [])
     check("过期后回到 1000", hit(b, p, e) == 1000)
@@ -270,7 +270,7 @@ def test_cc_immune():
           f"ef={list((p.get('effects') or {}).keys())} logs={logs}")
     check("队友同样免疫", not (allies[1].get("effects") or {}).get("stun"))
 
-    from saintess_engine.battle import schedule as SC
+    from ext_combat.battle import schedule as SC
     b._now = 100.0
     SC._settle_time_effects(b, [])
     apply_effects(b, e, p, [{"type": "apply", "key": "stun", "mode": "skip", "turns": 3,
@@ -280,8 +280,8 @@ def test_cc_immune():
 
 def test_do_buff_e2e():
     print("【8. 端到端：引擎增益管线 _do_buff 真跑】")
-    from saintess_engine.battle.actions import _do_buff
-    from saintess_engine.battle.actors import ActCtx
+    from ext_combat.battle.actions import _do_buff
+    from ext_combat.battle.actors import ActCtx
 
     b, p, allies, _ = team_battle(2)
     info = {"name": "坚盾壁垒", "effect": "shield_all", "kind": "增益",
@@ -318,8 +318,8 @@ def test_guard():
           f"boss {ehp}->{e['hp']}")
 
     # 到期清理 guard_uid
-    from saintess_engine.battle import schedule as SC
-    from saintess_engine.battle.effect_triggers import fire as _fire
+    from ext_combat.battle import schedule as SC
+    from ext_combat.battle.effect_triggers import fire as _fire
     b._now = 100.0
     SC._settle_time_effects(b, [])
     _fire(b, "time_advance", {"actor": a1, "dt": 1.0, "now": 100.0}, [])
@@ -368,7 +368,7 @@ def test_element_and_field():
     # 奥术力场（护盾档）
     b2, p2, allies2, _ = team_battle(2)
     p2["effects"]["arcane"] = {"stacks": 5}
-    from saintess_engine import stats as _S
+    from ext_combat.battle import stats as _S
     cast(b2, p2, "arcane_field",
          {"name": "奥术力场", "shield_per_stack": 0.08, "shield_res_key": "arcane",
           "shield_base_stat": "matk"}, turns=10)

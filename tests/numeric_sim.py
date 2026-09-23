@@ -40,7 +40,7 @@ from content.panel import player_final_stats  # noqa: E402
 from content.bridge import (  # noqa: E402
     apply_battle_loadout, build_sides, prepare_player_for_battle,
 )
-from saintess_engine import Battle as B2  # noqa: E402
+from ext_combat import Battle as B2  # noqa: E402
 
 # 自由属性点：初始 DEFAULT_ATTR_PTS=9 + 每级 +3（升级结算，见 content_rules/panel.py），
 # 11 级 = 9 + 10×3 = 39 点。任务卡 N01 明确用 39 点。
@@ -68,7 +68,7 @@ STD_ATTR = {
 }
 
 _MAX_TURNS = 500  # 单场回合护栏（防极端情况死循环；正常对局远低于此）
-_ACT_TICK = 1     # 1 刻 = 1 时刻 = 1 游戏秒（saintess_engine.battle.schedule）
+_ACT_TICK = 1     # 1 刻 = 1 时刻 = 1 游戏秒（ext_combat.battle.schedule）
 
 
 def _tick_of(b) -> int:

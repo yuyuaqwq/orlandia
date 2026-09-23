@@ -39,13 +39,13 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
-from saintess_engine import Battle as B2, make_actor
-from saintess_engine import actions as A
-from saintess_engine.battle.actors import ActCtx
-from saintess_engine.battle.effects import _cap_of, apply_effects
-from saintess_engine.battle.effect_triggers import fire
-from saintess_engine.battle.schedule import _advance_time
-from saintess_engine.battle.state_effects import state_def
+from ext_combat import Battle as B2, make_actor
+from ext_combat.battle import actions as A
+from ext_combat.battle.actors import ActCtx
+from ext_combat.battle.effects import _cap_of, apply_effects
+from ext_combat.battle.effect_triggers import fire
+from ext_combat.battle.schedule import _advance_time
+from ext_combat.battle.state_effects import state_def
 from content.mech import equip as EP  # ★ P5C-REPOINT：直取包内真源（原 battle_equip_proc）
 from content.mech.class_mech import apply_class_mech  # ★ P5C-REPOINT：直取包内真源
 

@@ -88,7 +88,7 @@
               "skill_flat": {
                 "type": "boolean",
                 "title": "吃技能保底平铺",
-                "description": "标记该段是否叠加「技能保底平铺值」。⚠ 包内 + 引擎侧逐键搜索**未发现**读 formula[].skill_flat 的点（未核实）；真正实现的保底是 SKILL_UP 的 flat_base / flat_per_lv / flat_per_skill（saintess_engine/battle/formulas.py:138 skill_flat_value）。"
+                "description": "标记该段是否叠加「技能保底平铺值」。⚠ 包内 + 引擎侧逐键搜索**未发现**读 formula[].skill_flat 的点（未核实）；真正实现的保底是 SKILL_UP 的 flat_base / flat_per_lv / flat_per_skill（extends/ext_combat/battle/formulas.py:138 skill_flat_value）。"
               }
             }
           }

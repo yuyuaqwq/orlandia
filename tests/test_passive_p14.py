@@ -17,7 +17,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -54,7 +54,7 @@ def arc_of(a):
 
 def test_1_cap():
     print("【1. arcane cap 收敛 5】")
-    from saintess_engine.battle.effects import _cap_of
+    from ext_combat.battle.effects import _cap_of
     m = mk_mage(["奥术弹幕"])
     apply_class_mech(m)
     check("arcane cap = 5（v153 满层）", _cap_of(m, "arcane") == 5,

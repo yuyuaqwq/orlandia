@@ -44,7 +44,7 @@ check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
 def mk_player(cls="战士", level=10, hp_ratio=0.5, mp_ratio=1.0, race=None):
     from content.panel import player_final_stats
-    from saintess_engine import make_actor
+    from ext_combat import make_actor
     st = player_final_stats(cls, level, {}, 0, {}, 1)
     return make_actor(uid="p_q1", name="测试勇者", side="player", kind="player",
                       human_controlled=True, class_name=cls, level=level,
@@ -56,7 +56,7 @@ def mk_player(cls="战士", level=10, hp_ratio=0.5, mp_ratio=1.0, race=None):
 
 
 def mk_battle(p):
-    from saintess_engine import Battle
+    from ext_combat import Battle
     e = {"uid": "e_0", "name": "木桩", "side": "enemy", "kind": "monster",
          "hp": 99999, "max_hp": 99999, "atk": 0, "def": 0, "matk": 0, "mdef": 0,
          "spd": 1, "crit": 0.0, "level": 1, "human_controlled": False,
@@ -241,7 +241,7 @@ def test_cast_suffix():
 
 def test_override_end_to_end():
     print("【I2.12 端到端：action_override 接线翻译器（战斗内喝药）】")
-    from saintess_engine import Battle
+    from ext_combat import Battle
     from content.mech.item_use import translate as _tr
     p = mk_player(hp_ratio=0.4)
     e = {"uid": "e_0", "name": "木桩", "side": "enemy", "kind": "monster",
@@ -274,8 +274,8 @@ def test_override_end_to_end():
 
 def test_purify():
     print("【I5.1 purify：模板判定 + 翻译器清除（saintess_engine effects 负面）】")
-    from saintess_engine import Battle
-    from saintess_engine.battle.effects import apply_effects
+    from ext_combat import Battle
+    from ext_combat.battle.effects import apply_effects
     from content.mech.item_use import translate as _tr
     from content.item_templates import tpl_purify, ItemContext, _b2_has_purifiable
     # 玩家带负面（stun 控制 + sleep 不可净化 + atk_up 正面）

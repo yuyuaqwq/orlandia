@@ -6,7 +6,7 @@
 「我要的是公式支持配置，不同的游戏数值可能又不一样，开方这个是属于写死了吧，
 可以下沉到奥兰迪亚」。
 
-v3 前：`saintess_engine/battle/schedule.py` 里写死
+v3 前：`extends/ext_combat/battle/schedule.py` 里写死
 
     CAST_ATK=1.0 / CAST_SKILL=1.6 / CAST_DEFEND=0.6 / SPD_REF=50.0
     action_time(spd, base) = base × sqrt(SPD_REF / spd)

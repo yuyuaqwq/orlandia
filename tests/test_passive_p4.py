@@ -20,7 +20,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -67,7 +67,7 @@ def test_1_assemble_dual():
 
 def test_2_taken_reduce():
     print("【2. 减伤：战意满 10 → taken_calc mult ×0.9】")
-    from saintess_engine.battle.landing import deal_damage
+    from ext_combat.battle.landing import deal_damage
     w = mk(["坚城之姿"])
     apply_class_mech(w)
     w['effects']['zhan_yi'] = {'stacks': 10, 'expire': None}

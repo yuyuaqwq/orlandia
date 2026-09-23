@@ -18,7 +18,7 @@ sys.path.insert(0, PLUGIN_DIR)
 
 from saintess_engine import config as _b2c
 from _engine_harness import boot as _eng_cfg; _eng_cfg()
-from saintess_engine import Battle as B2, make_actor
+from ext_combat import Battle as B2, make_actor
 from content.mech.class_mech import apply_class_mech
 
 PASS = 0
@@ -122,7 +122,7 @@ def test_3_focus_surplus():
 
 def test_4_panel_apply():
     print("【4. 面板折算：crit buff → actor_stats crit 面板加算】")
-    from saintess_engine.battle.stats import actor_stats as _as
+    from ext_combat.battle.stats import actor_stats as _as
     w = mk(["狂热", "怒斩"], cls="cls_zhan_shi")
     apply_class_mech(w)
     base = float((_as(None, w) or {}).get("crit", 0) or 0)

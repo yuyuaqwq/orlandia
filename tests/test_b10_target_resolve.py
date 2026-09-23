@@ -31,7 +31,7 @@ os.environ.setdefault("GWEN_TEST_MODE", "1")
 
 # ★ P5F 前置②（去壳）：原装配口 = 待删壳 `game.bootstrap.package_apply()`
 #   （`from game import bootstrap as BST`）。终态 `game/**` 删除后该 import 直接 ImportError。
-#   换成测试侧**引擎通道装配口** `_engine_harness.boot`（幂等；内部即 `load_package`，
+#   换成测试侧**引擎通道装配口** `_engine_harness.boot`（幂等；内部即 `load_stack`，
 #   与旧壳 `package_apply()` 同一件事：加载包 + 扇出 `bind_host` 注入面）。
 _TESTS_DIR = os.path.join(PLUGIN, "tests")
 if _TESTS_DIR not in sys.path:
@@ -39,8 +39,8 @@ if _TESTS_DIR not in sys.path:
 from _engine_harness import boot as _eng_boot                    # noqa: E402
 
 _eng_boot()
-from saintess_engine import Battle as BT, make_actor             # noqa: E402
-from saintess_engine.formation import alive_units, formation_view  # noqa: E402
+from ext_combat import Battle as BT, make_actor             # noqa: E402
+from ext_combat.formation import alive_units, formation_view  # noqa: E402
 from content.combat_cmds import _resolve_target_arg              # noqa: E402
 from content.settlement import _mon_lv                           # noqa: E402
 

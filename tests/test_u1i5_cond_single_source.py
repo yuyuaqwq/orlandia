@@ -84,7 +84,7 @@ def _spd_of(battle, actor) -> float:
     if not isinstance(actor, dict):
         return 0.0
     try:
-        from saintess_engine import stats as S
+        from ext_combat.battle import stats as S
         st = S.actor_stats(battle, actor) or {}
         return float(st.get("spd", 0) or 0)
     except Exception:
@@ -124,7 +124,7 @@ def _p_enemy_broken(battle, actor, target, cond) -> bool:
     """
     if not isinstance(target, dict):
         return False
-    from saintess_engine.gauge import bar_settle, bar_effect_key
+    from ext_combat.gauge import bar_settle, bar_effect_key
     _now = float(getattr(battle, "_now", 0.0) or 0.0)
     bar_settle(target, "shaken", _now)
     bs = (target.get("effects") or {}).get(bar_effect_key("shaken"))
@@ -180,7 +180,7 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
     except Exception:
         return  # 判定异常不阻断战斗
     try:
-        from saintess_engine.battle.formulas import skill_cond_mult
+        from ext_combat.battle.formulas import skill_cond_mult
         from ..apply import _SKILL_LOOKUP as _PKG_SKILLS, skill_level_of
         skill_info = _PKG_SKILLS.skill_info
         name = info.get("name") or ""
@@ -447,7 +447,7 @@ def _FX(**kw):
 
 
 def build_scenarios():
-    from saintess_engine.gauge import bar_effect_key
+    from ext_combat.gauge import bar_effect_key
     bkey = bar_effect_key("shaken")
     out = []
 
