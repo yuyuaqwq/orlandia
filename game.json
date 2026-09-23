@@ -127,6 +127,7 @@
     "ext_dialogue",
     "ext_quest",
     "ext_reward",
-    "ext_effect"
+    "ext_effect",
+    "ext_achieve"
   ]
 }
