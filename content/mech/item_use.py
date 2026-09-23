@@ -56,7 +56,7 @@ import json
 import re
 from typing import Optional
 
-from saintess_engine import config as _b2config
+from ext_combat.battle import game_config as _b2config   # 游戏配置取件面（第 7 批从引擎 config 搬来）
 from ext_combat.battle.landing import heal_actor
 
 from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）

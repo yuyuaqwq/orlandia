@@ -32,7 +32,7 @@ from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from ext_combat import Battle as B2, make_actor  # noqa: E402
 from ext_combat.battle.landing import deal_damage  # noqa: E402
 from ext_combat.battle.schedule import _settle_time_effects  # noqa: E402
-from saintess_engine import config as EC  # noqa: E402
+from ext_combat.battle import game_config as EC  # noqa: E402   # 游戏配置取件面（第 7 批从引擎 config 搬来）
 
 PASS = 0
 FAIL = 0

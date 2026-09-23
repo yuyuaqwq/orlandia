@@ -32,7 +32,7 @@ os.environ.setdefault("GWEN_GAME_DB", os.path.join(PLUGIN_DIR, "test_apply_game_
 os.environ.setdefault("GWEN_TEST_MODE", "1")
 sys.path.insert(0, PLUGIN_DIR)
 
-from saintess_engine import config as _b2c
+from ext_combat.battle import game_config as _b2c   # 游戏配置取件面（第 7 批从引擎 config 搬来）
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
 from ext_combat import make_actor
 from _engine_harness import C  # ★ P5C-REPOINT：包内聚合门面（原 game.content）

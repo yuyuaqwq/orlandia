@@ -136,6 +136,7 @@ def install_engine() -> None:
     if _MOUNTED:
         return
     from ext_combat.battle import formulas as _formulas
+    from ext_combat.battle import game_config as GC   # 游戏配置取件面（第 7 批从引擎 config 搬来）
 
     config.register_hook_provider(_lazy_mount)
     config.mount(
@@ -169,7 +170,7 @@ def install_engine() -> None:
         recover_base_fn=P.recover_base,        # fn(action) -> float（行动类别 → 第二段基准耗时）
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
-    config.load_game_rules(P)
+    GC.load_game_rules(P)
     _MOUNTED = True
 
 

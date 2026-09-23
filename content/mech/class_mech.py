@@ -150,7 +150,7 @@ def _learned_proc(actor: dict, proc: str) -> bool:
     names = actor.get("learned_skills") or []
     if not cn or not names:
         return False
-    from saintess_engine.config import skill_info_of as skill_info
+    from ext_combat.battle.game_config import skill_info_of as skill_info
     for s in names:
         try:
             info = skill_info(cn, s)
@@ -175,7 +175,7 @@ def _learned_proc_param(actor: dict, proc: str, key: str, default=None):
     names = actor.get("learned_skills") or []
     if not cn or not names:
         return default
-    from saintess_engine.config import skill_info_of as skill_info
+    from ext_combat.battle.game_config import skill_info_of as skill_info
     for s in names:
         try:
             info = skill_info(cn, s)
@@ -782,7 +782,7 @@ def class_faith_overload(battle, caster, target, params, logs):
     # 改为全队回血+30%」→ 全队回血量 ×1.3；数值读技能 passive dict 零硬编码）
     if _learned_proc(owner, "faith_overload_heal"):
         try:
-            from saintess_engine.config import skill_info_of as skill_info
+            from ext_combat.battle.game_config import skill_info_of as skill_info
             for _s in (owner.get("learned_skills") or []):
                 _i = skill_info(owner.get("class_name") or "", _s) or {}
                 if isinstance(_i.get("passive"), dict) \
@@ -2237,7 +2237,7 @@ def _mech_cash_rules() -> dict:
 def _effect_rules() -> dict:
     """当前 EFFECT_RULES（缺省空）。"""
     try:
-        from saintess_engine.config import get_effect_rules
+        from ext_combat.battle.game_config import get_effect_rules
         return get_effect_rules() or {}
     except Exception:
         return {}
