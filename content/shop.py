@@ -21,7 +21,7 @@ from . import catalog_life as _cl     # 生活/副业/商店/宠物/经济配置
 from . import catalog_space as _sp    # 地图/子区域
 from . import catalog_b143 as _b143   # B14-3 收口名（QUALITY/WEAPON_FLAVOR）
 from . import texts as _T            # C 档 21a（2026-09-19）：文案表读口（本文件首次接入）
-from saintess_engine.trade import apply_rate
+from ext_economy.trade import apply_rate
 
 # ★ U1-I4 L6：节点取用 → 引擎对话形状 `Dialogue.node`（注入面 = 包内 `dialogue._CFG`，
 #   与对外适配层 `C.dialogue_node` **同一实现**：未知节点回退 `start`、键在值为 `None` 原样返回）

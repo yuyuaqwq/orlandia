@@ -9,7 +9,7 @@
 | `instance_run.py` | 副本运行态：名单 / 分层进度 / 房间剩余池 / 资源池 → 引擎 `Roster`/`Progress` | `game/core/instance_run.py` | 308 |
 | `instance_gate.py` | 副本准入：钥匙三路匹配 / 通关豁免 / 四条准入链（开本·徒步·加入·恢复） | `game/core/instance_gate.py` | 366 |
 
-引擎侧形状（本包只用、不改）：`saintess_engine.run.Admission` / `Rule` / `Progress` / `Roster`，
+引擎侧形状（本包只用、不改）：`ext_world.run.Admission` / `Rule` / `Progress` / `Roster`，
 `Battle.script_hook` / `Battle.on_event` / `Battle.add_actor`，`saintess_engine.text.TextTable`。
 
 替身接口（宿主耦合 → 调用方传参；逐条对拍见 `overnight/d3-flow-port.md`）

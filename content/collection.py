@@ -28,7 +28,7 @@
 """
 from __future__ import annotations
 
-from saintess_engine.collect import Tally
+from ext_life.collect import Tally
 from saintess_engine.records import apply_replacements, placeholder, register_view, set_from_module, update_in_place
 
 # 读表口 = 引擎 records 形状：**域元数据唯一源** = 包内 `editor/domains.json`

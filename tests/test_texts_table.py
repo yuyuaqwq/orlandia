@@ -4622,7 +4622,7 @@ ECONOMY_DB_SHA = {
 #: ---------------------------------------------------------------------------
 #: 换机制：等待型副业（垂钓/采集/挖掘）的**计时存储**从旧「懒计时引擎」
 #: （`timed_events_{qq}` 内部 key `prof_wait`）换成引擎 produce 作业表
-#: （`saintess_engine.produce.Jobs` → event_state 键 `prof_jobs_{qq}`）。
+#: （`ext_economy.produce.Jobs` → event_state 键 `prof_jobs_{qq}`）。
 #: 只有这 3 例会**真开一轮等待**（normal 分支），故只有它们的 DB 全表 dump 变；
 #: 差异**仅在存储行**（键名/JSON 形状），玩家可见文本、数值、流程、条数全未变
 #: （同期实测：142 例 `ECONOMY_FROZEN` 文本逐字全同、文本差异集 = 空）。

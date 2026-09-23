@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""奥兰迪亚·余烬纪年内容包 —— 多轮对话（U1-I8：形状进引擎 `saintess_engine.dialogue`）。
+"""奥兰迪亚·余烬纪年内容包 —— 多轮对话（U1-I8：形状进引擎 `ext_dialogue.dialogue`）。
 
 本模块 = **薄包装 + 取值注入**。对话树的形状（取节点 / 条件槽 / 渲染槽 / 路由 / 会话游标）
-已进引擎 `saintess_engine/dialogue/__init__.py`；这里只留三件事：
+已进引擎 `extends/ext_dialogue/dialogue/__init__.py`；这里只留三件事：
 
 1. **数据读口**：`_dialogues()` / `_main_quests()` / `_read_domain()`（读包内 `content/data/*.json`）。
 2. **注入面**：`_CFG = Dialogue(end_marker=…, fallback_text=…, conditions=…, unknown=…, text_sources=…)`
@@ -42,7 +42,7 @@ import json
 import os
 import re
 
-from saintess_engine.dialogue import Dialogue
+from ext_dialogue.dialogue import Dialogue
 
 from . import obs                                 # noqa: E402  包内唯一日志取用口（fail-closed）
 from .dialogue_conds import CONDITIONS            # 条件名 + 谓词实现全在内容侧

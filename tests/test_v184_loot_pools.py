@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """test_v184_loot_pools —— 掉落池「旧实现 vs 引擎实现」逐格一致门禁（v184 · 路线图 #7「内容侧·池」）
 
-目标：把 `game/drop_engine.py` 的池 / 策略 / 展开 / 审计改成调用框架 `saintess_engine.loot`
+目标：把 `game/drop_engine.py` 的池 / 策略 / 展开 / 审计改成调用框架 `ext_loot.loot`
 （`LootTable` + 内置策略 + `TierTable` 档位表），**对外 API 与行为一字不变**。
 
 本文件是这条改造的唯一证据：**先逐字冻结旧实现**（`_FROZEN_SRC`，sha256 锁死，§0 自检），
@@ -121,8 +121,8 @@ _loot.install_pools_source(_p5f_pools_source)
 _loot.install_content_api_source(_p5f_content_api_source)
 _loot.install_quality_tiers_source(_p5f_quality_tiers_source)
 
-from saintess_engine.loot import SimpleCtx as EngineSimpleCtx                   # noqa: E402
-from saintess_engine.loot import strategy_names                                 # noqa: E402
+from ext_loot.loot import SimpleCtx as EngineSimpleCtx                   # noqa: E402
+from ext_loot.loot import strategy_names                                 # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -1533,7 +1533,7 @@ def sec8_edges():
 
 def main():
     print("=" * 78)
-    print("v184 掉落池门禁：旧实现（v174 原文冻结） vs 引擎实现（saintess_engine.loot）")
+    print("v184 掉落池门禁：旧实现（v174 原文冻结） vs 引擎实现（ext_loot.loot）")
     print(f"池数 {len(DROP_POOLS)} · roll 组合 {len(DROP_POOLS) * len(_CTXS) * len(_SEEDS)}"
           f"（ctx {len(_CTXS)} × 种子 {len(_SEEDS)}）· 合成池 {len(_SYNTH_ALL)}")
     print("=" * 78)

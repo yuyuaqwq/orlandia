@@ -60,7 +60,7 @@ from .. import texts as _T  # C 档 35a：文案真源（周常达标播报）
 # ============================================================
 # 宿主替身口（① 存储层 / 发放函数）
 # ============================================================
-from saintess_engine.periodic import PeriodSlot
+from ext_life.periodic import PeriodSlot
 from saintess_engine.wire import Wire
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名

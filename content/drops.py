@@ -22,7 +22,7 @@ B2-C2 把这一份整体搬进包内（落点 = `overnight/B2_W0_INTERFACE.md` �
      （只 6 个消费名：PCT_STATS / EQUIP_ROSTER / EQUIP_SLOTS / BOSS_BP_DROP_CHANCE /
       MONSTER_MODS / AFFIX_AFFINITY_POOLS；逐名 = 包内门面同源，惰性解析时机与真源一致）
   ③ `from content.catalog_* import …`（真源已直取包内门面）→ 相对 import 同一批门面
-  ④ 唯一包外依赖 = 引擎 `saintess_engine.loot`（真源 `:7` 原样）
+  ④ 唯一包外依赖 = 引擎 `ext_loot.loot`（真源 `:7` 原样）
 
 `C` 消费名 → 包内落点（对拍依据 = `game/content.py:29-36` 的门面装配序 + W0 接口表第 5 行）
 | 真源 `C.<名>` | 包内落点 | 依据 |
@@ -40,7 +40,7 @@ import importlib
 import os
 import random
 
-from saintess_engine.loot import count_for, draw_slots
+from ext_loot.loot import count_for, draw_slots
 from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 from .affix import fixed_affixes, random_req, roll_affixes, stat_affix_stats

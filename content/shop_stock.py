@@ -12,7 +12,7 @@
 ★ 2026-09-19（审计尾巴 #34）：上表原写 `db = _HostMod("db")` —— 那套手写替身口随 `_pkgref` 接入
 已**全仓零调用点**，本次删净（只留 `bind_host` 形参位）。
 
-库存份数 / 补货周期 / 售罄扣减这套机制走引擎 `saintess_engine.shelf.Shelf`：本模块只给
+库存份数 / 补货周期 / 售罄扣减这套机制走引擎 `ext_economy.shelf.Shelf`：本模块只给
 「单格摆的是哪个商品、满额几份、两类周期多长」，引擎算到点与扣减；引擎簿记投影回原存档行
 `shop_stock_{子区域}_{商品key}` 的 `{left, last_restock}`，全服共享的存储落点不变。
 
@@ -29,7 +29,7 @@ import json
 import time
 from datetime import date
 
-from saintess_engine.shelf import Shelf
+from ext_economy.shelf import Shelf
 
 # ============================================================
 # 宿主注入位（历史接口）—— ★ 2026-09-19 审计尾巴 #34

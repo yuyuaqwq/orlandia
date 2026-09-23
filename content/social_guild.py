@@ -18,7 +18,7 @@
 | `from ..store.social import guild_get_member / guild_set_role / guild_spend_contribute`（不在 `db` 门面上） | `_store_social()`（注入优先 → ★ REPOINT-PKG 起兜底**包内直取** `content/persistence/social.py`） | 这三个原语在宿主 `game/store/social.py`（= `from content.persistence.social import *` 的委托薄壳 ⇒ 同一批函数对象）；`game/db.py` 聚合面没导出 |
 | `from .. import content as C` + `C.GUILD_CONFIG` | `_cfg()`（`bind_host(config=…)` 注入优先 → ★ W4 兜底改**包内门面** `content/catalog_b143.py:GUILD_CONFIG`） | 数值配置仍由宿主薄壳注入（L7 配置面）；原兜底读宿主 `game.data.guild.GUILD_CONFIG` 已切门面（门禁逐键逐值相等）⇒ `game/data` 删后本模块仍可活 |
 | `from ..data import guild as _G` + `_G.GUILD_ROLES / GUILD_SHOP_ITEMS / GUILD_SKILLS` | 读包内 `content/data/guild.json`（`guild_roles()` / `guild_shop_items()` / `guild_skills()`） | 域真源 = `game/data/guild.py`，单向导出器 `scripts/export_domains/b9_social.py:derive_guild` |
-| 真源手写「公会任务进度跨天归零」（读 task_date，不等于今天就当 0；面板与击杀推进**两处各写一遍**） | `_task_window(gid, qq_id)` = 引擎 `saintess_engine.membership.Contribution`（`window="day"`，`period_key=_today`） | ★ PKG-G：**按日窗口累计**的换桶语义归引擎 —— 跨天自然读不到旧桶，不用再手写 if；账本 = 内容侧给的 MutableMapping |
+| 真源手写「公会任务进度跨天归零」（读 task_date，不等于今天就当 0；面板与击杀推进**两处各写一遍**） | `_task_window(gid, qq_id)` = 引擎 `ext_social.membership.Contribution`（`window="day"`，`period_key=_today`） | ★ PKG-G：**按日窗口累计**的换桶语义归引擎 —— 跨天自然读不到旧桶，不用再手写 if；账本 = 内容侧给的 MutableMapping |
 
 ⚠️ 读表坑：`guild.json` 的 `shop_items` 键是**字符串化整数**（JSON 只有字符串键，真源是 int 1..6）→
 `guild_shop_items()` 读时**还原 int**。不还原 = `get(编号)` 恒 None = 「公会商店 1」全部报
@@ -51,7 +51,7 @@ from . import catalog_b143 as _cat_b143
 from . import texts as _T          # 文案表（C 档 12）
 
 # ★ PKG-G：贡献账本形状（引擎 `membership.Contribution`）——按日窗口累计 / 跨窗口换桶
-from saintess_engine.membership import Contribution
+from ext_social.membership import Contribution
 
 # ============================================================
 # ① 宿主替身口（存储层 / 公会原语 / 数值配置）

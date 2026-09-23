@@ -26,7 +26,7 @@
 v184 之前，「品质五档」的顺序/倍率/颜色/中文名 + 各处的权重表在**四处各自维护**：
 装备（`data/equipment.QUALITY`）、垂钓（`data/fishing.FISH_QUALITY_WEIGHTS` 与它那份内联副本）、
 锻造货架（`core/smith_stock.QUALITY_WEIGHTS`）、签到（`SIGNIN_CONFIG.week_quality_weights`），
-外加坐骑/宠物又各抄一遍顺序。现在**顺序与取值只有一份**，全部经 `saintess_engine.loot.TierTable`
+外加坐骑/宠物又各抄一遍顺序。现在**顺序与取值只有一份**，全部经 `ext_loot.loot.TierTable`
 读取 —— 引擎不认识「品质」二字，它只按档位算。
 
 用法::
@@ -40,7 +40,7 @@ v184 之前，「品质五档」的顺序/倍率/颜色/中文名 + 各处的权
     FISH_TIERS.weights_at(4)                  # 垂钓等级 → 五档权重（相邻两档线性插值，clamp 1..9）
     FISH_TIERS.pick(level=4, exclude=("orange",))   # 按权重抽一档
 """
-from saintess_engine.loot import TierTable
+from ext_loot.loot import TierTable
 
 # ---- 包内门面（B16-W11：档位四表全数归包）----
 from .catalog_b143 import QUALITY, QUALITY_ORDER, QUALITY_CN  # `equipment` 域

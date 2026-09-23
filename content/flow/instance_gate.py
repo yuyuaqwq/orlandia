@@ -11,7 +11,7 @@
 | `from .. import db` + `db.get_inventory(group_id, qq_id)`（:56/:61） | `find_instance_key_item(inventory, key_item, items=None)` | 背包条目 list（含 `key`/`data`/`count`） | `items=None` → 包内 `content/data/items.json` |
 | `from .. import db` + `db.get_achievements(group_id, qq_id)`（:76/:79） | `instance_cleared(achievements, inst_key)` | 成就记录 list（含 `ach_key`/`progress`） | —— |
 | 宿主内容层 `ITEMS` | `items=` 参数 | `dict`：物品 key → `{name: …}` | 包内 `content/data/items.json` |
-其余（`saintess_engine.run.Admission` / `Rule`）不变。
+其余（`ext_world.run.Admission` / `Rule`）不变。
 
 ★ 缺口：包内尚无统一文案装载模块（`content/texts.py`）——本文件是自带的最小装载口；
    真源缺 key 时打 ERROR 日志（宿主日志通道），包内不引宿主日志 → 由调用方经 `on_miss` 接。
@@ -66,7 +66,7 @@ def _default_items() -> dict:
 
 from typing import Optional
 
-from saintess_engine.run import Admission, Rule
+from ext_world.run import Admission, Rule
 
 # 文案表：真源 `from . import texts as T`（game/core/texts.py）→ 包内 `T`（见文件头 §文案口）
 

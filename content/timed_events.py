@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ==============================================================================
 # 包内实现（唯一真源）—— 宿主同名文件 = 薄壳（指向本模块，见那边的头注）。
-# 计时机制 = 引擎 `saintess_engine.timers.Timers`；本文件只留**本游戏的存储面**
+# 计时机制 = 引擎 `ext_life.timers.Timers`；本文件只留**本游戏的存储面**
 # （`event_state` 单键 KV）与对外 API。
 # ==============================================================================
 """奥兰迪亚·余烬纪年 core 层 — timed_events.py（v127.5 通用倒计时事件引擎）
@@ -42,13 +42,13 @@ refresh_timed(group_id, qq_id)
 #    引擎在过期时调用，用于清状态（如对话会话作废）
 
 【骨架归属】引擎的**机制**（类型注册表 / 惰性过期 /
-「get / list / refresh 三条路径都触发 on_expire」）来自框架 `saintess_engine.timers.Timers`；
+「get / list / refresh 三条路径都触发 on_expire」）来自框架 `ext_life.timers.Timers`；
 本文件只留**本游戏的存储适配与对外 API**：存储 key 格式、event_state 三件套、group_id 兼容签名。
 """
 import json
 
 from saintess_engine.clock import wall
-from saintess_engine.timers import TimerStorageError, Timers
+from ext_life.timers import TimerStorageError, Timers
 
 # ============================================================
 # 宿主注入位（历史接口）—— ★ 2026-09-19 审计尾巴 #34

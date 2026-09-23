@@ -8,10 +8,10 @@
 正文 `def _randint` → EOF（438 行）除「宿主取件 4 行 + fish 守卫 1 行」外逐行未改
 （白名单门禁见 `overnight/d3_loot_verify.py` A1 节）。
 真源的**形状层**（`LootTable` 池与策略注册表 / 展开 / 审计 / `SimpleCtx` / `TierTable`）不在这里 ——
-v184 起它已在引擎 `saintess_engine.loot`（引擎零知识），真源与本文件都只是**引它**。
+v184 起它已在引擎 `ext_loot.loot`（引擎零知识），真源与本文件都只是**引它**。
 
 本文件 = 真源逐字搬入，只改三类东西：
-  ① **import 层**：`from saintess_engine.loot import LootTable, SimpleCtx` 原样（唯一包外依赖 = 引擎）；
+  ① **import 层**：`from ext_loot.loot import LootTable, SimpleCtx` 原样（唯一包外依赖 = 引擎）；
      另加 `TierTable`（垂钓档位表替身要用）
   ② **宿主耦合**：真源 `import game.content as C`（宿主内容 API）/ `from .data.drop_pools import
      DROP_POOLS`（宿主数据层）/ `game/core/quality_tiers.FISH_TIERS`（宿主档位表）
@@ -30,7 +30,7 @@ v184 起它已在引擎 `saintess_engine.loot`（引擎零知识），真源与�
 ① import 层改动（与真源逐行对拍见 `overnight/d3_loot_verify.py` A1 节）
 | 真源写法 | 包内写法 | 说明 |
 |---|---|---|
-| `from saintess_engine.loot import LootTable, SimpleCtx`（:52） | 同左 + `TierTable` | 引擎；本文件唯一包外依赖 |
+| `from ext_loot.loot import LootTable, SimpleCtx`（:52） | 同左 + `TierTable` | 引擎；本文件唯一包外依赖 |
 | `import game.content as C`（:67 / :445，**函数内**） | `C = _content_api(ctx)` / `C = _content_api()` | ② 宿主内容 API → 调用方给（替身接口） |
 | `from .data.drop_pools import DROP_POOLS`（:207） | `_package_pools()` 读包内 `content/data/drop_pools.json`（宿主侧走活源） | ② 宿主数据层 → 包内同源数据（或 `install_pools` / `install_pools_source`） |
 | `from .core.quality_tiers import FISH_TIERS`（:236/239） | `_QUALITY_TIERS`（`install_quality_tiers` / `install_quality_tiers_source` 挂） | ② 宿主档位表 → 调用方给 |
@@ -58,7 +58,7 @@ import random
 from collections.abc import Mapping
 from typing import Any
 
-from saintess_engine.loot import LootTable, SimpleCtx, TierTable
+from ext_loot.loot import LootTable, SimpleCtx, TierTable
 from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 # B14-2（L7 线）：包内默认内容 API 的**数据来源**切到包内门面（原就地读 content/data/*.json）

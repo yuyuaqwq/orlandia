@@ -62,7 +62,7 @@ if os.path.isdir(_shim) and _shim not in sys.path:
 from _engine_harness import boot as _eng_boot  # noqa: E402
 _eng_boot()
 
-from saintess_engine.dialogue import END_KEY, Cursor, Dialogue  # noqa: E402
+from ext_dialogue.dialogue import END_KEY, Cursor, Dialogue  # noqa: E402
 from content import dialogue as DLG  # noqa: E402  活实现（对外 6 名 + `_CFG` 注入面）
 from content import dialogue_conds as DC  # noqa: E402
 from content import obs as _OBS  # noqa: E402  ← 生产放行分支的告警落点（口径分歧③）
@@ -1757,7 +1757,7 @@ def main():
     live_cfg_ok = True
     try:
         cfg = _L._CFG
-        check("_CFG 是引擎 saintess_engine.dialogue.Dialogue 实例", isinstance(cfg, Dialogue), type(cfg))
+        check("_CFG 是引擎 ext_dialogue.dialogue.Dialogue 实例", isinstance(cfg, Dialogue), type(cfg))
         check("end_marker == '__end__'", cfg._end == "__end__", cfg._end)
         check("END_KEY == 'end_marker'（引擎只认形参名）", END_KEY == "end_marker", END_KEY)
         check("fallback_text == '……'", cfg._fallback == "……", cfg._fallback)

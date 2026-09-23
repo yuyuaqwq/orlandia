@@ -86,7 +86,7 @@ def map_space(map_id: str):
     不缓存：`SUBAREAS` 运行期可被副本克隆增补（缓存会读到半成品）；构造很便宜
     （每图 ≤ 十余节点），移动路径上的调用量级可接受。
     """
-    from saintess_engine.space import MESH, Space
+    from ext_world.space import MESH, Space
     ent = _map_entry(map_id)
     role_of_type = _role_by_type(ent)
     nodes = [{"id": n["id"], "name": n.get("name"), "role": role_of_type.get(n.get("role"))}
@@ -121,7 +121,7 @@ def map_route(map_id: str, src: str, dst: str) -> list:
 
 
 def subarea_links(map_id: str, subarea_id: str) -> list:
-    """同图内可直达的子区域 id 列表（v183：派生搬进引擎 `saintess_engine.space`）。
+    """同图内可直达的子区域 id 列表（v183：派生搬进引擎 `ext_world.space`）。
 
     显式网状连通表（`maps` 域的 `links`）优先；否则按拓扑派生：**城镇星形
     （枢纽 ↔ 场所、通道 ↔ 出口，含无通道时枢纽直连出口的防断链分支）/ 野外线性**。

@@ -14,7 +14,7 @@
 3. `from .stats import equip_stats` → 宿主**函数**句柄 `宿主面取件("core.stats", "equip_stats")`
    （`core/stats.py` 归 **B13-L6** 线在搬；句柄属「函数名」类，按收口纪律不切）。
 
-引擎侧不变：`from saintess_engine.loot import count_for, draw_slots`（抽样形状已收口引擎）。
+引擎侧不变：`from ext_loot.loot import count_for, draw_slots`（抽样形状已收口引擎）。
 
 ⚠️ 宿主源码级门禁（**本线未改测试**，登记给收口方）：`tests/test_v184_loot_tiers.py:691-692`
 要求字面 `count_for(AFFIX_COUNT, quality, extra_chance=0.20, rng=random)` 与
@@ -46,7 +46,7 @@ _WIRE, bind_host = _slot()
 
 import random
 
-from saintess_engine.loot import count_for, draw_slots
+from ext_loot.loot import count_for, draw_slots
 
 from .apply import _read_json
 
@@ -106,7 +106,7 @@ def roll_affixes(slot: str, lv: int, quality: str) -> list:
     橙色 3 条（20% 概率 4 条，兑现 AFFIX_COUNT.orange=[3,4]）。
     （名册固定词条不在随机池，由 fixed_affixes 提供。）
 
-    v184：条数/抽样形状改走框架 `saintess_engine.loot`——
+    v184：条数/抽样形状改走框架 `ext_loot.loot`——
     条数 = `count_for`（定值 / `[3,4]` + `extra_chance` 命中上界，未知档位 0 条）；
     抽样 = `draw_slots`（等概率不放回，内部就是 `rng.sample`，与旧 `random.sample`
     同随机流同结果）。`rng` 传标准库 random 模块本体，随机流对齐旧实现。

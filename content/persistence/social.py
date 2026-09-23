@@ -17,7 +17,7 @@
 import json
 import sqlite3
 import time
-from saintess_engine.periodic import Streak
+from ext_life.periodic import Streak
 from .handles import _connect, _lock, atomic, clock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C

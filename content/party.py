@@ -14,7 +14,7 @@
 | 函数体内 `from .. import db` | **删行**（模块级 `db` = 惰性宿主代理） | 正文里 `db.xxx(...)` 一行未改 |
 | 函数体内 `from .. import content as C` | **删行**（模块级 `C` = 宿主聚合层代理） | `C.display` / `C.CLASS_NOVICE` / `C.check_achievements` 一字未改 |
 | 函数体内 `from ..content_rules.panel import player_final_stats` | `final_stats = _panel_stats()` | 同一函数对象（注入优先），正文其余不动 |
-| 真源「队员 list + `members[0]` 当队长」的隐含约定（散在 3 处） | `_roster(members)` = 引擎 `saintess_engine.run.Roster` | ★ PKG-G：**成员集合形状**（保序 / 队长 / 在册过滤）；不造第二个名单，顺序与判据都不变 |
+| 真源「队员 list + `members[0]` 当队长」的隐含约定（散在 3 处） | `_roster(members)` = 引擎 `ext_world.run.Roster` | ★ PKG-G：**成员集合形状**（保序 / 队长 / 在册过滤）；不造第二个名单，顺序与判据都不变 |
 
 ※ B14-2 L8（2026-09-14）：`C.CLASS_NOVICE` 已切包内读口（`content/tables.py:45`，逐值相等实测 True），
   正文该行取值口改写为本地名 `CLASS_NOVICE`；`C` 仍有残余（`C.display` / `C.check_achievements`）→ 替身保留。
@@ -101,8 +101,8 @@ import re
 from .tables import CLASS_NOVICE      # noqa: E402
 from . import texts as _T            # C 档 20b（2026-09-19）：文案表读口（本文件首次接入）
 
-# ★ PKG-G：成员集合形状（引擎 `saintess_engine.run.Roster`）——「谁在里面」只有这一个来源
-from saintess_engine.run import Roster   # noqa: E402
+# ★ PKG-G：成员集合形状（引擎 `ext_world.run.Roster`）——「谁在里面」只有这一个来源
+from ext_world.run import Roster   # noqa: E402
 
 
 def _roster(members) -> Roster:

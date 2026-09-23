@@ -7,7 +7,7 @@
 #   `_wild_tables()` 改读包内 `npcs` 域（经 `catalog_quests` 的保序门面，序表在那边显式声明），
 #   宿主句柄清零；本模块此后 `import` 不碰 `game.data`（见 ② 与 `overnight/_w8_wild_daily_events.md`）。
 # 宿主同名文件 = 薄壳（指向本模块，见那边的头注）。
-# ★ U1-I4 L4（2026-09-14）：在场**手算派生**换引擎形状 `saintess_engine.presence`
+# ★ U1-I4 L4（2026-09-14）：在场**手算派生**换引擎形状 `ext_social.presence`
 #   （`day_slot`/`day_hit`/`guarded_roll`/`cooldown_ok`/`merge_tables`），对外签名与返回一字不改；
 #   私有 `_day_hash` 删除。行为安全网 = `tests/test_u1i4_presence_frozen.py`（门禁②，25 段冻结）。
 # ==============================================================================
@@ -44,7 +44,7 @@ from saintess_engine.wire import slot as _slot
 #    取值与业务语义（`roam` 桶、`appear` 盐、`chance`、保底 7、冷却 1800、`inst_stage` 6 条）
 #    全部留在本文件；引擎零字段知识、不认日历、不掷骰（`rng` 由这里注入）。
 # ============================================================
-from saintess_engine.presence import (day_slot, day_hit, guarded_roll,   # noqa: F401
+from ext_social.presence import (day_slot, day_hit, guarded_roll,   # noqa: F401
                                       cooldown_ok, merge_tables)
 _WIRE, bind_host = _slot()
 

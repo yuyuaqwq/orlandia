@@ -87,7 +87,7 @@ from content.catalog_quests import (NPCS, WILD_NPCS, HIDDEN_NPCS,        # noqa:
                                     MAIN_QUESTS, SIDE_QUESTS)
 from content.catalog_space import MAP_BY_ID as _MAP_BY_ID                # noqa: E402
 from content.persistence import world as PW                              # noqa: E402
-import saintess_engine.dialogue as DENG                                  # noqa: E402
+import ext_dialogue.dialogue as DENG                                  # noqa: E402
 
 PASS = 0
 FAIL = 0

@@ -60,9 +60,9 @@ import random
 import re
 import time
 
-from saintess_engine.dialogue import Cursor
+from ext_dialogue.dialogue import Cursor
 from ext_combat.formation import alive_units, formation_view
-from saintess_engine.presence import Lookup, Presence, minutes_left
+from ext_social.presence import Lookup, Presence, minutes_left
 from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 from . import catalog_core as _cat_core

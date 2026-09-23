@@ -19,7 +19,7 @@
 1. `gold_cost(lv)`    —— 金币阶梯查表；
 2. `slot_cap(quality)`—— 词条槽上限，**直接沿用既有品质词条条数表 `AFFIX_COUNT`**（列表档位取上界）；
 3. `roll_reroll(…)`   —— 整体重掷：`roll_affixes`（既有公式，一字不改）+ 引擎计数保底
-   `saintess_engine.loot.pity_force/pity_advance`；保底命中项从「金档词条池」抽（`draw_slots`）。
+   `ext_loot.loot.pity_force/pity_advance`；保底命中项从「金档词条池」抽（`draw_slots`）。
 
 「金」的认定（作业书要求先在 LANDING 点名）
 ------------------------------------------
@@ -36,13 +36,13 @@ blue/purple/orange）；45 条缺该字段 → 由 `AFFIX_POOL_BY_QUALITY` 的**
 橙武器池 2 条 → 第 1–3 轮有自然出金、第 4 轮是保底兜底，统计分布健康（见 LANDING §红榜）。
 
 引擎零游戏知识（铁律 5）：保底「连续 N 次未中 → 下一次强制命中」是通用能力 → 进引擎
-`saintess_engine/loot/pity.py`；**N 与「什么是金」留在包内**（本文件 + 数据表）。
+`extends/ext_loot/loot/pity.py`；**N 与「什么是金」留在包内**（本文件 + 数据表）。
 """
 from __future__ import annotations
 
 import random
 
-from saintess_engine.loot import draw_slots, pity_advance, pity_force
+from ext_loot.loot import draw_slots, pity_advance, pity_force
 
 from .affix import AFFIXES, roll_affixes
 from .catalog_b143 import AFFIX_POOL_BY_QUALITY, QUALITY_ORDER

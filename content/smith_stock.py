@@ -14,7 +14,7 @@
 - 随机池：EQUIP_ROSTER 按城镇等级 ±5 窗口 + 品质权重 sample，exclude 静态
   SHOP_EQUIP / SHOP_WEAPONS 已上架名册（避免与保底商店重复）
 
-「货架机制」走引擎 `saintess_engine.shelf.Shelf`（STOCK_COUNT 格 + 每日换货 + RESTOCK_HOURS
+「货架机制」走引擎 `ext_economy.shelf.Shelf`（STOCK_COUNT 格 + 每日换货 + RESTOCK_HOURS
 补货）：本模块给「新品怎么生成、几份、周期多长」，引擎算到点 / 保留未售罄 / 扣减；
 引擎簿记每次由存档行（`items` / `day` / `restock_at`）投影而来并投影回去，全服共享的存储落点不变。
 
@@ -41,7 +41,7 @@ import random
 import time
 from datetime import date
 
-from saintess_engine.shelf import Shelf, ShelfStateError
+from ext_economy.shelf import Shelf, ShelfStateError
 
 # ============================================================
 # ① 宿主取件（B2-C2：本模块已全部改包内直取；原 `_host_*` 宿主替身机械已删）

@@ -86,7 +86,7 @@ from . import texts as _T                    # noqa: E402  文案真源取件口
 from .index import display as _index_display   # noqa: E402  `C.display` → 包内直取（同一对象）
 from ._pkgref import DB as db              # noqa: E402  `from .. import db` 的包内等价物
 from saintess_engine.conditions.declarative import bind_spec   # S4：声明式条目装配
-from saintess_engine.collect import TierBoard
+from ext_life.collect import TierBoard
 from .cond_specs import load as _load_specs
 
 

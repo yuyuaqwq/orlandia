@@ -88,7 +88,7 @@ from content import dialogue as DLG                                      # noqa:
 from content.catalog_quests import NPCS, WILD_NPCS, HIDDEN_NPCS          # noqa: E402
 from content.catalog_space import MAP_BY_ID as _MAP_BY_ID                # noqa: E402
 from content.persistence import world as PW                              # noqa: E402
-import saintess_engine.presence as PRES                                  # noqa: E402
+import ext_social.presence as PRES                                  # noqa: E402
 
 PASS = 0
 FAIL = 0

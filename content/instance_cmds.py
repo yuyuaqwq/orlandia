@@ -121,7 +121,7 @@ from . import texts as _T
 from ._hostref import HOST_PKG, HOST_PKG_FALLBACK, drops_ctor  # 宿主取件样板单源（P0-3/P0-5）
 from saintess_engine.wire import Wire
 # ★ U1-I4 L6：副本层节点取用 → 引擎多表首命中形状（单表真值链）
-from saintess_engine.presence import Lookup
+from ext_social.presence import Lookup
 from ._domainio import read_domain as _read_domain
 _WIRE = Wire()
 

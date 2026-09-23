@@ -13,7 +13,7 @@
 |---|---|---|
 | `from .. import db`（**函数体内**惰性 import） | 模块级 `db` = **惰性宿主代理** `_HostDB` | 正文里 `db.xxx(...)` **一行未改**；宿主由 `bind_host(db)` 注入，或按 `sys.modules` 找**已加载**的宿主模块（绝不 import，防在包侧另起一份宿主模块树） |
 | `from .. import content as C`（模块级） | 模块级 `C` = **包内逐名惰性读口** `_PkgFace`（★ W2b：旧 `_HostMod("content")` 已删） | 表读口（`current_period`/`roll_fish`/`check_achievements`/`make_pet_egg`/…）逐名解析到**包内真源**（探针实测，见 §`_PkgFace` 类头注）；宿主聚合层**在册时优先**（= 旧 `_HostMod` 取件语义，保 tests 猴补可见）；`bind_host(content=…)` 形参按宿主注入协议保留但**不再落槽** |
-| `from ..core import timed_events as _te`（模块级） | **不搬** —— 等待型副业的计时队列走引擎 `saintess_engine.produce`（`Jobs` / `Job`），存储面 = event_state KV（键 `prof_jobs_{qq}`），本模块不再持有 `_te` 句柄 | 到点 / 收取 / 清理由作业表形状自持（见下方状态机段）；`content/timed_events.py` 仍是别的族（wild / world_cmds）的包内真源 |
+| `from ..core import timed_events as _te`（模块级） | **不搬** —— 等待型副业的计时队列走引擎 `ext_economy.produce`（`Jobs` / `Job`），存储面 = event_state KV（键 `prof_jobs_{qq}`），本模块不再持有 `_te` 句柄 | 到点 / 收取 / 清理由作业表形状自持（见下方状态机段）；`content/timed_events.py` 仍是别的族（wild / world_cmds）的包内真源 |
 | `from ..log_setup import LOG`（模块级） | 告警改走**包内唯一日志取用口** `content/obs.py::log()`（★ P4′-W1-B；句柄由宿主 `bootstrap.bind_observability()` 在包加载期注入） | fail-closed **告警原文未改**，取用写法由 `LOG.warning` 改 `obs.log().warning`；包内不再出现第二个日志口 |
 | `from ..drop_engine import expand_pool as _expand`（**函数体内**惰性 import，两处） | 模块级 `_expand` / `_expand_pool` = **惰性调用代理** | 每次调用解析宿主 `game.drop_engine.expand_pool`（与真源同：真源也是调用时才 import） |
 | **模块级副作用** `_te.register_timed("prof_wait", …, on_expire=…)` | **不搬** —— 等待型副业不再走限时存在族（改走引擎 produce 作业表），无事件可注册 | 到点数据不丢由作业表形状原生保证：到点但未收取的作业留在队列里，`prof_wait_residual` / `prof_wait_flow` 直接读取 |
@@ -23,7 +23,7 @@
 ------
 * 全部函数体逐行照搬（含注释/变量名/日志文本）；只删掉「宿主 import 口」那一行。
 * 等待型副业的**队列机制 / 落库形态**只有一处：引擎 produce 作业表
-  （`saintess_engine.produce.Jobs` → event_state 键 `prof_jobs_{qq}`）。
+  （`ext_economy.produce.Jobs` → event_state 键 `prof_jobs_{qq}`）。
   `prof_wait_residual` / `prof_wait_state` / `prof_wait_clear` / `prof_wait_begin` 的挂计时+读状态 /
   `prof_delayed_push` 的取数 / `prof_settle` 的清状态 / `prof_wait_flow` 的编排全部只读写这一处。
   业务面原样：`prof_wait_duration` 的时长公式、`settle_fishing` /
@@ -63,7 +63,7 @@ from . import texts as _T          # ★ C 档 33a（2026-09-19）：文案表�
 # 计时作业队列用引擎 produce 形状（`Jobs` / `Job`；存储面 = event_state 键 `prof_jobs_{qq}`，
 #   时钟 = 墙上时钟整数秒）。
 from saintess_engine.clock import wall
-from saintess_engine.produce import Job, Jobs
+from ext_economy.produce import Job, Jobs
 from saintess_engine.conditions.declarative import compile_specs
 from .cond_specs import load as _load_specs
 # ★ W2b（2026-09-15）：读表口 `C` 改指**包内真源**（逐名惰性解析）。
@@ -366,7 +366,7 @@ def gather_cond_roll(cur_map: str):
 # ============ 等待型副业状态机（v55：垂钓/采集/挖掘） ============
 # 基准等待（秒）随机范围：fish/gather 45~75，mining 65~115；副业等级每级 -5%（上限 -50%），保底 10 秒
 #
-# 队列机制 = 引擎 produce 形状（`saintess_engine.produce.Jobs` / `Job`），落库只有这一处：
+# 队列机制 = 引擎 produce 形状（`ext_economy.produce.Jobs` / `Job`），落库只有这一处：
 #     * 槽位 / 到点判据 / 收取由形状给（每人 1 槽 `max_slots=1`；到点但未收取的作业留在队列里，
 #       `settle()` 收取才释放槽 —— 「到点未结算不丢」是形状原生保证）。
 #     * 存储面 = event_state KV（`_EventStateStore`），值 = 作业表 `[job.to_dict(), …]` 的 JSON；

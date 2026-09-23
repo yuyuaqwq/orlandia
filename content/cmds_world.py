@@ -45,7 +45,7 @@ from .world_cmds import db, _DAILY_META_KEYS   # B2-W2：清死 import（C/_host
 # ★ U1-D2 L4：面板目标行改走引擎目标行骨架（`quests_flow._obj_lines` = 注册表 + 声明序）
 from . import quests_flow as _qf
 # ★ U1-I4 L6：导师行取用 → 引擎多表首命中形状（单表**真值**链）
-from saintess_engine.presence import Lookup
+from ext_social.presence import Lookup
 from saintess_engine.records import records_from_domain   # D8：包内域读口（fail-closed 声明派生）
 
 #: 导师行查表口（`NPCS.get(id) or {}` 的引擎形状；真值链口径逐字同义）

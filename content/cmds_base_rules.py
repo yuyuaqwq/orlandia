@@ -75,7 +75,7 @@ from .item_templates import TIPS
 from .panel import STAT_NAMES
 from .persistence import update_player
 # ★ U1-I4 L6：野外行商在场 → 引擎在场形状（`Lookup` 真值链 + `Presence` 清单装配）
-from saintess_engine.presence import Lookup, Presence
+from ext_social.presence import Lookup, Presence
 
 __all__ = [
     "REGISTER_HINT", "BATTLE_NONE_HINT", "COMMAND_ALIASES", "TIP_POOL",

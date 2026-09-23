@@ -40,7 +40,7 @@ from .catalog_rules import SUPPLY_BOX as _SUPPLY_BOX
 from .commands import register
 from .persistence.inventory import add_item
 from .persistence.world import get_event_state, set_event_state
-from saintess_engine.periodic import PeriodCounter
+from ext_life.periodic import PeriodCounter
 
 
 def _fx_label(effects: dict) -> str:

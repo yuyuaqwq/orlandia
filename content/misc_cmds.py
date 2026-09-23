@@ -62,8 +62,8 @@ from ._domainio import read_json as _read_json            # P0-4b 读口单源
 # 宿主替身口（存储层）—— 引擎 wire 形状
 # ============================================================
 from saintess_engine.wire import Wire
-from saintess_engine.collect import CLAIMED, LOCKED, READY, Tally, TierBoard
-from saintess_engine.periodic import Cooldown
+from ext_life.collect import CLAIMED, LOCKED, READY, Tally, TierBoard
+from ext_life.periodic import Cooldown
 from . import texts as _T                       # 文案表（B 批 B-1 B 档：帮助面板）
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名

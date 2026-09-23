@@ -127,7 +127,7 @@ _TRIG_CN = _T.names(_TRIG_KEYS, prefix="trigger_name")
 #   `__init__` 头注）。不改则 AttributeError 被 `except Exception` 吞掉 ⇒ 「已探索地图」静默恒空。
 from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（原 `C.gather_map_min_lv`，宿主已无对象）
 # ★ U1-I4 L6：行商标题名 / 行表取用 → 引擎多表首命中形状（单表**真值**链，口径逐字同义）
-from saintess_engine.presence import Lookup
+from ext_social.presence import Lookup
 
 #: 行商标题名查表口（真源 = `WILD_NPCS`，与旧 `.get(id, {})` 同表同口径）
 _WILD_NPCS_LOOKUP = Lookup(_cquest.WILD_NPCS)

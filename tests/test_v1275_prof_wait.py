@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """v127.5 等待型副业（垂钓/采集/挖掘）计时队列（引擎 produce 作业表）。
 
-存储形态（唯一一处）= `saintess_engine.produce.Jobs` → event_state 键 `prof_jobs_{qq}`，
+存储形态（唯一一处）= `ext_economy.produce.Jobs` → event_state 键 `prof_jobs_{qq}`，
 值 = `[{"kind", "started_at", "ends_at", "payload"}, …]`。
 
 验证（对外接口 _prof_wait_state/_prof_wait_begin/_prof_wait_clear 零改动，内部存储走作业表）：

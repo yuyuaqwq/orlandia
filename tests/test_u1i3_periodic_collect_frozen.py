@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""U1-I3 冻结门禁：**周期形状**（`saintess_engine/periodic`）+ **收集形状**（`saintess_engine/collect`）
+"""U1-I3 冻结门禁：**周期形状**（`extends/ext_life/periodic`）+ **收集形状**（`extends/ext_life/collect`）
 把包内 5 处周期点 / 2 处收集点换成引擎形状之后，行为必须逐字节不变。
 
 跑法（工作区根；三个环境变量都指 lane 内）::
@@ -66,8 +66,8 @@ from content import texts as _T                                          # noqa:
 from content.catalog_quests import ACHIEVEMENTS                          # noqa: E402
 from content.flow import weekly_progress as _WP                          # noqa: E402
 from content.persistence import social as _SO                            # noqa: E402
-import saintess_engine.collect as _PC                                   # noqa: E402
-import saintess_engine.periodic as _PE                                   # noqa: E402
+import ext_life.collect as _PC                                   # noqa: E402
+import ext_life.periodic as _PE                                   # noqa: E402
 
 PASS = 0
 FAIL = 0
@@ -619,7 +619,7 @@ def test_zero_knowledge():
           not any(hasattr(m, n) for m in (_PE, _PC)
                   for n in ("register", "REGISTRY", "_REGISTRY", "register_type")),
           [n for m in (_PE, _PC) for n in ("register", "REGISTRY") if hasattr(m, n)])
-    for rel in ("saintess_engine/periodic/__init__.py", "saintess_engine/collect/__init__.py"):
+    for rel in ("extends/ext_life/periodic/__init__.py", "extends/ext_life/collect/__init__.py"):
         path = os.path.join(_paths.ENGINE_ROOT, *rel.split("/"))
         hits, imports = _scan_engine_module(path)
         check(f"{rel}：零内容侧取值词（{len(_VALUE_WORDS)} 词表）", not hits, f"{hits[:3]}")
