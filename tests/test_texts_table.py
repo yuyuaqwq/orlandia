@@ -2104,7 +2104,7 @@ import random   # noqa: E402
 from _engine_harness import C as _PB_C, db as _PB_db, clean_db as _PB_clean   # noqa: E402
 from _engine_harness import FakeEvent as _PB_Event, run as _PB_run            # noqa: E402
 from _engine_harness import make_player as _PB_mk, Main as _PB_Main           # noqa: E402
-from ext_world.run import instance_run as _PB_IR   # noqa: E402
+from content.flow import instance_run as _PB_IR   # noqa: E402
 from content.flow import instance_battle as _PB_IB   # noqa: E402
 from _engine_harness import Main as _PB_Inst   # noqa: E402  （原 InstanceCmds 壳 → 驱动口）
 from _engine_harness import Main as _PB_Combat     # noqa: E402  （原 CombatCmds 壳 → 驱动口）

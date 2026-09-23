@@ -28,7 +28,7 @@
 ① import 层改动
 | 真源写法 | 包内写法 | 说明 |
 |---|---|---|
-| `from ..core import instance_run as IR`（:26） | `from ext_world.run import instance_run as IR` | 副本运行态已进包（D3；`roster_of`/`alive_of`/`set_alive` 函数体与真源逐字相同） |
+| `from ..core import instance_run as IR`（:26） | `from . import instance_run as IR` | 副本运行态已进包（D3；`roster_of`/`alive_of`/`set_alive` 函数体与真源逐字相同） |
 | `from ..core import texts as T`（:27） | **不搬**（文案由调用方渲染，见 ② ） | 文案表是宿主资产（`game/data/text_specs.json`） |
 | `from ..services import battle_bridge as BR`（:28） | `from .. import bridge as BR` | 开战构造半边已进包（D3；`player_to_actor`/`monster_to_actor` 与真源逐字相同） |
 | `from ..data.kinds import K_HEAL, K_BUFF`（:29） | `from ..mech.kinds import K_HEAL, K_BUFF` | kind 常量已进包（P4） |
@@ -79,7 +79,7 @@ import json
 import os
 from typing import Optional
 
-from ext_world.run import instance_run as IR
+from . import instance_run as IR
 from .. import bridge as BR
 from .. import texts as T                                      # B18 L3c：渲染点唯一 = 包内 content/texts.py
 from ..mech.kinds import K_HEAL, K_BUFF

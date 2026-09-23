@@ -28,7 +28,7 @@
 
 包内直连（不再经宿主）
 ----------------------
-`IR`（副本运行态适配层）→ 扩展包 `ext_world/run/instance_run.py`（★ 2026-09-24 B9a 搬入）—— 与 `content/instance_cmds.py`
+`IR`（副本运行态适配层）→ 包内 `content/flow/instance_run.py` —— 与 `content/instance_cmds.py`
 同源同款（B11-L2 已归包；宿主 `game/core/instance_run.py` 是**同名再导出壳**，逐名同一函数对象）。
 
 I2 合规：包内不 import 宿主顶层；唯一的未进包符号（`build_monster`）经注入槽 / 已加载宿主模块
@@ -48,7 +48,7 @@ from ._pkgref import DB as db              # 包内直取（B1：包内存储层
 from ._pkgref import PkgModule as _PkgModule
 from . import texts as T                   # 包内直取（B18 §3：渲染进包）
 from .flow import instance_battle as _PKG_IB   # ★ B2-C3：包内唯一真源（原宿主薄壳）
-from ext_world.run import instance_run as IR       # 包内直连（宿主 core.instance_run 是同名再导出壳）
+from .flow import instance_run as IR       # 包内直连（宿主 core.instance_run 是同名再导出壳）
 from .skills import skill_info             # 包内直取（技能链 D3 已进包）
 
 

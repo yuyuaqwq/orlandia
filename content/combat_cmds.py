@@ -156,7 +156,7 @@ from .pois import roll_poi as _pkg_roll_poi
 from .daily_events import today_event_effects as _pkg_today_event_effects
 from .maps import bump_explore_count as _bump_explore_count              # 真源：宿主聚合层同名（同对象）
 from . import catalog_rules as _cr                     # poi `dom` 替身：RUNE_POOL/NOTE_POOL/SIGHT_POOL
-from ext_world.run import instance_run as _IR                  # poi `dom` 替身：living_members/set_alive
+from .flow import instance_run as _IR                  # poi `dom` 替身：living_members/set_alive
 
 from ._pkgref import DB as db
 from .constants import ACT_TICK

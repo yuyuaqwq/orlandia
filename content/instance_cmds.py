@@ -45,7 +45,7 @@
 | `game.content_rules.gameplay.resolve_drop` | `content/gameplay_rules.py`（同一对象） |
 | `game.core.constants.ACT_TICK` | `content/constants.py` |
 | `game.commands._platform.AstrMessageEvent` | **删**（只作类型标注 → 按包内惯例 `from __future__ import annotations`） |
-| `IR`（副本运行态） | 扩展包 `ext_world/run/instance_run.py`（★ 2026-09-24 B9a 从 `content/flow/instance_run.py` 搬入；本线只用其现有 API） |
+| `IR`（副本运行态） | 包内 `content/flow/instance_run.py`（★ B11-L2 同波收口该模块：本线只用其现有 API） |
 
 仍留在**宿主边界**的只有 2 处（逐条登记在 W-B2C1 §6）：（a）`content/drops.py` 的 2 个构造器
 （`build_monster` / `roll_blueprint`）—— 接口表第 5 行冻结的落点属 **C2**，本波未落地 ⇒
@@ -71,7 +71,7 @@ import sys
 import time
 import uuid
 
-from ext_world.run import instance_run as IR
+from .flow import instance_run as IR
 
 # B14-2 L3：数据读点切包内门面（宿主 game/data 删后仍可活；缺口名仍走 C）
 from . import catalog_core as _cat_core

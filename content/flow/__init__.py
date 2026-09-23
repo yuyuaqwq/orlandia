@@ -6,7 +6,7 @@
 | 模块 | 内容 | 来源（真源，逐字搬） | 行数 |
 |---|---|---|---|
 | `boss_script.py` | Boss 剧本导演：阶段/开场/低血/召唤/连锁/打断/爪牙死亡联动 | `game/commands/boss_script.py` | 737 |
-| `instance_run.py` | ★ **2026-09-24 B9a 已搬进扩展包** `ext_world/run/instance_run.py`（副本运行态：名单 / 分层进度 / 房间剩余池 / 资源池 → 引擎 `Roster`/`Progress`）—— 本层不再持有 | `game/core/instance_run.py` | 303 |
+| `instance_run.py` | 副本运行态：名单 / 分层进度 / 房间剩余池 / 资源池 → 引擎 `Roster`/`Progress` | `game/core/instance_run.py` | 308 |
 | `instance_gate.py` | 副本准入：钥匙三路匹配 / 通关豁免 / 四条准入链（开本·徒步·加入·恢复） | `game/core/instance_gate.py` | 366 |
 
 引擎侧形状（本包只用、不改）：`ext_world.run.Admission` / `Rule` / `Progress` / `Roster`，
@@ -30,13 +30,12 @@
 
 用法::
 
-    from content.flow import instance_gate, boss_script
-    from ext_world.run import instance_run          # ★ B9a：副本运行态已进扩展包
+    from content.flow import instance_gate, instance_run, boss_script
     hook = boss_script.make_script_hook(st)          # st = 调用方的副本存档 dict
     battle.script_hook = hook
 """
 from __future__ import annotations
 
-from . import boss_script, instance_gate
+from . import boss_script, instance_gate, instance_run
 
-__all__ = ["boss_script", "instance_gate"]
+__all__ = ["boss_script", "instance_run", "instance_gate"]
