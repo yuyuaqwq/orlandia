@@ -39,7 +39,7 @@ engine.race_stats。缺字段 = 无此行为。
 | 真源写法 | 包内写法 | 说明 |
 |---|---|---|
 | `from ..content_rules.apply import ensure_engine_configured`（:52） | `from ..apply import install_engine` | 包内装配入口（同一个 `install_engine`，幂等） |
-| `from ..core.potion_effects import DEFAULTS`（:58） | `from ..effects.potion_effects import DEFAULTS` | 药水默认表已进包（content/effects/potion_effects.py）；导出器实测 `items.json` effect/effect_data 逐项相等 |
+| `from ..core.potion_effects import DEFAULTS`（:58） | `from ext_effect.effects.potion_effects import DEFAULTS`（★ B7b 起在扩展包） | 药水默认表已进扩展包 `ext_effect`；导出器实测 `items.json` effect/effect_data 逐项相等 |
 | `from ..services.battle_food_proc import install_food_fx`（:162） | `from .food_proc import install_food_fx` | 食物装配层已进包（content/mech/food_proc.py，B8 端口） |
 | `from ..data.food_effect_data import FOOD_EFFECT_PARAMS / FOOD_EFFECT_NAMES`（:170 :181） | `_food_params()`（读包内域 `content/data/food_effects.json`） | 数值/展示名单源；19 条与真源逐项相等（`name` 字段即 FOOD_EFFECT_NAMES） |
 | `from ..content_rules.panel import race_stats`（:320） | `from ..panel import race_stats` | 面板已进包（content/panel.py，D3 批次） |
@@ -88,8 +88,13 @@ def _load_effect_actions():
 
 
 def _load_potion_defaults():
-    """特殊药水默认数值（items.py effect_data 扫描权威）。"""
-    from ..effects.potion_effects import DEFAULTS as _D
+    """特殊药水默认数值（items.py effect_data 扫描权威）。
+
+    ★ 2026-09-24 B7b：药水效果层已进扩展包 `ext_effect`；`DEFAULTS` 由数据包装配期
+    `content/apply.py::install_engine()` 经 `bind_effects()` 注入后就地刷新
+    （本函数是函数内 import ⇒ 取到的永远是刷新后的那一份）。
+    """
+    from ext_effect.effects.potion_effects import DEFAULTS as _D
     return _D
 
 
