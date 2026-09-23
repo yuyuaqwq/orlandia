@@ -20,7 +20,8 @@
     与真源「不传 db = 空 event_state」同款）。
   · 过渡注入槽：`bind_host(bridge=…)` / 旧键 `services.battle_bridge`（宿主壳旧调用）仍认，
     给了就优先用（行为同源）。
-  · `_uid` / `_rounds_of` 取自同批采集半边 `content/tlog_collect.py`（同源，零第二份）。
+  · 采集器名取自扩展包 `ext_reward/tlog_collect.py`（数据包侧只剩同名薄适配层
+    `content/tlog_collect.py`；半边名 = `<entry 同级>/tlog_collect`，引擎/宿主按该名取件）。
   · 不碰 DB / 时钟 / 单进程锁：本模块零平台知识，DB 只经重建链间接出现。
 """
 from __future__ import annotations
@@ -30,7 +31,7 @@ from typing import Iterable, Optional
 
 from saintess_engine.tlog import Record
 
-from .tlog_collect import _rounds_of, _uid
+from ext_reward.tlog_collect import _rounds_of, _uid
 
 # ---------------------------------------------------------------- 取件口（包内直取）
 # 真源 `from ..services.battle_bridge import (…)` = 包内 `content/bridge.py` 的构造半边。

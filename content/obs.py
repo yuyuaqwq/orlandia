@@ -17,7 +17,7 @@
    钩子不给 = 丢弃（`host/runtime.py:44` `"on_tlog": "丢弃（流水不落库）"`）。
    真源宿主**没有**实现该钩子（`grep -n on_tlog game/**/*.py` = 0 命中）⇒
    对游戏流水而言 `Env.tlog` 是「丢弃」；游戏流水的真源与出口是宿主 `game/tlog_setup.py`。
-   `content/tlog_collect.py` 是**另一个东西**（战斗流水采集器 `BattleTLog`，靠引擎观察者通道），
+   `ext_reward/tlog_collect.py`（扩展包 `ext_reward`；数据包侧 `content/tlog_collect.py` 只留薄适配层）是**另一个东西**（战斗流水采集器 `BattleTLog`，靠引擎观察者通道），
    不提供 `kinds/enable/disable/enabled/tlog/emit` 控制面。
 3. 流水「默认关」是宿主白纸黑字的契约：`game/tlog_setup.py:91-104`（`enabled()` / `tlog()` →
    None）+ `:107-124`（`emit()` 未启用直接返回 None，异常也不影响主流程）。

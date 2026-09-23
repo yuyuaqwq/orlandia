@@ -23,7 +23,7 @@ from _engine_harness import C, db, clean_db, Main, FakeEvent, run, make_player  
 
 # `content.combat_cmds._attach_tlog` 注入槽（接口表第 11 行）——见 test_v1307_zone_risk.py 同段。
 from _engine_harness import tlog_setup as _tlog_setup  # noqa: E402
-from content.tlog_collect import BattleTLog as _BattleTLog  # noqa: E402
+from ext_reward.tlog_collect import BattleTLog as _BattleTLog  # noqa: E402
 from content import combat_cmds as _combat_cmds  # noqa: E402
 _tlog_setup.disable()
 

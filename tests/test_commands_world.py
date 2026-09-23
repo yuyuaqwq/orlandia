@@ -30,7 +30,7 @@ _quests_flow.bind_host(quests_svc=_profession_quests)
 #   需要宿主平台件 `attach_tlog`（原 `game/services/battle_bridge.py::attach_tlog`）。
 #   该宿主壳随 game/** 退役后终态无人注入 ⇒ 包内 fail-closed 抛 RuntimeError。
 #   这里按宿主契约补上测试侧替身（**与宿主实现同义**：未启用流水 → 零行为返回 b；
-#   启用 → 用包内采集器 `content.tlog_collect.BattleTLog` 挂引擎流水句柄）。
+#   启用 → 用采集器 `ext_reward.tlog_collect.BattleTLog` 挂引擎流水句柄）。
 #   注：本文件断言的是世界域命令行为，流水只是开战路径上的平台副作用，判据一条未动。
 from content import combat_cmds as _CC  # noqa: E402
 
@@ -41,7 +41,7 @@ def _attach_tlog(b, *, btype="monster", player=None, enemies=None, seed=None):
         tl = tlog_setup.tlog()
         if tl is None:
             return b
-        from content.tlog_collect import BattleTLog
+        from ext_reward.tlog_collect import BattleTLog
         BattleTLog(tl).attach(b, btype=btype, seed=seed, player=player, enemies=enemies)
     except Exception:                                        # noqa: BLE001
         pass

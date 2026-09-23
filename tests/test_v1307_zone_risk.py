@@ -21,7 +21,7 @@ from _engine_harness import C, db, clean_db, Main, FakeEvent, run, make_player  
 
 # `content.combat_cmds` 的探索期耦合（`_overlay` / `_attach_tlog` 注入槽）——见下。
 from _engine_harness import tlog_setup as _tlog_setup  # noqa: E402
-from content.tlog_collect import BattleTLog as _BattleTLog  # noqa: E402
+from ext_reward.tlog_collect import BattleTLog as _BattleTLog  # noqa: E402
 from content import combat_cmds as _combat_cmds  # noqa: E402
 _tlog_setup.disable()   # 未启用流水 → attach 零行为
 

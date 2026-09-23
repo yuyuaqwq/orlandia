@@ -31,10 +31,10 @@ db.init_db()
 # `content.combat_cmds._attach_tlog` 的注入槽（接口表第 11 行冻结名）。
 # 旧宿主薄壳 `game/services/battle_bridge.py::attach_tlog` 是**平台件**（读宿主流水
 # 开关 + 采集 sink），终态无该薄壳 ⇒ 本测试按同一公开注入槽补回**同款实现**：
-# 开关面 = `_engine_harness.tlog_setup`，采集器 = 包内 `content.tlog_collect.BattleTLog`
+# 开关面 = `_engine_harness.tlog_setup`，采集器 = 扩展包 `ext_reward.tlog_collect.BattleTLog`
 # （逐字 = 原函数体；未启用流水时返回 b，零行为）。生产侧建议由 `host/**` 属主落地。
 from _engine_harness import tlog_setup as _tlog_setup  # noqa: E402
-from content.tlog_collect import BattleTLog as _BattleTLog  # noqa: E402
+from ext_reward.tlog_collect import BattleTLog as _BattleTLog  # noqa: E402
 import content.combat_cmds as _combat_cmds  # noqa: E402
 
 

@@ -25,7 +25,7 @@ import numeric_sim as NS  # noqa: E402
 from ext_combat import Battle as B2  # noqa: E402
 from saintess_engine.tlog import JSONLSink, MemorySink, TLog  # noqa: E402
 from _engine_harness import human_land  # noqa: E402  T15 两段化：落地推进
-from content import tlog_collect as BT  # noqa: E402
+from ext_reward import tlog_collect as BT  # noqa: E402  采集半边（2026-09-24 B4a 进扩展包）
 from content.tlog_replay import replay  # noqa: E402
 from content.bridge import (apply_battle_loadout, build_sides,  # noqa: E402
                             prepare_player_for_battle)

@@ -125,6 +125,7 @@
     "ext_social",
     "ext_loot",
     "ext_dialogue",
-    "ext_quest"
+    "ext_quest",
+    "ext_reward"
   ]
 }
