@@ -200,7 +200,7 @@ def runtime_priorities() -> dict:
     `CommandRegistry` 装载后的 `CommandSpec.priority`（替身装饰器 + 声明表 + 引擎读值三段合一）。
     """
     from _engine_harness import harness
-    decls = harness().host.pkg.command_declarations() or {}
+    decls = harness().host.stack.command_declarations() or {}
     reg = harness().host.commands
     out = {}
     for key, raw in decls.items():

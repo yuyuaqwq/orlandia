@@ -48,7 +48,7 @@ _reward_mod.bind_host(levelup=lambda: _check_level_up,
 # 公开装配口补同一件事（不是自造映射；生产装配处本来就调它）。
 from host import store_factory as _store_factory  # noqa: E402
 import _engine_harness as _harness_mod  # noqa: E402
-_store_factory.bind_store(_harness_mod.harness().host.pkg)
+_store_factory.bind_store(_harness_mod.harness().host.stack)
 
 passed = failed = 0
 GID, QID = "g_tlog", "q_tlog"

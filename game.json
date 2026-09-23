@@ -124,6 +124,7 @@
     "ext_economy",
     "ext_social",
     "ext_loot",
-    "ext_dialogue"
+    "ext_dialogue",
+    "ext_quest"
   ]
 }

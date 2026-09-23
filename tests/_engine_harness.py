@@ -58,7 +58,8 @@ HOST_ROOT = _paths.HOST_ROOT        # 宿主壳根（`host/shell.py` 所在部�
 #   真仓里 `plugins/` 下没有 `host/`，不会发生）。置前后 `host` = `PLUGIN_DIR/host`（真宿主壳）。
 
 from saintess_engine.host import Host as _EngineHost                          # noqa: E402
-from saintess_engine.package import load_stack, run_guards                     # noqa: E402
+from saintess_engine.package import load_stack                     # noqa: E402
+from saintess_engine.host import run_guards                          # noqa: E402  包级守卫                     # noqa: E402
 from host.shell import HostShell                                              # noqa: E402
 from host import _platform                                                    # noqa: E402
 from host import tlog_setup as _host_tlog_setup                               # noqa: E402  ★ P5F 前置④
@@ -194,10 +195,10 @@ def _make_host_class():
 
         async def invoke_async(self, spec, ctx, player, *, raw=None):
             key = str(getattr(spec, "key", "") or "")
-            entry = self.handlers.get(key) if self.pkg else None
+            entry = self.handlers.get(key) if self.stack else None
             if not entry:
                 return self.declared_echo(spec)
-            fn = self.pkg.resolve_handler(entry.get("handler")) if self.pkg else None
+            fn = self.stack.resolve_handler(entry.get("handler")) if self.stack else None
             if fn is None:
                 return ["【%s】包内处理器未解析：%r（检查 content/commands.py 的 handler 引用）"
                         % (key, entry.get("handler"))]
@@ -206,7 +207,7 @@ def _make_host_class():
             if guards is None:
                 guards = list(getattr(spec, "guards", ()) or ())
             blocked = run_guards(guards, env, builtin=self.builtin_guards(),
-                                 hooks=(self.pkg.guard_hooks() if self.pkg else {}))
+                                 hooks=(self.stack.guard_hooks() if self.stack else {}))
             if blocked:
                 return [blocked]
             out = fn(env)
@@ -325,32 +326,32 @@ class EngineHarness(object):
         kwargs = {"seed": self.seed, "id_key": "qq_id", "inject": inject}
         self.host = host_cls(self.adapter, PKG_ROOT, **kwargs)
         # ---- 装配四步（与引擎 Host.boot 同序同内容，用公开 API 逐项调）----
-        self.host.pkg = load_stack(PKG_ROOT, inject=inject)   # ① 先 bind 扇出
+        self.host.stack = load_stack(PKG_ROOT, inject=inject)   # ① 先 bind 扇出
         self.facade = importlib.import_module("content.facade")
         self.db = importlib.import_module("content.persistence")
         self.rules = importlib.import_module("content.cmds_base_rules")
-        self.host.pkg.install_engine()                          # ② 引擎 hook
+        self.host.stack.install()                          # ② 引擎 hook
         from saintess_engine.command import CommandRegistry      # ③ 声明注册表
         try:
-            self.host.commands = CommandRegistry(name=self.host.pkg.id).load(
-                self.host.pkg.command_declarations())
+            self.host.commands = CommandRegistry(name=self.host.stack.id).load(
+                self.host.stack.command_declarations())
         except Exception:                                        # noqa: BLE001
-            self.host.commands = CommandRegistry(name=self.host.pkg.id)
-        self.host.handlers = dict(self.host.pkg.command_handlers())   # ④ 处理器表
+            self.host.commands = CommandRegistry(name=self.host.stack.id)
+        self.host.handlers = dict(self.host.stack.command_handlers())   # ④ 处理器表
         self.host.texts = self._load_texts()
         # ---- 壳 ----
         self.shell = Main()
-        self.shell.bind_package(self.host.pkg)
+        self.shell.bind_package(self.host.stack)
         self.shell.context = getattr(self.adapter, "context", None)
         self.host.shell = self.shell
         Main._static_source = self.declarations_for_static
         # 包内文案表接线（≡ 宿主薄壳 `content/flow/instance_gate.set_text_table`）
         try:
-            self.host.pkg.optional_submodule("flow").instance_gate.set_text_table(
+            self.host.stack.optional_submodule("flow").instance_gate.set_text_table(
                 importlib.import_module("content.texts").table())
         except Exception:                                        # noqa: BLE001
             pass
-        self._decls = dict(self.host.pkg.command_declarations() or {})
+        self._decls = dict(self.host.stack.command_declarations() or {})
         self._handlers = dict(self.host.handlers or {})
         # 平台 gate 过滤器的「游戏指令正则」供体（包内声明表；宿主件零包知识）
         _platform._GameCmdFilter.set_pattern_source(self.declaration_patterns)
@@ -358,11 +359,11 @@ class EngineHarness(object):
 
     def _load_texts(self):
         try:
-            data = self.host.pkg.domain(self.host.texts_domain) if self.host.pkg else {}
+            data = self.host.stack.domain(self.host.texts_domain) if self.host.stack else {}
             if not isinstance(data, dict) or not data:
                 return None
             from saintess_engine.text import TextTable
-            return TextTable.from_data(data, name=self.host.pkg.id)
+            return TextTable.from_data(data, name=self.host.stack.id)
         except Exception:                                        # noqa: BLE001
             return None
 
@@ -484,7 +485,7 @@ class EngineHarness(object):
     def _is_async_handler(self, key):
         if key not in self._async_cache:
             entry = (self._handlers or {}).get(key) or {}
-            fn = _unwrap_register_lambda(self.host.pkg.resolve_handler(entry.get("handler")))
+            fn = _unwrap_register_lambda(self.host.stack.resolve_handler(entry.get("handler")))
             self._async_cache[key] = bool(fn) and inspect.iscoroutinefunction(fn)
         return self._async_cache[key]
 
@@ -530,7 +531,7 @@ class Main(HostShell):
     """
 
     def __init__(self, context=None):
-        super().__init__(pkg=harness().host.pkg, store=harness().db,
+        super().__init__(pkg=harness().host.stack, store=harness().db,
                          context=context, events=harness().adapter.events)
         self.context = context
 
@@ -696,8 +697,8 @@ class _TlogHolder(object):
 
     def kinds(self):
         from saintess_engine.tlog import KindTable
-        return KindTable.from_data(harness().host.pkg.domain("tlogs"),
-                                   name=harness().host.pkg.id)
+        return KindTable.from_data(harness().host.stack.domain("tlogs"),
+                                   name=harness().host.stack.id)
 
     def enable(self, sinks=None, *, strict=False):
         from saintess_engine.tlog import JSONLSink, TLog

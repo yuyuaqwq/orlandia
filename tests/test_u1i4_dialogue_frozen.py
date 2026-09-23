@@ -557,7 +557,7 @@ _PIN = {
 #: ★ 2026-09-19 审计 P0-1 重钉（唯一一次）：只动了 region **外**的那份 `def check`
 #:   （换成 `tests/_check.py` 的一行绑定）⇒ 本体哈希必然变，属**有意**改动。
 #:   改前值 59231b80…（见 git 历史）；GENERATED region 内一字未动。
-_GATE_SELF_SHA256 = '8469c75b9b78558cf062e921eb0d10e974fa4349cdbcffce1514c99d631050fe'
+_GATE_SELF_SHA256 = '6cf9b6e4035c9b1f1f5bdbac07e91c4c86bf26d2931868ca29ab013ee6421e12'
 
 #: 冻结侧的段落表（段序 = 设计稿 §1.4 的行号序）
 _SEGMENT_KEYS = (

@@ -1014,7 +1014,7 @@ def test_divergences():
         check("⑤ obj_text 未注册目标 → '？'", QF.obj_text({"nope": 1}) == "？")
 
         # ⑥ next 缺失 / null 都 None
-        from saintess_engine.quest import Quest as _Quest
+        from ext_quest.quest import Quest as _Quest
         qa = _Quest({"id": "x", "objective": {}, "next": None}, objectives=O,
                     objective_key="objective", next_key="next")
         qb = _Quest({"id": "x", "objective": {}}, objectives=O,
@@ -1236,7 +1236,7 @@ def _probe_expire():
 
 def _break_deliver():
     """破坏③：`QuestLog.deliver` 跳过 archive 追加（主线完成不落 done）。"""
-    from saintess_engine.quest import QuestLog as _QL
+    from ext_quest.quest import QuestLog as _QL
 
     def _deliver(self, *, lane, key=None, next_of=None):
         out = self._copy()
@@ -1274,7 +1274,7 @@ def test_teeth():
     check("未破坏时交付探针为 False（旧 == 新）", _probe_deliver() is False)
     check("未破坏时跨天清理探针为 False（实现依赖 expire_daily）", _probe_expire() is False)
 
-    from saintess_engine.quest import Objectives as _Objectives
+    from ext_quest.quest import Objectives as _Objectives
 
     order = tuple(getattr(QF, "_OBJ_ORDER"))
     cases = (
@@ -1333,7 +1333,7 @@ def test_order():
             return objective.get("count", 1)
         return _cb
 
-    from saintess_engine.quest import Objective as _Objective, Objectives as _Objectives
+    from ext_quest.quest import Objective as _Objective, Objectives as _Objectives
     reg = _Objectives(_Objective("kill", need=_mk_cb("kill")),
                       _Objective("collect", need=_mk_cb("collect")))
     # ⚠ `parts()` 会**先为每个 part 求一次 need**（引擎契约），所以回调会各被调一次；

@@ -87,7 +87,7 @@ from saintess_engine.wire import Wire
 #   （有序目标类型注册表 + 折叠 + 行骨架）。**取值一个都没进引擎**：字段名（`main_*`）、
 #   状态词（pending/active/ready/done）、目标类型词、需求数两种口径、三份行文模板全部
 #   仍在本文件注册（见下面 `_QL_*` / `_OBJECTIVES` 注入面）。
-from saintess_engine.quest import Objective, Objectives, QuestLog
+from ext_quest.quest import Objective, Objectives, QuestLog
 
 #: 注入句柄面（`bind_host()` 写；`None` = 没给）——槽名 = `bind_host` 形参名
 _WIRE = Wire()

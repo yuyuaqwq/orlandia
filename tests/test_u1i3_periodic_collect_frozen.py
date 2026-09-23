@@ -625,8 +625,11 @@ def test_zero_knowledge():
         check(f"{rel}：零内容侧取值词（{len(_VALUE_WORDS)} 词表）", not hits, f"{hits[:3]}")
         bad_imp = sorted(set(imports) & set(_CALENDAR_MODULES))
         check(f"{rel}：零日历/时间模块 import（引擎不认识日历）", not bad_imp, bad_imp)
-        check(f"{rel}：只有标准库 import", not [i for i in imports
-                                                if i not in sys.stdlib_module_names],
+        # ★ 2026-09-23 第 4 批：这些形状搬进扩展包后要引引擎通用件（_validators 等）——
+        #   判据放宽为「标准库 + 引擎包 saintess_engine」，仍然挡住任何第三方依赖。
+        check(f"{rel}：只 import 标准库 + 引擎通用件",
+              not [i for i in imports
+                   if i not in sys.stdlib_module_names and not i.startswith("saintess_engine")],
               imports)
 
 
