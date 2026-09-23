@@ -126,6 +126,7 @@
     "ext_loot",
     "ext_dialogue",
     "ext_quest",
-    "ext_reward"
+    "ext_reward",
+    "ext_effect"
   ]
 }

@@ -42,7 +42,7 @@
 | `game.services.battle_settlement` 7 名 | `content/settlement.py` + 本文件结算句柄（注入名 `db`/`content`） |
 | `game.services.battle_worldboss_procs` | `content/mech/worldboss.py` |
 | `game.core.event_templates` | `content/event_templates.py` |
-| `game.core.poi_effects` | `content/effects/poi_effects.py` |
+| `game.core.poi_effects` | 扩展包 `ext_effect.effects.poi_effects`（★ B7a 2026-09-24 从 `content/effects/poi_effects.py` 抽入扩展包；注入面 = `ctx.host/dom/text/static`） |
 | `game.log_setup.LOG` | `content/obs.py`（包内唯一日志口，fail-closed） |
 | `game.content` 的函数读口（11 名） | 各自包内家（12/13 与宿主聚合层**同一对象**）；3 个 drops 名见下 |
 
@@ -135,7 +135,7 @@ from . import obs as _obs                     # log_setup 的包内唯一取用�
 from . import bridge as _BR                   # services.battle_bridge（构造 + 回写两半）
 from . import settlement as _ST               # services.battle_settlement（唯一实现）
 from . import event_templates as _ET          # core.event_templates（唯一实现）
-from .effects import poi_effects as _POI      # core.poi_effects（唯一实现）
+from ext_effect.effects import poi_effects as _POI   # 唯一实现（B7a 起在扩展包 ext_effect）
 from .mech import worldboss as _WBP           # services.battle_worldboss_procs（唯一实现）
 from . import wild_king as _WK                # core.wild_king（宿主 core.wild_king is 本模块）
 from .index import resolve as _resolve, display as _display
@@ -496,12 +496,15 @@ class CombatCmds:
 
 
 class _PoiDom:
-    """`content/effects/poi_effects.py` 的 `dom` 替身（该文件头 §② 契约：内容域访问）。
+    """`extends/ext_effect/effects/poi_effects.py` 的 `dom` 替身（该文件头 §② 契约：内容域访问）。
 
     真源 = 宿主薄聚合层 `C`；本文件按调用方契约给**包内等价物**（逐名到包内家，名字集由
     `out/evidence/poi_contract.txt` 的 AST 扫描定全 —— 漏名即 AttributeError）：
     `pools`（文案池）· `living_members` / `set_alive`（副本名单视图）·
-    `resolve` / `display` / `roll_blueprint` / `generate_equip`（函数读口）。
+    `resolve` / `display` / `roll_blueprint` / `generate_equip`（函数读口）·
+    ★ 2026-09-24 B7a：`MATERIALS` / `CAMPFIRE_FOOD_POOL` / `HERB_POOL` 三张表也从这里给
+    （原先由 poi_effects 自己 `from .. import catalog_items / catalog_b143` 直取；
+    抽包进扩展包后该层不许 import 数据包 ⇒ 改由本替身注入）。
     """
 
     @staticmethod
@@ -513,6 +516,20 @@ class _PoiDom:
     resolve = staticmethod(_resolve)
     display = staticmethod(_display)
 
+    # ★ B7a：三张表用 property 现取（不落快照 —— 与 `pools()` 的同款口径，
+    #   门面对象若被热重载，这里跟着变，不留一份过期副本）。
+    @property
+    def MATERIALS(self):
+        return _ci.MATERIALS
+
+    @property
+    def CAMPFIRE_FOOD_POOL(self):
+        return _b143.CAMPFIRE_FOOD_POOL
+
+    @property
+    def HERB_POOL(self):
+        return _b143.HERB_POOL
+
     @staticmethod
     def roll_blueprint(*args, **kwargs):
         return _drops("roll_blueprint")(*args, **kwargs)
@@ -520,6 +537,10 @@ class _PoiDom:
     @staticmethod
     def generate_equip(*args, **kwargs):
         return _drops("generate_equip")(*args, **kwargs)
+
+
+#: `dom` 替身的**单例实例**（原来是传类对象；B7a 起那三张表是 property ⇒ 必须传实例）
+_POI_DOM = _PoiDom()
 
 
 # ============================================================
@@ -1478,7 +1499,8 @@ def _handle_poi(self, group_id, qq_id, player, cur_map, poi_id, poi, st=None):
     eff = f"inst:{poi.get('type')}" if poi.get("type") else poi.get("effect", "")
     ctx = PoiContext(group_id, qq_id, player, cur_map, poi_id, poi, st=st,
                      hooks={"mark_used": self._mark_poi_used, "player": self._player},
-                     host=db, dom=_PoiDom)
+                     host=db, dom=_POI_DOM,
+                     text=_T.text, static=_T.static)   # ★ B7a：文案注入面（该层已不 import 包内文案表）
     text = execute_poi(eff, ctx)
     if text is not None:
         return text
