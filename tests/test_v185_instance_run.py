@@ -217,7 +217,7 @@ def test_B_adapter_matches_old():
 
     # ★ 用**包内规范名**导入：`game.*` 与 `data.plugins.dragonfall.game.*` 是两份模块对象，
     #   走后者才是 conftest/生产用的那一份（走前者会重新执行包 __init__ 撞上 core↔data 历史循环导入）
-    import content.flow.instance_run as IR   # 包内真源（REPOINT_MAP: game.core.instance_run → content.flow.instance_run）
+    from ext_world.run import instance_run as IR   # 包内真源（REPOINT_MAP: game.core.instance_run → content.flow.instance_run）
 
     ns = _load_old()
     old_cm, old_hl = ns["_old_current_members"], ns["_old_has_living"]
@@ -273,7 +273,7 @@ def test_B_adapter_matches_old():
 
 def _ir():
     """适配层模块（包内规范名，见 §B 的说明）。"""
-    import content.flow.instance_run as IR
+    from ext_world.run import instance_run as IR
     return IR
 
 

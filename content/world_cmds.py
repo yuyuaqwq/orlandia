@@ -48,7 +48,7 @@
   ⇒ 宿主侧一字节不动的前提下**不能删**；它是 B1 批遗留（B1 判据也列了这个名）。
   收口建议：包内改名 + 波2 宿主 5 处改口（一行一处）。
 
-包内直取（**不是**宿主）：`IR`（`content/flow/instance_run.py`，逐字端口）、`TIER_GROWTH`
+包内直取（**不是**宿主）：`IR`（扩展包 `ext_world/run/instance_run.py`，逐字端口；★ B9a 从 `content/flow/` 搬入）、`TIER_GROWTH`
 （`content/tables.py`）、`player_final_stats`（`content/panel.py`）、`skill_info`（`content/skills.py`）、
 `formation_view`/`alive_units`（引擎 `ext_combat.formation`）。
 """
@@ -78,7 +78,7 @@ from .catalog_rules import (FACTION_SHOP, FACTION_CAMPS, FACTION_CAMP_OPEN_LV, F
 from . import wild as _wild
 from . import texts as _T      # ★ C 档 18a（2026-09-18）：文案表读口（本文件首次接入）
 from .flow import instance_gate      # 副本图门禁准入链（`_instance_gate_block` 的判定本体）
-from .flow import instance_run as IR
+from ext_world.run import instance_run as IR
 from .panel import player_final_stats
 from .skills import skill_info
 from .tables import TIER_GROWTH
