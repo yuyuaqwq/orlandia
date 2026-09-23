@@ -177,7 +177,7 @@ def scan_literal(root: str, needle: str = "tlogs.json", base: str = None) -> tup
 
     返回 `(code_hits, doc_hits)`：各为 `[(相对路径, 行号, 片段)]`。
     用 AST 而不是 grep —— 注释/docstring 里的提及**不算读点**（否则会冤枉 `game/content.py:5`
-    与包内 `tlog_collect.py:26` 这类说明文字）。
+    与扩展包 `ext_reward/tlog/collect.py` 这类说明文字）。
 
     ★ 搬迁适配（T8 ③）：`root` 改为**绝对路径**（宿主侧 = `PLUGIN_DIR/host`，包内 = `PKG_ROOT/content`），
     不再假定「二者都在同一个插件根下」。
