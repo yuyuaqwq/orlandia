@@ -1042,9 +1042,18 @@ def _we_value_diff() -> list:
 #   登记表写清 old（冻结基准）→ new（实跑值），并断言 new 就是当前实跑 sha。
 #   ⚠ 若将来合法重采（`_u1d2_triggers_gen.py --emit-aux`），本登记须同步移除或改值。
 _AUX_SHA_INTENT = {
+    # T14 第 2 轮登记，本轮（2026-09-23 包栈重构）new 值随引擎搬迁更新：
+    # 装配契约的 hook 取件路径变了 ⇒ sha 再漂，语义仍是「只多挂两条 hook」。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        '26886d9033864e77c2ceaae159cd5876a90de7de2a814ff5422187f031f60bb2',
+        'e8d6910f80732575838b0207c0f3731e7dad0964b366d187f6fcad0f09e1e834',
+    ),
+    # ★ 跨线登记（2026-09-23 包栈重构）：`declarations.py` 从引擎搬进扩展包 `ext_combat`，
+    #   包内相对导入改成指向引擎的绝对导入 ⇒ 文件 sha 变了（**本线盯的东西一字未动**：
+    #   effect_triggers 的 sha 与冻结基准逐字节相等）。搬迁 = 有意改动，登记而非重采。
+    'engine:extends/ext_combat/battle/declarations.py': (
+        '7b0dcba4982af2477b1708ac651f8843385b37ee56d4a40a173a7a058ec099b9',
+        '44525697a1886f99e15248235ff7f8c1726986e4f925deaec8a029098465ac9f',
     ),
 }
 
@@ -1070,8 +1079,8 @@ def test_aux():
             and _aux_expected(k) != _file_sha(k.split(":", 1)[1])]
     check("`content/apply.py` sha256 == aux（有意差异登记优先：装配契约只多挂两条 hook）",
           not badc, badc)
-    check("★ 有意差异登记自洽（旧值 = 冻结基准 · 新值 = 实跑值 · 条数恒 1）",
-          len(_AUX_SHA_INTENT) == 1
+    check("★ 有意差异登记自洽（旧值 = 冻结基准 · 新值 = 实跑值 · 条数恒 2）",
+          len(_AUX_SHA_INTENT) == 2
           and all(k in aux and old == aux[k] and new == _file_sha(k.split(":", 1)[1])
                   for k, (old, new) in _AUX_SHA_INTENT.items()),
           _AUX_SHA_INTENT)

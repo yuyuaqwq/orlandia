@@ -239,6 +239,11 @@ _ALLOWED_OUTLETS = {
 }
 
 
+#: ★ 2026-09-23：`Battle` 从引擎搬进了扩展包 `ext_combat`（包栈重构第 2 批）——
+#: 扫描器要认「战斗实现的提供方」，不再写死引擎包名（否则搬迁后整体失灵、假绿）。
+_BATTLE_SOURCES = ("saintess_engine", "ext_combat")
+
+
 def _scan_tree(rel, src):
     """返回 [(rel, 所在函数, 行号, 绑定全名, construct/restore)]。"""
     out = []
@@ -249,13 +254,14 @@ def _scan_tree(rel, src):
             parents[_child] = _node
     alias, mod_alias = {}, set()
     for _node in ast.walk(tree):
-        if isinstance(_node, ast.ImportFrom) and "saintess_engine" in (_node.module or ""):
+        if isinstance(_node, ast.ImportFrom) and any(
+                _p in (_node.module or "") for _p in _BATTLE_SOURCES):
             for _a in _node.names:
                 if _a.name == "Battle":
                     alias[_a.asname or _a.name] = "%s.Battle" % _node.module
         elif isinstance(_node, ast.Import):
             for _a in _node.names:
-                if _a.name.startswith("saintess_engine"):
+                if any(_a.name.startswith(_p) for _p in _BATTLE_SOURCES):
                     mod_alias.add(_a.asname or _a.name)
 
     def _enclosing(node):
