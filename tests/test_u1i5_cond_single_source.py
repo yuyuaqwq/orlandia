@@ -53,6 +53,7 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+import _engine_move_shim  # noqa: E402,F401  引擎搬迁垫片：让历史快照仍能 exec（2026-09-23）
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -198,14 +199,14 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
 #: 来源 = **改动前**的 `content/mech/cond_procs.py:37-166`（含行尾最后那个 `\n`）；
 #: 落地前已离线实测：`base/pkg/content/mech/cond_procs.py:37-166 + "\n"` 与 `_FROZEN_SRC`
 #: **逐字节相等**（4488 字节 / 130 行，LF 行尾）。
-FROZEN_TEXT_SHA256 = "613371ee5c33c548e9ec62764c94229cb639cc0aced6e8b6f85da15c54c4551d"
+FROZEN_TEXT_SHA256 = "7796b0dc66464e29f07733cd061715e1ce74f1aa987730f11344c7e1ef234709"   # 2026-09-23 重钉：片段里的 import 随引擎搬迁改到 ext_*
 #: 活实现 sha256 —— `inspect.getsource`（5 谓词按声明序拼接，含装饰器行）
-LIVE_PREDS_SHA256 = "5a6da1cafabb335de47aaeddb5fccbee07df01e7e7857108dd30c224c9a43224"
+LIVE_PREDS_SHA256 = "6356de64b918896850598dec2e30de193bc32c820fda6456405a44569d022b0c"
 #: 活实现 sha256 —— `inspect.getsource(skill_cond_mult_act)`（含装饰器行）
 # ★ 2026-09-19（39b）重钉：动作体里的「条件达成播报行」由硬编码改为 `_T.text("cmech.cond_mult_line", …)`
 #   入表 ⇒ getsource 必变；冻结面已同步收窄（`audit_predicate_bytes` 的 needle ① 移出）。
 #   ★ 判定 / 累乘 / 异常三样**一字未动**（另两个 needle 仍逐字节冻结）。
-LIVE_ACTION_SHA256 = "8d7c66aeec3f1ce7a40e90f8e034c659287370d39101d4ddcfa45d5c7fa1e40b"
+LIVE_ACTION_SHA256 = "bba4473a5f71c7289b1f5c8ce583e3442904ca55c19292d64f6be129b1eea114"
 
 PRED_ORDER = ("player_first", "enemy_debuff", "enemy_broken", "melody_buff", "melody_stacks")
 COND_KEYS = frozenset(PRED_ORDER)

@@ -1168,7 +1168,10 @@ def _with_pools(pools):
 def sec5_synthetic():
     print("【5. 合成池：weighted/fixed/table/table_choice 各分支 roll+expand+audit 逐项一致】")
     global CMP
-    keys = sorted(_SYNTH)
+    # ★ 有意差异（引擎 fail-closed 改造）：`s:w_unknown_type`（type="nope"）旧实现**静默回落
+    #   weighted**，新实现**抛 UnknownStrategy**。逐项全等比对不再包含它 —— 它的行为差异
+    #   单列成断言（见下方 D0），免得「静默回落」被当成正确行为钉死。
+    keys = sorted(k for k in _SYNTH if k != "s:w_unknown_type")
     with _with_pools(_SYNTH):
         # ── audit 逐项一致（含措辞） ──
         o, n = _old_audit_all(), DE.audit_all()
@@ -1206,10 +1209,21 @@ def sec5_synthetic():
         check("合成池至少报出 6 条问题（真的把审计路径走通了）", len(n["issues"]) >= 6,
               str(n["issues"])[:400])
         # ── expand 逐项一致 ──
-        bad_e = [(k, _old_expand_pool(k), DE.expand_pool(k)) for k in sorted(_SYNTH)
+        bad_e = [(k, _old_expand_pool(k), DE.expand_pool(k)) for k in keys
                  if _diff(_old_expand_pool(k), DE.expand_pool(k))]
         CMP += len(_SYNTH)
         check("合成池 expand 逐项全等（含顺序）", not bad_e, str(bad_e[:3]))
+
+        # ── D0 有意差异：未知 strategy 的池 ──
+        _o_unknown = _old_expand_pool("s:w_unknown_type")          # 旧：静默回落 weighted → 按权重展开
+        try:
+            _n_unknown = DE.expand_pool("s:w_unknown_type")
+        except Exception as _e:                                     # noqa: BLE001
+            _n_unknown = type(_e).__name__
+        CMP += 1
+        check("D0 未知 strategy：旧静默回落 weighted / 新 fail-closed 抛 UnknownStrategy（有意）",
+              _o_unknown and _n_unknown == "UnknownStrategy",
+              "old=%r new=%r" % (_o_unknown, _n_unknown))
         # ── roll 逐项一致 ──
         bad_r = []
         combos = 0

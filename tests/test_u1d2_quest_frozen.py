@@ -90,6 +90,7 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+import _engine_move_shim  # noqa: E402,F401  引擎搬迁垫片：让历史快照仍能 exec（2026-09-23）
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -208,7 +209,7 @@ _PIN = {
         'quests_main_progress_raw': '{}',
         'quests_side_raw': '{}',
         'u1i4_outer_frozen_sha': 'bc69a9aa3d258214827dae0f39765ecfbbd03c412d6e2fc92c38b026748c235a',
-        'u1i4_world_frozen_sha': '97451a218d05559a1cfa8a5244de758cc5653c34de037e9af4924b44b516649f',
+        'u1i4_world_frozen_sha': '616198cc8917694e9225dfd639c40c87a3bce95cd459a4b180eed9b4b0b2e54b',
     },
     'segments': {
         'E': [

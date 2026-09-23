@@ -166,7 +166,7 @@ _PIN = {
         'content/world_cmds.py::talk_choice': '3dd272614848e5ee448f41df9a0439a2003faf3297f3f1076aefdaa485cec7c6',
         'content/world_cmds.py::npc_quick_dialog': 'd2cea7fd1041323fe0822fba1b413094dfc49228c0558d03240e8ed7327fe129',
         'content/world_cmds.py::find_npc': 'afb1319343a37b7e8cb7b364d6aaf05d4771b303fa6c87d3c655e21ed0de3a4c',
-        'content/world_cmds.py::move': 'c5e307ec7b424ccba7487bf7f3191aa672b44374498c06a27216726158b02fd1',
+        'content/world_cmds.py::move': '22f6ecfeb6fd1c3e7a685d37b1d99a5262698b4776f44acddbe08385256825db',
         'content/world_cmds.py::time_cmd': 'ecd979490d5019b349af04e3f2ac6526423cf7a0d32c35af7c1b6ede50302e39',
         'content/world_cmds.py::wild_notes': '99fddc5597f852dee3877e3b2ec9e3d0d0332d5b5c7ada99cf8a682ba87f4dcb',
         'content/world_cmds.py::turn_in': 'fcae401a25489b2bb19222c949e86a668d3d7068ecc3b35848bfc3cdd9980b3b',
@@ -293,8 +293,9 @@ _PIN = {
 _LIVE_SHA_INTENT = {
     'content/world_cmds.py::move': {
         'old': 'a74a1c039761b7d29beb96738c14ad53e3f6ed485cd0dca5471b1db213fcd1d8',
-        'new': 'a3467b4173b55ae75e9f0649b3bbe111bb872fabdc95866a091737f43e049709',
-        'why': 'T6⑧（2026-09-20）：删撞怪兜底分支（`Battle as B2` 裸造 Battle，不带 text= ⇒ 绕过'
+        'new': 'c29fe3292bd51c4ebd692cf368c3f9811072d685f78daf77db16edcc5d58388f',
+        'why': '★ 2026-09-23 包栈重构：本段一行 import 随引擎搬迁改到 ext_*（`saintess_engine.battle` → `ext_combat.battle`），除此之外逐字未动；改由下方登记承接。'
+               'T6⑧（2026-09-20）：删撞怪兜底分支（`Battle as B2` 裸造 Battle，不带 text= ⇒ 绕过'
                '文案唯一真源），改 `self._open_battle` 直调 fail-closed。行为不变由 [2] 甲/乙等价网'
                ' + [3] 丙类 golden（逐字节）证明：本轮实测仅本条 sha 变，其余 28 段与 golden 指纹全绿。',
     },

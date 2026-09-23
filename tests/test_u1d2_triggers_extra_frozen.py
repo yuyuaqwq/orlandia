@@ -98,6 +98,7 @@ _COUNTING = True
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+import _engine_move_shim  # noqa: E402,F401  引擎搬迁垫片：让历史快照仍能 exec（2026-09-23）
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
