@@ -1,0 +1,2503 @@
+{
+  "cases": [
+    {
+      "desc": "cls_ci_ke 学「终结·割喉」→ dmg_calc 参数（基础 per_layer 0.10）",
+      "group": "A-装配",
+      "id": "A1_mech_cash_dmg_mult_装配",
+      "input": {
+        "class_name": "cls_ci_ke",
+        "learned_skills": [
+          "终结·割喉"
+        ]
+      },
+      "output": {
+        "dmg_calc_mech_cash_dmg_mult": [
+          {
+            "action": "mech_cash_dmg_mult",
+            "icon": "🔪",
+            "key": "lian_duan",
+            "label": "终结技",
+            "layer_label": "连段",
+            "mech": "finisher",
+            "per_layer": 0.1,
+            "unit": "段"
+          }
+        ],
+        "skill_hit_mech_cash_clear": [
+          {
+            "action": "mech_cash_clear",
+            "key": "lian_duan",
+            "mech": "finisher"
+          }
+        ]
+      }
+    },
+    {
+      "desc": "再学「链舞」(passive.proc=finisher_up) → per_layer 0.10→0.16",
+      "group": "A-装配",
+      "id": "A2_mech_cash_dmg_mult_装配_链舞升级",
+      "input": {
+        "class_name": "cls_ci_ke",
+        "learned_skills": [
+          "终结·割喉",
+          "链舞"
+        ]
+      },
+      "output": {
+        "dmg_calc_mech_cash_dmg_mult": [
+          {
+            "action": "mech_cash_dmg_mult",
+            "icon": "🔪",
+            "key": "lian_duan",
+            "label": "终结技",
+            "layer_label": "连段",
+            "mech": "finisher",
+            "per_layer": 0.16,
+            "unit": "段"
+          }
+        ]
+      }
+    },
+    {
+      "desc": "学「钢拳/气力之心/破绽·极」→ skill_hit 延长段 + 注入顺序（bar_gain 首位）",
+      "group": "A-装配",
+      "id": "A3_passive_bar_extend_装配",
+      "input": {
+        "class_name": "cls_wu_seng",
+        "learned_skills": [
+          "钢拳",
+          "气力之心",
+          "破绽·极"
+        ]
+      },
+      "output": {
+        "dmg_calc_passive_dmg_mult": [
+          {
+            "bar_at": 15,
+            "judge": {
+              "bar": "shaken",
+              "ge_field": "bar_at",
+              "kind": "target_bar_ge"
+            },
+            "label": "气力之心",
+            "mult": 0.2,
+            "type": "passive_dmg_mult"
+          },
+          {
+            "broken_mult": 0.5,
+            "extend": 1,
+            "judge": {
+              "bar": "shaken",
+              "kind": "target_bar_broken"
+            },
+            "label": "破绽·极",
+            "type": "passive_dmg_mult"
+          }
+        ],
+        "skill_hit_passive_bar_extend": [
+          {
+            "broken_mult": 0.5,
+            "extend": 1,
+            "judge": {
+              "bar": "shaken"
+            },
+            "label": "破绽·极",
+            "type": "passive_bar_extend"
+          }
+        ],
+        "skill_hit_全部（顺序契约：bar_gain 首位）": [
+          {
+            "action": "bar_gain",
+            "field": "shaken_gain",
+            "key": "shaken",
+            "per_hit": true
+          },
+          {
+            "gain": 1.0,
+            "icon": "✦",
+            "label": "磐核",
+            "res": "guard_core",
+            "type": "class_res_channel_gain"
+          },
+          {
+            "broken_mult": 0.5,
+            "extend": 1,
+            "judge": {
+              "bar": "shaken"
+            },
+            "label": "破绽·极",
+            "type": "passive_bar_extend"
+          }
+        ]
+      }
+    },
+    {
+      "desc": "学「不动如山」→ on_taken 补核段 + also 段（taken_calc 减伤）",
+      "group": "A-装配",
+      "id": "A4_passive_low_hp_core_装配",
+      "input": {
+        "class_name": "cls_wu_seng",
+        "learned_skills": [
+          "不动如山"
+        ]
+      },
+      "output": {
+        "on_taken_passive_low_hp_core": [
+          {
+            "cores": 3,
+            "hp_lt": 0.3,
+            "judge": {},
+            "label": "不动如山",
+            "reduce": 0.4,
+            "res": "guard_core",
+            "type": "passive_low_hp_core",
+            "used_key": "_core_last_stand_used"
+          }
+        ],
+        "taken_calc_passive_taken_reduce": [
+          {
+            "judge": {
+              "kind": "per_core",
+              "res": "guard_core"
+            },
+            "label": "磐核",
+            "per_core": 0.03,
+            "type": "passive_taken_reduce"
+          },
+          {
+            "cores": 3,
+            "hp_lt": 0.3,
+            "judge": {
+              "key": "_core_last_stand_used",
+              "kind": "has_effect"
+            },
+            "label": "不动如山",
+            "reduce": 0.4,
+            "res": "guard_core",
+            "type": "passive_taken_reduce",
+            "used_key": "_core_last_stand_used"
+          }
+        ]
+      }
+    },
+    {
+      "desc": "装备 death_dance → on_taken 收池段 + turn_start 结算段",
+      "group": "A-装配",
+      "id": "A5_we_death_pool_装配",
+      "input": {
+        "equipment": {
+          "armor": {
+            "we_data": null,
+            "weapon_effect": "death_dance"
+          }
+        }
+      },
+      "output": {
+        "on_taken": [
+          {
+            "key": "death_dance",
+            "pool_key": "we_death_pool",
+            "pool_pct": 0.35,
+            "type": "we_death_pool_add"
+          }
+        ],
+        "turn_start": [
+          {
+            "key": "death_dance",
+            "pay_pct": 0.1,
+            "pool_key": "we_death_pool",
+            "type": "we_death_pool_pay"
+          }
+        ]
+      }
+    },
+    {
+      "desc": "info.mech=finisher；连段 5 层 → mult ×1.5",
+      "group": "B-直调",
+      "id": "B1_1_mech_cash_dmg_mult_命中",
+      "input": {
+        "actor.effects": {
+          "lian_duan": {
+            "expire": null,
+            "stacks": 5
+          }
+        },
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "finisher"
+          },
+          "mult": 1.5,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "expire": null,
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.5,
+        "ctx_tags": [],
+        "logs": [
+          "💥 终结技！lian_duan 5 层，伤害 ×1.50"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "info.mech != params.mech → 零效果零日志",
+      "group": "B-直调",
+      "id": "B1_2_mech_cash_dmg_mult_mech不匹配",
+      "input": {
+        "actor.effects": {
+          "lian_duan": {
+            "stacks": 5
+          }
+        },
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "other"
+          },
+          "mult": 1.0,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.0,
+        "ctx_tags": [],
+        "logs": [],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "层数 0 → mult ×1.00（**仍打日志**）",
+      "group": "B-直调",
+      "id": "B1_3_mech_cash_dmg_mult_零层",
+      "input": {
+        "actor.effects": {},
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "finisher"
+          },
+          "mult": 1.0,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.0,
+        "ctx_tags": [],
+        "logs": [
+          "💥 终结技！lian_duan 0 层，伤害 ×1.00"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "info.per_stack（链舞级覆盖）压过 params.per_layer",
+      "group": "B-直调",
+      "id": "B1_4_mech_cash_dmg_mult_per_stack覆盖",
+      "input": {
+        "actor.effects": {
+          "lian_duan": {
+            "stacks": 5
+          }
+        },
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "finisher",
+            "per_stack": 0.06
+          },
+          "mult": 1.3,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.3,
+        "ctx_tags": [],
+        "logs": [
+          "💥 终结技！lian_duan 5 层，伤害 ×1.30"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "owner=target → 读 ctx.target 的叠层",
+      "group": "B-直调",
+      "id": "B1_5_mech_cash_dmg_mult_owner_target",
+      "input": {
+        "actor.effects": {},
+        "ctx.info.mech": "hunt",
+        "ctx.mult": 1.0,
+        "target.effects": {
+          "hunt_mark": {
+            "stacks": 2
+          }
+        }
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {},
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "ctx_mult": 2.0,
+        "logs": [
+          "💥 猎印！hunt_mark 2 层，伤害 ×2.00"
+        ],
+        "target": {
+          "effects": {
+            "hunt_mark": {
+              "stacks": 2
+            }
+          },
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "hunt_mark",
+        "label": "猎印",
+        "mech": "hunt",
+        "owner": "target",
+        "per_layer": 0.5
+      }
+    },
+    {
+      "desc": "key=[a,b] → 层求和 3.5；layer_label 缺省 = '、'.join(key)",
+      "group": "B-直调",
+      "id": "B1_6_mech_cash_dmg_mult_key为列表",
+      "input": {
+        "actor.effects": {
+          "a": {
+            "stacks": 1.5
+          },
+          "b": {
+            "stacks": 2.0
+          }
+        },
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "multi"
+          },
+          "mult": 1.35,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "a": {
+              "stacks": 1.5
+            },
+            "b": {
+              "stacks": 2.0
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.35,
+        "ctx_tags": [],
+        "logs": [
+          "💥 多印！a、b 3.5 层，伤害 ×1.35"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": [
+          "a",
+          "b"
+        ],
+        "label": "多印",
+        "mech": "multi",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "ctx.mult 已有 2.0 → 2.0×1.5=3.0",
+      "group": "B-直调",
+      "id": "B1_7_mech_cash_dmg_mult_累乘已有mult",
+      "input": {
+        "actor.effects": {
+          "lian_duan": {
+            "stacks": 5
+          }
+        },
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "finisher"
+          },
+          "mult": 3.0,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 3.0,
+        "ctx_tags": [],
+        "logs": [
+          "💥 终结技！lian_duan 5 层，伤害 ×1.50"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "小数层 3.4（v181 保真）→ 1+0.1×3.4=1.34",
+      "group": "B-直调",
+      "id": "B1_8_mech_cash_dmg_mult_小数层",
+      "input": {
+        "actor.effects": {
+          "lian_duan": {
+            "stacks": 3.4
+          }
+        },
+        "ctx": {
+          "dmg": 100,
+          "info": {
+            "mech": "finisher"
+          },
+          "mult": 1.34,
+          "tags": [],
+          "target": {
+            "_skill_index": {},
+            "atk": 1,
+            "auto_act": null,
+            "block": 0.0,
+            "charging": null,
+            "class_name": null,
+            "cooldown": {},
+            "crit": 0.0,
+            "crit_dmg": 0.0,
+            "ct": 3.1622776601683795,
+            "def": 0,
+            "defending": false,
+            "dodge": 0.0,
+            "effects": {},
+            "equipment": {},
+            "ext": {},
+            "hp": 99999,
+            "human_controlled": false,
+            "kind": "monster",
+            "learned_skills": [],
+            "level": 60,
+            "luck": 0.0,
+            "matk": 1,
+            "max_hp": 99999,
+            "max_mp": 100,
+            "mdef": 0,
+            "mp": 100,
+            "name": "e1",
+            "pene": 0.0,
+            "poi_buff": null,
+            "race": null,
+            "shields": {},
+            "side": "enemy",
+            "skills": [],
+            "spd": 5,
+            "tenacity": 0.0,
+            "triggers": {},
+            "uid": "e1"
+          }
+        },
+        "target.effects": {}
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "stacks": 3.4
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.34,
+        "ctx_tags": [],
+        "logs": [
+          "💥 终结技！lian_duan 3.4 层，伤害 ×1.34"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "ctx 里没有 info 键 → info={} → mech 不等 → return",
+      "group": "B-直调",
+      "id": "B1_9_mech_cash_dmg_mult_ctx无info",
+      "input": {
+        "actor.effects": {
+          "lian_duan": {
+            "stacks": 5
+          }
+        },
+        "ctx 无 info 键": true
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.0,
+        "logs": []
+      },
+      "params": {
+        "action": "mech_cash_dmg_mult",
+        "key": "lian_duan",
+        "label": "终结技",
+        "mech": "finisher",
+        "per_layer": 0.1
+      }
+    },
+    {
+      "desc": "trigger_count=1 且 immune_until(12) > now(10) → +1 刻",
+      "group": "B-直调",
+      "id": "B2_1_passive_bar_extend_窗口内",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": [
+          "✨ 破绽·极：破防持续 +1 刻！"
+        ]
+      },
+      "params": {
+        "extend": 1,
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "trigger_count=0 → 零效果零日志",
+      "group": "B-直调",
+      "id": "B2_2_passive_bar_extend_未触发",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 0.0,
+          "threshold": 50,
+          "trigger_count": 0,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 0.0,
+          "threshold": 50,
+          "trigger_count": 0,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 0.0,
+          "threshold": 50,
+          "trigger_count": 0,
+          "val": 0.0
+        },
+        "logs": []
+      },
+      "params": {
+        "extend": 1,
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "immune_until == now → `<= now` 直接 return",
+      "group": "B-直调",
+      "id": "B2_3_passive_bar_extend_窗口已过期",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 10.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 10.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 10.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": []
+      },
+      "params": {
+        "extend": 1,
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "params.extend 缺 → ext=0 → return（缺字段=无此行为）",
+      "group": "B-直调",
+      "id": "B2_4_passive_bar_extend_extend缺字段",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": []
+      },
+      "params": {
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "judge.bar 与 params.bar 都缺 → return",
+      "group": "B-直调",
+      "id": "B2_5_passive_bar_extend_bar缺字段",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": []
+      },
+      "params": {
+        "extend": 1,
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "host 优先 ctx.target（位置参数 target 无条 → 不动）",
+      "group": "B-直调",
+      "id": "B2_6_passive_bar_extend_宿主取ctx_target",
+      "input": {
+        "ctx.target": "e_ctx",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 14.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_pos"
+      },
+      "output": {
+        "ctx_target_effects": {
+          "bar:shaken": {
+            "_at": 10.0,
+            "immune_until": 14.0,
+            "threshold": 50,
+            "trigger_count": 1,
+            "val": 0.0
+          }
+        },
+        "logs": [
+          "✨ 破绽·极：破防持续 +2 刻！"
+        ],
+        "pos_arg_effects": {}
+      },
+      "params": {
+        "extend": 2,
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "宿主 effects 里没有该条 → return",
+      "group": "B-直调",
+      "id": "B2_7_passive_bar_extend_无条状态",
+      "input": {
+        "host.effects": {},
+        "now": 10.0,
+        "注": "从未挂过条"
+      },
+      "output": {
+        "host": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "extend": 1,
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "extend='abc' → except → ext=0.0 → return",
+      "group": "B-直调",
+      "id": "B2_8_passive_bar_extend_extend非数值",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 12.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": []
+      },
+      "params": {
+        "extend": "abc",
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "extend=1.5 → 窗口 +1.5；**日志 int(ext) 截断成 1**",
+      "group": "B-直调",
+      "id": "B2_9_passive_bar_extend_小数刻",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 13.5,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 13.5,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 13.5,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": [
+          "✨ 破绽·极：破防持续 +1 刻！"
+        ]
+      },
+      "params": {
+        "extend": 1.5,
+        "judge": {
+          "bar": "shaken"
+        },
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "judge.bar 缺、params.bar 在位 → 走回落分支，照常延长",
+      "group": "B-直调",
+      "id": "B2_10_passive_bar_extend_bar走params",
+      "input": {
+        "ctx.target": "e_bar",
+        "host.effects": {
+          "_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "now": 10.0,
+        "位置参数 target": "e_bar"
+      },
+      "output": {
+        "bar_ctx_target": {
+          "_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "bar_pos_arg": {
+          "_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 50,
+          "trigger_count": 1,
+          "val": 0.0
+        },
+        "logs": [
+          "✨ 破绽·极：破防持续 +1 刻！"
+        ]
+      },
+      "params": {
+        "bar": "shaken",
+        "extend": 1,
+        "label": "破绽·极"
+      }
+    },
+    {
+      "desc": "dmg=100 → 池 35.0（静默，无日志）",
+      "group": "B-直调",
+      "id": "B4_1_we_death_pool_add_收35%",
+      "input": {
+        "dmg": 100,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "已有 35.0，再受 200 → 105.0",
+      "group": "B-直调",
+      "id": "B4_2_we_death_pool_add_累加",
+      "input": {
+        "dmg": [
+          200
+        ],
+        "起始池": 35.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 105.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      }
+    },
+    {
+      "desc": "dmg=0 → 提前 return：**连 ext 容器都不建**",
+      "group": "B-直调",
+      "id": "B4_3_we_death_pool_add_dmg为0",
+      "input": {
+        "dmg": 0,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "dmg=-50 → return（无实伤不收池）",
+      "group": "B-直调",
+      "id": "B4_4_we_death_pool_add_dmg为负",
+      "input": {
+        "dmg": -50,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "pool_pct 缺 → 缺省 0.35",
+      "group": "B-直调",
+      "id": "B4_5_we_death_pool_add_缺pool_pct",
+      "input": {
+        "dmg": 100,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "_fire_ctx 无 dmg → 0 → return",
+      "group": "B-直调",
+      "id": "B4_6_we_death_pool_add_ctx无dmg",
+      "input": {
+        "dmg": null,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "battle 无 _fire_ctx → 0 → return",
+      "group": "B-直调",
+      "id": "B4_7_we_death_pool_add_无fire_ctx",
+      "input": {
+        "dmg": null,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "params 无 _owner 且 caster=None → return",
+      "group": "B-直调",
+      "id": "B4_8_we_death_pool_add_owner与caster均空",
+      "input": {
+        "dmg": 100,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "pool_key 缺 → 'we_death_pool'",
+      "group": "B-直调",
+      "id": "B4_9_we_death_pool_add_pool_key缺省",
+      "input": {
+        "dmg": 100,
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "dmg='100' → float() 容错 → 35.0",
+      "group": "B-直调",
+      "id": "B4_10_we_death_pool_add_dmg为字符串",
+      "input": {
+        "dmg": "100",
+        "ext 起始": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "owner.hp=0 **仍收池**（add 不判存活，与 pay 不同）",
+      "group": "B-直调",
+      "id": "B4_11_we_death_pool_add_宿主已死",
+      "input": {
+        "dmg": 100,
+        "owner.hp": 0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 0,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pool_key": "we_death_pool",
+        "pool_pct": 0.35
+      }
+    },
+    {
+      "desc": "池 35.0 → pay=max(1,int(3.5))=3，扣血、池 32.0",
+      "group": "B-直调",
+      "id": "B5_1_we_death_pool_pay_结算10%",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": 35.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 32.0
+            }
+          },
+          "hp": 997,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": [
+          "💀 死亡之舞：缓伤池结算，损失 3 点生命！（剩余 32）"
+        ]
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "池 5.0 → pay=max(1,0)=1",
+      "group": "B-直调",
+      "id": "B5_2_we_death_pool_pay_不足1也扣1",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": 5.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 4.0
+            }
+          },
+          "hp": 999,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": [
+          "💀 死亡之舞：缓伤池结算，损失 1 点生命！（剩余 4）"
+        ]
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "池 0 → return（**但 ext.we_proc 容器已被建出**）",
+      "group": "B-直调",
+      "id": "B5_3_we_death_pool_pay_池为0",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": 0.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 0.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "hp=2、pay=3 → hp 钳到 0（不登记击杀）",
+      "group": "B-直调",
+      "id": "B5_4_we_death_pool_pay_血量不足",
+      "input": {
+        "ext_present": true,
+        "hp": 2,
+        "pool": 35.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 32.0
+            }
+          },
+          "hp": 0,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": [
+          "💀 死亡之舞：缓伤池结算，损失 3 点生命！（剩余 32）"
+        ]
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "hp=0（actor_alive False）→ return，池不动",
+      "group": "B-直调",
+      "id": "B5_5_we_death_pool_pay_已死",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": 35.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 0,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "actor 无 ext → setdefault 建容器 + 池 0 → return",
+      "group": "B-直调",
+      "id": "B5_6_we_death_pool_pay_无ext键",
+      "input": {
+        "ext_present": false,
+        "hp": 1000,
+        "pool": null
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {}
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "池 '35' → float 容错 → 扣 3、池 32.0",
+      "group": "B-直调",
+      "id": "B5_7_we_death_pool_pay_池为字符串",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": "35"
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 32.0
+            }
+          },
+          "hp": 997,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": [
+          "💀 死亡之舞：缓伤池结算，损失 3 点生命！（剩余 32）"
+        ]
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "pay_pct=1.5 → pay=52 > 池 35 → 池钳 0.0",
+      "group": "B-直调",
+      "id": "B5_8_we_death_pool_pay_pay_pct_1.5",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": 35.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 0.0
+            }
+          },
+          "hp": 948,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": [
+          "💀 死亡之舞：缓伤池结算，损失 52 点生命！（剩余 0）"
+        ]
+      },
+      "params": {
+        "pay_pct": 1.5,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "池 -5 → `pool <= 0` → return（不扣血、不下溢）",
+      "group": "B-直调",
+      "id": "B5_9_we_death_pool_pay_池为负",
+      "input": {
+        "ext_present": true,
+        "hp": 1000,
+        "pool": -5.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": -5.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "pay_pct": 0.1,
+        "pool_key": "we_death_pool"
+      }
+    },
+    {
+      "desc": "hp 800/3000 < 30% → +3 磐核（cap 5）+ 置一次性 flag",
+      "group": "B-直调",
+      "id": "B3_1_passive_low_hp_core_残血补核",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "guard_core": {
+              "stacks": 3
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +3（3/5）！"
+        ]
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "used_key 已置位 → 二次调用零效果零日志",
+      "group": "B-直调",
+      "id": "B3_2_passive_low_hp_core_每场一次",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {
+          "_core_last_stand_used": {
+            "expire": null,
+            "stacks": 1
+          }
+        },
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": []
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "hp 1000 ≥ int(3000×0.3)=900 → return",
+      "group": "B-直调",
+      "id": "B3_3_passive_low_hp_core_未跌破",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 1000,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {},
+          "hp": 1000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": []
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "cores 缺 → return（缺字段=无此行为）",
+      "group": "B-直调",
+      "id": "B3_4_passive_low_hp_core_缺cores",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": []
+      },
+      "params": {
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "已有 4 枚 + 3 → 钳到 cap 5",
+      "group": "B-直调",
+      "id": "B3_5_passive_low_hp_core_cap钳制",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {
+          "guard_core": {
+            "stacks": 5
+          }
+        },
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "guard_core": {
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +3（5/5）！"
+        ]
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "cores=0.5 → norm_stack 保真 0.5（日志 cores:g）",
+      "group": "B-直调",
+      "id": "B3_6_passive_low_hp_core_小数cores",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "guard_core": {
+              "stacks": 0.5
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +0.5（0.5/5）！"
+        ]
+      },
+      "params": {
+        "cores": 0.5,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "hp == int(max_hp×hp_lt)=900 → **不触发**（严格 <）",
+      "group": "B-直调",
+      "id": "B3_7a_passive_low_hp_core_阈值边界相等",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 900,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {},
+          "hp": 900,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": []
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "hp=899 → 触发",
+      "group": "B-直调",
+      "id": "B3_7b_passive_low_hp_core_阈值边界差1",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 899,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "guard_core": {
+              "stacks": 3
+            }
+          },
+          "ext": {},
+          "hp": 899,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +3（3/5）！"
+        ]
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "res 无 EFFECT_RULES 行 → cap_of 兜底 999999",
+      "group": "B-直调",
+      "id": "B3_8_passive_low_hp_core_cap无声明",
+      "input": {
+        "caster": "p1",
+        "ctx.actor": null,
+        "effects 起始": {},
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "nonexist_res": {
+              "stacks": 3
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 999999,
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +3（3/999999）！"
+        ]
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "nonexist_res",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "params 无 _owner、ctx 无 actor、caster=None → return",
+      "group": "B-直调",
+      "id": "B3_9_passive_low_hp_core_owner全空",
+      "input": {
+        "caster": null,
+        "ctx": {},
+        "effects 起始": {},
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "logs": []
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "caster=None 但 ctx.actor 在位 → 正常补核",
+      "group": "B-直调",
+      "id": "B3_10_passive_low_hp_core_owner取ctx_actor",
+      "input": {
+        "caster": null,
+        "ctx.actor": "p1",
+        "effects 起始": {},
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "guard_core": {
+              "stacks": 3
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "cap_of(res)": 5,
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +3（3/5）！"
+        ]
+      },
+      "params": {
+        "cores": 3,
+        "hp_lt": 0.3,
+        "label": "不动如山",
+        "reduce": 0.4,
+        "res": "guard_core",
+        "used_key": "_core_last_stand_used"
+      }
+    },
+    {
+      "desc": "fire(dmg_calc) → 终结技乘区（装配产物驱动，log 与 tags 顺序冻结）",
+      "group": "C-集成",
+      "id": "C1_fire_dmg_calc",
+      "input": {
+        "effects.lian_duan.stacks": 5,
+        "event": "dmg_calc",
+        "info.mech": "finisher"
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "lian_duan": {
+              "expire": null,
+              "stacks": 5
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "ctx_mult": 1.8,
+        "ctx_tags": [],
+        "logs": [
+          "🔪 终结技！连段 5 段，伤害 ×1.80"
+        ],
+        "target": {
+          "effects": {},
+          "ext": {},
+          "hp": 99999,
+          "max_hp": 99999,
+          "shields": {}
+        }
+      }
+    },
+    {
+      "desc": "fire(on_taken) → 不动如山补核（真实受击事件，含渠道段顺序）",
+      "group": "C-集成",
+      "id": "C2_fire_on_taken",
+      "input": {
+        "dmg": 100,
+        "event": "on_taken",
+        "hp": 800,
+        "max_hp": 3000
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "_core_last_stand_used": {
+              "expire": null,
+              "stacks": 1
+            },
+            "guard_core": {
+              "stacks": 3
+            }
+          },
+          "ext": {},
+          "hp": 800,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "logs": [
+          "🪨 不动如山：绝境补磐核 +3（3/5）！"
+        ]
+      }
+    },
+    {
+      "desc": "fire(skill_hit)：bar_gain 先推条触发 → passive_bar_extend 后延窗",
+      "group": "C-集成",
+      "id": "C3_fire_skill_hit_顺序契约",
+      "input": {
+        "event": "skill_hit",
+        "now": 10.0,
+        "shaken_gain": 5,
+        "threshold": 50,
+        "条起始 val": 45.0
+      },
+      "output": {
+        "actor": {
+          "effects": {
+            "guard_core": {
+              "stacks": 1
+            }
+          },
+          "ext": {},
+          "hp": 3000,
+          "max_hp": 3000,
+          "shields": {}
+        },
+        "logs": [
+          "💥 shaken 积蓄 +5（50/125）",
+          "💢 【破绽】触发！(第 1 次)",
+          "💢 【e1】被破绽震慑，无法行动！",
+          "✦ 磐核 +1（1/5）",
+          "✨ 破绽·极：破防持续 +1 刻！"
+        ],
+        "target": {
+          "hp": 99999
+        },
+        "条_前": {
+          "_at": 10.0,
+          "immune_until": 0.0,
+          "threshold": 50,
+          "trigger_count": 0,
+          "val": 45.0
+        },
+        "条_后": {
+          "_at": 10.0,
+          "_no_inject_at": 10.0,
+          "immune_until": 13.0,
+          "threshold": 67,
+          "trigger_count": 1,
+          "val": 0.0
+        }
+      }
+    },
+    {
+      "desc": "fire(turn_start) → 缓伤池结算 10%",
+      "group": "C-集成",
+      "id": "C4_fire_turn_start",
+      "input": {
+        "event": "turn_start",
+        "hp": 1000,
+        "池": 105.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 95.0
+            }
+          },
+          "hp": 990,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": [
+          "💀 死亡之舞：缓伤池结算，损失 10 点生命！（剩余 95）"
+        ]
+      }
+    },
+    {
+      "desc": "fire(on_taken) → 缓伤池 +35%（静默收池）",
+      "group": "C-集成",
+      "id": "C5_fire_on_taken_收池",
+      "input": {
+        "dmg": 100,
+        "event": "on_taken",
+        "池起始": 0.0
+      },
+      "output": {
+        "actor": {
+          "effects": {},
+          "ext": {
+            "we_proc": {
+              "we_death_pool": 35.0
+            }
+          },
+          "hp": 1000,
+          "max_hp": 1000,
+          "shields": {}
+        },
+        "logs": []
+      }
+    }
+  ],
+  "meta": {
+    "engine_root": "C:/Users/yuyu/framework-engine",
+    "pkg_root": "C:\\Users\\yuyu\\orlandia",
+    "python": "3.12.9",
+    "script": "pilot5-baseline-1"
+  },
+  "registry": {
+    "mech_cash_dmg_mult": {
+      "module": "content.mech.class_mech",
+      "qualname": "mech_cash_dmg_mult",
+      "registered": true,
+      "same_object": true
+    },
+    "passive_bar_extend": {
+      "module": "content.mech.class_mech",
+      "qualname": "passive_bar_extend",
+      "registered": true,
+      "same_object": true
+    },
+    "passive_low_hp_core": {
+      "module": "content.mech.class_mech",
+      "qualname": "passive_low_hp_core",
+      "registered": true,
+      "same_object": true
+    },
+    "we_death_pool_add": {
+      "module": "content.mech.we_procs",
+      "qualname": "we_death_pool_add",
+      "registered": true,
+      "same_object": true
+    },
+    "we_death_pool_pay": {
+      "module": "content.mech.we_procs",
+      "qualname": "we_death_pool_pay",
+      "registered": true,
+      "same_object": true
+    }
+  },
+  "source": {
+    "fingerprints_sha256": {
+      "mech_cash_dmg_mult": "7f8a949f749d0137eacf92da87bca1aacfd298b15653298fc552577aa0e3f81a",
+      "passive_bar_extend": "99743f0f24582f9dfd2be50f2f2046ba2140fafc4b48656196441cc3172a24d4",
+      "passive_low_hp_core": "fa19058e254b335bfb27031cd793e48f7351c8af28f2d239ea1e250e35bba7db",
+      "we_death_pool_add": "9cdb94a4581dae8e8b572863732546be11a72fc8569f0457eedad444acdd3f9f",
+      "we_death_pool_pay": "894ab1617c4f9dd7294a56578e52c27edc33ac7567066a81ba2cbd1a9b741cf4"
+    },
+    "repo_pins_match": {
+      "mech_cash_dmg_mult": true,
+      "passive_bar_extend": true,
+      "passive_low_hp_core": true
+    }
+  }
+}
