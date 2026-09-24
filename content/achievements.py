@@ -1,41 +1,36 @@
 # -*- coding: utf-8 -*-
-"""奥兰迪亚·余烬纪年内容包 —— 成就系统（B13-L4，2026-09-14）。
+"""奥兰迪亚·余烬纪年内容包 —— 成就系统（B13-L4，2026-09-14；B2-S4 劈形状，2026-09-24）。
 
-真源：游戏仓 `game/core/achievements.py`（305 行 / 阶段九 14 章）。本模块 = 那份文件的
-**实现本体**（逐字搬：`cond_met` / `check_achievements` / `achievement_titles` /
-`achievement_points` / `claim_achievement_rewards` / `_bestiary_kills` / `_monster_total`
-与 3 个 v140 条件注册）。宿主 `game/core/achievements.py` 现在只剩「加载包 + 同名单 re-export」。
+★ 2026-09-24 B2-S4（抽包工程 B2 批第四步）：**账本形状**（解锁遍历 / 领取 / 标签名 / 点数）
+已抽进扩展包 —— `ext_achieve.ledger`（二十个句柄 `bind(...)` 注入）。本模块只剩**这款游戏
+自己的那一半**：
+
+  ① 注入面     `_ledger_bind(...)` 把二十个句柄逐个落到本包域名上（存档读写口 / 条件判据 /
+               文案槽位 / 奖励发放 / 升级结算 / 三态机 / 点数权重 / 通关记录键前缀 / 显示名）
+  ② 条件注册   `cond_met` + `COND_CHECKS` 三条 v140 条件（本模块**仍是**条件注册表的注册点）
+  ③ 统计读口   `_bestiary_kills` / `_monster_total`（`achievement_conds` 的延迟引用点）
+  ④ 四个对外函数 `check_achievements` / `claim_achievement_rewards` / `achievement_titles` /
+               `achievement_points` —— 对外签名一字未改，函数体只剩「转给形状 + 降级兜底」
+
+真源：游戏仓 `game/core/achievements.py`（305 行 / 阶段九 14 章）。
 
 ★ 顺序不变式（逐字节等价的关键，与 `content/talk_actions.py` 的 ACTIONS 同款）
   · `from .achievement_conds import COND_CHECKS as _COND_CHECKS` + 3 个 `@_register_cond`
     （blueprints_learned / quests_done / chests_opened）在**本模块 import 期**执行 —— 与真源
     「import achievements 即注册」逐字等价（宿主薄壳 import 包内本模块，注册随之发生）；
   · `ACHIEVEMENTS`（包内门面 `content/catalog_quests.py`）的**源列表序**决定
-    `check_achievements` 的解锁顺序与 `achievement_titles` 的称号序。
+    `check_achievements` 的解锁顺序与 `achievement_titles` 的称号序 —— 源列表序的遍历现在在
+    形状里（`ext_achieve.ledger`），表本身仍由本模块注入。
 
-正文改动面（只有两类，替换表见 `overnight/w1213_b13l4_port.py`，每条断言出现次数）
---------------------------------------------------------------------------------------
-1. 宿主取件（**B2-C4 收口后**）：
-   `from .. import content as C` → 删（唯一残余读点 `display` 改包内直取 `content/index.py`，同一对象）；
-   `from .. import db` → 包内 `content/_pkgref.DB`（B1 口径）；
-   `from ..content_rules.gameplay import check_player_level_up` → 包内 `content/gameplay_rules.py`（B1）；
-   `from .stat_bonus import stat_bonus` → 包内 `content/stat_bonus.py`（B1）；
-   `from ..reward import grant_items_batch` → 包内 `content/reward.py`；
-   `from ..log_setup import LOG` → `content/obs.py::log()`（B2-C4：包内唯一日志取用口）。
-2. 读点切包内域读口/门面（I1 + B14-2 + B2-C4）：`C.ITEMS.get(_ik)` → 包内 `items` 域读口 `ITEMS`
-   （实测 900 键与 `name` 字段全等）；B14-2 再把三名数据名切包内门面 ——
-   `catalog_quests.ACHIEVEMENTS`（源列表序）· `catalog_space.MAP_BY_ID` ·
-   `catalog_items.MATERIALS`（门禁逐名 OK · 不等 0，含键序）。
+★ 真源遗留缺陷**逐字保留**：`claim_achievement_rewards` 的 `except` 分支里 `LOG` 是**未定义
+  的全局名**（真源模块级没有 `LOG`，只有 `check_achievements` 里那处函数内 import）→ 该分支
+  实际抛 `NameError: name 'LOG' is not defined`。本模块**故意不在模块级定义 `LOG`**（快照
+  `失败分支 EXC: NameError name 'LOG' is not defined` 与改前逐字节相同）。
+  修它 = 行为变更，留给后续单独一批。
 
-⚠️ 缺口（报告已登记，B14 统一裁）
-  · `C.display("monsters", …)`（`_bestiary_kills`）→ **已切包内直取** `content/index.py::display`
-    （B2-C4）。同对象判据：`content/index.py` = `game/core/index.py` 的逐字端口，`display` 就是宿主
-    `C.display` 本体（`identity_map.txt`）⇒ 走的正是那只 `monsters` 索引（354 条 id→中文名）。
-
-★ 真源遗留缺陷**逐字保留**：`claim_achievement_rewards` 的 `except` 分支里 `LOG` 是**未定义的全局名**
-  （真源模块级没有 `LOG`，只有 `check_achievements` 里那处函数内 import）→ 该分支实际抛
-  `NameError: name 'LOG' is not defined`。本模块**故意不在模块级定义 `LOG`**（快照 `失败分支 EXC:
-  NameError name 'LOG' is not defined` 与改前逐字节相同）。修它 = 行为变更，留给后续单独一批。
+  ⇒ B2-S4 之后这段兜底从「形状内部」挪到了**本模块的外层**（形状不吞异常）：可观测行为不变
+  （异常仍在本模块的 `try` 里被接住，`LOG` 仍未定义），但引擎侧的形状里不再躺一个故意的
+  undefined name。
 
 真源原文头注（逐字保留）
 ------------------------
@@ -65,7 +60,7 @@ from ._domainio import read_domain as _read_domain
 # ============================================================
 # 包内域读口（I1）：`items` 域（真源 `C.ITEMS`）
 # 实测（探针 `overnight/w1213_b13l4_probe.py`）：900 键 / 键集合与 `name` 字段**全等** →
-# 正文里 `C.ITEMS.get(_ik)` 一处读本读口；B14-2 起材料 / 成就 / 地图索引三名数据名也切门面。
+# 正文里物品显示名读本读口；B14-2 起材料 / 成就 / 地图索引三名数据名也切门面。
 # ============================================================
 
 
@@ -86,10 +81,15 @@ from . import texts as _T                    # noqa: E402  文案真源取件口
 from .index import display as _index_display   # noqa: E402  `C.display` → 包内直取（同一对象）
 from ._pkgref import DB as db              # noqa: E402  `from .. import db` 的包内等价物
 from saintess_engine.conditions.declarative import bind_spec   # S4：声明式条目装配
-from ext_life.collect import TierBoard
+from ext_life.collect import TierBoard     # noqa: E402  收集三态机（引擎侧形状，B2-S4 注入给账本形状）
 from .cond_specs import load as _load_specs
 
-
+# B2-S4：账本形状（解锁 / 领取 / 标签名 / 点数）—— 实现已进扩展包 `ext_achieve.ledger`
+from ext_achieve.ledger import bind as _ledger_bind             # noqa: E402
+from ext_achieve.ledger import check as _ledger_check           # noqa: E402
+from ext_achieve.ledger import claim as _ledger_claim           # noqa: E402
+from ext_achieve.ledger import labels as _ledger_labels         # noqa: E402
+from ext_achieve.ledger import points as _ledger_points         # noqa: E402
 # v140 波2：3 个新条件类型注册（数据已有零消费点或最小接线）
 # 与 achievement_conds.py 共用 COND_CHECKS 单例：本模块 import 它再注册，cond_met 同 dict 生效。
 try:
@@ -183,28 +183,176 @@ def cond_met(player: dict, stats: dict, profs: dict, extra: dict, cond: dict, gr
         return False
 
 
-def achievement_titles(qq_id) -> list:
-    """已解锁成就的称号名列表(14 章：达成成就自动获得称号)"""
+# ============================================================
+# ★ B2-S4 注入面：账本形状（`ext_achieve.ledger`）的二十个句柄
+#   形状里零内容词表、零数据包 import；这一节就是「这款游戏那一半」——
+#   存档 schema、文案键、点数权重、通关记录键名、物品显示名全落在这里。
+# ============================================================
+
+#: 文案槽位 → (文案键, 取法)：`text` = 带槽位格式化 · `static` = 原样取
+#: （键名只在本模块出现；形状只传**槽位名**与实参 —— 文案真源 `content/data/text_specs.json`）
+_ACH_COPY = {
+    "reward_exp": ("ach.exp_part", "text"),
+    "reward_currency": ("ach.gold_part", "text"),
+    "claim_head": ("ach.claim_head", "text"),
+    "claim_currency": ("ach.claim_gold", "text"),
+    "claim_hint": ("ach.claim_hint", "static"),
+    "items_head": ("ach.items_head", "static"),
+    "items_partial_fail": ("ach.items_partial_fail", "static"),
+    "none": ("ach.none", "static"),
+    "need_register": ("ach.need_register", "static"),
+}
+
+#: 通关记录的键前缀（`inst_clear_<副本 id>`）—— 键名约定属本包，形状只问 `clear_of`
+_CLEAR_PREFIX = "inst_clear_"
+
+#: 隐藏类分类名（点数权重 2 的那一类）
+_HIDDEN_CAT = "隐藏"
+
+
+def _phrase(slot, **slots):
+    """文案槽位 → 文案（未知槽位 ⇒ KeyError，fail-loud）。"""
+    key, how = _ACH_COPY[slot]
+    return _T.text(key, **slots) if how == "text" else _T.static(key)
+
+
+def _ledger_rows(_group_id, qq_id):
+    """账本行 → 形状契约三字段（存储 schema `ach_key/claimed/progress` 只在本模块出现）。
+
+    组号只是透传槽（本游戏的账本按 `qq_id` 全局，真源 `achievement_titles` 那两处传的是
+    空串）；读口异常**不吞**：由形状各调用点按真源口径分别处理（标题/点数 ⇒ 空集，
+    解锁遍历 ⇒ 空集，领取 ⇒ 交给降级兜底）。
+    """
+    return [{"id": r["ach_key"],
+             "claimed": r.get("claimed"),
+             "progress": r.get("progress", 1)}
+            for r in (db.get_achievements(_group_id or "", qq_id) or [])]
+
+
+def _clear_of(key):
+    """账本键 → 已通关副本 id（本包键名约定）；不是通关记录 ⇒ None。"""
+    s = str(key)
+    return s[len(_CLEAR_PREFIX):] if s.startswith(_CLEAR_PREFIX) else None
+
+
+def _weight_of(entry) -> int:
+    """成就点权重：隐藏类 2 分，其余 1 分（真源 `achievement_points` 的唯一内容判据）。"""
+    return 2 if entry.get("cat") == _HIDDEN_CAT else 1
+
+
+def _reward_of(entry):
+    """奖励 dict → `(经验, 金币, 物品表)` 三支路（键名是**本包 schema**，形状不认）。"""
+    rw = entry.get("reward") or {}
+    return rw.get("exp", 0), rw.get("gold", 0), rw.get("items")
+
+
+def _has_claimable_reward(a) -> bool:
+    """该成就是否带可发奖励（经验 / 金币 / 物品）—— 三态机的 `claimable` 判据。"""
+    rw = a.get("reward") or {}
+    return bool(rw.get("exp", 0) or rw.get("gold", 0) or rw.get("items"))
+
+
+def _claim_machine(unlocked, claimed):
+    """待领档位三态机（引擎收集形状 `ext_life.collect.TierBoard`）：达成 = 该 id 已解锁；
+    可领 = 带奖励。`claim(a)` 幂等（`READY` 才记入，已领/未达成/无物可领一律 `False`）。"""
+    return TierBoard(ACHIEVEMENTS,
+                     claimed=set(claimed),
+                     key=lambda a: a["id"],
+                     reached=lambda a: a["id"] in unlocked,
+                     claimable=_has_claimable_reward)
+
+
+def _item_name(key) -> str:
+    """物品 key → 显示名（域读口 → 门面；取不到回落 key 本身，与真源同口径）。"""
     try:
-        rows = db.get_achievements("", qq_id)
-        unlocked = {r["ach_key"] for r in rows}
+        return (ITEMS.get(key) or MATERIALS.get(key) or {}).get("name", key)
     except Exception:
-        return []
-    return [a["title"] for a in ACHIEVEMENTS if a["id"] in unlocked and a.get("title")]
+        return key
+
+
+def _enrich(group_id, qq_id, player):
+    """领奖前把加成字段挂到玩家副本上（真源 `player["_title_bonus"] = stat_bonus(...)`）。
+
+    K0-A1：复用统一单点 `stat_bonus()`（含 M18 同名去重 + TITLES 侧 bonus），不再用轻量
+    `_title_bonus_plain` —— 避免 Lv.10 副业大师称号被当作第二份双算。
+    """
+    from .stat_bonus import stat_bonus
+    player["_title_bonus"] = stat_bonus(group_id, qq_id, player)
+    return player
+
+
+def _payout(group_id, qq_id, player, exp, currency):
+    """把两类奖励记进玩家记录（字段名是存储 schema）。"""
+    player["exp"] = player.get("exp", 0) + exp
+    player["gold"] = player.get("gold", 0) + currency
+    return player
+
+
+def _save_player(group_id, qq_id, player):
+    """领奖后的玩家落库（字段清单 = 真源 `db.update_player` 的那 11 个）。"""
+    db.update_player(group_id, qq_id,
+                     exp=player["exp"], gold=player["gold"], level=player["level"],
+                     hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"],
+                     skills=player["skills"], attr_pts=player.get("attr_pts", 0),
+                     skill_points=player.get("skill_points", 0),
+                     learned_skills=player.get("learned_skills", []))
+
+
+def _grant(group_id, qq_id, items, lines):
+    """物品发放（v174 统一抽象：与任务/对话/收藏同一实现）。"""
+    from .reward import grant_items_batch
+    return grant_items_batch(group_id, qq_id, items, lines=lines)
+
+
+def _levelup(group_id, qq_id, player):
+    """升级结算（真源 `check_player_level_up`）。"""
+    from .gameplay_rules import check_player_level_up
+    return check_player_level_up(group_id, qq_id, player)
+
+
+_ledger_bind(
+    entries=lambda: ACHIEVEMENTS,
+    ledger_of=_ledger_rows,
+    # ★ 惰性转发：`db` 是 wire 代理，属性解析要留到**调用时**——
+    #   真源那两处也是运行时才取件（import 期取会让 content.persistence 的半初始化态撞上）
+    mark=lambda group_id, qq_id, key, progress, claimed:
+        db.set_achievement(group_id, qq_id, key, progress, claimed),
+    player_of=lambda group_id, qq_id: db.get_player(group_id, qq_id),
+    stats_of=lambda group_id, qq_id: db.get_stats(group_id, qq_id) or {},
+    profs_of=lambda group_id, qq_id: db.get_professions(group_id, qq_id) or {},
+    save_player=_save_player,
+    cond_of=cond_met,
+    clear_of=_clear_of,
+    weight_of=_weight_of,
+    label_of=lambda a: a.get("title"),
+    name_of=_item_name,
+    line_of=lambda a: "🏅 %s" % a["name"],
+    reward_of=_reward_of,
+    phrase=_phrase,
+    machine=_claim_machine,
+    enrich=_enrich,
+    grant=_grant,
+    levelup=_levelup,
+    payout=_payout,
+)
+
+
+# ============================================================
+# 对外四函数（签名一字未改）—— 函数体只剩「转给形状 + 降级兜底」
+# ============================================================
+
+def achievement_titles(qq_id) -> list:
+    """已解锁成就的称号名列表(14 章：达成成就自动获得称号)。形状：`ext_achieve.ledger.labels`。"""
+    return _ledger_labels(qq_id)
 
 
 def achievement_points(qq_id) -> int:
-    """成就点(普通 1 / 隐藏 2)。
+    """成就点(普通 1 / 隐藏 2)。形状：`ext_achieve.ledger.points`（权重由本包注入）。
 
     ⚠️ 14 章四「成就等级体系（青铜→传奇）」待后续版本，未实装：当前只算点数，
     无等级划分/等级称号/等级加成。（v105 M18 P2 标注）
     """
-    try:
-        rows = db.get_achievements("", qq_id)
-        unlocked = {r["ach_key"] for r in rows}
-    except Exception:
-        return 0
-    return sum(2 if a.get("cat") == "隐藏" else 1 for a in ACHIEVEMENTS if a["id"] in unlocked)
+    return _ledger_points(qq_id)
 
 
 def check_achievements(group_id, qq_id, player=None, extra=None) -> list:
@@ -213,85 +361,15 @@ def check_achievements(group_id, qq_id, player=None, extra=None) -> list:
     v101.22（鱼鱼拍板）：解锁不再自动发奖励——改为待领取(claimed=0)，
     玩家用『成就 领取』手动领。奖励数值同步下调(新手期 500→100)。
     返回的成就 dict 带 _reward_txt 供调用方提示。
+
+    形状：`ext_achieve.ledger.check`；本层只留**降级兜底**（真源口径：任何异常 ⇒ 记一条
+    警告 + 返回空列表，不打断事件链）。
     """
     try:
-        if player is None:
-            player = db.get_player(group_id, qq_id)
-        if not player:
-            return []
-        player["qq_id"] = player.get("qq_id") or qq_id
-        stats = db.get_stats(group_id, qq_id) or {}
-        profs = db.get_professions(group_id, qq_id) or {}
-        extra = extra or {}
-        unlocked = set()
-        try:
-            rows = db.get_achievements("", qq_id)
-            unlocked = {r["ach_key"] for r in rows}
-        except Exception:
-            pass
-        # 已通关副本集合（inst_clear_* 记录）
-        inst_ids = set()
-        for aid in unlocked:
-            if str(aid).startswith("inst_clear_"):
-                inst_ids.add(str(aid)[len("inst_clear_"):])
-        if extra.get("inst_id"):
-            inst_ids.add(extra["inst_id"])
-        extra["inst_ids"] = inst_ids
-        new_ones = []
-        for a in ACHIEVEMENTS:
-            if a["id"] in unlocked:
-                continue
-            if cond_met(player, stats, profs, extra, a["cond"], group_id):
-                try:
-                    db.set_achievement(group_id, qq_id, a["id"], 1, 0)  # claimed=0 待领取
-                except Exception:
-                    continue
-                unlocked.add(a["id"])
-                rw = a.get("reward") or {}
-                if rw.get("exp") or rw.get("gold") or rw.get("items"):
-                    parts = []
-                    if rw.get("exp"):
-                        parts.append(_T.text("ach.exp_part", exp=rw['exp']))
-                    if rw.get("gold"):
-                        parts.append(_T.text("ach.gold_part", gold=rw['gold']))
-                    # v140 波2：物品奖励进解锁提示（《物品名》×N）
-                    if rw.get("items"):
-                        for _ik, _ic in rw["items"].items():
-                            _nm = _ik
-                            try:
-                                _nm = (ITEMS.get(_ik) or MATERIALS.get(_ik) or {}).get("name", _ik)
-                            except Exception:
-                                pass
-                            parts.append(f"{_nm}×{_ic}")
-                    a = dict(a)
-                    a["_reward_txt"] = "、".join(parts) + _T.static("ach.claim_hint")
-                else:
-                    a = dict(a)
-                    a["_reward_txt"] = ""
-                new_ones.append(a)
-        return new_ones
+        return _ledger_check(group_id, qq_id, player, extra)
     except Exception:
         obs.log().warning("[dragonfall] check_achievements 异常，成就列表降级为空", exc_info=True)
         return []
-
-
-def _has_claimable_reward(a) -> bool:
-    """该成就是否带可发奖励（经验 / 金币 / 物品）—— 与真源 `claim_achievement_rewards` 同判据。"""
-    rw = a.get("reward") or {}
-    return bool(rw.get("exp", 0) or rw.get("gold", 0) or rw.get("items"))
-
-
-def _claim_board(rows, claimed) -> TierBoard:
-    """待领档位状态机（引擎 `collect.TierBoard`）：达成 = 该 id 已解锁；可领 = 带奖励。
-
-    `claim(a)` 幂等（`READY` 才记入，已领/未达成/无物可领一律 `False` 且不碰集合）。
-    """
-    unlocked = {r["ach_key"] for r in rows}
-    return TierBoard(ACHIEVEMENTS,
-                     claimed=claimed,
-                     key=lambda a: a["id"],
-                     reached=lambda a: a["id"] in unlocked,
-                     claimable=_has_claimable_reward)
 
 
 def claim_achievement_rewards(group_id, qq_id) -> tuple:
@@ -303,77 +381,12 @@ def claim_achievement_rewards(group_id, qq_id) -> tuple:
     （{item_key: count}），与经验/金币一同发放——db.add_item 入包，
     物品 key 走 _key_to_id 兼容中文名；发放失败静默跳过（物品缺失不影响其他奖励）。
     ★ U1-I3：筛选「可领档位」改走引擎收集形状 `collect.TierBoard.claim()`（幂等 + 不可重领）。
+
+    形状：`ext_achieve.ledger.claim`；本层只留**降级兜底**（见模块头注「真源遗留缺陷逐字
+    保留」——`LOG` 仍是未定义的全局名 ⇒ 这一路实际抛 NameError，与改前逐字节相同）。
     """
-    from .gameplay_rules import check_player_level_up
-    from .stat_bonus import stat_bonus
     try:
-        rows = db.get_achievements(group_id, qq_id) or []
-        pending = [r for r in rows if not r.get("claimed")]
-        if not pending:
-            return [], _T.static("ach.none")
-        # 过滤出真正带奖励的待领成就（引擎三态机：READY 才可领，领过/没奖励不再是 READY）
-        board = _claim_board(rows, {r["ach_key"] for r in rows if r.get("claimed")})
-        claimable = []
-        for r in pending:
-            a = next((x for x in ACHIEVEMENTS if x["id"] == r["ach_key"]), None)
-            # v105.xx P0 修复：原 `if a and X or Y` 优先级错误——a=None（如 inst_clear_* 记录
-            # 不在 ACHIEVEMENTS 中）时 `or` 右侧仍求值 a.get() → AttributeError 崩溃。
-            # 显式括号：a 为 None 时短路，不进入。
-            if a is not None and board.claim(a):
-                claimable.append(a)
-        if not claimable:
-            # 没有奖励的成就直接标记已领取，避免永久挂起
-            for r in pending:
-                try:
-                    db.set_achievement(group_id, qq_id, r["ach_key"], r.get("progress", 1), 1)
-                except Exception:
-                    pass
-            return [], _T.static("ach.none")
-        player = db.get_player(group_id, qq_id)
-        if not player:
-            return [], _T.static("ach.need_register")
-        player = dict(player)
-        # K0-A1：复用统一单点 stat_bonus()（含 M18 同名去重 + TITLES 侧 bonus），
-        # 不再用轻量 _title_bonus_plain——避免 Lv.10 副业大师称号被当作第二份双算。
-        player["_title_bonus"] = stat_bonus(group_id, qq_id, player)
-        exp_gain = sum((a.get("reward") or {}).get("exp", 0) for a in claimable)
-        gold_gain = sum((a.get("reward") or {}).get("gold", 0) for a in claimable)
-        # v140 波2：物品奖励统一收集 → 发放（失败静默跳过，不阻塞经验/金币/升级）
-        # v174 统一抽象：物品发放走 game.reward.grant_items_batch（与任务/对话/收藏同一实现）
-        item_lines = []
-        _reward_ok = True
-        _all_items = {}
-        for a in claimable:
-            for ik, ic in ((a.get("reward") or {}).get("items") or {}).items():
-                _all_items[ik] = int(_all_items.get(ik, 0)) + int(ic)
-        if _all_items:
-            try:
-                from .reward import grant_items_batch
-                item_lines, _reward_ok = grant_items_batch(group_id, qq_id, _all_items, lines=item_lines)
-            except Exception:
-                _reward_ok = False
-        player["exp"] = player.get("exp", 0) + exp_gain
-        player["gold"] = player.get("gold", 0) + gold_gain
-        lv_logs, player = check_player_level_up(group_id, qq_id, player)
-        db.update_player(group_id, qq_id,
-                         exp=player["exp"], gold=player["gold"], level=player["level"],
-                         hp=player["hp"], mp=player["mp"], max_hp=player["max_hp"], max_mp=player["max_mp"],
-                         skills=player["skills"], attr_pts=player.get("attr_pts", 0),
-                         skill_points=player.get("skill_points", 0),
-                         learned_skills=player.get("learned_skills", []))
-        for a in claimable:
-            db.set_achievement(group_id, qq_id, a["id"], 1, 1)
-        lines = [_T.text("ach.claim_head", exp=exp_gain) + (_T.text("ach.claim_gold", gold=gold_gain) if gold_gain else "")]
-        if item_lines:
-            lines.append(_T.static("ach.items_head"))
-            lines += item_lines
-            if not _reward_ok:
-                lines.append(_T.static("ach.items_partial_fail"))
-        for a in claimable:
-            lines.append(f"🏅 {a['name']}")
-        lines.append("")
-        lines += lv_logs
-        return lines, ""
+        return _ledger_claim(group_id, qq_id)
     except Exception as e:
         LOG.warning(f"[dragonfall] 成就领取失败: {e}")
         return [], _T.static("ach.fail")
