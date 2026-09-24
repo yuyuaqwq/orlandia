@@ -128,5 +128,7 @@
     "ext_quest",
     "ext_reward",
     "ext_achieve"
-  ]
+  ],
+  "version": "0.1.0",
+  "author": "鱼鱼"
 }
