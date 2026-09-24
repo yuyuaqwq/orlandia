@@ -138,11 +138,6 @@ def install_engine() -> None:
     from ext_combat.battle import formulas as _formulas
     from ext_combat.battle import game_config as GC   # 游戏配置取件面（第 7 批从引擎 config 搬来）
 
-    # ★ 2026-09-24 B7b：药水效果层（已进扩展包 `ext_effect`）的**注入面** ——
-    #   文案渲染 + 三个域表由本包注入（扩展包不许 import 数据包）。装配期一次，幂等。
-    from .effects import bind_effects as _bind_effects
-    _bind_effects()
-
     config.register_hook_provider(_lazy_mount)
     config.mount(
         formulas=_formulas,                    # 引擎自带纯公式模块（引擎侧，非内容）

@@ -131,10 +131,8 @@ QUESTS_SRC = os.path.join(_PD, "game", "services", "quests.py")
 #   判据（key ↔ 调用点双向对账 / 槽位校验 / dead key）与条数**一条未变**。
 GATE_SRC = os.path.join(PKG_ROOT, "content", "flow", "instance_gate.py")
 # ★ C 档 PRE（2026-09-19 并行 worker 片）：effects / mech 两域首次接入文案表
-PKG_POTION_SRC = os.path.join(_paths.ENGINE_ROOT, "extends", "ext_effect",
-                              "effects", "potion_effects.py")
-PKG_POI_EFFECTS_SRC = os.path.join(_paths.ENGINE_ROOT, "extends", "ext_effect",
-                                   "effects", "poi_effects.py")
+PKG_POTION_SRC = os.path.join(PKG_ROOT, "content", "effects", "potion_effects.py")
+PKG_POI_EFFECTS_SRC = os.path.join(PKG_ROOT, "content", "effects", "poi_effects.py")
 PKG_CLASS_MECH_SRC = os.path.join(PKG_ROOT, "content", "mech", "class_mech.py")
 INSTANCE_ROUTER_SRC = os.path.join(_PD, "game", "commands", "instance_router.py")
 INSTANCE_SRC = os.path.join(_PD, "game", "commands", "instance.py")

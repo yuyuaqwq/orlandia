@@ -1048,13 +1048,15 @@ def _we_value_diff() -> list:
 _AUX_SHA_INTENT = {
     # T14 第 2 轮登记；new 值随**装配契约**的合法变更推进：
     #   · 2026-09-23 包栈重构（第 2/7 批）：hook 取件路径改指 `ext_combat.battle.*`
-    #   · 2026-09-24 B7b：装配期多一行「药水效果层注入面」（
-    #     `from .effects import bind_effects` + `_bind_effects()`，把文案/三张域表注入
-    #     扩展包 `ext_effect`；数值与行为不变，见包仓提交 6caee95）
+    #   · 2026-09-24 B7b：装配期多一行「药水效果层注入面」（`bind_effects()`，
+    #     把文案/三张域表注入扩展包 `ext_effect`）→ new = `a5833a7b…`
+    #   · 2026-09-24 **纠偏**：鱼鱼拍板「效果相关的一切（体 + 形状）都属奥兰迪亚专用，回数据包」
+    #     ⇒ 扩展包 `ext_effect` 整个删除、B7a/B7b 回滚，`content/apply.py` 那行注入随之撤销
+    #     ⇒ new 值**回到 B7b 之前**的 `e78326d7…`（与 5ab556a 提交里被顶掉的那个旧 new 值同一个）
     # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        'a5833a7b8506ac662d8076cf59378556ac9deddf26311483e74315e641c994af',
+        'e78326d762423cba40112eba99e67b0d4a0f6659f47bcb1130a7bbaa4f3649ff',
     ),
 }
 
