@@ -24,6 +24,12 @@ re-export」（`CONDITIONS` / `register` / `TitleCtx` / `check_pro_title` / 各 
    `C.ALL_WILD` → 包内读口 `content/wild.py`（B13-L2 已落地；派生口径与宿主 `C.ALL_WILD`
    一致）。仍走宿主句柄的只剩**函数**：`C.faction_reputation_tier`（`core/factions.py`）。
 
+★ B2-S3（2026-09-24 抽包工程 B2 批第三步）：本文件的**形状**已抽进扩展包 `ext_achieve.earn`
+  —— 判定上下文外壳（字段 + 钩子表 + 注入读口）· 逐条求值器（注册表命中 / 参数化兜底 /
+  未知 id 降级 False）· 参数化条件（`<前缀><类别><数字>` ⇒ 等级 ≥ 阈值）。本文件只留：
+  `_t_*` 判定函数（内容判据）· `check_pro_title` 的前缀与副业类别集合 · 称号表的喂入。
+  对外面一字未改（`TitleCtx` / `CONDITIONS` / `check_pro_title` 三名照旧，消费者零改动）。
+
 真源原文头注（逐字保留）
 ------------------------
     奥兰迪亚·余烬纪年核心层 - title_conds.py（v98.3：称号获得条件注册表）
@@ -67,11 +73,15 @@ from .catalog_space import MAPS                 # 真源 `C.MAPS`
 from . import catalog_b143 as _cb143            # 真源 `C.HIDDEN_MAP_UNLOCK`（`game/data/maps.py:4343`）
 from . import wild as _wild                     # 真源 `C.ALL_WILD`（`core/wild.py:26` 派生式）
 
-import re
 
 from saintess_engine.conditions import Conditions
 from saintess_engine.conditions.declarative import register_specs
 from .cond_specs import load as _load_specs
+# ★ B2-S3：形状进包 `ext_achieve.earn`（上下文外壳 / 逐条求值器 / 参数化条件）
+from ext_achieve.earn import EvalCtx, ParamCond
+from ext_achieve.earn import bind as _bind_earn
+from ext_achieve.earn import earned_flags as _earned_flags
+from . import catalog_quests as _cq        # 称号表**调用时**读（`_cq.TITLES`，域装配后回填）
 
 CONDITIONS = Conditions()
 
@@ -85,29 +95,12 @@ register = CONDITIONS.register
 register_specs(CONDITIONS.register, _load_specs("title"))
 
 
-class TitleCtx:
-    """称号条件判定上下文。hooks 注入命令层专属能力（has_enhanced/visited_maps）。"""
+# ★ B2-S3：上下文外壳 = 扩展包 `ext_achieve.earn.EvalCtx`（形状进包）。旧名 `TitleCtx`
+#   保留（消费者与既有门禁按这个名字取），**字段名与位置参数序一字未改**；`_db()` 读的就是
+#   下面注入的存档口（`content._pkgref.DB`，与抽包前**同一对象**）。
+TitleCtx = EvalCtx
 
-    def __init__(self, group_id, qq_id, player, stats, rep, quests, hooks=None):
-        self.group_id = group_id
-        self.qq_id = qq_id
-        self._focus = player or {}
-        self.stats = stats or {}
-        self.rep = rep or {}
-        self.quests = quests or {}
-        self.hooks = hooks or {}
-
-    def _db(self):
-        # B13-L4：真源「函数内 from .. import db」→ 宿主 db 模块本体
-        # （`_host_module("db")` 返回的**就是宿主 db 模块对象**：类型/身份与真源一致；
-        #   调用点 `ctx._db().xxx()` 一字未改）
-        return db    # B1：包内直取（`content.persistence`；原 `_host_module("db")`）
-
-    def hook(self, name, *args, **kwargs):
-        fn = self.hooks.get(name)
-        if fn:
-            return fn(*args, **kwargs)
-        return None
+_bind_earn(db=db)      # 注入读口（形状侧持有的是**同一对象**，不复制、不包壳）
 
 
 # ================= 条件实现 =================
@@ -211,15 +204,25 @@ def _t_shadow_friend(ctx):
     return _side_done(ctx, "s78") and _has_flag(ctx, "s78_branch_mercy")
 
 
+# ★ B2-S3：`pro_<prof><lv>` 这台机器 = 扩展包 `ext_achieve.earn.ParamCond`（形状进包）；
+#   前缀 / 副业类别集合 / 等级读取器都是**本游戏的内容** ⇒ 装配点留在本文件。
+_PRO_TITLE = ParamCond(
+    "pro_",
+    ("gather", "mining", "fishing", "alchemy", "craft", "cooking"),
+    lambda ctx, key: ctx._db().get_prof_level(ctx.group_id, ctx.qq_id, key))
+
+
 def check_pro_title(tid: str, ctx) -> bool:
     """副业称号：pro_<prof><lv>（如 pro_gather3）→ 副业等级达标。"""
-    m = re.match(r"^pro_([a-z]+)(\d+)$", tid)
-    if not m:
-        return False
-    prof_key, need_lv = m.group(1), int(m.group(2))
-    if prof_key in ("gather", "mining", "fishing", "alchemy", "craft", "cooking"):
-        return ctx._db().get_prof_level(ctx.group_id, ctx.qq_id, prof_key) >= need_lv
-    return False
+    return _PRO_TITLE.check(tid, ctx)
+
+
+def earned_titles(ctx):
+    """逐条判称号表 → 已达成的布尔列表（**同序同长**）。
+
+    ★ B2-S3：循环本体现在是形状 `ext_achieve.earn.earned_flags`（注册表命中 → 判定函数 /
+    否则参数化兜底 / 都不中 ⇒ False）；本函数只负责「喂哪张表、哪个注册表、哪个兜底」。"""
+    return _earned_flags(_cq.TITLES, ctx, CONDITIONS, _PRO_TITLE)
 
 
 # ================= v140 波3.6：资源向称号条件（方案 3.9，6 个） =================

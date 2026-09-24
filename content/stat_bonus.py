@@ -17,8 +17,10 @@
   ② `from ..log_setup import LOG` → `LOG.warning(...)` 调用点改 `content/obs.py::log()`（B2-C4）
   ③ 函数内 3 处 `from .. import db` → 删（模块级 `db` = 包内 `content/_pkgref.DB`，B1 口径）
   ④ `_collection_completed_bonus` 内 `from .. import content as _C` → 删（用 ① 的包内 `display`）
-  ⑤ `stat_bonus()` 内 `from .title_conds import TitleCtx, CONDITIONS, check_pro_title`
-     → **已切包内** `content/title_conds.py`（B13-L4 落地）
+  ⑤ `stat_bonus()` 内 `from .title_conds import TitleCtx, earned_titles`
+     → **已切包内** `content/title_conds.py`（B13-L4 落地）；★ B2-S3（2026-09-24）
+     逐条判的循环体已抽进扩展包 `ext_achieve.earn.earned_flags`，本模块只喂 ctx
+     （口径一字未改：注册表命中 → 判定函数 / `pro_` 参数化兜底 / 都不中 False）
 
 ★ B14-2 L8（2026-09-14）：数据读点已切包内门面/读口（`catalog_quests` / `catalog_items` /
   `collection.books()`）。**实测推翻本文件旧注**（旧注称「`titles.json` 条目无 `bonus`、直接切会静默丢加成」）：
@@ -140,9 +142,7 @@ def stat_bonus(group_id, qq_id, player=None) -> dict:
     """
     bonus = {}
     try:
-        from .title_conds import TitleCtx
-        from .title_conds import CONDITIONS
-        from .title_conds import check_pro_title
+        from .title_conds import TitleCtx, earned_titles   # ★ B2-S3：求值器在扩展包形状里
         if player is None:
             player = db.get_player(group_id, qq_id) or {}
         stats = db.get_stats(group_id, qq_id) or {}
@@ -152,17 +152,7 @@ def stat_bonus(group_id, qq_id, player=None) -> dict:
             "has_enhanced": _has_enhanced,
             "visited_maps": _visited_maps,
         })
-        earned = []
-        for t in _cq.TITLES:
-            tid = t["id"]
-            fn = CONDITIONS.get(tid)
-            if fn is not None:
-                ok = fn(ctx)
-            elif tid.startswith("pro_"):
-                ok = check_pro_title(tid, ctx)
-            else:
-                ok = False  # 未知称号 id：不获得（数据错误时安全降级）
-            earned.append(ok)
+        earned = earned_titles(ctx)   # ★ B2-S3：逐条判 = 扩展包形状（同序同长）
         for i, t in enumerate(_cq.TITLES):
             if earned[i] and t.get("bonus"):
                 for k, v in t["bonus"].items():

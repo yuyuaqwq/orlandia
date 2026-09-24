@@ -358,6 +358,8 @@ _PKG_SURFACE = {
     "CONDITIONS": ("content.title_conds", "CONDITIONS"),
     "TitleCtx": ("content.title_conds", "TitleCtx"),
     "check_pro_title": ("content.title_conds", "check_pro_title"),
+    # ★ B2-S3（2026-09-24）：逐条求值器出口（`_h('earned_titles')` 用；形状在 ext_achieve.earn）
+    "earned_titles": ("content.title_conds", "earned_titles"),
     "_eq_random_desc": ("content.drops", "_eq_random_desc"),
     "_merge_legendary_stats": ("content.drops", "_merge_legendary_stats"),
     "build_monster": ("content.drops", "build_monster"),
@@ -396,7 +398,8 @@ _BIND_SLOTS = (
         "ARMOR_FAMILY_ALIAS", "C", "CONDITIONS", "QUALITY", "STAT_NAMES", "TitleCtx",
         "_craft_svc", "_eq_random_desc", "_merge_legendary_stats", "_possessed_key",
         "_prof_svc", "_set_info", "_shop_svc", "_ss", "_sshop", "can_translate",
-        "check_pro_title", "db", "equip_value", "item_templates", "make_override",
+        "check_pro_title", "db", "earned_titles", "equip_value", "item_templates",
+        "make_override",
         "player_final_stats", "race_stats", "rune_item", "stat_affix_stats",
         "sync_player_from_actor",
     )),

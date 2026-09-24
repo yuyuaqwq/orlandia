@@ -5292,10 +5292,11 @@ class EconomyImpl(CommandBase):
 
     def _earned_titles(self, group_id, qq_id, player):
         """计算已获得的称号，返回 (已获列表, 未获列表)
-        v98.3：条件判定全数据化 → core/title_conds.py CONDITIONS 注册表"""
-        TitleCtx = _h('TitleCtx')  # ← from ..core.title_conds import TitleCtx, CONDITIONS, check_pro_title
-        CONDITIONS = _h('CONDITIONS')  # ← from ..core.title_conds import TitleCtx, CONDITIONS, check_pro_title
-        check_pro_title = _h('check_pro_title')  # ← from ..core.title_conds import TitleCtx, CONDITIONS, check_pro_title
+        v98.3：条件判定全数据化 → core/title_conds.py CONDITIONS 注册表
+        ★ B2-S3（2026-09-24）：逐条判循环体已抽进扩展包 `ext_achieve.earn.earned_flags`
+        （与 `content/stat_bonus.py` 共用同一个形状）；本方法只喂 ctx —— 同序同长，口径一字未改。"""
+        TitleCtx = _h('TitleCtx')  # ← from ..core.title_conds import TitleCtx, earned_titles
+        earned_titles = _h('earned_titles')  # ← from ..core.title_conds import TitleCtx, earned_titles
         stats = db.get_stats(group_id, qq_id) or {}
         rep = db.get_reputation(group_id, qq_id)
         quests = db.get_quests(group_id, qq_id)
@@ -5303,18 +5304,7 @@ class EconomyImpl(CommandBase):
             "has_enhanced": self._has_enhanced,
             "visited_maps": _visited_maps,
         })
-        earned = []
-        for t in _cquest.TITLES:
-            tid = t["id"]
-            fn = CONDITIONS.get(tid)
-            if fn is not None:
-                ok = fn(ctx)
-            elif tid.startswith("pro_"):
-                ok = check_pro_title(tid, ctx)
-            else:
-                ok = False  # 未知称号 id：不获得（数据错误时安全降级）
-            earned.append(ok)
-        return earned
+        return earned_titles(ctx)   # ★ B2-S3：逐条判 = 扩展包形状（同序同长）
 
     def _has_enhanced(self, group_id, qq_id, level):
         items = db.get_inventory(group_id, qq_id)
