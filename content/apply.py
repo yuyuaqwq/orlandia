@@ -171,6 +171,12 @@ def install_engine() -> None:
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
     GC.load_game_rules(P)
+    # ★ P2 试点（2026-09-24）：机制声明表（`content/rules/mech_seq_*.json`）+ 域动词注册。
+    #   装配期整表编译（fail-closed：形状/动词/节点三关，任一条不合法即抛、整表不装）；
+    #   表文件不存在 ⇒ 跳过（迁移按动作逐个换，允许只装一半）。
+    #   形状在引擎 `saintess_engine.acts`；执行壳与 ctx 形状见 `content/mech/seq_plans.py`。
+    from .mech.seq_plans import load_plans as _load_seq_plans
+    _load_seq_plans()
     _MOUNTED = True
 
 

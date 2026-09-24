@@ -63,7 +63,12 @@ PKG_DIR = _paths.PKG_ROOT
 AUX_FILES = {"text_specs.json": "文案规格表（非域表；真源=包内，宿主那份是构建期镜像）",
              "tables.json": "存档表结构声明（非域表；包内真源，由引擎 `saintess_engine.store` 装载建表）",
              "cond_specs.json": "声明式条件表（非域表；S4 起为包内真源 —— 由 `content/cond_specs.py` "
-                                "读口供给，引擎 `saintess_engine.conditions.declarative` 通用装配）"}
+                                "读口供给，引擎 `saintess_engine.conditions.declarative` 通用装配）",
+             # ★ 2026-09-24（P2 机制声明式化）：机制序列表 —— 非域表；包内真源，由
+             #   `content/mech/seq_plans.py` 读口供给，引擎 `saintess_engine.acts` 通用装配
+             #   （动词由 `content/mech/seq_verbs_*.py` 注册）。与 cond_specs 同款：数据侧无调用点。
+             "mech_seq_class.json": "机制序列表·职业/被动域（非域表；P2 试点起为包内真源）",
+             "mech_seq_weapon.json": "机制序列表·武器域（非域表；P2 试点起为包内真源）"}
 
 DATA_DIR = os.path.join(PKG_DIR, "content", "data")
 RULES_DIR = os.path.join(PKG_DIR, "content", "rules")

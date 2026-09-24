@@ -110,6 +110,14 @@ from .class_data import (  # noqa: F401
 # 同 content/mech/we_procs.py 写法：`_T.text(key, 槽位=…)` / `_T.static(key)`）
 from .. import texts as _T            # noqa: E402
 
+# ★ P2 声明式化（2026-09-24）：机制序列执行壳（形状在引擎 `saintess_engine.acts`）。
+#   本文件 **3 个动作**（`mech_cash_dmg_mult` / `passive_bar_extend` / `passive_low_hp_core`）
+#   的实现已从函数体换成「声明表 + 动词」：表 = `content/rules/mech_seq_class.json`，
+#   动词 = `content/mech/seq_verbs_class.py`（装配期由 `content/apply.py::install_engine`
+#   经 `seq_plans.load_plans()` 整表编译，**未装配的动作当场 KeyError**，不静默跳过）。
+#   注册名 / 签名 / 触发点 / 行为逐字节不变（冻结基线 `workspace/_pilot5_baseline.py`）。
+from . import seq_plans as _SP        # noqa: E402
+
 
 # ============================================================
 # 声明编译器（U1-D2 L7）：本文件 **6 处挂载点 / 5 种去重口径**（逐处显式选编译器 + merge）
@@ -542,26 +550,13 @@ def mech_cash_dmg_mult(battle, caster, target, params, logs):
     """dmg_calc：按持有层数加成伤害乘区（模式 dmg_mult_clear* 的伤害段）。
 
     参数见模块 docstring；mult = 1 + per_layer × 层数（多印记 key = 各 key 之和）。
+
+    ★ P2 声明式化（2026-09-24）：实现 = 声明表 `content/rules/mech_seq_class.json` 的
+    `mech_cash_dmg_mult` 计划 + 动词（`content/mech/seq_verbs_class.py`）。
+    本函数只剩执行壳：注册名 / 签名 / 触发点不变，行为逐字节等价
+    （冻结基线 `workspace/_pilot5_baseline.py` 60 条 case + 自造 44 条边界 case 对拍）。
     """
-    ctx = getattr(battle, "_fire_ctx", None)
-    if ctx is None:
-        return
-    info = ctx.get("info") or {}
-    if info.get("mech") != params.get("mech"):
-        return
-    actor = _holder(params.get("owner"), ctx, caster, target)
-    n = _stacks_float(actor.get("effects"), params.get("key"))
-    per = float(params.get("per_layer") or 0)
-    # 技能级覆盖：info.per_stack（链舞被动给后续终结技 +6%/段）优先于声明缺省
-    per = float(info.get("per_stack") or per)
-    mult = 1.0 + per * n
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
-    label = params.get("label") or params.get("mech") or ""
-    icon = params.get("icon") or "💥"
-    layer_label = params.get("layer_label") or "、".join(_key_list(params.get("key")))
-    unit = params.get("unit") or "层"
-    logs.append(_T.text("cmech.cash_dmg_mult", icon=icon, label=label, keys=layer_label, n=n, unit=unit,
-                    mult=mult))
+    return _SP.run("mech_cash_dmg_mult", battle, caster, target, params, logs)
 
 
 @register_action("mech_cash_clear")
@@ -1113,30 +1108,13 @@ def passive_bar_extend(battle, caster, target, params, logs):
     参数：judge.bar（条名）/ params.extend（刻数，来自被动 dict）。
     装配顺序依赖：挂条动词（bar_gain）须先于本段执行（见 battle_bar_procs
     apply_bar_procs 头部 insert 注释）。
+
+    ★ P2 声明式化（2026-09-24）：实现 = 声明表 `content/rules/mech_seq_class.json` 的
+    `passive_bar_extend` 计划 + 动词（`content/mech/seq_verbs_class.py`）。
+    本函数只剩执行壳：注册名 / 签名 / 触发点不变，行为逐字节等价
+    （冻结基线 `workspace/_pilot5_baseline.py` 60 条 case + 自造 44 条边界 case 对拍）。
     """
-    ctx = getattr(battle, "_fire_ctx", None) or {}
-    judge = params.get("judge") or {}
-    host = ctx.get("target")
-    if not isinstance(host, dict):
-        host = target
-    bar = judge.get("bar") or params.get("bar") or ""
-    try:
-        ext = float(params.get("extend", 0) or 0)
-    except Exception:
-        ext = 0.0
-    if not bar or ext <= 0 or not isinstance(host, dict):
-        return
-    from ext_combat.gauge import bar_effect_key
-    bs = (host.get("effects") or {}).get(bar_effect_key(bar))
-    if not isinstance(bs, dict):
-        return
-    if int(bs.get("trigger_count", 0) or 0) <= 0:
-        return
-    _now = float(getattr(battle, "_now", 0.0) or 0.0)
-    if float(bs.get("immune_until", 0.0) or 0.0) <= _now:
-        return
-    bs["immune_until"] = float(bs.get("immune_until", 0.0) or 0.0) + ext
-    logs.append(_T.text("cmech.bar_extend", label=params.get('label') or '被动', ext=int(ext)))
+    return _SP.run("passive_bar_extend", battle, caster, target, params, logs)
 
 
 @register_action("passive_kill_gain")
@@ -1675,35 +1653,13 @@ def passive_low_hp_core(battle, caster, target, params, logs):
     （player_low 无 fire 点位——见 saintess_engine/effect_triggers.py 头注）→ 本动作以
     on_taken（真实承伤后）为观测点：受击后跌破阈值即补；DOT/环境掉血须等下一次受击。
     参数：hp_lt/cores（技能 passive dict）/ res/used_key（声明表）；缺字段=无此行为。
+
+    ★ P2 声明式化（2026-09-24）：实现 = 声明表 `content/rules/mech_seq_class.json` 的
+    `passive_low_hp_core` 计划 + 动词（`content/mech/seq_verbs_class.py`）。
+    本函数只剩执行壳：注册名 / 签名 / 触发点不变，行为逐字节等价
+    （冻结基线 `workspace/_pilot5_baseline.py` 60 条 case + 自造 44 条边界 case 对拍）。
     """
-    ctx = getattr(battle, "_fire_ctx", None) or {}
-    owner = params.get("_owner") or ctx.get("actor") or caster
-    from ext_combat.battle.actors import actor_alive
-    if owner is None or not actor_alive(owner):
-        return
-    res = params.get("res") or ""
-    used_key = params.get("used_key") or ""
-    hp_lt = float(params.get("hp_lt") or 0)
-    cores = float(params.get("cores") or 0)
-    if not res or not used_key or hp_lt <= 0 or cores <= 0:
-        return  # 缺字段 = 无此行为
-    ef = owner.setdefault("effects", {})
-    if isinstance(ef.get(used_key), dict):
-        return  # 每场 1 次（一次性 flag 已置位）
-    mhp = int(owner.get("max_hp", 1) or 1)
-    if int(owner.get("hp", 0) or 0) >= int(mhp * hp_lt):
-        return  # 未跌破阈值
-    from ext_combat.battle.effects import cap_of as _cap_fn, norm_stack as _ns
-    cap = _cap_fn(owner, res)
-    entry = ef.get(res)
-    cur = float(entry.get("stacks", 0) or 0) if isinstance(entry, dict) else 0.0
-    n = max(0.0, min(float(cap), cur + cores))
-    if not isinstance(entry, dict):
-        entry = ef[res] = {}
-    entry["stacks"] = _ns(n)
-    ef[used_key] = {"stacks": 1, "expire": None}
-    logs.append(_T.text("cmech.low_hp_core", label=params.get('label') or '不动如山', cores=_ns(cores), n=_ns(n),
-                    cap=cap))
+    return _SP.run("passive_low_hp_core", battle, caster, target, params, logs)
 
 
 @register_action("passive_overflow_shield")

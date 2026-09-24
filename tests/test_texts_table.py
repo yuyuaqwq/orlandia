@@ -225,8 +225,12 @@ INSTANCE_BATTLE_SRC = PKG_FLOW_INSTANCE_BATTLE_SRC
 #   ⇒ 扫描面（真实调用点集合 / 字面量集合）与双向对账判定**逐条不变**，只是不再扫那份空壳。
 WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          #  ★ 2026-09-19（39b）：`cond_procs.py` 的 skill_cond_mult_act 播报行入表（cmech.cond_mult_line）
+         #  ★ 2026-09-24（P2）：`mech_cash_dmg_mult` / `passive_bar_extend` / `passive_low_hp_core`
+         #    三个动作体换成声明表 ⇒ 文案键写到表的 `log`/`text` 槽上（代码侧调用点消失）
+         #    ⇒ 附加声明表作扫源（`.json` 走「字面量也算引用」口径，见 `_scan_calls`）
         "职业机制": [PKG_CLASS_MECH_SRC,
-                     os.path.join(PKG_CONTENT, "mech", "cond_procs.py")],
+                     os.path.join(PKG_CONTENT, "mech", "cond_procs.py"),
+                     os.path.join(PKG_CONTENT, "rules", "mech_seq_class.json")],
          "副本准入": GATE_SRC, "副本结算": PKG_INSTANCE_ROUTER_SRC,
          "副本日志": PKG_INSTANCE_SRC,
          "副本战斗日志": PKG_FLOW_INSTANCE_BATTLE_SRC,
@@ -242,7 +246,10 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          #   引用（域 `weapon_effects` 的条目字段存 `<字段>_key`，装载期回填模板串）
          #   —— 本域是「数据在域、文案在文案表、代码传 key」的第一个纯数据域，
          #   引用面 = 读口里的 `_TEXT_KEYS` 字面量（`_scan_calls` ②「字面量也算引用」）。
-         "武器特效": os.path.join(PKG_CONTENT, "mech", "we_data.py"),
+         #   ★ 2026-09-24（P2）：`we_death_pool_add/pay` 换成声明表 ⇒ `we.death_pool_pay`
+         #     的键写到 `content/rules/mech_seq_weapon.json` 的 `log` 槽上 ⇒ 附加该表作扫源。
+         "武器特效": [os.path.join(PKG_CONTENT, "mech", "we_data.py"),
+                  os.path.join(PKG_CONTENT, "rules", "mech_seq_weapon.json")],
          # ★ B 批 B-1（2026-09-17）：效果名（`_EFFECT_CN` 47 键）搬进文案表 `effect_name.*`，
          #   引用面 = `combat_cmds.py` 里的 `_EFFECT_KEYS`（id → 文案键）字面量表 + 读口 `_effect_cn()`。
          "效果名": os.path.join(PKG_CONTENT, "combat_cmds.py"),
@@ -1054,7 +1061,23 @@ def _scan_calls(path):
        也算被引用，否则会被当成死文案误报。
 
     ②只用于「有没有引用」，槽位对账仍只认①的直接调用实参。
+
+    ★ 2026-09-24（P2 机制声明式化）：`.json` 扫源 —— 机制序列表（`content/rules/mech_seq_*.json`）
+      里文案键写在声明的 `log` / `text` 槽上，**数据侧没有调用点**，按既有口径走 ②
+      （表内所有字符串都算「引用」）；槽位对账不适用于数据侧 ⇒ ① 恒空。
     """
+    if path.endswith(".json"):
+        def _strings(obj):
+            if isinstance(obj, str):
+                yield obj
+            elif isinstance(obj, dict):
+                for v in obj.values():
+                    yield from _strings(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    yield from _strings(v)
+        data = json.loads(io.open(path, encoding="utf-8").read())
+        return [], set(_strings(data))
     tree = ast.parse(io.open(path, encoding="utf-8").read())
     calls, lits = [], set()
     for node in ast.walk(tree):

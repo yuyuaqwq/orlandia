@@ -1,0 +1,92 @@
+{
+  "we_death_pool_add": {
+    "doc": "★P2 试点（武器域）：死亡之舞·收池段。事件由 equip._translate_death_dance 写死为 on_taken（数据表的 event 是死字段），本键只作标记。缺字段兜底（pool_key→we_death_pool / pool_pct→0.35 / fetch→dmg）写在动词参数默认值里，逐字保留旧 Python 兜底。",
+    "on": "on_taken",
+    "seq": [
+      {
+        "verb": "ext_ratio_add",
+        "owner": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "_owner",
+              "default": null
+            }
+          ]
+        },
+        "area": "ext",
+        "group": "we_proc",
+        "key": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "pool_key",
+              "default": null
+            }
+          ]
+        },
+        "fetch": "dmg",
+        "scale": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "pool_pct",
+              "default": null
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "we_death_pool_pay": {
+    "doc": "★P2 试点（武器域）：死亡之舞·结算段。事件由 equip._translate_death_dance 写死为 turn_start（数据表的 event 是死字段），本键只作标记。缺字段兜底（pool_key→we_death_pool / pay_pct→0.10）写在动词参数默认值里，逐字保留旧 Python 兜底；文案键 we.death_pool_pay 由本表给。",
+    "on": "turn_start",
+    "seq": [
+      {
+        "verb": "ext_pool_drain_pct",
+        "owner": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "_owner",
+              "default": null
+            }
+          ]
+        },
+        "area": "ext",
+        "group": "we_proc",
+        "key": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "pool_key",
+              "default": null
+            }
+          ]
+        },
+        "pct": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "pay_pct",
+              "default": null
+            }
+          ]
+        },
+        "log": "we.death_pool_pay"
+      }
+    ]
+  }
+}

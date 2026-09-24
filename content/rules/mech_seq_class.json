@@ -1,0 +1,595 @@
+{
+  "mech_cash_dmg_mult": {
+    "on": "dmg_calc",
+    "seq": [
+      {
+        "verb": "read_fire_ctx",
+        "into": "fire"
+      },
+      {
+        "verb": "guard_mech_match",
+        "of": "fire",
+        "into": "ok",
+        "mech": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "mech",
+              "default": null
+            }
+          ]
+        },
+        "stop_if": {
+          "op": "not",
+          "arg": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ok"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "verb": "pick_effect_host",
+        "of": "fire",
+        "into": "host",
+        "owner": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "owner",
+              "default": null
+            }
+          ]
+        }
+      },
+      {
+        "verb": "sum_stacks_float",
+        "of": "host",
+        "into": "n",
+        "key": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "key",
+              "default": null
+            }
+          ]
+        }
+      },
+      {
+        "verb": "fallback_join_keys",
+        "into": "keys",
+        "first": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "layer_label",
+              "default": null
+            }
+          ]
+        },
+        "key": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "key",
+              "default": null
+            }
+          ]
+        }
+      },
+      {
+        "verb": "mul_channel_field",
+        "of": "fire",
+        "field": "mult",
+        "count_of": "n",
+        "into": "mult",
+        "per_layer": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "per_layer",
+              "default": null
+            }
+          ]
+        }
+      },
+      {
+        "verb": "say",
+        "slot": "cmech.cash_dmg_mult",
+        "args": {
+          "icon": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "icon",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": "💥"
+              }
+            ]
+          },
+          "label": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "label",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "mech",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": ""
+              }
+            ]
+          },
+          "keys": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "keys"
+              }
+            ]
+          },
+          "n": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "n"
+              }
+            ]
+          },
+          "unit": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "unit",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": "层"
+              }
+            ]
+          },
+          "mult": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "mult"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "passive_bar_extend": {
+    "on": "skill_hit",
+    "seq": [
+      {
+        "verb": "read_fire_ctx",
+        "into": "fire",
+        "empty": true
+      },
+      {
+        "verb": "read_bar_window",
+        "of": "fire",
+        "into": "win",
+        "ok_into": "ok",
+        "ext_into": "ext",
+        "bar": {
+          "op": "or",
+          "args": [
+            {
+              "field": [
+                {
+                  "key": "params"
+                },
+                {
+                  "key": "judge",
+                  "default": null,
+                  "or": {}
+                },
+                {
+                  "key": "bar",
+                  "default": null
+                }
+              ]
+            },
+            {
+              "field": [
+                {
+                  "key": "params"
+                },
+                {
+                  "key": "bar",
+                  "default": null
+                }
+              ]
+            },
+            {
+              "const": ""
+            }
+          ]
+        },
+        "ext": {
+          "field": [
+            {
+              "key": "params"
+            },
+            {
+              "key": "extend",
+              "default": 0
+            }
+          ]
+        },
+        "stop_if": {
+          "op": "not",
+          "arg": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ok"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "verb": "extend_bar_window",
+        "of": "win",
+        "ext_of": "ext",
+        "int_into": "ext_int"
+      },
+      {
+        "verb": "say",
+        "slot": "cmech.bar_extend",
+        "args": {
+          "label": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "label",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": "被动"
+              }
+            ]
+          },
+          "ext": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ext_int"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "passive_low_hp_core": {
+    "on": "on_taken",
+    "seq": [
+      {
+        "verb": "read_fire_ctx",
+        "into": "fire",
+        "empty": true
+      },
+      {
+        "verb": "guard_actor_alive",
+        "into": "ok",
+        "owner_into": "owner",
+        "owner": {
+          "op": "or",
+          "args": [
+            {
+              "field": [
+                {
+                  "key": "params"
+                },
+                {
+                  "key": "_owner",
+                  "default": null
+                }
+              ]
+            },
+            {
+              "field": [
+                {
+                  "key": "_w"
+                },
+                {
+                  "key": "fire"
+                },
+                {
+                  "key": "actor",
+                  "default": null
+                }
+              ]
+            },
+            {
+              "field": [
+                {
+                  "key": "caster"
+                }
+              ]
+            }
+          ]
+        },
+        "stop_if": {
+          "op": "not",
+          "arg": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ok"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "verb": "read_positive_params",
+        "into": "ok",
+        "keys": {
+          "res": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "res",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": ""
+              }
+            ]
+          },
+          "used_key": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "used_key",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": ""
+              }
+            ]
+          }
+        },
+        "numbers": {
+          "hp_lt": {
+            "field": [
+              {
+                "key": "params"
+              },
+              {
+                "key": "hp_lt",
+                "default": null
+              }
+            ]
+          },
+          "cores": {
+            "field": [
+              {
+                "key": "params"
+              },
+              {
+                "key": "cores",
+                "default": null
+              }
+            ]
+          }
+        },
+        "stop_if": {
+          "op": "not",
+          "arg": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ok"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "verb": "guard_flag_unset",
+        "owner_of": "owner",
+        "key_of": "used_key",
+        "into": "ok",
+        "stop_if": {
+          "op": "not",
+          "arg": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ok"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "verb": "guard_hp_below",
+        "owner_of": "owner",
+        "lt_of": "hp_lt",
+        "into": "ok",
+        "stop_if": {
+          "op": "not",
+          "arg": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "ok"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "verb": "add_stacks_clamped",
+        "owner_of": "owner",
+        "res_of": "res",
+        "amount_of": "cores",
+        "into": "n",
+        "norm_into": "n_norm",
+        "cap_into": "cap"
+      },
+      {
+        "verb": "set_flag_once",
+        "owner_of": "owner",
+        "key_of": "used_key"
+      },
+      {
+        "verb": "norm_slot",
+        "of": "cores",
+        "into": "cores_norm"
+      },
+      {
+        "verb": "say",
+        "slot": "cmech.low_hp_core",
+        "args": {
+          "label": {
+            "op": "or",
+            "args": [
+              {
+                "field": [
+                  {
+                    "key": "params"
+                  },
+                  {
+                    "key": "label",
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "const": "不动如山"
+              }
+            ]
+          },
+          "cores": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "cores_norm"
+              }
+            ]
+          },
+          "n": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "n_norm"
+              }
+            ]
+          },
+          "cap": {
+            "field": [
+              {
+                "key": "_w"
+              },
+              {
+                "key": "cap"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

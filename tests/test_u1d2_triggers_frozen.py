@@ -1056,7 +1056,7 @@ _AUX_SHA_INTENT = {
     # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        'e78326d762423cba40112eba99e67b0d4a0f6659f47bcb1130a7bbaa4f3649ff',
+        '25195b1fa79454aa9b08a40107eb74381562d74d25867feccd4021a53c762925',
     ),
 }
 

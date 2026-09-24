@@ -6,7 +6,7 @@
 本文件 = 真源 `:24-1468` 的**逐字拷贝**：函数体、数值、`logs.append` 文案、
 注释/分节 banner 一字未改（`.format()` 占位、缺省值、RNG 调用顺序全同）。
 
-结构改写清单（只有 3 类，均在「注册方式 / import 路径」层，零行为变化）
+结构改写清单（只有 4 类，均在「注册方式 / import 路径 / 实现载体」层，零行为变化）
 ----------------------------------------------------------------------
 1. **去装配入口**：删真源尾部 `:1471-1485`（`_INSTALLED = False` + `ensure_registered()`）。
    不需要：引擎 `register_action` 顶层装饰器 **import 即注册**（真源那句注释自己写明
@@ -23,6 +23,14 @@
    （`:251 / :341 / :517 / :692 / :730`）→ `from .we_data import ACT_TICK`
    （值 1.0 逐字抄自 `game/core/constants.py:156`，见 `we_data.py` 头注）。
    真源 `:251` 所在函数体（`we_shield_taken` 的 cd 折算）等**除法/乘法表达式未动**。
+4. ★ **P2 试点（2026-09-24）：2 个动作体的实现载体从 Python 换成声明表** ——
+   `we_death_pool_add` / `we_death_pool_pay` 的函数体只剩一行
+   `return _SP.run("<名>", battle, caster, target, params, logs)`；
+   序列写在 `content/rules/mech_seq_weapon.json`（动词在 `seq_verbs_weapon.py`），
+   **注册名 / 签名 / docstring / 文案 / 数值 / 事件点一字未改**，行为由 60 条冻结基线
+   （`workspace/_pilot5_baseline.py --check`）逐字节钉住 —— 契约见
+   `workspace/overnight/PILOT5_CONTRACT.md` §3.4/§3.5。
+   其余 25 个动作仍是**真源逐字拷贝**（本清单第 1–3 类之外零改动）。
 
 动作清单（27 个，真源装饰器行号 → 真源 `def` 行号）
 -----------------------------------------------------
@@ -66,6 +74,7 @@ from ext_combat.battle.effects import register_action
 from ext_combat.battle.actors import actor_alive
 
 from .. import texts as _T                      # 文案表（B 批 B-1 + C 档 PRE2-c：战斗日志文案）
+from . import seq_plans as _SP                  # ★ P2 试点（2026-09-24）：声明表执行壳（_SP.run）
 
 
 def _roll(chance) -> bool:
@@ -1112,36 +1121,19 @@ def we_combo_end(battle, caster, target, params, logs):
 @register_action("we_death_pool_add")
 def we_death_pool_add(battle, caster, target, params, logs):
     """缓伤池收池（on_taken 事件）：pool += 承伤实值 × pool_pct。"""
-    owner = params.get("_owner") or caster
-    if owner is None:
-        return
-    pool_key = params.get("pool_key") or "we_death_pool"
-    ctx = getattr(battle, "_fire_ctx", None) or {}
-    dmg = float(ctx.get("dmg", 0) or 0)
-    if dmg <= 0:
-        return  # 无实伤不收池（护盾全吸收/免疫）
-    pool_pct = float(params.get("pool_pct") or 0.35)
-    st = owner.setdefault("ext", {}).setdefault("we_proc", {})
-    st[pool_key] = float(st.get(pool_key, 0) or 0) + dmg * pool_pct
-    # 不写日志——旧版收池静默（日志只在 turn_start 结算时）
+    # ★ P2 试点（2026-09-24）：本函数体已换成声明表
+    #   `content/rules/mech_seq_weapon.json` 的 `we_death_pool_add`（动词 `ext_ratio_add`）；
+    #   注册名 / 签名 / 行为逐字节不变（契约 overnight/PILOT5_CONTRACT.md §3.4）。
+    return _SP.run("we_death_pool_add", battle, caster, target, params, logs)
 
 
 @register_action("we_death_pool_pay")
 def we_death_pool_pay(battle, caster, target, params, logs):
     """缓伤池结算（turn_start 事件）：pool>0 → pay = max(1, pool×pay_pct) 扣血递减。"""
-    owner = params.get("_owner") or caster
-    if owner is None or not actor_alive(owner):
-        return
-    pool_key = params.get("pool_key") or "we_death_pool"
-    st = owner.setdefault("ext", {}).setdefault("we_proc", {})
-    pool = float(st.get(pool_key, 0) or 0)
-    if pool <= 0:
-        return
-    pay_pct = float(params.get("pay_pct") or 0.10)
-    pay = max(1, int(pool * pay_pct))
-    owner["hp"] = max(0, int(owner.get("hp", 0) or 0) - pay)
-    st[pool_key] = max(0.0, pool - pay)
-    logs.append(_T.text("we.death_pool_pay", pay=pay, pool=st[pool_key]))
+    # ★ P2 试点（2026-09-24）：本函数体已换成声明表
+    #   `content/rules/mech_seq_weapon.json` 的 `we_death_pool_pay`（动词 `ext_pool_drain_pct`）；
+    #   注册名 / 签名 / 行为逐字节不变（契约 overnight/PILOT5_CONTRACT.md §3.5）。
+    return _SP.run("we_death_pool_pay", battle, caster, target, params, logs)
 
 
 # ============================================================
