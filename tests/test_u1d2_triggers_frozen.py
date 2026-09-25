@@ -156,6 +156,24 @@ READONLY_FILES = (
 # · 若 2b 改成把 food 的展开内联进 `install_food_fx`（`_map_event` 成死码）：同批把它也移出
 #   `SEGMENTS` / `CLASS` / `_BASELINE_PINS`，并在此补一行登记。
 
+# ★ 2026-09-26 · E5-4 收口 2b 登记（迁内容：展开点搬进内容侧）
+# ---------------------------------------------------------------
+# · **改了什么**：`equip` / `food_proc` 不再给引擎 `Compiler` 注入 `map_event` 回调 ——
+#   old→engine 展开在**内容侧装配路径**完成（`equip._expand_events` 挂在三个翻译器出口
+#   `triggers_for_key` / `affix_triggers_for_key` / `legendary_triggers_for_key`；
+#   `food_proc._expand_events` 挂在 `install_food_fx` 装配路径）⇒ 引擎只收引擎事件名。
+# · **未知名告警**（反静默失效）：从 `equip.map_event` 改挂 `Compiler(on_unknown=_on_unknown)`
+#   —— 判在「行表进引擎」那一步，覆盖面只增不减；`map_event` 只做展开、不再登记（判据 [7]④
+#   三条同钉：直通 / 进引擎留痕 / 来源单一）。
+# · **口径照旧即判据照旧**：`_EVENT_MAP`（域 `equip_event_map.json`）/ `_map_event` 与
+#   `_UNKNOWN_EVENTS` / `_known_engine_events` 四端口名**全部保留**（判据 [6] 一字未改，
+#   判据 [2] 的表声明锚定网格继续钉「活实现展开口 == 表声明」）；只有 `install_food_fx`
+#   的活实现文本变（C 栏，frozen != live 仍成立）⇒ 仅重生成它的 `_PIN["live"]`。
+# · **不选「把引擎事件名逐字硬编码进 ~40 处 return」的原因**：① `equip_event_map.json` 已是
+#   旧名映射的**单一真源**（判据 [2] + `test_package_mech_ports.py` 的 D7 判据都锚它），逐字
+#   硬编码 = 长回第二真源；② 展开口径（元组序 / 同一载荷对象进两桶）已由本门禁判据 [2]/[3]
+#   逐格钉住，硬编码只换写法不加判据。**本质目标（引擎不再做事件名翻译）已达成**。
+
 # >>> _u1d2_triggers_gen (auto) >>>
 
 # ⚠ 本块由 `tests/_u1d2_triggers_gen.py` 生成 —— 手工改动 = 门禁失去安全网。
@@ -198,7 +216,7 @@ _PIN = {
         'content/mech/food_proc.py::_map_event': 'f4c9be4e258dfc2acd9957c3dafb9a1c27d50229674bc443ffc612bb8f706fa5',
         'content/mech/food_proc.py::food_trigger_decls': '56e1e0d9f5da1fd66a7bc1bbfadff81e928f85153ac083a5ec95a7db26067a28',
         'content/mech/food_proc.py::food_period_decl': 'd56fa0cee9d05f18bce4e5bb3effda8deea313777c4ff30dedd2c2ce38e23a2e',
-        'content/mech/food_proc.py::install_food_fx': 'a211992e2fed5da9224d3eb43c3942f1c4f1f024e38c05017a5add40988f6326',
+        'content/mech/food_proc.py::install_food_fx': 'a6a42fbd2ad4e535043fdee033b78f7d66970b723d4a1784823dd9af6543efb0',
         'content/mech/team_procs.py::_mount': '866d76bf76b1cf33aa99bfa1ea6128314c7437a048dbbd7bce2470fe80beb7ad',
         'content/mech/worldboss.py::wb_gm_dmg_mult': 'f8b2e9c6d2aed67b061c5c38db3fb01ec763e7f9ddf79f02b9e5550b71a5a470',
         'content/mech/worldboss.py::apply_gm_dmg_mult': 'c8dfda4133cd93c68c9de461bf51b7e1008062932a209463b38ca97d5ef3ab98',
@@ -863,11 +881,21 @@ def test_divergences():
           e["triggers"]["skill_hit"])
 
     # ④ 未知名：告警 + 放行（不抛）；fire() 静默忽略
+    # ★ 2026-09-26（E5-4 收口 2b）：告警从 `equip.map_event` 改挂 `Compiler(on_unknown=…)`
+    #   （展开点搬进内容侧：翻译器出口 `_expand_events`）⇒ 判据同步改口径、**只加强**：
+    #   ① 展开口直通（不抛）② 进引擎那一步仍留痕 ③ 告警来源单一（展开本身不再登记）
     before = len(EQ._UNKNOWN_EVENTS)
     got = EQ.map_event("u1d2_bogus_event")
-    check("分歧④ `equip.map_event` 未知名：直通返回 tuple 且登记（不抛）",
-          got == ("u1d2_bogus_event",) and "u1d2_bogus_event" in EQ._UNKNOWN_EVENTS
-          and len(EQ._UNKNOWN_EVENTS) >= before, (got, EQ._UNKNOWN_EVENTS[-2:]))
+    fresh = "u1d2_bogus_expand_probe"
+    got_fresh = EQ.map_event(fresh)
+    _row_out = EQ._DECL.compile({fresh: [{"action": "u1d2_unknown_row"}]})
+    check("分歧④ 展开口未知名：直通返回 tuple（不抛）+ 进引擎经 `on_unknown` 登记",
+          got == ("u1d2_bogus_event",) and got_fresh == (fresh,)
+          and set(_row_out) == {fresh}          # 告警 + 放行（不抛、照常入桶）
+          and fresh in EQ._UNKNOWN_EVENTS and len(EQ._UNKNOWN_EVENTS) >= before,
+          (got, EQ._UNKNOWN_EVENTS[-2:]))
+    check("分歧④ 告警单一真源：展开本身不再登记（同一名字只经编译器留痕一次）",
+          EQ._UNKNOWN_EVENTS.count(fresh) == 1, EQ._UNKNOWN_EVENTS[-3:])
     seen = []
 
     @register_action("u1d2_unknown_probe")

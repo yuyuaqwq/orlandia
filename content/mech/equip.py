@@ -164,28 +164,52 @@ def map_event(old_ev: str) -> tuple:
     """旧事件 → saintess_engine 事件展开；不在表 = 假定已是 saintess_engine 原生事件名，同名直通
     （dmg_calc/taken_calc/battle_start 等装配层可直接用 saintess_engine 事件名）。
 
-    ★ 2026-09-13 反静默失效：直通的名字若不在引擎 EVENTS 全集里，`fire()` 会静默忽略 →
-    触发器永不生效且无痕迹。此处**只告警不改行为**（仍直通返回，语义与改造前逐字一致），
-    未知名去重缓存（装配器每场战斗都装，不去重会刷屏）。
+    ★ 2026-09-13 立、2026-09-26 E5-4 收口 2b 改挂：本函数**只做展开**（不再告警）；直通名字
+    不在引擎 `EVENTS` 全集里的留痕改挂 `Compiler(on_unknown=_on_unknown)` —— 在**行表进引擎
+    那一步**判，覆盖面比旧口径只增不减（凡进 `_DECL` 的名字都被判，不再只有走本函数的名字）。
     """
-    got = _EVENT_MAP.get(old_ev)
-    if got is not None:
-        return got
+    return _EVENT_MAP.get(old_ev, (old_ev,))
+
+
+def _on_unknown(event: str) -> None:
+    """`Compiler(on_unknown=…)` 回调：进引擎的行里出现引擎不认的事件名 → 去重登记 + 告警一条。
+
+    ★ 反静默失效（2026-09-13 立 · 2026-09-26 2b 从 `map_event` 改挂）：引擎 `fire()` 对不在
+    `EVENTS` 全集的事件名**静默 return** ⇒ 「翻译器/数据写了个拼错或过期的时机名」= 触发器
+    装上了却永不触发、且没有任何痕迹。此处**只告警不改行为**（引擎照常入桶、不抛），未知名
+    去重缓存（装配器每场战斗都装，不去重会刷屏）；引擎全集取不到时**不告警**（告警本身不
+    允许成为新的故障点）—— 判据仍取 `_known_engine_events()`。
+    """
     _known = _known_engine_events()
-    if _known and old_ev not in _known and old_ev not in _UNKNOWN_EVENTS:
-        _UNKNOWN_EVENTS.append(old_ev)
+    if _known and event not in _known and event not in _UNKNOWN_EVENTS:
+        _UNKNOWN_EVENTS.append(event)
         logging.getLogger(__name__).warning(
-            "装配层事件名 %r 不在引擎事件全集里（fire 会静默忽略 → 该触发器永不生效）", old_ev)
-    return (old_ev,)
+            "装配层事件名 %r 不在引擎事件全集里（fire 会静默忽略 → 该触发器永不生效）", event)
+
+
+def _expand_events(rows: dict) -> dict:
+    """翻译器输出 `{旧事件名: [效果 dict]}` → `{引擎事件名: [效果 dict]}`（**内容侧单点收口**）。
+
+    ★ 2026-09-26 E5-4 收口 2b：行表的 old→engine 展开从引擎 `Compiler(map_event=…)` 迁到本层
+    （喂给引擎的行已经是引擎事件名，引擎不再收翻译器回调）。展开口径与旧 `map_event` 展开
+    **逐字同形**：桶是各自的 list（旧实现 `extend(list(effs))` 只拷 list 不拷元素），**元素是
+    同一批效果 dict 对象**（不拷贝成两份）；序 = 外层行表序 → `map_event` 元组序 → 桶内追加序。
+    """
+    out: dict = {}
+    for old_ev, effs in rows.items():
+        for b2_ev in map_event(old_ev):
+            out.setdefault(b2_ev, []).extend(effs)
+    return out
 
 
 # 数据行 → `actor["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。
 # ★ `key_of=None` = **不去重**，逐字保留三流展开 `extend` 的非幂等语义（靠 `content/apply.py`
-#   的 `_content_applied` 保险丝保证每场只装配一次）；旧名展开仍走上面的 `map_event`
-#   （未知名告警 + 直通，语义一字未改）。
+#   的 `_content_applied` 保险丝保证每场只装配一次）。
+# ★ E5-4 收口 2b：**不再注入 `map_event`** —— 旧名展开在翻译器出口/装配路径完成
+#   （`_expand_events`），引擎只收引擎事件名；未知名留痕走 `on_unknown` 回调（单一真源）。
 _DECL = Compiler(
     events=_ENGINE_EVENTS,
-    map_event=map_event,
+    on_unknown=_on_unknown,
     key_of=None,
     owner_key=None,
 )
@@ -828,20 +852,24 @@ def _af_combo_ward(aid, actor, eff):
 
 
 def affix_triggers_for_key(aid: str, actor: dict) -> dict:
-    """单个 affix → {old_event: [效果 dict]}（未支持 key → {}）。"""
+    """单个 affix → {**引擎**事件名: [效果 dict]}（未支持 key → {}）。
+
+    ★ 2026-09-26 E5-4 收口 2b：同 `triggers_for_key` —— 翻译器写旧时机名、**出口展开**。
+    """
     fn = _AFFIX_TRANSLATORS.get(aid)
     if fn is None:
         return {}
     eff = _affix_effect_final(aid, actor, _AFFIX_TIER_KEY.get(aid))
     if not eff and aid not in _AFFIX_TRANSLATORS:
         return {}
-    return fn(aid, actor, eff)
+    return _expand_events(fn(aid, actor, eff))
 
 
 # ============================================================
 # key → 效果声明翻译（第一批：纯动词 battle_start 起手类）
 # ============================================================
-# 返回 {old_event(字符串): [效果 dict]}（装配时 map_event 把旧事件展开成 saintess_engine 事件）
+# 返回 {old_event(字符串): [效果 dict]}（内容自己的旧时机名；出口由 _expand_events 展开成
+# saintess_engine 事件 —— E5-4 收口 2b 起展开点在内容侧，不再经引擎 `Compiler(map_event=…)`）
 
 def _translate_shield_start(key: str, wd: dict) -> dict:
     """proc_shield battle_start 起手盾：盾值 = shield_hp_pct×maxhp / shield_pct×maxhp /
@@ -1296,12 +1324,16 @@ _START_TRANSLATORS = {
 
 
 def triggers_for_key(key: str, actor: Optional[dict] = None) -> dict:
-    """单个 weapon key → {old_event: [效果 dict]}（未支持 key → {}）。"""
+    """单个 weapon key → {**引擎**事件名: [效果 dict]}（未支持 key → {}）。
+
+    ★ 2026-09-26 E5-4 收口 2b：翻译器仍写内容自己的旧时机名，**出口处展开**成引擎事件名
+    （`_expand_events`：`hit` → attack_hit + skill_hit，同一载荷对象进两桶）—— 不再把旧名交给引擎。
+    """
     if key not in _START_TRANSLATORS:
         return {}
     wd = _we_config(key, actor)
     fn = _START_TRANSLATORS[key]
-    return fn(key, wd)
+    return _expand_events(fn(key, wd))
 
 
 # ============================================================
@@ -1388,7 +1420,10 @@ _LEGENDARY_TRANSLATORS = {
 
 
 def legendary_triggers_for_key(lid: str, actor: dict) -> dict:
-    """单个传说专属 id → {old_event: [效果 dict]}；装不出 → {}（未实装则登记 + 告警）。"""
+    """单个传说专属 id → {**引擎**事件名: [效果 dict]}；装不出 → {}（未实装则登记 + 告警）。
+
+    ★ 2026-09-26 E5-4 收口 2b：传说翻译器出口同样展开；非传说专属 id 走的两条 id 流
+    （`triggers_for_key` / `affix_triggers_for_key`）已各自展开 ⇒ 此处直通。"""
     # 0) 不重复并入：同 id 已由 weapon_effect / affix 入口装过（名册两字段同值 / 同 id 词条）
     if lid in equipped_weapon_keys(actor) or lid in equipped_affix_ids(actor):
         return {}
@@ -1404,7 +1439,7 @@ def legendary_triggers_for_key(lid: str, actor: dict) -> dict:
                 cfg.setdefault("chance", info["chance"])
             raw = fn(lid, cfg)
             if raw:
-                return raw
+                return _expand_events(raw)
     else:
         # 非传说专属 id（名册 legendary 字段混装的 weapon_effect / 词条键）→ 各自 id 流
         raw = triggers_for_key(lid, actor)

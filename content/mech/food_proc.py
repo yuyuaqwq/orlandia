@@ -89,12 +89,26 @@ def _map_event(old_ev: str) -> tuple:
     return _EVENT_MAP.get(old_ev, (old_ev,))
 
 
+def _expand_events(rows: dict) -> dict:
+    """旧名行表 `{旧事件: [效果 dict]}` → `{引擎事件名: [效果 dict]}`（**内容侧单点收口**）。
+
+    ★ 2026-09-26 E5-4 收口 2b：展开从引擎 `Compiler(map_event=…)` 迁到本层（装配路径
+    `install_food_fx`）。口径与旧展开**逐字同形**：桶各自成 list、**元素是同一批效果 dict
+    对象**（不拷贝成两份）；序 = 外层行表序 → `_map_event` 元组序 → 桶内追加序。
+    """
+    out: dict = {}
+    for old_ev, effs in rows.items():
+        for b2_ev in _map_event(old_ev):
+            out.setdefault(b2_ev, []).extend(effs)
+    return out
+
+
 # 数据行 → `actor["triggers"]` 的声明编译器（引擎形状；本文件只给「注入的取值」）。
 # ★ `key_of=key` = 同 aid 同事件同 key 只留一条（吃重复食物幂等，判重与旧实现逐字同义）；
 #   `owner_key="_owner"` = **挂载期注入**归属（与 `fire()` 的消费期兜底注入配套）。
+# ★ E5-4 收口 2b：**不再注入 `map_event`** —— 旧名展开在装配路径（`_expand_events`）完成。
 _DECL = Compiler(
     events=_ENGINE_EVENTS,
-    map_event=_map_event,
     key_of=lambda d: d.get("key"),
     owner_key="_owner",
 )
@@ -257,7 +271,8 @@ def install_food_fx(actor: dict, aids: list, logs: list) -> None:
     ef = actor.setdefault("effects", {})
     for aid in aids:
         # 幂等挂载（同 aid 同事件同 key 不重复挂）：判重 + 追加 + `_owner` 注入三件已并入引擎
-        _DECL.mount(actor, food_trigger_decls(aid), owner=actor, merge="keep")
+        # ★ 2026-09-26 E5-4 收口 2b：旧名展开搬到本层（`_expand_events`）⇒ 引擎只收引擎事件名
+        _DECL.mount(actor, _expand_events(food_trigger_decls(aid)), owner=actor, merge="keep")
         pd = food_period_decl(aid)
         if pd:
             entry = ef.get(pd["key"])
