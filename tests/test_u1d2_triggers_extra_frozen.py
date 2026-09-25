@@ -174,7 +174,7 @@ _PIN = {
         'class_mech_action::class_stance_guard_enter': '78ad588556dcf3c7f4e046b76c63b9cf5b9f6192ecfed9a6790cde9f4d4974a7',
         'class_mech_action::mech_cash_clear': '0af618be891a0768e86b87afa51dbd9e177d021dd7f5343c7645025a1d601834',
         'class_mech_action::mech_cash_dmg_mult': '7f8a949f749d0137eacf92da87bca1aacfd298b15653298fc552577aa0e3f81a',
-        'class_mech_action::mech_cash_finisher_crit': '3cb320547d694e38b5f7f8a6a3c61e70ed811d49428988710c0a9c428629f570',
+        'class_mech_action::mech_cash_finisher_crit': '87ae21139a15f3559ba8e4b7253132162e03cc70634a31a09b6269119e2bae35',
         'class_mech_action::mech_cash_fury_enter': 'f0201757543a4b4b55bc6d939b8191f86fcba41f1f80b8b5fbf53d0426a072db',
         'class_mech_action::mech_cash_per_system_mult': '82fb433a137411943b53099e4a8191f40e0f2dea88c1ac519f247dc188d034f7',
         'class_mech_action::passive_bar_decay_half': '0193e491942c855c7c86da9a2d3e60da159a6d7de2aa262d0347d63e5cf68652',
@@ -202,8 +202,8 @@ _PIN = {
         'class_mech_action::passive_revive_guard': '94948d0c59d3a364ef59c61503b80038820d0f65ec6ace5e2152f0a7acc1a44f',
         'class_mech_action::passive_shadow_buff': '75d6446c3dee1e07e218d68e6712ad500d2c04f2a5d93f7ea9f66880ea18bc54',
         'class_mech_action::passive_taken_reduce': '6e6e259dece0ede0f1e4ddfe1165e4c96e55a55a7c610e2a5ed1d185427a606e',
-        'class_mech_actions': '7cb42d98b297b199328fd4c9f4e5b731a7c2c75bf06020049abaaa805ff2df2d',
-        'class_mech_actions_37': 'a570e72234cae44429aa8cd3393954f41ae977cb22fd50ade02e08e28ad46205',
+        'class_mech_actions': 'ea732a555481f49b0ea67be4c1cb1c415e113047c1e4fce2ca7f1e6c1d47f7f8',
+        'class_mech_actions_37': '42a3d46485e64494ca6c1ca5c9a7a1bd7cb1d7794f264e65f7f8570333e7cd39',
     },
     'segments': {
         'E': [
@@ -641,6 +641,12 @@ _MOUNT_ACTIONS = ("class_stance_guard_enter", "class_guard_stance_enter")
 def _probe_action_bodies():
     """⑤ 39 格：@register_action 动作体 getsource sha256 ↔ `_PIN["aux"]`（逐名比）。
 
+    ★ 2026-09-26 E5-1 登记：`mech_cash_finisher_crit` **有意改动**，`_PIN["aux"]` 三个键
+      （该动作体 + `class_mech_actions` / `class_mech_actions_37` 两个聚合）已重钉。
+      依据：E5-1 删引擎 `effects.apply_action` 兼容便捷名 ⇒ 该动作体里 3 行
+      `apply_action(...)` 改为等价 `apply_effects(..., [{\"action\": \"apply\", ...}], ...)`
+      （旧实现就是这一行展开，参数名/值/桶序一字不变；行为零变化）。
+      重钉值由 `_aux_fingerprints()` 跑活实现取件（不重采 frozen；frozen 仍是 U1-D2 前基线）。
     ★ 2026-09-19 口径变更（C 档 mech-unblock · 文案迁移）：
       把 `class_mech.py` 里 40 处中文句壳搬进文案表，涉及 **32 个动作体**的 `logs.*` 行
       ⇒ 它们**有意**改变，`_PIN["aux"]` 已由生成器 `--emit-aux` 正规推进为新基线。依据：
