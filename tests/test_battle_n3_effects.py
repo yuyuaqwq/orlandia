@@ -130,7 +130,14 @@ def test_control():
           abs(float(_si.get("expire", 0)) - 2.0) < 1e-9 and _si.get("mode") == "no_skill",
           f"silence={_si}")
     # Boss 控制减半
-    boss = {"uid": "boss", "name": "Boss", "is_boss": True, "effects": {}}
+    #   ★ E5 顺手修（2026-09-26）：E3（2026-09-25）把「谁吃控制减半」从引擎硬编码
+    #     `is_boss` / `role == "boss"` 改成**内容侧标签** `actor["traits"]`（名单由
+    #     `EFFECT_RULES[key].ctrl_half_traits` 声明），内容侧在
+    #     `bridge.monster_to_actor` 里由 `is_*` **派生一次**成标签；本用例直接手搓 actor
+    #     绕过了那个工厂 ⇒ 只写 `is_boss` 不再触发减半（E3 后本用例一直是红的）。
+    #     跟口径的修法 = 照生产同一契约给标签。
+    boss = {"uid": "boss", "name": "Boss", "is_boss": True, "traits": ["boss"],
+            "effects": {}}
     FX.apply_effects(b, caster, boss, [{"type": "stun", "turns": 4}], logs)
     check("Boss stun 减半 2 刻", abs(float((ent(boss, "stun") or {}).get("expire", 0)) - 2.0) < 1e-9,
           f"stun={ent(boss, 'stun')}")
