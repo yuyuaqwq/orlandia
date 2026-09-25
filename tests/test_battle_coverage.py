@@ -291,7 +291,7 @@ def test_effects_branches():
     # apply 动词直通控制型（mode 显式声明）——N7.2 快照形态 {expire, mode}
     m3 = make_actor(uid="m3", name="怪", side="enemy", kind="monster",
                     hp=100, max_hp=100, atk=1, **{"def": 0}, level=1)
-    FX.apply_effects(b, p, m3, [{"type": "apply", "on": "target", "tag": "stun", "turns": 2,
+    FX.apply_effects(b, p, m3, [{"type": "apply", "on": "target", "key": "stun", "turns": 2,
                                  "mode": "skip"}], logs)
     _st3 = ent(m3, "stun") or {}
     check("apply 动词直通 快照 mode=skip",
