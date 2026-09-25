@@ -171,6 +171,14 @@ _PIN = {
     # ★ 2026-09-23 跨线更新（包栈重构）：`declarations.py` 从引擎搬进扩展包 ext_combat，
     #   包内相对导入改成指向引擎的绝对导入 ⇒ 文件 sha 变；effect_triggers 的 sha 与
     #   基准逐字节相等（**本线盯的东西一字未动**）。
+    # ★ 2026-09-26 E5-5 重钉（`engine:…effect_triggers.py`：db1a4c7a… → 14ee9d83…）：
+    #   该 pin 自 2026-09-23 起已是**红基线** —— 上一批 `ede50cc`（E1「诊断通道」）把
+    #   `fire()` 里两处 `except Exception:` 改成 `except … as _e: _diag(...)`（只多诊断、
+    #   语义不变）⇒ sha 变而 pin 未跟账。本次 E5-5 再把事件名 `buff_expire` → `effect_expire`
+    #   （线上零消费者，纯删名）⇒ 值再变。两笔在此一并登记，pin 重钉为当前实跑值；
+    #   `declarations.py` 仍与 pin 逐字节相等（E5 未动它）。
+    #   ⚠ 生成器 `--emit-aux` 本轮不可用：`_u1d2_triggers_gen.py --check` 自检①失败
+    #     （base 解析走 git 兜底取到 `e4dccb4e`，其切片 ≠ 活实现）⇒ 只能手工重钉此值。
     'aux': {
         'contract:content/apply.py': '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
         'data:content/data/affixes.json': '611a8d578e3b2cb7f9888e9215bc40dbbe92af81de404535a8494acee3710aee',
@@ -178,7 +186,7 @@ _PIN = {
         'data:content/data/legendary_effects.json': '4f5b2cf476b09880e49121acf186a72893164e56c03ea087946ac61bd79dd51a',
         'data:content/mech/we_data.py': '111ea69b3da481660ebc6ff2807a57935fbf53163ef02baba17f85a55c39d9fe',
         'engine:extends/ext_combat/battle/declarations.py': '44525697a1886f99e15248235ff7f8c1726986e4f925deaec8a029098465ac9f',
-        'engine:extends/ext_combat/battle/effect_triggers.py': 'db1a4c7ab1d94799acb9f2c7383f552cc2dec6f10ba6489eb18dbdbdf98eeead',
+        'engine:extends/ext_combat/battle/effect_triggers.py': '14ee9d83973e48e3c09d0359a68292aa81f4fe90144a62c291eb26c441f97699',
         'src_base:content/mech/equip.py': '61c2e8e3b453c2f8fa50e3c67986a26ca59f9ecc11f34c79ca4b4e6224cbff18',
         'src_base:content/mech/food_proc.py': 'caca7c1116448006d298fa5fb94b13e4fd087c01c8b51d276a41c94eae7fe998',
         'src_base:content/mech/team_procs.py': '50d3f1e78ba263bb7a873066e4da1f34df4e995c6ee9aa2d7b6f02e61433bca4',

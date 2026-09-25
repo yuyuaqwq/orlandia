@@ -11,7 +11,7 @@
 - on_kill / on_death：击杀者 / 死亡
 - dot_tick：DOT 每跳
 - on_act_consume / on_hit_consume：行动/出手消费点
-- buff_expire：buff 到期钩子
+- effect_expire：效果条目到期钩子（E5 改名，原 buff_expire）
 - threshold：状态层数变化后
 - phase/player_low/pv_broken：N9 上层 fire（声明全集，无引擎点位）
 
@@ -95,7 +95,7 @@ def test_events_declared():
     for ev in ("battle_start", "turn_start", "act_begin", "act_cast",
                "skill_hit", "attack_hit", "crit", "on_taken", "on_heal",
                "on_kill", "on_death", "dot_tick", "on_act_consume",
-               "on_hit_consume", "buff_expire", "threshold",
+               "on_hit_consume", "effect_expire", "threshold",
                "dmg_calc", "taken_calc", "heal_calc",  # N9.13/2e 数值修正钩子
                "phase", "player_low", "pv_broken",
                "time_advance"):                       # v181 时钟推进（挂敌身条结算）
@@ -278,12 +278,12 @@ def test_dot_tick():
     check("dot_tick 每跳触发", stk(e, "n8_dot", 0) == 1, f"state={((e).get('effects') or {})}")
 
 
-def test_buff_expire():
-    print("【N8.9 buff_expire：buff 到期钩子】")
+def test_effect_expire():
+    print("【N8.9 effect_expire：buff 到期钩子】")
     a = mk_a("a1", "player", hp=500)
     a["hp"] = 400
     a["effects"]["n8_buf"] = {"stacks": 1, "expire": 1.0}
-    a["triggers"] = {"buff_expire": [{"type": "heal", "value": 5, "on": "caster"}]}
+    a["triggers"] = {"effect_expire": [{"type": "heal", "value": 5, "on": "caster"}]}
     b = new_battle(a, mk_a("e1", "enemy"))
     b._now = 0.0
     _ste(b, [])
@@ -291,7 +291,7 @@ def test_buff_expire():
     b._now = 2.0
     _ste(b, [])
     check("到点删除", "n8_buf" not in ((a).get("effects") or {}))
-    check("buff_expire 触发回血 5", a["hp"] == 405, f"hp={a['hp']}")
+    check("effect_expire 触发回血 5", a["hp"] == 405, f"hp={a['hp']}")
 
 
 def test_threshold():
@@ -362,7 +362,7 @@ def main():
     test_on_heal()
     test_on_kill_and_on_death()
     test_dot_tick()
-    test_buff_expire()
+    test_effect_expire()
     test_threshold()
     test_on_hit_consume()
     test_trigger_serde_roundtrip()
