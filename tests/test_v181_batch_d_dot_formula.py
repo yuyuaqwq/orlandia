@@ -39,7 +39,7 @@ from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from ext_combat import Battle as B2, make_actor  # noqa: E402
 from ext_combat.battle import game_config as EC  # noqa: E402   # 游戏配置取件面（第 7 批从引擎 config 搬来）
-from ext_combat.battle.effects import apply_action  # noqa: E402
+from ext_combat.battle.effects import apply_effects  # noqa: E402
 from ext_combat.battle.schedule import _settle_time_effects  # noqa: E402
 from ext_combat.battle.actions import _consume_hit_buffs  # noqa: E402
 from ext_combat.battle.stats import actor_stats  # noqa: E402
@@ -94,7 +94,8 @@ def dot_tick(b, e):
 
 
 def apply_dot(b, p, e, key, n=1, **entry_extra):
-    apply_action(b, p, e, "apply", {"key": key, "op": "add", "amount": n, "on": "target"}, [])
+    apply_effects(b, p, e,
+                  [{"action": "apply", "key": key, "op": "add", "amount": n, "on": "target"}], [])
     if entry_extra:
         e["effects"][key].update(entry_extra)
 

@@ -4,7 +4,7 @@
 针对函数级覆盖检测发现的未覆盖函数逐一补行为断言：
 - 查询 API：sides_of/hostile_of/focus/alive_actors/alive_sides
 - 动作路径：defend（防御）、flee、cleanse_all
-- 便捷工具：next_ct/state_to_json/json_to_state/stat_scale_of/apply_action
+- 便捷工具：next_ct/state_to_json/json_to_state/stat_scale_of/apply_effects
 - 容器 helper：actor_buffs/actor_debuffs/actor_ext/actor_side_of
 
 跑法：python tests/test_battle_coverage.py
@@ -114,19 +114,19 @@ def test_defend_action():
 
 
 def test_cleanse_all_and_misc_effects():
-    print("【CV4 cleanse_all / apply_action 便捷】")
+    print("【CV4 cleanse_all / apply_effects 便捷】")
     p, m = mk_ctx()
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
     p["effects"]["burn"] = {"stacks": 3}
     p["effects"]["stun"] = {"stacks": 1, "mode": "skip"}
     logs = []
-    # 直接动词调用（apply_action 便捷）
-    FX.apply_action(b, p, p, "cleanse", {}, logs)
-    check("apply_action cleanse 清 burn", "burn" not in ((p).get("effects") or {}))
+    # 直接动词调用（apply_effects 便捷）
+    FX.apply_effects(b, p, p, [{"action": "cleanse"}], logs)
+    check("apply_effects cleanse 清 burn", "burn" not in ((p).get("effects") or {}))
     # cleanse_all
     p["effects"]["poison"] = {"stacks": 2}
     p["effects"]["silence"] = {"stacks": 1, "mode": "no_skill"}
-    FX.apply_action(b, p, p, "cleanse_all", {}, logs)
+    FX.apply_effects(b, p, p, [{"action": "cleanse_all"}], logs)
     check("cleanse_all 清 poison", "poison" not in ((p).get("effects") or {}))
     check("cleanse_all 清 silence", "silence" not in ((p).get("effects") or {}))
 

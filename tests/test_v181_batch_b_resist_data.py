@@ -32,7 +32,7 @@ from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from ext_combat import Battle as B2, make_actor  # noqa: E402
 from ext_combat.battle.landing import deal_damage  # noqa: E402
-from ext_combat.battle.effects import apply_action  # noqa: E402
+from ext_combat.battle.effects import apply_effects  # noqa: E402
 from content import drops as D  # noqa: E402
 
 PASS = 0
@@ -144,13 +144,13 @@ def test_2_end_to_end():
     # 免疫拦截：熔岩魔像免灼烧 → burn 不施加；但毒可施加（只免指定类型）
     e_lava = mk_enemy_from("e_lava_golem")
     b4 = B2(btype="monster", sides={"player": [p], "enemy": [e_lava]})
-    apply_action(b4, p, e_lava, "apply",
-                 {"key": "burn", "op": "add", "amount": 3, "on": "target"}, [])
+    apply_effects(b4, p, e_lava,
+                  [{"action": "apply", "key": "burn", "op": "add", "amount": 3, "on": "target"}], [])
     check("熔岩魔像 免灼烧：burn 未被施加",
           int((e_lava["effects"].get("burn") or {}).get("stacks", 0)) == 0,
           f"ef={e_lava['effects'].get('burn')}")
-    apply_action(b4, p, e_lava, "apply",
-                 {"key": "poison", "op": "add", "amount": 3, "on": "target"}, [])
+    apply_effects(b4, p, e_lava,
+                  [{"action": "apply", "key": "poison", "op": "add", "amount": 3, "on": "target"}], [])
     check("熔岩魔像 只免指定类型：毒正常施加",
           int((e_lava["effects"].get("poison") or {}).get("stacks", 0)) == 3,
           f"ef={e_lava['effects'].get('poison')}")
@@ -158,13 +158,13 @@ def test_2_end_to_end():
     # 高防魔像免毒：毒被拦，腐蚀（真伤轴）仍可用 = §9.2 的设计出口
     e_golem = mk_enemy_from("m_meteor_golem")
     b5 = B2(btype="monster", sides={"player": [p], "enemy": [e_golem]})
-    apply_action(b5, p, e_golem, "apply",
-                 {"key": "poison", "op": "add", "amount": 3, "on": "target"}, [])
+    apply_effects(b5, p, e_golem,
+                  [{"action": "apply", "key": "poison", "op": "add", "amount": 3, "on": "target"}], [])
     check("陨星魔像 免毒：poison 未被施加",
           int((e_golem["effects"].get("poison") or {}).get("stacks", 0)) == 0,
           f"ef={e_golem['effects'].get('poison')}")
-    apply_action(b5, p, e_golem, "apply",
-                 {"key": "corros", "op": "add", "amount": 2, "on": "target"}, [])
+    apply_effects(b5, p, e_golem,
+                  [{"action": "apply", "key": "corros", "op": "add", "amount": 2, "on": "target"}], [])
     check("陨星魔像 腐蚀（真伤轴）仍可施加 = §9.2 设计出口",
           int((e_golem["effects"].get("corros") or {}).get("stacks", 0)) == 2,
           f"ef={e_golem['effects'].get('corros')}")
@@ -172,8 +172,8 @@ def test_2_end_to_end():
     # 未配置怪：DOT 照旧（零变化）
     e_rat = mk_enemy_from("m_giant_rat")
     b6 = B2(btype="monster", sides={"player": [p], "enemy": [e_rat]})
-    apply_action(b6, p, e_rat, "apply",
-                 {"key": "burn", "op": "add", "amount": 3, "on": "target"}, [])
+    apply_effects(b6, p, e_rat,
+                  [{"action": "apply", "key": "burn", "op": "add", "amount": 3, "on": "target"}], [])
     check("未配置怪：灼烧正常施加（零变化）",
           int((e_rat["effects"].get("burn") or {}).get("stacks", 0)) == 3,
           f"ef={e_rat['effects'].get('burn')}")

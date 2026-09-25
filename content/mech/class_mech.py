@@ -537,11 +537,11 @@ def mech_cash_finisher_crit(battle, caster, target, params, logs):
     cur = float(_e.get("stacks", 0) or 0) if isinstance(_e, dict) else 0.0
     if cur < need:
         return
-    from ext_combat.battle.effects import apply_action
+    from ext_combat.battle.effects import apply_effects
     hit_key = params.get("hit_key") or "finisher_crit_ready"
-    apply_action(battle, actor, actor, "apply",
-                 {"key": hit_key, "turns": 1, "on": "caster",
-                  "hit": {"guaranteed_crit": True}}, logs)
+    apply_effects(battle, actor, actor,
+                  [{"action": "apply", "key": hit_key, "turns": 1, "on": "caster",
+                    "hit": {"guaranteed_crit": True}}], logs)
     logs.append(_T.text("cmech.finisher_crit_ready", n=int(cur)))
 
 

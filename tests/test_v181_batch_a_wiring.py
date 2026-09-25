@@ -29,7 +29,7 @@ from saintess_engine import config as _b2c  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from ext_combat import Battle as B2, make_actor  # noqa: E402
 from ext_combat.battle.landing import deal_damage  # noqa: E402
-from ext_combat.battle.effects import apply_action  # noqa: E402
+from ext_combat.battle.effects import apply_effects  # noqa: E402
 from ext_combat.battle.schedule import _settle_time_effects  # noqa: E402
 
 PASS = 0
@@ -193,8 +193,8 @@ def test_3_immune_dots():
     # 无名单 → 照旧施加（零变化）
     e = mk_enemy()
     b = mk_battle(p, e)
-    apply_action(b, p, e, "apply",
-                 {"key": "burn", "op": "add", "amount": 2, "on": "target"}, [])
+    apply_effects(b, p, e,
+                  [{"action": "apply", "key": "burn", "op": "add", "amount": 2, "on": "target"}], [])
     check("无 immune_dots：burn 正常加 2 层",
           int((e["effects"].get("burn") or {}).get("stacks", 0)) == 2,
           f"ef={e['effects'].get('burn')}")
@@ -204,8 +204,8 @@ def test_3_immune_dots():
     e2["immune_dots"] = ["burn"]
     b2 = mk_battle(p, e2)
     logs = []
-    apply_action(b2, p, e2, "apply",
-                 {"key": "burn", "op": "add", "amount": 2, "on": "target"}, logs)
+    apply_effects(b2, p, e2,
+                  [{"action": "apply", "key": "burn", "op": "add", "amount": 2, "on": "target"}], logs)
     check("immune_dots=[burn]：burn 未被施加",
           int((e2["effects"].get("burn") or {}).get("stacks", 0)) == 0,
           f"ef={e2['effects'].get('burn')}")
@@ -213,8 +213,8 @@ def test_3_immune_dots():
 
     # 名单只免指定类型：免 burn 不免 poison
     logs = []
-    apply_action(b2, p, e2, "apply",
-                 {"key": "poison", "op": "add", "amount": 2, "on": "target"}, logs)
+    apply_effects(b2, p, e2,
+                  [{"action": "apply", "key": "poison", "op": "add", "amount": 2, "on": "target"}], logs)
     check("名单只免指定类型：poison 正常加 2 层",
           int((e2["effects"].get("poison") or {}).get("stacks", 0)) == 2,
           f"ef={e2['effects'].get('poison')}")
@@ -223,8 +223,8 @@ def test_3_immune_dots():
     e3 = mk_enemy()
     e3["immune_dots"] = ["burn", "poison", "bleed", "corros", "freeze"]
     b3 = mk_battle(p, e3)
-    apply_action(b3, p, e3, "apply",
-                 {"key": "freeze", "mode": "skip", "turns": 1, "on": "target"}, [])
+    apply_effects(b3, p, e3,
+                  [{"action": "apply", "key": "freeze", "mode": "skip", "turns": 1, "on": "target"}], [])
     check("控制型（freeze, mode=skip）不受 immune_dots 影响",
           (e3["effects"].get("freeze") or {}).get("mode") == "skip",
           f"ef={e3['effects'].get('freeze')}")
@@ -233,8 +233,8 @@ def test_3_immune_dots():
     e4 = mk_enemy()
     e4["immune_dots"] = []
     b4 = mk_battle(p, e4)
-    apply_action(b4, p, e4, "apply",
-                 {"key": "corros", "op": "add", "amount": 1, "on": "target"}, [])
+    apply_effects(b4, p, e4,
+                  [{"action": "apply", "key": "corros", "op": "add", "amount": 1, "on": "target"}], [])
     check("immune_dots=[]（空名单）：corros 正常施加",
           int((e4["effects"].get("corros") or {}).get("stacks", 0)) == 1,
           f"ef={e4['effects'].get('corros')}")
