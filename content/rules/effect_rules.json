@@ -101,7 +101,11 @@
       "boss_pct_mult": 0.5,
       "resist_cap": 0.95,
       "pct_cap": 0.01,
-      "double_low_hp_pct": 0.3
+      "double_low_hp_pct": 0.3,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ]
     }
   },
   "block_up": {
@@ -134,7 +138,11 @@
       "pct_max_hp": 0.005,
       "boss_pct_mult": 0.5,
       "resist_cap": 0.95,
-      "pct_cap": 0.01
+      "pct_cap": 0.01,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ]
     }
   },
   "chi": {
@@ -153,7 +161,11 @@
       "boss_pct_mult": 0.5,
       "resist_cap": 0.95,
       "pct_cap": 0.01,
-      "dmg_type": "true"
+      "dmg_type": "true",
+      "trait_tags": [
+        "boss",
+        "elite"
+      ]
     }
   },
   "cp": {
@@ -355,7 +367,10 @@
     },
     "tag": "freeze",
     "cleanse": true,
-    "negative": true
+    "negative": true,
+    "ctrl_half_traits": [
+      "boss"
+    ]
   },
   "fury": {
     "name": "狂暴",
@@ -554,7 +569,11 @@
       "matk": 0.0,
       "pct_max_hp": 0.0,
       "boss_pct_mult": 0.5,
-      "resist_cap": 0.95
+      "resist_cap": 0.95,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ]
     }
   },
   "rage": {
@@ -599,7 +618,10 @@
     },
     "tag": "silence",
     "cleanse": true,
-    "negative": true
+    "negative": true,
+    "ctrl_half_traits": [
+      "boss"
+    ]
   },
   "sleep": {
     "cap": 1,
@@ -608,7 +630,10 @@
     },
     "tag": "sleep",
     "wake_on_hit": true,
-    "negative": true
+    "negative": true,
+    "ctrl_half_traits": [
+      "boss"
+    ]
   },
   "soul_mark": {
     "cap": 3,
@@ -646,7 +671,10 @@
     },
     "tag": "stun",
     "cleanse": true,
-    "negative": true
+    "negative": true,
+    "ctrl_half_traits": [
+      "boss"
+    ]
   },
   "thunder_mark": {
     "cap": 5,

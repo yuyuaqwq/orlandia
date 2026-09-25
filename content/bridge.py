@@ -262,6 +262,12 @@ def monster_to_actor(mon: dict, idx: int = 0) -> dict:
               "abyss_res", "skill_levels", "race", "side", "ext"):
         if mon.get(k) is not None and k not in actor:
             actor[k] = mon[k]
+    # ★ 2026-09-25（审计 E3）：引擎不再认 `is_boss` / `role == "boss"` 这些游戏字段，
+    #   改成读**内容侧标签** `actor["traits"]`（"谁吃控制减半/DoT 折扣"由数据声明）。
+    #   这里把怪数据的老字段**派生一次**成标签，之后引擎只看标签。
+    _tags = [t for t in ("boss", "elite") if mon.get("is_" + t)]
+    if _tags:
+        actor["traits"] = _tags
     return actor
 
 

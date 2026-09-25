@@ -71,12 +71,15 @@ def mk_pair(atk=100, matk=200, max_hp=10000, role="dps", hp=None):
     e["effects"] = {}
     e["dodge"] = 0.0
     e["block"] = 0.0
-    # 对齐 build_monster：role 决定 is_boss / is_elite 标志（引擎 boss 档判据读标志，
-    #   不读 role=="elite" 字面）
+    # ★ 2026-09-25（引擎审计 E3）：引擎**不再读** `is_boss` / `is_elite` 这些游戏字段，
+    #   改读内容侧标签 `traits`，且「谁吃折扣」由数据声明（period.trait_tags ⇒ 本测试的
+    #   夹具直接给标签）；`is_boss` / `is_elite` 仍照写（内容侧其它逻辑还在读它们）。
     if role == "boss":
         e["is_boss"] = True
+        e["traits"] = ["boss"]
     elif role == "elite":
         e["is_elite"] = True
+        e["traits"] = ["elite"]
     return p, e, B2(btype="monster", sides={"player": [p], "enemy": [e]})
 
 
