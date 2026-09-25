@@ -3,6 +3,8 @@
 `worldboss.py` 共 **11 段** —— 手写判重 + 手写追加 → 引擎 `battle/declarations` 声明编译器。
 ★ 2026-09-26（E5-4 收口 2a）：`equip.map_event` 段**退出冻结** ⇒ 12 段 → 11 段、
   甲 12 → 甲 11、E 栏 6 → 5（详见下方「2a 登记」与 `tests/_u1d2_triggers_gen.py`）。
+★ 2026-09-26（E5-4 收口 2c）：引擎侧 `Compiler` 的 `map_event` 注入面**已删**（旧名展开全在
+  内容侧）⇒ 本文件的编译器断言/补丁签名跟新形参，`_PIN["aux"]` 的 `engine:*` 两项随之重采。
 
 跑法（工作区根；环境变量见 `BRIEF.md` §4）::
 
@@ -227,7 +229,7 @@ _PIN = {
         'data:content/data/food_effects.json': '4888c26020b5fbb4d5abe2b0b497c6b7ce396d8850cd02f98a9b4353e7b76400',
         'data:content/data/legendary_effects.json': '4f5b2cf476b09880e49121acf186a72893164e56c03ea087946ac61bd79dd51a',
         'data:content/mech/we_data.py': '111ea69b3da481660ebc6ff2807a57935fbf53163ef02baba17f85a55c39d9fe',
-        'engine:extends/ext_combat/battle/declarations.py': 'f2bb05f90b0b767b8c31db9637d08810b8b6b35c45ff1c9efa25962f853fd567',
+        'engine:extends/ext_combat/battle/declarations.py': '5d9d74c3b4c23bf3ba0c7745e9cd724ffe1558442c5430c78a14635e3b065835',
         'engine:extends/ext_combat/battle/effect_triggers.py': '14ee9d83973e48e3c09d0359a68292aa81f4fe90144a62c291eb26c441f97699',
         'src_base:content/mech/equip.py': '61c2e8e3b453c2f8fa50e3c67986a26ca59f9ecc11f34c79ca4b4e6224cbff18',
         'src_base:content/mech/food_proc.py': 'caca7c1116448006d298fa5fb94b13e4fd087c01c8b51d276a41c94eae7fe998',
@@ -908,22 +910,35 @@ def test_divergences():
     check("分歧④ `fire()` 对未知事件静默忽略（零执行）", seen == [], seen)
 
     # ⑤ mapping 与 list 两输入形态等价
-    cm = _eng(map_event=EQ.map_event)
-    m1 = cm.compile({"hit": [{"action": "a1"}]})
+    #   ★ 2026-09-26（E5-4 收口 2c）：引擎 `Compiler` 不再收 `map_event` 注入面 ⇒ 行表的键
+    #   **必须是引擎事件名**（旧名 → 引擎名的展开已在内容侧完成，见 `_expand_events`）。
+    cm = _eng()
+    m1 = cm.compile({"attack_hit": [{"action": "a1"}], "skill_hit": [{"action": "a1"}]})
     l1 = cm.compile([Declaration("attack_hit", {"action": "a1"}),
                      Declaration("skill_hit", {"action": "a1"})])
     check("分歧⑤ mapping 形态 == list(Declaration) 形态", m1 == l1, (m1, l1))
     l2 = cm.compile([{"event": "attack_hit", "action": "a1"}])
     check("分歧⑤ list(dict) 形态：event_key 直取（桶键 == attack_hit）",
           set(l2) == {"attack_hit"}, sorted(l2))
+    _old_kw_hit = False
+    try:
+        Compiler(events=EV, map_event=EQ.map_event)
+    except TypeError:
+        _old_kw_hit = True
+    check("★ 分歧⑤ 引擎侧旧名回调注入面已删（`map_event=` → TypeError）",
+          _old_kw_hit, "Compiler 仍接受 map_event")
 
-    # ⑥ compile 三层保序
-    o1 = cm.compile({"hit": [{"action": "h1"}, {"action": "h2"}], "taken": [{"action": "t1"}]})
-    o2 = cm.compile({"taken": [{"action": "t1"}], "hit": [{"action": "h1"}, {"action": "h2"}]})
-    check("分歧⑥ 外层行表序：hit/taken 互换 → 桶键序随之改变",
+    # ⑥ compile 保序（两段：外层行表序 → 桶内声明序；旧名展开序已迁内容侧）
+    o1 = cm.compile({"attack_hit": [{"action": "h1"}, {"action": "h2"}],
+                     "skill_hit": [{"action": "h1"}, {"action": "h2"}],
+                     "on_taken": [{"action": "t1"}]})
+    o2 = cm.compile({"on_taken": [{"action": "t1"}],
+                     "attack_hit": [{"action": "h1"}, {"action": "h2"}],
+                     "skill_hit": [{"action": "h1"}, {"action": "h2"}]})
+    check("分歧⑥ 外层行表序：桶键序随行表序改变",
           list(o1) == ["attack_hit", "skill_hit", "on_taken"]
           and list(o2) == ["on_taken", "attack_hit", "skill_hit"], (list(o1), list(o2)))
-    check("分歧⑥ `map_event` 元组序：attack_hit 恒在 skill_hit 之前 + 桶内追加序保真",
+    check("分歧⑥ 桶内声明序保真（attack_hit 桶内 h1 在前）",
           [p["action"] for p in o1["attack_hit"]] == ["h1", "h2"], o1["attack_hit"])
 
     # ⑦ equip 非幂等（key_of=None 逐字保留 extend 语义）
@@ -989,7 +1004,8 @@ def _probe_prepend():
 
 
 def _probe_unknown():
-    comp = getattr(EQ, "_DECL", None) or Compiler(events=EV, map_event=EQ.map_event)
+    # ★ 2c：引擎不再收 `map_event`（旧名展开在内容侧）⇒ 兜底构造只给 events
+    comp = getattr(EQ, "_DECL", None) or Compiler(events=EV)
     try:
         got = comp.compile({"u1d2_bogus_event": [{"action": "x"}]})
     except Exception as exc:                                            # noqa: BLE001
@@ -1012,8 +1028,8 @@ def _break_merge_append():
 def _break_unknown_raises():
     real = Compiler.compile
 
-    def _c(self, rows, *, map_event=None, allow_unknown=False):
-        out = real(self, rows, map_event=map_event, allow_unknown=allow_unknown)
+    def _c(self, rows, *, allow_unknown=False):
+        out = real(self, rows, allow_unknown=allow_unknown)
         bad = [ev for ev in out if self.unknown_name(ev)]
         if bad:
             raise ValueError("未知名事件：%r" % (bad,))

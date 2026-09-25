@@ -56,6 +56,14 @@
 **若 2b 改成把 food 的展开内联进 `install_food_fx`**（`_map_event` 成死码）：同批把
 `food_proc._map_event` 也移出 `SEGMENTS` / `CLASS` / `_BASELINE_PINS`，并在此补一行登记。
 
+2026-09-26 · E5-4 收口 2c（引擎侧 `map_event` 注入面已删）
+--------------------------------------------------------
+**为何动 aux**：aux 的 `engine:` 两项**读活引擎**（`live_engine_root()`，门禁 `test_aux` 比对的
+也是活引擎）—— 2c 删掉 `declarations.py` 的 `map_event` 形参 / 校验 / `_map_event` 槽 /
+`_targets()` 后，这两项**必然变**，属设计内合法重采（不是放宽判据）。**其余口径一字不动**：
+11 段 / 甲 11 / E 5 / C 6 / base=`git:8f3864f3` / `_BASELINE_PINS` 与 `_AUX_BASELINE_PINS` 全不变。
+**重采口令**：`python tests/_u1d2_triggers_gen.py --emit-aux`（引擎侧删面后 aux 不再幂等）。
+
 跑法（真仓布局；`GWEN_HOST_DIR` = 宿主壳根）
 ------------------------------------------
     set GWEN_FRAMEWORK_DIR=<引擎仓>

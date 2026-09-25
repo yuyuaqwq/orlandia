@@ -841,8 +841,8 @@ _ORIG_MOUNT = DECL.Compiler.mount
 
 def _break_prepend():
     """破坏 ① 前插改追加（猴补 `Compiler.mount`：`prepend` 当 `append`）。"""
-    def _m(self, actor, rows, *, map_event=None, owner=None, merge=None):
-        return _ORIG_MOUNT(self, actor, rows, map_event=map_event, owner=owner,
+    def _m(self, actor, rows, *, owner=None, merge=None):
+        return _ORIG_MOUNT(self, actor, rows, owner=owner,
                            merge=("append" if merge == "prepend" else merge))
     return _Patch(DECL.Compiler, "mount", _m)
 
