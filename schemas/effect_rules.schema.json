@@ -17,6 +17,12 @@
           "type": "integer",
           "minimum": 1
         },
+        "ctrl_half_traits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "stat_scale": {
           "type": "object",
           "minProperties": 1,
@@ -77,6 +83,30 @@
             },
             "pct_cur_boss": {
               "type": "number"
+            },
+            "boss_pct_mult": {
+              "type": "number"
+            },
+            "pct_cap": {
+              "type": "number"
+            },
+            "resist_cap": {
+              "type": "number"
+            },
+            "double_low_hp_pct": {
+              "type": "number"
+            },
+            "atk": {
+              "type": "number"
+            },
+            "matk": {
+              "type": "number"
+            },
+            "trait_tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
             "amount": {
               "type": "number"

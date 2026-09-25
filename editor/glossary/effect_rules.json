@@ -20,6 +20,11 @@
       "note": "⚠ 引擎不读；内容侧用它数「负面种数」（target_debuff_kinds 判据）。",
       "group": "base"
     },
+    "ctrl_half_traits": {
+      "zh": "控制时长减半的标签名单",
+      "note": "✅ 引擎消费（控制类状态）：命中名单的持有者受该控制时**时长减半**（如 freeze/silence/sleep/stun 名单写 [\"boss\"]）。名单为空/没声明 = 这条规则不适用于任何人。",
+      "group": "ctrl"
+    },
     "cleanse": {
       "zh": "可被净化",
       "note": "✅ 引擎消费（act_cleanse）：True = 可被净化。",
@@ -89,12 +94,17 @@
     },
     "period.pct_boss": {
       "zh": "Boss 档比例",
-      "note": "✅ Boss（is_boss / role==\"boss\"）覆盖 pct_max_hp。",
+      "note": "✅ 命中 `period.trait_tags` 名单的目标覆盖 pct_max_hp（标签由内容侧写，引擎不认标签叫什么）。",
       "group": "period"
     },
     "period.pct_cur_boss": {
       "zh": "Boss 档当前生命比例",
-      "note": "✅ Boss 覆盖 pct_cur_hp。",
+      "note": "✅ 命中 `period.trait_tags` 名单的目标覆盖 pct_cur_hp。",
+      "group": "period"
+    },
+    "period.trait_tags": {
+      "zh": "吃 Boss 档的标签名单",
+      "note": "✅ 引擎消费：读承伤者的 `traits`，与这份名单**任一命中**才用 `pct_boss` / `boss_pct_mult` / `pct_cur_boss` 那档；名单为空/没声明 = 这条规则不适用于任何人（零兜底）。",
       "group": "period"
     },
     "period.amount": {
@@ -350,6 +360,6 @@
     {"id": "guard", "label": "濒死保护", "icon": "🛡",
      "fields": ["guard_hp_pct", "heal_pct", "overload_heal_pct", "wake_on_hit"]},
     {"id": "ctrl", "label": "控制与渠道", "icon": "🌀",
-     "fields": ["consume", "channels", "on_threshold"]}
+     "fields": ["consume", "channels", "on_threshold", "ctrl_half_traits"]}
   ]
 }

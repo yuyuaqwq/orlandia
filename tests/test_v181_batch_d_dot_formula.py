@@ -211,7 +211,10 @@ def test_4_boss_discount():
     EC.get_effect_rules()[tpl] = {"cap": 9, "on": "target",
                                   "period": {"dir": "damage", "interval": 1.0,
                                              "pct_max_hp": 0.10, "pct_boss": 0.02,
-                                             "boss_pct_mult": 0.5, "pct_cap": 0.05}}
+                                             "boss_pct_mult": 0.5, "pct_cap": 0.05,
+                                             # ★ boss 档要靠**标签名单**才生效（E3 刀1 起）：
+                                             #   夹具自己声明名单，否则即使 `role=\"boss\"` 也不打折。
+                                             "trait_tags": ["boss", "elite"]}}
     try:
         p, e, b = mk_pair(max_hp=10000, role="boss")
         apply_dot(b, p, e, tpl, 1)
@@ -326,7 +329,9 @@ def test_8_zero_change():
     EC.get_effect_rules()[tpl] = {"cap": 9, "on": "target",
                                   "period": {"dir": "damage", "interval": 1.0,
                                              "pct_max_hp": 0.015, "pct_boss": 0.01,
-                                             "turns": 3}}
+                                             "turns": 3,
+                                             # ★ 同上：boss 档的启用条件 = 这条名单
+                                             "trait_tags": ["boss", "elite"]}}
     try:
         p, e, b = mk_pair(max_hp=10000)
         apply_dot(b, p, e, tpl, 2)

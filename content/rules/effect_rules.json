@@ -7,6 +7,10 @@
       "interval": 1.0,
       "pct_max_hp": 0.05,
       "pct_boss": 0.02,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ],
       "turns": 3
     }
   },
@@ -86,6 +90,10 @@
       "interval": 1.0,
       "pct_max_hp": 0.015,
       "pct_boss": 0.01,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ],
       "turns": 3
     }
   },
@@ -124,6 +132,10 @@
       "interval": 1.0,
       "pct_cur_hp": 0.02,
       "pct_cur_boss": 0.015,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ],
       "turns": 4
     }
   },
@@ -250,6 +262,10 @@
       "interval": 1.0,
       "pct_max_hp": 0.015,
       "pct_boss": 0.01,
+      "trait_tags": [
+        "boss",
+        "elite"
+      ],
       "turns": 3
     }
   },
