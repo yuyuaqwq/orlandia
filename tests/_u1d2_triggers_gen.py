@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
-"""U1-D2 门禁③ 生成器（触发器主四件）—— 12 段冻结文本 / 双 sha256 / aux 指纹。
+"""U1-D2 门禁③ 生成器（触发器主四件）—— 11 段冻结文本 / 双 sha256 / aux 指纹。
 
 口径（照 `design/U1-D2_FROZEN_GATE.md` §1.2 · §2.2 · §2.3 · §5.3）
 -----------------------------------------------------------------
 * **冻结侧读 `base/pkg/**`**（= 改动前基线；本工作区 `base/pkg == work/pkg`，开工时冻结），
   用 `ast` 逐行切片出旧实现文本；切片口径 = `min(装饰器行, def 行)` 起、`node.end_lineno` 止、
   **保留原行尾** ⇒ 与 `inspect.getsource(<活实现>)` 逐字节相等
-  （`--emit-frozen` 时对**全部 12 段**当面证明，不只 E 栏）。
+  （`--emit-frozen` 时对**全部 11 段**当面证明，不只 E 栏）。
 * 生成器输出**只写进** `tests/test_u1d2_triggers_frozen.py` 的两行标记之间；
   标记之外的正文（比对逻辑）**一个字节都不碰**。
-* 12 段 = 4 文件（`equip.py` 5 · `food_proc.py` 4 · `team_procs.py` 1 · `worldboss.py` 2）。
+* 11 段 = 4 文件（`equip.py` 4 · `food_proc.py` 4 · `team_procs.py` 1 · `worldboss.py` 2）。
+  ★ 2026-09-26（E5-4 收口 2a）：`equip.map_event` 段**退出冻结**（见下方 2a 登记）。
 
 档位（机械判据，`FROZEN_GATE.md` §1.3）：`丙` ⟺ `async def`；否则 `乙` ⟺ 段内出现 `self.`；
-否则 `甲`。本门禁 = **甲 12 / 乙 0 / 丙 0**（与 `FROZEN_GATE.md` §0 一致）。
+否则 `甲`。本门禁 = **甲 11 / 乙 0 / 丙 0**（= `FROZEN_GATE.md` §0 的 12 段去掉 2a 移出的 1 段）。
 
 ⚠️ **不跑任何 `git` 写命令**（作业书 §5 禁令 1）：base 解析走 `git log` / `git show`
 （只读），解析失败即 fail-closed 报错。
 
 2026-09-26 修复（引擎线台账 §2-1）
 ----------------------------------
-1. **base 判据 = 全基线指纹**：`_BASELINE_PINS`（12 段切片 sha256）**＋**
+1. **base 判据 = 全基线指纹**：`_BASELINE_PINS`（11 段切片 sha256）**＋**
    `_AUX_BASELINE_PINS`（4 数据表 + 装配契约 + 4 源文件基线 sha256）。
    旧口径只比 12 段切片 ⇒ git 回溯选到 `e4dccb4e`（切片对得上，`content/apply.py`
    是另一版）⇒ aux 生成不出正确值、E 栏自检必红。全指纹口径唯一命中**真正的改动前
@@ -39,6 +40,22 @@
    由外层给 `GWEN_HOST_DIR`（与 `_e5_pairs.py` / 宿主跑器同口径；缺失时 `_paths`
    醒目报错，不静默装绿）。
 
+2026-09-26 · E5-4 收口 2a（宣告 `equip.map_event` 段退出冻结）
+--------------------------------------------------------
+**改写理由**：E5-4 收口第 ② 步 —— `map_event` 旧事件名层要迁进内容侧（展开写进翻译器 /
+装配路径），`equip.map_event` 里的**未知名告警**要改挂 `Compiler(on_unknown=…)`（保住
+反静默失效）⇒ 该段文本**必然改**；继续按 E 栏冻结（frozen == live）与迁移自相矛盾。
+**日期**：2026-09-26。
+**旧口径**：12 段全冻结（E 6 / C 6 · 甲 12）；`equip.map_event` / `food_proc._map_event` 属 E 栏。
+**新口径**：`equip.map_event` **移出冻结**（`SEGMENTS` / `CLASS` / `_BASELINE_PINS` 三处同删）
+⇒ **11 段 · 甲 11 · E 栏 5 / C 栏 6**；它原本承担的语义改由门禁 `[2]` 的**表声明锚定**口径
+接住（旧名映射的单一真源 = 数据表声明；活实现展开口逐键 == 声明 · 逐事件双向比对），
+判据只加强不削弱。`food_proc._map_event` **继续冻结在 E 栏**：它是纯查表包装（无告警 /
+无状态 / 无第二真源），迁移只改它**上游**（`install_food_fx` 的展开循环 = C 栏）⇒
+退出冻结的判据是「该段文本会随迁移改动」，不是「属于同一层」。
+**若 2b 改成把 food 的展开内联进 `install_food_fx`**（`_map_event` 成死码）：同批把
+`food_proc._map_event` 也移出 `SEGMENTS` / `CLASS` / `_BASELINE_PINS`，并在此补一行登记。
+
 跑法（真仓布局；`GWEN_HOST_DIR` = 宿主壳根）
 ------------------------------------------
     set GWEN_FRAMEWORK_DIR=<引擎仓>
@@ -54,9 +71,9 @@
 
 E/C 分类（§2.3）
 ----------------
-* **E**（预期不变，6 段）：`equip._known_engine_events` · `equip.map_event` ·
-  `food_proc._map_event` · `food_proc.food_trigger_decls` · `food_proc.food_period_decl` ·
-  `worldboss.wb_gm_dmg_mult`
+* **E**（预期不变，5 段）：`equip._known_engine_events` · `food_proc._map_event` ·
+  `food_proc.food_trigger_decls` · `food_proc.food_period_decl` · `worldboss.wb_gm_dmg_mult`
+  （★ 2026-09-26 2a：`equip.map_event` 已移出冻结 ⇒ 本栏 6 → 5）
 * **C**（预期会变，6 段）：`equip.weapon_triggers` · `equip.affix_triggers` ·
   `equip.apply_to_actor` · `food_proc.install_food_fx` · `team_procs._mount` ·
   `worldboss.apply_gm_dmg_mult`
@@ -86,10 +103,10 @@ TEST_FILE = os.path.join(_HERE, "test_u1d2_triggers_frozen.py")
 BEGIN = "# >>> _u1d2_triggers_gen (auto) >>>"
 END = "# <<< _u1d2_triggers_gen (auto) <<<"
 
-#: 12 段（文件 · 符号），**顺序即门禁内键序**。
+#: 11 段（文件 · 符号），**顺序即门禁内键序**。
+#: ★ 2026-09-26 2a：`content/mech/equip.py::map_event` 移出（退出冻结，见 2a 登记）。
 SEGMENTS = [
     ("content/mech/equip.py", "_known_engine_events"),
-    ("content/mech/equip.py", "map_event"),
     ("content/mech/equip.py", "weapon_triggers"),
     ("content/mech/equip.py", "affix_triggers"),
     ("content/mech/equip.py", "apply_to_actor"),
@@ -105,7 +122,6 @@ SEGMENTS = [
 #: E / C 分类（§2.3）。
 CLASS = {
     "content/mech/equip.py::_known_engine_events": "E",
-    "content/mech/equip.py::map_event": "E",
     "content/mech/equip.py::weapon_triggers": "C",
     "content/mech/equip.py::affix_triggers": "C",
     "content/mech/equip.py::apply_to_actor": "C",
@@ -118,13 +134,12 @@ CLASS = {
     "content/mech/worldboss.py::apply_gm_dmg_mult": "C",
 }
 
-#: `design/U1-D2_FROZEN_GATE.md` §1.4 那份 74 段基线里属于本门禁的 **12 条**（全 64 位）。
+#: `design/U1-D2_FROZEN_GATE.md` §1.4 那份 74 段基线里属于本门禁的 **11 条**（全 64 位）。
+#: ★ 2026-09-26 2a：`equip.map_event` 那条随该段退出冻结一并移出（不再作判据）。
 #: 生成器 `--check` 拿它交叉核对 —— 双向独立来源（设计稿 vs `base/pkg` 切片）必须一致。
 _BASELINE_PINS = {
     "content/mech/equip.py::_known_engine_events":
         "cd81e2e7c9da6719d0f609a5afb6b5e3025afb90e6296abf96ff837edfbbfbbf",   # 134-140  273 字符
-    "content/mech/equip.py::map_event":
-        "2bde3f8d58ec59f0075506e4cb387445c10594aaf0ac546e823364ea700bb2c8",   # 144-160  686 字符
     "content/mech/equip.py::weapon_triggers":
         "ff7199dca0852eff5d6a846da8807b8b6724b6b24c95cdb955d1e7e4ba3b6b2b",   # 1423-1437 551 字符
     "content/mech/equip.py::affix_triggers":
@@ -217,7 +232,7 @@ SRC_RELS = ("content/mech/equip.py", "content/mech/food_proc.py",
 def slice_source_text(src: str, symbol: str, where: str = "<text>") -> str:
     """从源码**文本**里切出 `symbol` 的**整段源码文本**（含装饰器，保留原行尾）。
 
-    与 `inspect.getsource` 逐字节一致（生成时对全部 12 段当面证明）。
+    与 `inspect.getsource` 逐字节一致（生成时对全部 11 段当面证明）。
     """
     tree = ast.parse(src)
     hits = [n for n in ast.walk(tree)
@@ -280,7 +295,7 @@ def _git_reader(rev):
 
 
 def _matches_baseline(read) -> bool:
-    """候选 base 的**全基线指纹**是否全中：`_BASELINE_PINS`（12 段切片 sha256）
+    """候选 base 的**全基线指纹**是否全中：`_BASELINE_PINS`（11 段切片 sha256）
     **＋** `_AUX_BASELINE_PINS`（9 个基线文件 sha256）。
 
     ★ 2026-09-26：旧口径只比 12 段切片 ⇒ 命中 `e4dccb4e`（切片对得上，`content/apply.py`
@@ -356,7 +371,7 @@ def _resolve_base_pkg():
 def _no_base_msg() -> str:
     return ("❌ 找不到改动前基线（base/pkg）—— 生成器**拒绝执行**（fail-closed，不静默降级）。\n"
             "   解析顺序：GWEN_U1D2_BASE_PKG → <lane>/base/pkg → <pkg>/.u1d2_base/pkg → git 历史回溯\n"
-            "   判据：**全基线指纹**全中（12 段切片 sha256 ＋ `_AUX_BASELINE_PINS` 9 个文件 sha256）\n"
+            "   判据：**全基线指纹**全中（11 段切片 sha256 ＋ `_AUX_BASELINE_PINS` 9 个文件 sha256）\n"
             "   启用方式：GWEN_U1D2_BASE_PKG=<含 content/mech/worldboss.py 的 pkg 目录>")
 
 
@@ -464,7 +479,7 @@ def _modname_of(relpath: str) -> str:
 
 
 def live_object(relpath: str, symbol: str):
-    """活模块里的对象（本门禁 12 段全是模块级函数 → 直取）。"""
+    """活模块里的对象（本门禁 11 段全是模块级函数 → 直取）。"""
     _boot_work_pkg()
     mod = importlib.import_module(_modname_of(relpath))
     return getattr(mod, symbol, None)
@@ -493,9 +508,9 @@ def self_check(*, with_live=True) -> list:
     lines = []
     base = frozen_slices()
     frozen = frozen_texts()
-    if len(base) != 12:
-        raise SystemExit("自检①失败：切片数 = %d（期望 12）" % len(base))
-    lines.append("  ① 段数 = %d（期望 12）" % len(base))
+    if len(base) != 11:
+        raise SystemExit("自检①失败：切片数 = %d（期望 11）" % len(base))
+    lines.append("  ① 段数 = %d（期望 11）" % len(base))
 
     for key, text in frozen.items():
         try:
@@ -506,7 +521,7 @@ def self_check(*, with_live=True) -> list:
         if n != 1:
             raise SystemExit("自检②失败：%s 里 `def %s(` 出现 %d 次（期望 1）"
                              % (key, key.split("::")[1], n))
-    lines.append("  ② 12 段切片全部 ast.parse 可编译")
+    lines.append("  ② 11 段切片全部 ast.parse 可编译")
 
     for i, (relpath, symbol) in enumerate(SEGMENTS[:-1]):
         nxt_rel, nxt_sym = SEGMENTS[i + 1]
@@ -519,14 +534,14 @@ def self_check(*, with_live=True) -> list:
                              % (key_of(relpath, symbol), marker))
     lines.append("  ③ 无切片越界（下一段首行不出现）")
 
-    if len(_BASELINE_PINS) != 12:
-        raise SystemExit("自检④失败：内嵌基线 12 条，实际 %d 条" % len(_BASELINE_PINS))
+    if len(_BASELINE_PINS) != 11:
+        raise SystemExit("自检④失败：内嵌基线 11 条，实际 %d 条" % len(_BASELINE_PINS))
     mismatch = [k for k, want in _BASELINE_PINS.items()
                 if sha256_text(base.get(k, "")) != want]
     if mismatch:
         raise SystemExit("自检④失败：与 design/U1-D2_FROZEN_GATE.md §1.4 基线不一致：%s"
                          % ", ".join(mismatch))
-    lines.append("  ④ 12 条冻结 sha256 == `FROZEN_GATE.md` §1.4 基线（全 64 位）")
+    lines.append("  ④ 11 条冻结 sha256 == `FROZEN_GATE.md` §1.4 基线（全 64 位）")
 
     if len(_AUX_BASELINE_PINS) != 9:
         raise SystemExit("自检⑤失败：内嵌 aux 基线 9 条，实际 %d 条" % len(_AUX_BASELINE_PINS))
@@ -641,7 +656,7 @@ def _emit(phase: str, *, aux=None, live=None) -> None:
 
 
 def _emit_frozen() -> None:
-    print("【--emit-frozen】冻结 12 段（base/pkg）+ 红基线 live pin + aux 指纹")
+    print("【--emit-frozen】冻结 11 段（base/pkg）+ 红基线 live pin + aux 指纹")
     print("  ⚠ 只在红基线之前跑一次（那时 base == work）：本档自证「冻结文本 == 活实现」")
     frozen = frozen_texts()
     live = live_pins()
@@ -660,7 +675,7 @@ def _emit_frozen() -> None:
         k = key_of(relpath, symbol)
         print("  [%s/%s] %-52s frozen=%s live=%s"
               % (CLASS[k], tier_of(frozen[k]), k, sha256_text(frozen[k])[:12], live[k][:12]))
-    print("  （红基线自证：12/12 段 冻结文本 == inspect.getsource(活实现)）")
+    print("  （红基线自证：11/11 段 冻结文本 == inspect.getsource(活实现)）")
 
 
 def _emit_live() -> None:

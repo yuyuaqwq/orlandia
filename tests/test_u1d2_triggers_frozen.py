@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """U1-D2 冻结比对**门禁③**（触发器主四件）：`equip.py` · `food_proc.py` · `team_procs.py` ·
-`worldboss.py` 共 **12 段** —— 手写判重 + 手写追加 → 引擎 `battle/declarations` 声明编译器。
+`worldboss.py` 共 **11 段** —— 手写判重 + 手写追加 → 引擎 `battle/declarations` 声明编译器。
+★ 2026-09-26（E5-4 收口 2a）：`equip.map_event` 段**退出冻结** ⇒ 12 段 → 11 段、
+  甲 12 → 甲 11、E 栏 6 → 5（详见下方「2a 登记」与 `tests/_u1d2_triggers_gen.py`）。
 
 跑法（工作区根；环境变量见 `BRIEF.md` §4）::
 
@@ -10,20 +12,24 @@
 
 判据（`design/U1-D2_BATCHES.md` §6 判据表 1–10；本文件逐条打原始输出）
 ----------------------------------------------------------------------
- [1] **12 段冻结文本 sha256 全等 `_PIN["frozen"]`** + **活实现 `inspect.getsource` sha256
+ [1] **11 段冻结文本 sha256 全等 `_PIN["frozen"]`** + **活实现 `inspect.getsource` sha256
      全等 `_PIN["live"]`**；`phase == "landed"` 时再断言 E 栏 `frozen == live`、C 栏
      `frozen != live`（§2.3）。
  [2] **全量网格**：82 武器 × 26 事件 + 76 词条 × 26 + 93 传说 × 26 + 19 食物 × 26 = **7,020 格**
-     （旧实现 = `base/pkg` 切片 `exec` 出来的那一份，逐桶逐条比）；旧名映射 (12+5) 键 × 2
-     文件 = **34 格**（映射目标 ∈ `EVENTS`；合计 **7,054 格** = 作业书标题口径）。另跑一遍
-     `FROZEN_GATE.md` §5.3 的加细口径 (12+5) × 26 事件 × 2 = **884 格**作加强网格。
+     （旧实现 = `base/pkg` 切片 `exec` 出来的那一份，逐桶逐条比）；旧名映射 17 键 × 2 = **34 格**
+     —— ★ 2026-09-26（2a）口径改写：**不再拿旧实现当 oracle**（迁移本质就是让旧名映射消失），
+     改钉「**表声明锚定**」：① 数据表声明有效（非空 · 全 ∈ `EVENTS` · tuple 序）
+     ② **活实现展开口**逐键 == 表声明（合计 **7,054 格** = 作业书标题口径）。另跑一遍
+     `FROZEN_GATE.md` §5.3 的加细口径 17 键 × 26 事件 × 2 = **884 格**作加强网格
+     （逐事件**双向**：不多不少）。
  [3] **幂等矩阵**：4 挂载入口 × 重复 {1,2,3} × 2 actor 态 = **24 格**（`equip` 非幂等单列）。
  [4] `apply_gm_dmg_mult` 返回 `bool` 语义逐字：挂上 `True` / 倍率=1.0 不挂 `False` /
      已挂且改回 1.0 → **撤回 + `False`**。
  [5] `_owner` 注入：`food_proc` 挂载期注入 + `fire()` 兜底注入；两条路径读 `params["_owner"]`
      得**同一对象**。
- [6] `equip` 的 `_EVENT_MAP` / `_UNKNOWN_EVENTS` / `_known_engine_events` 三名字仍在且语义不变
-     （AST + 直取）。
+ [6] `equip` 的 `_EVENT_MAP` / `_UNKNOWN_EVENTS` / `_known_engine_events` 三个**端口名**仍在且
+     语义不变（AST + 直取）。★ 2026-09-26（2a）：`map_event` 本身已退出冻结（见下方 2a 登记），
+     旧名 → 引擎名的**展开语义**改由判据 [2] 的「表声明锚定」逐键钉住（判据只加强）。
  [7] 口径分歧 8 条各 ≥1 条断言（C 块 §6）。
  [8] 有牙反证 3 处（`key_of` 恒 None → 幂等失效 / `merge` 恒 append → 前插序丢 /
      事件名校验改抛异常 → 装配中断）→ 对应探针**必须变红**（逐处打印预期/实测）。
@@ -133,6 +139,23 @@ READONLY_FILES = (
 #     重生成的值与下表**逐字节一致**，重钉不再需要手工；本登记段移出生成区（标记外），
 #     免得下次 emit 把它抹掉。
 
+# ★ 2026-09-26 · E5-4 收口 2a 登记：`equip.map_event` 段**退出冻结**
+# ---------------------------------------------------------------
+# · **改写理由**：E5-4 收口第 ② 步 —— `map_event` 旧事件名层要迁进内容侧（展开写进翻译器 /
+#   装配路径），`equip.map_event` 里的**未知名告警**要改挂 `Compiler(on_unknown=…)`（保住反
+#   静默失效）⇒ 该段文本**必然改**；继续按 E 栏冻结（frozen == live）与迁移自相矛盾。
+# · **日期**：2026-09-26（引擎线台账 §2-2a）。
+# · **旧口径**：12 段全冻结（E 6 / C 6 · 甲 12）；`equip.map_event` / `food_proc._map_event` 属 E 栏。
+# · **新口径**：`equip.map_event` 移出冻结 ⇒ **11 段（equip 4 / food_proc 4 / team_procs 1 /
+#   worldboss 2）· 甲 11 · E 栏 5 / C 栏 6**；判据 [2] 的旧名映射格（34 / 884）由「旧实现映射
+#   目标 ∈ EVENTS」改为「**表声明锚定**」：表声明有效 ＋ 活实现展开口逐键 == 表声明，逐事件
+#   双向比 —— **判据只加强不削弱**（多了逐键相等与「无多余映射」，且不再依赖旧实现）。
+# · `food_proc._map_event` **继续冻结在 E 栏**：它是纯查表包装（无告警 / 无状态 / 无第二真源），
+#   迁移只改它**上游**（`install_food_fx` 的展开循环 = C 栏）⇒ 退出冻结的判据是「该段文本会随
+#   迁移改动」，不是「属于同一层」。
+# · 若 2b 改成把 food 的展开内联进 `install_food_fx`（`_map_event` 成死码）：同批把它也移出
+#   `SEGMENTS` / `CLASS` / `_BASELINE_PINS`，并在此补一行登记。
+
 # >>> _u1d2_triggers_gen (auto) >>>
 
 # ⚠ 本块由 `tests/_u1d2_triggers_gen.py` 生成 —— 手工改动 = 门禁失去安全网。
@@ -140,7 +163,6 @@ READONLY_FILES = (
 
 _FROZEN_TEXT = {
     'content/mech/equip.py::_known_engine_events': 'def _known_engine_events() -> frozenset:\n    """引擎事件全集；**取不到就返回空集 = 不告警**（告警本身不允许成为新的故障点）。"""\n    try:\n        from ext_combat.battle.effect_triggers import EVENTS as _E\n        return frozenset(_E)\n    except Exception:      # noqa: BLE001\n        return frozenset()\n',
-    'content/mech/equip.py::map_event': 'def map_event(old_ev: str) -> tuple:\n    """旧事件 → saintess_engine 事件展开；不在表 = 假定已是 saintess_engine 原生事件名，同名直通\n    （dmg_calc/taken_calc/battle_start 等装配层可直接用 saintess_engine 事件名）。\n\n    ★ 2026-09-13 反静默失效：直通的名字若不在引擎 EVENTS 全集里，`fire()` 会静默忽略 →\n    触发器永不生效且无痕迹。此处**只告警不改行为**（仍直通返回，语义与改造前逐字一致），\n    未知名去重缓存（装配器每场战斗都装，不去重会刷屏）。\n    """\n    got = _EVENT_MAP.get(old_ev)\n    if got is not None:\n        return got\n    _known = _known_engine_events()\n    if _known and old_ev not in _known and old_ev not in _UNKNOWN_EVENTS:\n        _UNKNOWN_EVENTS.append(old_ev)\n        logging.getLogger(__name__).warning(\n            "装配层事件名 %r 不在引擎事件全集里（fire 会静默忽略 → 该触发器永不生效）", old_ev)\n    return (old_ev,)\n',
     'content/mech/equip.py::weapon_triggers': 'def weapon_triggers(actor: dict) -> dict:\n    """actor 全部已装备武器特效 → {saintess_engine事件: [效果 dict]}。\n\n    内部先把 key 翻译成 {old_event: [效果]}，再把 old_event 映射展开到\n    saintess_engine 事件（hit → attack_hit + skill_hit 双事件注册）。\n    """\n    out: dict = {}\n    for key in equipped_weapon_keys(actor):\n        raw = triggers_for_key(key, actor)\n        if not raw:\n            continue  # 未支持 key：静默跳过（范围外）\n        for old_ev, effs in raw.items():\n            for b2_ev in map_event(old_ev):\n                out.setdefault(b2_ev, []).extend(list(effs))\n    return out\n',
     'content/mech/equip.py::affix_triggers': 'def affix_triggers(actor: dict) -> dict:\n    """actor 全部已装备词条（事件型）→ {saintess_engine事件: [效果 dict]}。\n\n    - stat 型词条（生成时已折算进 item.stats）不产生 triggers（面板自动含）\n    - 事件型走翻译器 + 事件映射展开（hit → attack_hit + skill_hit）\n    - 资源型：R4 已装事件 gain 型 10 + boiling_blood；上限型 max_bonus 走\n      _apply_bonus_domains（actor.bonus cap/cost 分域容器，非事件——apply_to_actor 第\n      0 步；面板外部增幅 bonus.panel 由开战仪式播种，装配不动）；\n      m_affixtail 已装 regen 型 2（energy_tide/swift_tailwind turn_start 回能）+\n      purify（命中驱散）；D3 已装 3 条事件型词条（combo_recover/combo_ward/ember_brand\n      ——取舍见 overnight/d3-gap-fix.md）；其余 cond 修正型/职业机制词条翻译器未注册\n      → 静默跳过（缺口清单见模块头注释与 affixes.py）\n    """\n    out: dict = {}\n    for aid in equipped_affix_ids(actor):\n        raw = affix_triggers_for_key(aid, actor)\n        if not raw:\n            continue\n        for old_ev, effs in raw.items():\n            for b2_ev in map_event(old_ev):\n                out.setdefault(b2_ev, []).extend(list(effs))\n    return out\n',
     'content/mech/equip.py::apply_to_actor': 'def apply_to_actor(actor: dict) -> None:\n    """把装备特效+词条装配进 actor（幂等；命令层开战前调用）：\n    0. bonus 容器分域（v181.M-bonus：cap 上限词条 max_bonus → bonus.cap；\n       cost 消耗修正词条 energy_blade/arcane_focus/sigil_blessing → bonus.cost；\n       panel 外部增幅由开战仪式播种，此处不动）\n    1. 事件型效果 → actor["triggers"]（武器特效 + 词条事件型 + 传说专属特效合并）\n    2. 被动常驻型（proc_heal amp：受疗增幅）→ actor.state.heal_amp_pct（landing 折算）"""\n    if not actor:\n        return\n    install_ext_actions()\n    # 0) bonus 容器（cap/cost——先于渠道装配；覆盖写幂等，卸装后重装配回落）\n    try:\n        _apply_bonus_domains(actor)\n    except Exception:\n        pass  # 词条 bonus 装配异常不阻断其余（容错铁律）\n    # 1) 事件型（武器特效 + affix 词条 + 传说专属特效）\n    merged = weapon_triggers(actor)\n    try:\n        _afx = affix_triggers(actor)\n        for ev, effs in _afx.items():\n            merged.setdefault(ev, []).extend(effs)\n    except Exception:\n        pass  # 词条装配异常不阻断武器装配（容错）\n    try:\n        _leg = legendary_triggers(actor)\n        for ev, effs in _leg.items():\n            merged.setdefault(ev, []).extend(effs)\n    except Exception:\n        pass  # 传说专属装配异常不阻断其余（容错铁律）\n    tr = actor.setdefault("triggers", {})\n    for ev, effs in merged.items():\n        tr.setdefault(ev, []).extend(effs)\n    # 2) 被动常驻：heal amp（vital_band 等 proc_heal amp 4 key）→ effects["heal_amp_pct"] 条目\n    amp = 0.0\n    for key in equipped_weapon_keys(actor):\n        wd = _we_config(key, actor)\n        if (wd.get("family") == "proc_heal" and wd.get("heal_pct") is not None\n                and key in _HEAL_AMP_KEYS):\n            pct = float(wd.get("heal_pct") or 0)\n            if pct > 0:\n                amp = 1.0 - (1.0 - amp) * (1.0 - pct)  # 多件叠乘转加和\n    if amp > 0:\n        ef = actor.setdefault("effects", {})\n        entry = ef.get("heal_amp_pct")\n        if not isinstance(entry, dict):\n            entry = ef["heal_amp_pct"] = {}\n        cur_v = float((entry.get("value") or {}).get("amp", 0) or 0)\n        entry.setdefault("value", {})["amp"] = max(cur_v, amp)\n',
@@ -157,7 +179,6 @@ _PIN = {
     'phase': 'landed',
     'frozen': {
         'content/mech/equip.py::_known_engine_events': '5e1f309211914dd35ea8dc39421b33e15993f044b28d2a662e2847eb4c7cd2e7',
-        'content/mech/equip.py::map_event': '2bde3f8d58ec59f0075506e4cb387445c10594aaf0ac546e823364ea700bb2c8',
         'content/mech/equip.py::weapon_triggers': 'ff7199dca0852eff5d6a846da8807b8b6724b6b24c95cdb955d1e7e4ba3b6b2b',
         'content/mech/equip.py::affix_triggers': '477930b46af4857910759c2bb0168cf4a0b830083800bc45dc5cf25c8140f2cf',
         'content/mech/equip.py::apply_to_actor': '6d28f9d030d7acd4f0277e11b2e1d466cb6e4d3daa072b1946e15b35cc64d97f',
@@ -171,7 +192,6 @@ _PIN = {
     },
     'live': {
         'content/mech/equip.py::_known_engine_events': '5e1f309211914dd35ea8dc39421b33e15993f044b28d2a662e2847eb4c7cd2e7',
-        'content/mech/equip.py::map_event': '2bde3f8d58ec59f0075506e4cb387445c10594aaf0ac546e823364ea700bb2c8',
         'content/mech/equip.py::weapon_triggers': 'c7b8de643ee404079e9968625592f3284906f06ed891e312b66dc8fbafe58b73',
         'content/mech/equip.py::affix_triggers': '1a152b6238fac998e023483a24d742124743fb92791b262d0de81d0a50970612',
         'content/mech/equip.py::apply_to_actor': 'b81f812ff884eb7c4ab19d793e46f02e35e97fa7e7ee348a64703d6c123ce6da',
@@ -199,7 +219,6 @@ _PIN = {
     'segments': {
         'E': [
             'content/mech/equip.py::_known_engine_events',
-            'content/mech/equip.py::map_event',
             'content/mech/food_proc.py::_map_event',
             'content/mech/food_proc.py::food_trigger_decls',
             'content/mech/food_proc.py::food_period_decl',
@@ -216,7 +235,6 @@ _PIN = {
     },
     'tier': {
         'content/mech/equip.py::_known_engine_events': '甲',
-        'content/mech/equip.py::map_event': '甲',
         'content/mech/equip.py::weapon_triggers': '甲',
         'content/mech/equip.py::affix_triggers': '甲',
         'content/mech/equip.py::apply_to_actor': '甲',
@@ -324,9 +342,9 @@ FOOD_KEYS = list(FP._food_params())
 ENG_EVENTS = tuple(EV)
 
 EXPECT_ROWS = 7020
-EXPECT_OLDNAMES = 34          # 作业书 §3 判据 2 口径：(12 + 5) 键 × 2 文件
+EXPECT_OLDNAMES = 34          # 口径 2a：旧名映射 17 键（equip 12 + food 5）× 2 格
 EXPECT_OLDNAMES_DEEP = 884    # FROZEN_GATE §5.3 口径（加强网格）：(12+5) × 26 事件 × 2
-EXPECT_TOTAL = 7054           # 7,020 + 34（作业书标题「12 段 / 7,054 格」）
+EXPECT_TOTAL = 7054           # 7,020 + 34（作业书标题 7,054 格；2a 后段数 11，格数不变）
 EXPECT_IDEM = 24
 
 _MISM = {"rows": [], "oldnames": [], "idem": [], "period": []}
@@ -377,54 +395,66 @@ def _grid_rows():
     return n
 
 
-_OLDMAP_FILES = (
-    ("equip", EQ, "map_event", OLD_EQ["map_event"]),
-    ("food", FP, "_map_event", OLD_FP["_map_event"]),
+# ── 旧名映射：单一真源 = **数据表声明**（口径 2a 改写）─────────────────────────
+#: ★ 2026-09-26（E5-4 收口 2a）：旧口径 = 「**旧实现**（`base/pkg` 切片 exec）的映射目标 ∈
+#:   `EVENTS`」。迁移（把 old→engine 展开挪进翻译器 / 装配路径）本质就是让旧名映射消失 ⇒
+#:   拿旧实现当 oracle 从语义上不成立。新口径 = **表声明锚定**（判据只加强）：
+#:     格① 数据表声明有效（非空 · 全 ∈ `EVENTS` · tuple 序）
+#:     格② **活实现展开口**逐键 == 表声明（不是「⊆ 允许集合」）
+#:   表来源：`equip` → 包内域 `content/data/equip_event_map.json` 的 `EVENT_MAP` 段（12 键）；
+#:           `food` → 活模块 `food_proc._EVENT_MAP`（5 键；food 侧没有域文件）。
+def _equip_declared_map() -> dict:
+    """equip 侧旧名映射的**声明真源** = 包内域 `content/data/equip_event_map.json`。"""
+    dom = json.load(open(_pkg_file("content/data/equip_event_map.json"), encoding="utf-8"))
+    return {k: tuple(v) for k, v in (dom.get("EVENT_MAP") or {}).items()}
+
+
+def _food_declared_map() -> dict:
+    """food 侧 = 活模块 `food_proc._EVENT_MAP`（food 侧无域文件）。"""
+    return {k: tuple(v) for k, v in FP._EVENT_MAP.items()}
+
+
+#: (标签, 声明真源, **活实现展开口**) —— 展开口 = 该文件里 old→engine 展开的入口。
+_EXPANDERS = (
+    ("equip", _equip_declared_map, lambda k: tuple(EQ.map_event(k))),
+    ("food", _food_declared_map, lambda k: tuple(FP._map_event(k))),
 )
 
 
-def _oldmap_unknown(mod, K, tgts):
-    """该旧名展开后的未知名清单（活实现接了引擎 → 用编译器 `validate`；红基线 → 直接比 EVENTS）。"""
-    comp = getattr(mod, "_DECL", None)
-    if comp is not None:
-        return [u for u in comp.validate({K: [{}]}) if u not in EV]
-    return [t for t in tgts if t not in EV]
-
-
 def _grid_oldnames():
-    """网格②（作业书 §3 判据 2 口径）：旧名映射 (12 + 5) 键 × 2 文件 = 34 格。
+    """网格②（口径 2a · 表声明锚定）：旧名映射 17 键 × 2 格 = 34 格。
 
-    每键 2 格：① 映射目标全在 `EVENTS`；② 该键展开的未知名清单为空。
+    每键 2 格：① 表声明有效（非空 · 全 ∈ `EVENTS`）② 活实现展开口逐键 == 表声明。
     """
     n = 0
-    for label, mod, _msym, oldmap in _OLDMAP_FILES:
-        for K in list(getattr(mod, "_EVENT_MAP")):
-            tgts = tuple(oldmap(K))
+    for label, declared, live in _EXPANDERS:
+        for K, tgt in declared().items():
             n += 1
-            if not all(t in EV for t in tgts):
-                _MISM["oldnames"].append((label, K, "target", tgts))
+            if not tgt or not all(t in EV for t in tgt):
+                _MISM["oldnames"].append((label, K, "declare", _short(tgt)))
             n += 1
-            unk = _oldmap_unknown(mod, K, tgts)
-            if unk:
-                _MISM["oldnames"].append((label, K, "unknown", unk))
+            got = _call(live, K)
+            if got != tgt:
+                _MISM["oldnames"].append((label, K, "live", _short(got), _short(tgt)))
     return n
 
 
 def _grid_oldnames_deep():
-    """加强网格（`FROZEN_GATE.md` §5.3 口径）：旧名映射 (12 + 5) × 26 事件 × 2 = 884 格。"""
+    """加强网格（`FROZEN_GATE.md` §5.3 口径）：17 键 × 26 事件 × 2 = 884 格。
+
+    逐事件**双向**比：`E ∈ 声明` ⟺ `E ∈ 活实现展开`（既抓漏、也抓「自带多余映射」）。
+    """
     n = 0
-    for label, mod, _msym, oldmap in _OLDMAP_FILES:
-        for K in list(getattr(mod, "_EVENT_MAP")):
-            tgts = tuple(oldmap(K))
-            known = all(t in EV for t in tgts)
+    for label, declared, live in _EXPANDERS:
+        for K, tgt in declared().items():
+            got = _call(live, K)
             for E in EV:
                 n += 1
-                if not known:
-                    _MISM["oldnames"].append((label, K, E, "target", tgts))
+                if E in tgt and E not in got:
+                    _MISM["oldnames"].append((label, K, E, "missing", _short(got)))
                 n += 1
-                unk = _oldmap_unknown(mod, K, tgts)
-                if unk:
-                    _MISM["oldnames"].append((label, K, E, "unknown", unk))
+                if E not in tgt and E in got:
+                    _MISM["oldnames"].append((label, K, E, "extra", _short(got)))
     return n
 
 
@@ -524,13 +554,13 @@ class _IdemBreak:
 # 3. 判据 1：双 sha256 + E/C 分类 + 分级
 # ═══════════════════════════════════════════════════════════════════════════════
 def test_frozen_pins():
-    print("【1. 双 sha256：12 段冻结文本 + 活实现 inspect.getsource】")
+    print("【1. 双 sha256：11 段冻结文本 + 活实现 inspect.getsource】")
     keys = list(_PIN["frozen"])
-    check("冻结段数 == 12（equip 5 / food_proc 4 / team_procs 1 / worldboss 2）",
-          len(keys) == 12, len(keys))
+    check("冻结段数 == 11（equip 4 / food_proc 4 / team_procs 1 / worldboss 2）",
+          len(keys) == 11, len(keys))
     check("门禁内键序 == 冻结文本键序", keys == list(_FROZEN_TEXT), keys[:3])
     bad = [k for k in keys if sha256(_FROZEN_TEXT[k]) != _PIN["frozen"][k]]
-    check("冻结文本 sha256 全等 _PIN['frozen']（12 段）", not bad, bad[:4])
+    check("冻结文本 sha256 全等 _PIN['frozen']（11 段）", not bad, bad[:4])
 
     live_bad = []
     for k in keys:
@@ -539,7 +569,7 @@ def test_frozen_pins():
         got = "<deleted>" if obj is None else sha256(inspect.getsource(obj))
         if got != _PIN["live"][k]:
             live_bad.append((k, _PIN["live"][k][:12], got[:12]))
-    check("活实现 inspect.getsource sha256 全等 _PIN['live']（12 段）", not live_bad, live_bad[:4])
+    check("活实现 inspect.getsource sha256 全等 _PIN['live']（11 段）", not live_bad, live_bad[:4])
 
     seg = _PIN["segments"]
     chkE = [k for k in seg["E"] if _PIN["frozen"][k] != _PIN["live"][k]]
@@ -567,9 +597,9 @@ def test_frozen_pins():
     for k in keys:
         tiers.setdefault(_TIER[k], []).append(k)
     got = (len(tiers.get("甲", [])), len(tiers.get("乙", [])), len(tiers.get("丙", [])))
-    check("分级：甲 %d / 乙 %d / 丙 %d（期望 12 / 0 / 0）" % got, got == (12, 0, 0))
-    check("12 段全部覆盖（冻结键 == 段清单）",
-          set(_KEYS) == set(seg["E"]) | set(seg["C"]) and len(seg["E"]) == 6 and len(seg["C"]) == 6)
+    check("分级：甲 %d / 乙 %d / 丙 %d（期望 11 / 0 / 0）" % got, got == (11, 0, 0))
+    check("11 段全部覆盖（冻结键 == 段清单；E 栏 5 / C 栏 6）",
+          set(_KEYS) == set(seg["E"]) | set(seg["C"]) and len(seg["E"]) == 5 and len(seg["C"]) == 6)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -592,19 +622,28 @@ def test_grids():
           _MISM["period"][:3])
 
     n_old = _grid_oldnames()
-    print("     网格② 旧名映射 (12+5) 键 × 2 文件：实测 %d 格（期望 %d）；不等 %d 处"
+    print("     网格② 旧名映射 17 键 × 2 格（表声明锚定）：实测 %d 格（期望 %d）；不等 %d 处"
           % (n_old, EXPECT_OLDNAMES, len(_MISM["oldnames"])))
     check("网格② == 34 格（脚本实测）", n_old == EXPECT_OLDNAMES, n_old)
-    check("网格② 映射目标全在 EVENTS（未知名清单为空）", not _MISM["oldnames"],
+    check("网格② 表声明有效 + 活实现展开口逐键 == 声明（不多不少）", not _MISM["oldnames"],
           _MISM["oldnames"][:4])
     check("网格合计 == 7,054 格（7,020 + 34，作业书标题口径）",
           n_rows + n_old == EXPECT_TOTAL, n_rows + n_old)
 
+    # 有牙自证（口径 2a）：把**活实现展开口**临时打歪 ⇒ 网格② 必须变红（原地还原）
+    with _Patch(EQ, "map_event", lambda k: ("u1d2_bogus_target",)):
+        _MISM["oldnames"].clear()
+        _grid_oldnames()
+        _teeth = bool(_MISM["oldnames"])
+        _MISM["oldnames"].clear()
+    check("网格② 有牙：活实现展开口打歪 ⇒ 逐键比对变红（原地还原后回绿）", _teeth)
+
     n_deep = _grid_oldnames_deep()
-    print("     网格②′ 加强（FROZEN_GATE §5.3 口径）(12+5) × 26 事件 × 2：实测 %d 格"
+    print("     网格②′ 加强（FROZEN_GATE §5.3 口径）17 键 × 26 事件 × 2：实测 %d 格"
           "（期望 %d）；累计不等 %d 处" % (n_deep, EXPECT_OLDNAMES_DEEP, len(_MISM["oldnames"])))
     check("网格②′ == 884 格（脚本实测）", n_deep == EXPECT_OLDNAMES_DEEP, n_deep)
-    check("网格②′ 逐事件加强断言全等", not _MISM["oldnames"], _MISM["oldnames"][:4])
+    check("网格②′ 逐事件双向：声明 ⊇ 活展开 且 活展开 ⊇ 声明（无漏无多）",
+          not _MISM["oldnames"], _MISM["oldnames"][:4])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -718,10 +757,10 @@ def test_owner():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 8. 判据 6：equip 三个名字仍在且语义不变（AST + 直取）
+# 8. 判据 6：equip 三个端口名仍在且语义不变（AST + 直取；`map_event` 已退出冻结）
 # ══════════════════════════════════════════════════════════════════════════════
 def test_equip_names():
-    print("【6. equip._EVENT_MAP / _UNKNOWN_EVENTS / _known_engine_events 三名字】")
+    print("【6. equip 三端口名 `_EVENT_MAP` / `_UNKNOWN_EVENTS` / `_known_engine_events`】")
     src = open(_pkg_file("content/mech/equip.py"), encoding="utf-8").read()
     tree = ast.parse(src)
     assigns = {}
@@ -742,9 +781,8 @@ def test_equip_names():
           len(_dom.get("EVENT_MAP") or {}))
     check("AST：`_UNKNOWN_EVENTS` 是模块级 List 字面量",
           isinstance(assigns.get("_UNKNOWN_EVENTS"), ast.List))
-    check("AST：`_known_engine_events` / `map_event` 是模块级函数",
-          {"_known_engine_events", "map_event"} <= funcs,
-          sorted({"_known_engine_events", "map_event"} - funcs))
+    check("AST：`_known_engine_events` 是模块级函数", "_known_engine_events" in funcs,
+          sorted(funcs))
 
     check("直取：`_EVENT_MAP` 12 键、值全是引擎事件 tuple",
           len(EQ._EVENT_MAP) == 12
@@ -753,9 +791,14 @@ def test_equip_names():
     check("直取：`_UNKNOWN_EVENTS` 是 list", isinstance(EQ._UNKNOWN_EVENTS, list))
     check("语义：`_known_engine_events() == frozenset(EVENTS)`（26）",
           EQ._known_engine_events() == frozenset(EV), len(EQ._known_engine_events()))
-    check("语义：`map_event('hit') == ('attack_hit', 'skill_hit')`（一拆二、元组序）",
-          EQ.map_event("hit") == ("attack_hit", "skill_hit"), EQ.map_event("hit"))
-    check("语义：`map_event('dot_taken') == ('dot_tick',)`", EQ.map_event("dot_taken") == ("dot_tick",))
+    # ★ 2026-09-26（2a）：`map_event` 已退出冻结（文本会随迁移改）⇒ 这里不再钉它的名字/语义，
+    #   改钉「**表里怎么写**」；「活实现展开口 == 表」由判据 [2] 逐键钉住（判据只加强）。
+    check("语义：表里 `hit == ('attack_hit', 'skill_hit')`（一拆二、元组序）",
+          tuple(EQ._EVENT_MAP.get("hit") or ()) == ("attack_hit", "skill_hit"),
+          EQ._EVENT_MAP.get("hit"))
+    check("语义：表里 `dot_taken == ('dot_tick',)`",
+          tuple(EQ._EVENT_MAP.get("dot_taken") or ()) == ("dot_tick",),
+          EQ._EVENT_MAP.get("dot_taken"))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1174,7 +1217,7 @@ def test_apply_contract():
 # ══════════════════════════════════════════════════════════════════════════════
 def main():
     print("==" * 36)
-    print("U1-D2 冻结门禁③：触发器主四件（equip 5 / food_proc 4 / team_procs 1 / worldboss 2 = 12 段，甲 12）")
+    print("U1-D2 冻结门禁③：触发器主四件（equip 4 / food_proc 4 / team_procs 1 / worldboss 2 = 11 段，甲 11）")
     print("==" * 36)
     print("phase = %r · GWEN_GAME_DB = %s" % (PHASE, os.environ.get("GWEN_GAME_DB")))
     print("冻结基线 = base/pkg 切片；活实现 = %s" % PKG_ROOT)
