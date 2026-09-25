@@ -118,6 +118,21 @@ READONLY_FILES = (
     "content/data/legendary_effects.json", "content/data/food_effects.json",
 )
 
+# ★ aux `engine:` 两项的重钉登记（历史；2026-09-26 起**已回归生成器路径**）
+#   · 2026-09-23 包栈重构：`declarations.py` 从引擎搬进扩展包 `ext_combat`，包内相对导入改成
+#     指向引擎的绝对导入 ⇒ 文件 sha 变（`effect_triggers` 当时与基准逐字节相等）。
+#   · 2026-09-26 E5-5：引擎事件名 `buff_expire` → `effect_expire`（线上零消费者，纯删名）⇒
+#     `effect_triggers.py` sha 再变；又因 `ede50cc`（E1「诊断通道」）把 `fire()` 里两处
+#     `except Exception:` 改成 `except … as _e: _diag(...)`（只多诊断、语义不变）后该 pin
+#     一度成**红基线**（sha 变而 pin 未跟账）。两笔一并登记、pin 重钉为当时实跑值。
+#   · 2026-09-26 E5-4：`declarations.py` 模块 docstring 有意改动（前提数字纠偏 + 写入 E5-4
+#     登记段），代码零改动 ⇒ 文件 sha 变，pin 同步重钉。
+#   ⇒ 三笔当时只能**手工重钉**（生成器 `--emit-aux` 不可用：base 解析走 git 兜底取到
+#     `e4dccb4e`，其切片 ≠ 活实现）。**2026-09-26 已修生成器**（base 判据改「全基线指纹」
+#     ⇒ 命中真正的改动前基线 `8f3864f`；引擎侧 aux 改读活引擎）⇒ 现在 `--emit-aux`
+#     重生成的值与下表**逐字节一致**，重钉不再需要手工；本登记段移出生成区（标记外），
+#     免得下次 emit 把它抹掉。
+
 # >>> _u1d2_triggers_gen (auto) >>>
 
 # ⚠ 本块由 `tests/_u1d2_triggers_gen.py` 生成 —— 手工改动 = 门禁失去安全网。
@@ -168,20 +183,6 @@ _PIN = {
         'content/mech/worldboss.py::wb_gm_dmg_mult': 'f8b2e9c6d2aed67b061c5c38db3fb01ec763e7f9ddf79f02b9e5550b71a5a470',
         'content/mech/worldboss.py::apply_gm_dmg_mult': 'c8dfda4133cd93c68c9de461bf51b7e1008062932a209463b38ca97d5ef3ab98',
     },
-    # ★ 2026-09-23 跨线更新（包栈重构）：`declarations.py` 从引擎搬进扩展包 ext_combat，
-    #   包内相对导入改成指向引擎的绝对导入 ⇒ 文件 sha 变；effect_triggers 的 sha 与
-    #   基准逐字节相等（**本线盯的东西一字未动**）。
-    # ★ 2026-09-26 E5-5 重钉（`engine:…effect_triggers.py`：db1a4c7a… → 14ee9d83…）：
-    #   该 pin 自 2026-09-23 起已是**红基线** —— 上一批 `ede50cc`（E1「诊断通道」）把
-    #   `fire()` 里两处 `except Exception:` 改成 `except … as _e: _diag(...)`（只多诊断、
-    #   语义不变）⇒ sha 变而 pin 未跟账。本次 E5-5 再把事件名 `buff_expire` → `effect_expire`
-    #   （线上零消费者，纯删名）⇒ 值再变。两笔在此一并登记，pin 重钉为当前实跑值；
-    #   `declarations.py` 仍与 pin 逐字节相等（E5 未动它）。
-    #   · 同日 E5-4 登记：`declarations.py` **有意改动**（`map_event` 层的收口被冻结线挡住，
-    #     本次只把模块 docstring 的前提数字改准 + 写入 E5-4 登记段；**代码零改动**）
-    #     ⇒ 该文件 sha 变，pin 同步重钉为 f2bb05f9…。
-    #   ⚠ 生成器 `--emit-aux` 本轮不可用：`_u1d2_triggers_gen.py --check` 自检①失败
-    #     （base 解析走 git 兜底取到 `e4dccb4e`，其切片 ≠ 活实现）⇒ 只能手工重钉此值。
     'aux': {
         'contract:content/apply.py': '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
         'data:content/data/affixes.json': '611a8d578e3b2cb7f9888e9215bc40dbbe92af81de404535a8494acee3710aee',

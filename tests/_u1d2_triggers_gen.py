@@ -14,7 +14,36 @@
 档位（机械判据，`FROZEN_GATE.md` §1.3）：`丙` ⟺ `async def`；否则 `乙` ⟺ 段内出现 `self.`；
 否则 `甲`。本门禁 = **甲 12 / 乙 0 / 丙 0**（与 `FROZEN_GATE.md` §0 一致）。
 
-⚠️ **不跑任何 `git` 写命令**（作业书 §5 禁令 1）：base 解析失败即 fail-closed 报错。
+⚠️ **不跑任何 `git` 写命令**（作业书 §5 禁令 1）：base 解析走 `git log` / `git show`
+（只读），解析失败即 fail-closed 报错。
+
+2026-09-26 修复（引擎线台账 §2-1）
+----------------------------------
+1. **base 判据 = 全基线指纹**：`_BASELINE_PINS`（12 段切片 sha256）**＋**
+   `_AUX_BASELINE_PINS`（4 数据表 + 装配契约 + 4 源文件基线 sha256）。
+   旧口径只比 12 段切片 ⇒ git 回溯选到 `e4dccb4e`（切片对得上，`content/apply.py`
+   是另一版）⇒ aux 生成不出正确值、E 栏自检必红。全指纹口径唯一命中**真正的改动前
+   基线** `8f3864f`（2026-09-17）。
+2. **base 树整棵落盘**：`BASE_RELS`（4 源文件 + 4 数据表 + `content/apply.py`）
+   ⇒ `--emit-aux` 可重新生成（旧 git 兜底只落 4 个源文件，读数据表直接 FileNotFound）。
+3. **引擎侧 aux 读活引擎**（`ENG_RELS`）：真仓布局没有「基线引擎副本」，
+   门禁 `test_u1d2_triggers_frozen.py::test_aux` 比对的就是**活引擎**
+   （`GWEN_FRAMEWORK_DIR`）⇒ 生成器必须从同一个源取。
+4. **E 栏登记过的跨线改写**（`LIVE_DIVERGENCE`）：`equip._known_engine_events` 的
+   活实现文本比 base 切片只差一条 import 搬迁（`saintess_engine.battle` →
+   `ext_combat.battle`，2026-09-23 包栈重构）⇒ 登记成机械改写，自检⑥ 逐字节证明
+   「改写(base 切片) == 活实现文本」；**判据只加强**（条数钉 1、old_base 必须等于
+   设计稿基线、只能落在 E 栏），任何第三处改动都会被抓住。
+5. **活侧兜底环境变量跟真仓布局**：旧 `<lane>/work/{pkg,eng,host}` 随包并入引擎仓
+   （`<引擎仓>/games/orlandia`）已不存在 ⇒ 引擎根兜底 = 本包祖父；宿主壳根**不猜**，
+   由外层给 `GWEN_HOST_DIR`（与 `_e5_pairs.py` / 宿主跑器同口径；缺失时 `_paths`
+   醒目报错，不静默装绿）。
+
+跑法（真仓布局；`GWEN_HOST_DIR` = 宿主壳根）
+------------------------------------------
+    set GWEN_FRAMEWORK_DIR=<引擎仓>
+    set GWEN_HOST_DIR=<宿主壳根>
+    python tests/_u1d2_triggers_gen.py --check
 
 四档命令
 --------
@@ -42,7 +71,9 @@ import ast
 import hashlib
 import importlib
 import os
+import subprocess
 import sys
+import tempfile
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 PKG_ROOT = os.path.dirname(_HERE)
@@ -116,6 +147,52 @@ _BASELINE_PINS = {
         "4e196fccd0836f0a30c02dcf01a0be16963ee4c24e508a784a0f2cc7f408e8d1",   # 45-69    801 字符
 }
 
+#: 基线（改动前）**文件面**指纹 —— 4 张数据表（判据 9：数据面零改动）+ 装配契约
+#: （判据 10：六步顺序/保险丝未变）+ 4 个源文件整文件基线。
+#: ★ 与切片 pin 一起构成 base 判据（全指纹）；与门禁 `_PIN["aux"]` 的对应项
+#:   交叉核对（自检⑤，双向独立来源必须一致）。
+_AUX_BASELINE_PINS = {
+    "data:content/mech/we_data.py":
+        "111ea69b3da481660ebc6ff2807a57935fbf53163ef02baba17f85a55c39d9fe",
+    "data:content/data/affixes.json":
+        "611a8d578e3b2cb7f9888e9215bc40dbbe92af81de404535a8494acee3710aee",
+    "data:content/data/legendary_effects.json":
+        "4f5b2cf476b09880e49121acf186a72893164e56c03ea087946ac61bd79dd51a",
+    "data:content/data/food_effects.json":
+        "4888c26020b5fbb4d5abe2b0b497c6b7ce396d8850cd02f98a9b4353e7b76400",
+    "contract:content/apply.py":
+        "28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4",
+    "src_base:content/mech/equip.py":
+        "61c2e8e3b453c2f8fa50e3c67986a26ca59f9ecc11f34c79ca4b4e6224cbff18",
+    "src_base:content/mech/food_proc.py":
+        "caca7c1116448006d298fa5fb94b13e4fd087c01c8b51d276a41c94eae7fe998",
+    "src_base:content/mech/team_procs.py":
+        "50d3f1e78ba263bb7a873066e4da1f34df4e995c6ee9aa2d7b6f02e61433bca4",
+    "src_base:content/mech/worldboss.py":
+        "59228a4ee297917cc7c98c1ea39054893ad9035069f4ff673e52fd4e9b11237e",
+}
+
+#: E 栏里**基线后登记过的跨线改写**：base 切片 → 活实现文本只允许差这些机械替换。
+#: 自检⑥ 逐条证明 `改写(base 切片) == 活实现文本`（**逐字节**），并钉住
+#: 「条数恒 1 / old_base == 设计稿基线 / 只能落在 E 栏」—— 判据只加强，不放宽。
+LIVE_DIVERGENCE = {
+    "content/mech/equip.py::_known_engine_events": {
+        "old_base": "cd81e2e7c9da6719d0f609a5afb6b5e3025afb90e6296abf96ff837edfbbfbbf",
+        "rewrites": (("from saintess_engine.battle.", "from ext_combat.battle."),),
+        "commit": "61a2d93",
+        "date": "2026-09-23",
+        "why": "包栈重构第 2 批：`battle` 从 `saintess_engine/` 搬进扩展包 `ext_combat/`"
+               "（import 面搬迁，行为逐字不变）",
+    },
+}
+
+#: base 树**必须落盘**的文件（切片源 + aux 的文件面：4 数据表 + 装配契约）
+BASE_RELS = tuple(sorted({rel for rel, _sym in SEGMENTS} | {
+    "content/mech/we_data.py", "content/data/affixes.json",
+    "content/data/legendary_effects.json", "content/data/food_effects.json",
+    "content/apply.py",
+}))
+
 #: 4 张数据表（判据 9：数据面零改动）+ 装配契约（判据 10：六步顺序/保险丝未变）
 DATA_RELS = (
     "content/mech/we_data.py",
@@ -137,22 +214,26 @@ SRC_RELS = ("content/mech/equip.py", "content/mech/food_proc.py",
 
 
 # ══════════════════════════════════════════════════════════════ 切片口径（§1.2）
-def slice_source(path: str, symbol: str) -> str:
-    """从 `path` 里切出 `symbol` 的**整段源码文本**（含装饰器，保留原行尾）。
+def slice_source_text(src: str, symbol: str, where: str = "<text>") -> str:
+    """从源码**文本**里切出 `symbol` 的**整段源码文本**（含装饰器，保留原行尾）。
 
     与 `inspect.getsource` 逐字节一致（生成时对全部 12 段当面证明）。
     """
-    with open(path, encoding="utf-8") as fh:
-        src = fh.read()
     tree = ast.parse(src)
     hits = [n for n in ast.walk(tree)
             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == symbol]
     if len(hits) != 1:
         raise SystemExit("切不出来：%s 里 `def %s` 有 %d 个（期望 1）"
-                         % (path, symbol, len(hits)))
+                         % (where, symbol, len(hits)))
     node = hits[0]
     lo = min([d.lineno for d in node.decorator_list] + [node.lineno])
     return "".join(src.splitlines(True)[lo - 1:node.end_lineno])
+
+
+def slice_source(path: str, symbol: str) -> str:
+    """从**文件**里切（= 读文本 + `slice_source_text`）。"""
+    with open(path, encoding="utf-8") as fh:
+        return slice_source_text(fh.read(), symbol, where=path)
 
 
 def key_of(relpath: str, symbol: str) -> str:
@@ -161,6 +242,10 @@ def key_of(relpath: str, symbol: str) -> str:
 
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def sha256_file(path: str) -> str:
@@ -178,9 +263,65 @@ def tier_of(text: str) -> str:
 
 
 # ─────────────────────────────────────────────────── base 解析（四级；找不到 fail-closed）
+def _dir_reader(root):
+    """目录读口：包内相对路径 → 文件字节。"""
+    def read(rel):
+        with open(os.path.join(root, *rel.split("/")), "rb") as fh:
+            return fh.read()
+    return read
+
+
+def _git_reader(rev):
+    """git 读口（**只读**命令 `git show`）：包内相对路径 → 该提交里的文件字节。"""
+    def read(rel):
+        return subprocess.run(["git", "-C", PKG_ROOT, "show", "%s:%s" % (rev, rel)],
+                              capture_output=True).stdout
+    return read
+
+
+def _matches_baseline(read) -> bool:
+    """候选 base 的**全基线指纹**是否全中：`_BASELINE_PINS`（12 段切片 sha256）
+    **＋** `_AUX_BASELINE_PINS`（9 个基线文件 sha256）。
+
+    ★ 2026-09-26：旧口径只比 12 段切片 ⇒ 命中 `e4dccb4e`（切片对得上，`content/apply.py`
+    是另一版）⇒ aux 生成不出正确值、E 栏自检必红。全指纹口径与「改动前基线」一一对应
+    （当前唯一命中 `8f3864f`）。
+    """
+    try:
+        cache: dict = {}
+        for relpath, symbol in SEGMENTS:
+            want = _BASELINE_PINS.get(key_of(relpath, symbol))
+            if want is None:
+                return False
+            if relpath not in cache:
+                cache[relpath] = read(relpath).decode("utf-8")
+            if sha256_text(slice_source_text(cache[relpath], symbol)) != want:
+                return False
+        for key, want in _AUX_BASELINE_PINS.items():
+            if sha256_bytes(read(key.split(":", 1)[1])) != want:
+                return False
+        return True
+    except Exception:                                            # noqa: BLE001
+        return False
+
+
+def _stage_base_tree(rev: str) -> str:
+    """把该提交的 `BASE_RELS` 整棵落到临时目录（只读 `git show`，不碰工作区）。"""
+    tmp = tempfile.mkdtemp(prefix="u1d2t_base_")
+    root = os.path.join(tmp, "pkg")
+    reader = _git_reader(rev)
+    for rel in BASE_RELS:
+        dst = os.path.join(root, *rel.split("/"))
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, "wb") as fh:
+            fh.write(reader(rel))
+    return root
+
+
 def _resolve_base_pkg():
     """改动前基线副本 —— ① `GWEN_U1D2_BASE_PKG` → ② `<lane>/base/pkg` → ③ `<pkg>/.u1d2_base/pkg`
-    → ④ **git 历史回溯**（最近 20 个改动过被测文件的提交里找「12 段切片 sha256 全等设计 pin」的版本）。
+    → ④ **git 历史回溯**（最近 60 个改动过 `BASE_RELS` 的提交里找「全基线指纹」全中的版本；
+    命中后把 `BASE_RELS` 整棵落盘 —— 切片与 aux 文件 sha 都要用它）。
 
     都失败 ⇒ `(None, "none")`，调用方**必须显式报错**（fail-closed，不静默降级）。
     """
@@ -192,60 +333,59 @@ def _resolve_base_pkg():
     candidates.append(("repo", os.path.join(PKG_ROOT, ".u1d2_base", "pkg")))
     for tag, path in candidates:
         if os.path.isfile(os.path.join(path, "content", "mech", "worldboss.py")):
-            if _base_matches_pins(path):
+            if _matches_baseline(_dir_reader(path)):
                 return path, tag
-            return path, tag + "(pin-mismatch)"
+            return path, tag + "(baseline-mismatch)"
     try:
-        import subprocess
-        import tempfile
         gd = os.path.join(PKG_ROOT, ".git")
         if os.path.isdir(gd) or os.path.isfile(gd):
-            probe_files = sorted({rel for rel, _sym in SEGMENTS})
-            revs = subprocess.run(["git", "-C", PKG_ROOT, "log", "--format=%H", "-n", "20",
-                                   "--", *probe_files],
+            revs = subprocess.run(["git", "-C", PKG_ROOT, "log", "--format=%H", "-n", "60",
+                                   "--", *BASE_RELS],
                                   capture_output=True, text=True).stdout.split()
-            tmp = tempfile.mkdtemp(prefix="u1d2t_base_")
             for rev in revs:
-                ok = True
-                for rel in probe_files:
-                    blob = subprocess.run(["git", "-C", PKG_ROOT, "show", "%s:%s" % (rev, rel)],
-                                          capture_output=True).stdout
-                    if not blob:
-                        ok = False
-                        break
-                    dst = os.path.join(tmp, rel.replace("/", os.sep))
-                    os.makedirs(os.path.dirname(dst), exist_ok=True)
-                    with open(dst, "wb") as fh:
-                        fh.write(blob)
-                if ok and _base_matches_pins(tmp):
-                    return tmp, "git:%s" % rev[:8]
+                if not _matches_baseline(_git_reader(rev)):
+                    continue
+                root = _stage_base_tree(rev)
+                if _matches_baseline(_dir_reader(root)):          # 落盘后回读复核
+                    return root, "git:%s" % rev[:8]
     except Exception as exc:                                     # noqa: BLE001
         print("[gen] ⚠️ git 回溯失败：%r" % (exc,))
     return None, "none"
 
 
-def _base_matches_pins(path) -> bool:
-    """候选 base 的 12 段切片是否全等 `_BASELINE_PINS`。"""
-    try:
-        for relpath, symbol in SEGMENTS:
-            want = _BASELINE_PINS.get(key_of(relpath, symbol))
-            if want is None:
-                return False
-            got = sha256_text(slice_source(os.path.join(path, *relpath.split("/")), symbol))
-            if got != want:
-                return False
-        return True
-    except Exception:                                            # noqa: BLE001
-        return False
-
-
 def _no_base_msg() -> str:
     return ("❌ 找不到改动前基线（base/pkg）—— 生成器**拒绝执行**（fail-closed，不静默降级）。\n"
             "   解析顺序：GWEN_U1D2_BASE_PKG → <lane>/base/pkg → <pkg>/.u1d2_base/pkg → git 历史回溯\n"
+            "   判据：**全基线指纹**全中（12 段切片 sha256 ＋ `_AUX_BASELINE_PINS` 9 个文件 sha256）\n"
             "   启用方式：GWEN_U1D2_BASE_PKG=<含 content/mech/worldboss.py 的 pkg 目录>")
 
 
+def _has_engine(root: str) -> bool:
+    """引擎根判据（与 `tests/_paths.py::_has_engine` 同源）。"""
+    return os.path.isfile(os.path.join(root, "saintess_engine", "package.py"))
+
+
+def live_engine_root() -> str:
+    """**活引擎**根 —— `GWEN_FRAMEWORK_DIR` 优先 → 本包的祖父（真仓布局）。
+
+    ★ 2026-09-26：aux 的 `engine:` 两项读它（真仓布局没有「基线引擎副本」；
+    门禁 `test_aux` 比对的就是活引擎 ⇒ 生成器必须从同一个源取，口径才单一）。
+    """
+    tried = []
+    env = (os.environ.get("GWEN_FRAMEWORK_DIR") or "").strip()
+    if env:
+        tried.append(("GWEN_FRAMEWORK_DIR=%s" % env, env))
+    tried.append(("本包祖父", LANE_ROOT))
+    for _label, root in tried:
+        if _has_engine(root):
+            return root
+    raise SystemExit("❌ 找不到活引擎根（aux 的 `engine:` 项读它）：\n    %s"
+                     % "\n    ".join("%s -> %s" % (lab, r) for lab, r in tried))
+
+
 def frozen_slices() -> dict:
+    """**base 切片**（改动前基线原文）—— 只用于基线核对（自检④）；
+    门禁真正 exec 的「旧实现」文本见 `frozen_texts()`。"""
     if BASE_PKG is None:
         raise SystemExit(_no_base_msg())
     out = {}
@@ -255,36 +395,65 @@ def frozen_slices() -> dict:
     return out
 
 
-# ══════════════════════════════════════════════════════════════ aux 指纹
+def frozen_texts() -> dict:
+    """门禁**真正 exec** 的「旧实现」文本 = base 切片 + 登记过的跨线改写（`LIVE_DIVERGENCE`）。
+
+    ★ 2026-09-26：`equip._known_engine_events` 的活实现文本比 base 切片多一条 import
+    搬迁（`saintess_engine.battle` → `ext_combat.battle`）⇒ 直接写 base 切片会让门禁拿
+    「搬迁前那份」当旧实现。登记改写把两种 import 面拉到同一可执行面；改写**逐字节**
+    可证（自检⑥），登记表外的任何差异都会报红。
+    """
+    out = frozen_slices()
+    for key, div in LIVE_DIVERGENCE.items():
+        text = out[key]
+        for old, new in div["rewrites"]:
+            text = text.replace(old, new)
+        out[key] = text
+    return out
+
+
 def aux_pins() -> dict:
-    """数据面 / 装配契约 / 引擎侧指纹 —— **读 base**（改动前基线）产出期望值。"""
-    base_pkg = BASE_PKG
-    base_eng = os.path.join(os.path.dirname(base_pkg), "eng") if base_pkg else None
+    """数据面 / 装配契约 / 源文件基线指纹 —— **读 base**（改动前基线）产出期望值；
+    引擎侧两项 —— **读活引擎**（`live_engine_root()`：真仓布局没有基线引擎副本，
+    门禁 `test_aux` 比对的就是活引擎）。
+    """
+    if BASE_PKG is None:
+        raise SystemExit(_no_base_msg())
     out = {}
     for rel in DATA_RELS:
-        out["data:" + rel] = sha256_file(os.path.join(base_pkg, *rel.split("/")))
+        out["data:" + rel] = sha256_file(os.path.join(BASE_PKG, *rel.split("/")))
     for rel in CONTRACT_RELS:
-        out["contract:" + rel] = sha256_file(os.path.join(base_pkg, *rel.split("/")))
+        out["contract:" + rel] = sha256_file(os.path.join(BASE_PKG, *rel.split("/")))
     for rel in SRC_RELS:
-        out["src_base:" + rel] = sha256_file(os.path.join(base_pkg, *rel.split("/")))
+        out["src_base:" + rel] = sha256_file(os.path.join(BASE_PKG, *rel.split("/")))
+    eng = live_engine_root()
     for rel in ENG_RELS:
-        p = os.path.join(base_eng, *rel.split("/"))
+        p = os.path.join(eng, *rel.split("/"))
         out["engine:" + rel] = sha256_file(p) if os.path.isfile(p) else "<missing>"
     return out
 
 
-# ══════════════════════════════════════════════════════════════ 活侧取件
 def _boot_work_pkg():
-    """把 `work/pkg`（+ tests + shim + 引擎根 + 宿主壳根）摆进 `sys.path` 并兜底沙箱环境变量。"""
-    lane = LANE_ROOT
-    os.environ.setdefault("GWEN_FRAMEWORK_DIR", os.path.join(lane, "work", "eng"))
-    os.environ.setdefault("GWEN_HOST_DIR", os.path.join(lane, "work", "host"))
-    os.environ.setdefault("GWEN_GAME_DB", os.path.join(lane, "out", "test_u1d2_L6.db"))
+    """把包根 / tests / shim / 引擎根 / 宿主壳根摆进 `sys.path`，并兜底沙箱环境变量。
+
+    ★ 2026-09-26：旧「工作区布局」（`<lane>/work/{pkg,eng,host}`）随包并入引擎仓
+    （`<引擎仓>/games/orlandia`）已不存在 ⇒ 兜底值改真仓布局：
+      · 引擎根 = 本包的祖父（判据同 `_paths._has_engine`）
+      · 宿主壳根**不猜**：由外层给 `GWEN_HOST_DIR`（与 `_e5_pairs.py` / 宿主跑器同口径），
+        缺失时 `_paths` 醒目报错 —— 不静默装绿
+      · 私有库落系统临时目录（`<lane>/out` 在真仓布局下不存在）
+    """
+    if not (os.environ.get("GWEN_FRAMEWORK_DIR") or "").strip() and _has_engine(LANE_ROOT):
+        os.environ["GWEN_FRAMEWORK_DIR"] = LANE_ROOT
+    db = os.path.join(tempfile.gettempdir(), "gwen_test_u1d2_L6", "test_u1d2_L6.db")
+    os.makedirs(os.path.dirname(db), exist_ok=True)
+    os.environ.setdefault("GWEN_GAME_DB", db)
     os.environ.setdefault("GWEN_TEST_MODE", "1")
     os.environ.setdefault("PYTHONUTF8", "1")
     shim = os.path.join(_HERE, "shim_astrbot")
     for p in (shim, _HERE, PKG_ROOT,
-              os.environ["GWEN_FRAMEWORK_DIR"], os.environ["GWEN_HOST_DIR"]):
+              os.environ.get("GWEN_FRAMEWORK_DIR") or "",
+              os.environ.get("GWEN_HOST_DIR") or ""):
         if os.path.isdir(p) and p not in sys.path:
             sys.path.insert(0, p)
     import _paths                                                        # noqa: F401
@@ -301,23 +470,32 @@ def live_object(relpath: str, symbol: str):
     return getattr(mod, symbol, None)
 
 
-def live_pins() -> dict:
+def _live_text(relpath: str, symbol: str):
+    """活实现源码文本（`inspect.getsource`，与门禁取件同一口径）；取不到 → None。"""
     import inspect
+    obj = live_object(relpath, symbol)
+    return None if obj is None else inspect.getsource(obj)
+
+
+def live_pins() -> dict:
     out = {}
     for relpath, symbol in SEGMENTS:
-        obj = live_object(relpath, symbol)
-        out[key_of(relpath, symbol)] = (
-            None if obj is None else sha256_text(inspect.getsource(obj)))
+        text = _live_text(relpath, symbol)
+        out[key_of(relpath, symbol)] = None if text is None else sha256_text(text)
     return out
 
 
-# ══════════════════════════════════════════════════════════════ 自检（§1.2 四条）
 def self_check(*, with_live=True) -> list:
+    """§1.2 四条 + 两条加强：⑤ aux 基线 9 条与门禁文件交叉核对、⑥ 登记跨线改写逐字节可证。
+
+    冻结侧 = `frozen_texts()`（base 切片 + 登记改写）；base 只用于基线核对（④）。
+    """
     lines = []
-    frozen = frozen_slices()
-    if len(frozen) != 12:
-        raise SystemExit("自检①失败：切片数 = %d（期望 12）" % len(frozen))
-    lines.append("  ① 段数 = %d（期望 12）" % len(frozen))
+    base = frozen_slices()
+    frozen = frozen_texts()
+    if len(base) != 12:
+        raise SystemExit("自检①失败：切片数 = %d（期望 12）" % len(base))
+    lines.append("  ① 段数 = %d（期望 12）" % len(base))
 
     for key, text in frozen.items():
         try:
@@ -344,31 +522,51 @@ def self_check(*, with_live=True) -> list:
     if len(_BASELINE_PINS) != 12:
         raise SystemExit("自检④失败：内嵌基线 12 条，实际 %d 条" % len(_BASELINE_PINS))
     mismatch = [k for k, want in _BASELINE_PINS.items()
-                if sha256_text(frozen.get(k, "")) != want]
+                if sha256_text(base.get(k, "")) != want]
     if mismatch:
         raise SystemExit("自检④失败：与 design/U1-D2_FROZEN_GATE.md §1.4 基线不一致：%s"
                          % ", ".join(mismatch))
     lines.append("  ④ 12 条冻结 sha256 == `FROZEN_GATE.md` §1.4 基线（全 64 位）")
-    lines.append("  ⑤ 档位（机械判据）：甲 %d / 乙 %d / 丙 %d"
-                 % (sum(1 for v in frozen.values() if tier_of(v) == "甲"),
-                    sum(1 for v in frozen.values() if tier_of(v) == "乙"),
-                    sum(1 for v in frozen.values() if tier_of(v) == "丙")))
+
+    if len(_AUX_BASELINE_PINS) != 9:
+        raise SystemExit("自检⑤失败：内嵌 aux 基线 9 条，实际 %d 条" % len(_AUX_BASELINE_PINS))
+    cur_aux = _current_pin().get("aux") or {}
+    amiss = [k for k, want in _AUX_BASELINE_PINS.items() if str(cur_aux.get(k)) != want]
+    if amiss:
+        raise SystemExit("自检⑤失败：aux 基线 9 条 ≠ 门禁 `_PIN['aux']` 对应项：%s"
+                         % ", ".join(amiss))
+    lines.append("  ⑤ 9 条 aux 基线（4 数据 + 1 契约 + 4 源文件）== 门禁 `_PIN['aux']`（交叉核对）")
 
     if with_live:
         live = live_pins()
+        div_bad = []
+        for key, div in LIVE_DIVERGENCE.items():
+            if CLASS.get(key) != "E":
+                div_bad.append("%s 不在 E 栏" % key)
+            if div.get("old_base") != _BASELINE_PINS.get(key):
+                div_bad.append("%s 的 old_base ≠ 设计稿基线" % key)
+            text = base[key]
+            for old, new in div.get("rewrites", ()):
+                text = text.replace(old, new)
+            if text != _live_text(*key.split("::")):
+                div_bad.append("%s 改写(base 切片) ≠ 活实现文本" % key)
+        if len(LIVE_DIVERGENCE) != 1 or div_bad:
+            raise SystemExit("自检⑥失败（登记跨线改写恒 1 条、逐字节可证）：%s"
+                             % ("; ".join(div_bad) or "条数 ≠ 1"))
+        lines.append("  ⑥ 登记过的跨线改写 %d 条：改写(base 切片) == 活实现文本（逐字节）"
+                     % len(LIVE_DIVERGENCE))
         bad = [k for k, cls in CLASS.items()
                if cls == "E" and live.get(k) != sha256_text(frozen[k])]
         if bad:
-            raise SystemExit("自检①失败：E 栏段「切片(base) ≠ inspect.getsource(活实现)」：%s"
+            raise SystemExit("自检①失败：E 栏段「冻结文本（base + 登记改写）≠ inspect.getsource(活实现)」：%s"
                              % ", ".join(bad))
-        lines.append("  ① E 栏切片(base) == inspect.getsource(活实现)（%d 段）"
+        lines.append("  ① E 栏冻结文本 == inspect.getsource(活实现)（%d 段）"
                      % sum(1 for v in CLASS.values() if v == "E"))
     else:
         lines.append("  ① 跳过（--no-live）")
     return lines
 
 
-# ══════════════════════════════════════════════════════════════ 写盘（标记区）
 def _render(frozen: dict, pin: dict) -> str:
     out = [BEGIN, "",
            "# ⚠ 本块由 `tests/_u1d2_triggers_gen.py` 生成 —— 手工改动 = 门禁失去安全网。",
@@ -432,7 +630,7 @@ def _current_pin() -> dict:
 
 
 def _emit(phase: str, *, aux=None, live=None) -> None:
-    frozen = frozen_slices()
+    frozen = frozen_texts()
     pin = _current_pin()
     pin["phase"] = phase
     pin["frozen"] = {k: sha256_text(v) for k, v in frozen.items()}
@@ -444,30 +642,30 @@ def _emit(phase: str, *, aux=None, live=None) -> None:
 
 def _emit_frozen() -> None:
     print("【--emit-frozen】冻结 12 段（base/pkg）+ 红基线 live pin + aux 指纹")
-    frozen = frozen_slices()
+    print("  ⚠ 只在红基线之前跑一次（那时 base == work）：本档自证「冻结文本 == 活实现」")
+    frozen = frozen_texts()
     live = live_pins()
-    import inspect
     bad = []
     for relpath, symbol in SEGMENTS:
         k = key_of(relpath, symbol)
-        obj = live_object(relpath, symbol)
-        got = sha256_text(inspect.getsource(obj))
-        if got != sha256_text(frozen[k]):
+        got = _live_text(relpath, symbol)
+        if got is None or sha256_text(got) != sha256_text(frozen[k]):
             bad.append(k)
     if bad:
-        raise SystemExit("红基线自证失败：切片(base) ≠ inspect.getsource(活实现)：%s"
+        raise SystemExit("红基线自证失败：冻结文本（base 切片 + 登记改写）≠ inspect.getsource(活实现)：%s"
+                         "\n    （本档只在改动前跑；已过红基线请用 --emit-live）"
                          % ", ".join(bad))
     _emit("baseline", live=live, aux=aux_pins())
     for relpath, symbol in SEGMENTS:
         k = key_of(relpath, symbol)
         print("  [%s/%s] %-52s frozen=%s live=%s"
               % (CLASS[k], tier_of(frozen[k]), k, sha256_text(frozen[k])[:12], live[k][:12]))
-    print("  （红基线自证：12/12 段 切片(base) == inspect.getsource(活实现)）")
+    print("  （红基线自证：12/12 段 冻结文本 == inspect.getsource(活实现)）")
 
 
 def _emit_live() -> None:
-    print("【--emit-live】重生成 _PIN[\"live\"]（落档）+ E/C 断言")
-    frozen = frozen_slices()
+    print("【--emit-live】重生成 `_PIN[live]`（落档）+ E/C 断言")
+    frozen = frozen_texts()
     live = live_pins()
     bad = []
     for relpath, symbol in SEGMENTS:
@@ -485,7 +683,8 @@ def _emit_live() -> None:
         print("  [%s/%s] %-52s %-8s frozen=%s live=%s"
               % (cls, tier_of(frozen[k]), k, "CHANGED" if changed else "same", f[:12], str(l)[:12]))
     if bad:
-        raise SystemExit("E/C 分类断言失败（共 %d 条）：\n    %s" % (len(bad), "\n    ".join(bad)))
+        raise SystemExit("E/C 分类断言失败（共 %d 条）：\n    %s"
+                         % (len(bad), "\n    ".join(bad)))
     _emit("landed", live=live)
     print("  E/C 分类断言全过 → phase=landed")
 
@@ -517,6 +716,7 @@ def main(argv=None) -> int:
     print("== U1-D2 门禁③ 生成器（触发器主四件：equip/food_proc/team_procs/worldboss）==")
     print("  base/pkg = %s  [%s]" % (BASE_PKG if BASE_PKG else "(未找到)", BASE_SOURCE))
     print("  work/pkg = %s" % PKG_ROOT)
+    print("  live eng = %s" % live_engine_root())
     if BASE_PKG is None:
         print(_no_base_msg())
         return 2
