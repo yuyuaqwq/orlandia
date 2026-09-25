@@ -177,6 +177,9 @@ _PIN = {
     #   语义不变）⇒ sha 变而 pin 未跟账。本次 E5-5 再把事件名 `buff_expire` → `effect_expire`
     #   （线上零消费者，纯删名）⇒ 值再变。两笔在此一并登记，pin 重钉为当前实跑值；
     #   `declarations.py` 仍与 pin 逐字节相等（E5 未动它）。
+    #   · 同日 E5-4 登记：`declarations.py` **有意改动**（`map_event` 层的收口被冻结线挡住，
+    #     本次只把模块 docstring 的前提数字改准 + 写入 E5-4 登记段；**代码零改动**）
+    #     ⇒ 该文件 sha 变，pin 同步重钉为 f2bb05f9…。
     #   ⚠ 生成器 `--emit-aux` 本轮不可用：`_u1d2_triggers_gen.py --check` 自检①失败
     #     （base 解析走 git 兜底取到 `e4dccb4e`，其切片 ≠ 活实现）⇒ 只能手工重钉此值。
     'aux': {
@@ -185,7 +188,7 @@ _PIN = {
         'data:content/data/food_effects.json': '4888c26020b5fbb4d5abe2b0b497c6b7ce396d8850cd02f98a9b4353e7b76400',
         'data:content/data/legendary_effects.json': '4f5b2cf476b09880e49121acf186a72893164e56c03ea087946ac61bd79dd51a',
         'data:content/mech/we_data.py': '111ea69b3da481660ebc6ff2807a57935fbf53163ef02baba17f85a55c39d9fe',
-        'engine:extends/ext_combat/battle/declarations.py': '44525697a1886f99e15248235ff7f8c1726986e4f925deaec8a029098465ac9f',
+        'engine:extends/ext_combat/battle/declarations.py': 'f2bb05f90b0b767b8c31db9637d08810b8b6b35c45ff1c9efa25962f853fd567',
         'engine:extends/ext_combat/battle/effect_triggers.py': '14ee9d83973e48e3c09d0359a68292aa81f4fe90144a62c291eb26c441f97699',
         'src_base:content/mech/equip.py': '61c2e8e3b453c2f8fa50e3c67986a26ca59f9ecc11f34c79ca4b4e6224cbff18',
         'src_base:content/mech/food_proc.py': 'caca7c1116448006d298fa5fb94b13e4fd087c01c8b51d276a41c94eae7fe998',
