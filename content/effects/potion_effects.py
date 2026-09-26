@@ -10,8 +10,11 @@
      （本包不搬引擎；handler 里每个 `battle.*` 调用都是一次回调，清单见 ③）
   ③ **共享效果动作**：`from .effect_actions import action_def_down` → `battle.action_def_down(...)`
      （`game/core/effect_actions.py` 未进包；该动作本体就是「改敌方 actor 状态」，属接口侧）
+  ④ **补两处缺失导入（★ P-4 · 2026-09-26 · 只补导入，正文一字未改）**：`import random` +
+     `from ..mech.element_data import REACTION_TABLE` —— 真源两处「未导入即使用」的潜伏
+     `NameError`（= 下面「缺口」①②，已修；门禁 D 段口径随之改「两侧同名同对」）
 
-**逐字保真**：36 个 handler 的正文除上述三类改动外**一字未改**（含注释、emoji、文案、
+**逐字保真**：36 个 handler 的正文除上述四类改动外**一字未改**（含注释、emoji、文案、
 `setdefault` 链、缺省数值）。签名保持 `fn(battle, player, value) -> str`：
     `player` = 调用方给的玩家 dict（战斗内快照；属性/刻数变更**原地写回这个 dict**）
     `value`  = 物品级 `effect_data`（取自 `content/data/items.json`）；`None` → 回退 `DEFAULTS`
@@ -30,20 +33,23 @@
 | `dot_amp` / `vuln` / `trap` / `steal_buff` | 目标 actor dict 的 `debuffs` / `buffs`（经 `_hit_tgt()` 取） |
 | `reaction` | `battle._elem_marks()` / `_reaction_table_resolve` / `_player_stats` / `_deal_damage` |
 
-⚠️ 缺口（**真源既有缺陷，本批不修**——逐字保真；门禁 C 段断言「两侧同名同错」）：
-   1. `eff_trap` 的 Boss 数值分支用 `random.random()`，但真源文件**从未 `import random`**
-      → 该分支 `NameError`（普通怪分支不碰它，正常跑）。
-   2. `eff_reaction` 引用 `REACTION_TABLE`，真源**从未导入**（全仓唯一赋值处 =
-      `game/data/battle_config.py:147`，无注入点）→ 调用即 `NameError`。
+⚠️ 缺口（★ P-4（2026-09-26）**①②已修**——门禁 D 段口径随之改「两侧同名同对」；③ 仍判停不接线）：
+   1. ✔ `eff_trap` 的 Boss 数值分支用 `random.random()`，而真源文件**从未 `import random`**
+      → 该分支 `NameError`（普通怪分支不碰它，正常跑）。**已补 `import random`**（只补导入）。
+   2. ✔ `eff_reaction` 引用 `REACTION_TABLE`，而真源**从未导入**（全仓唯一赋值处 =
+      `game/data/battle_config.py:147`，无注入点）→ 调用即 `NameError`。**已补**
+      `from ..mech.element_data import REACTION_TABLE`（包内单源 = `content/mech/element_data.py:60`）。
    3. 真源自述 `POTION_EFFECTS 现无消费端`（旧引擎 `battle.py` 的 `_apply_potion_special`
       随 N10 删除；唯一调用方在 `_archive_unused/retired_old_engine_20260911/`）——
-      本层当前**无 live 消费端**，进包后等 saintess_engine 战斗消耗品线接线。
+      本层当前**无 live 消费端**，进包后等 saintess_engine 战斗消耗品线接线（★ P-4 不接线）。
 """
 
 import json
 import os
+import random                    # ★ P-4（2026-09-26）：真源漏 import（`eff_trap` Boss 数值分支用它）
 
 from .. import texts as _T       # ★ C 档 PRE-effects（2026-09-19）：文案表读口（本文件首次接入）
+from ..mech.element_data import REACTION_TABLE   # ★ P-4：真源漏导入（`eff_reaction` 遍历它）
 
 # ============================================================
 # 包内域读取（真源 `from ..data.items import ITEMS` / `from ..data.battle_rules import
@@ -764,6 +770,7 @@ def eff_reaction(battle, player, value):
     v = _resolve(value, "reaction")
     marks = battle._elem_marks()
     hit = None
+    # ★ P-4：REACTION_TABLE 以 (引爆系, 印记系) 二元组为**键** —— 迭代键即取组合（勿改成 .items()）
     for cast_el, mark_el in REACTION_TABLE:
         if int(marks.get(mark_el, 0) or 0) > 0:
             hit = (cast_el, mark_el)
