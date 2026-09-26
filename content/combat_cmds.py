@@ -1129,13 +1129,14 @@ def _unlock_battle(self, group_id, qq_id):
     _battle_locks.discard(str(qq_id))
 
 def _open_battle(self, player: dict, enemies: list, btype: str = "monster",
-                  group_id=None, qq_id=None, pet=None) -> "object":
+                  group_id=None, qq_id=None) -> "object":
     """开战构造（saintess_engine 四步仪式，N5b4-2 起探索/野王/普通遇怪/约战/塔统一走）。
 
     ① 开战仪式（player dict 侧：字段播种/max 重算/echo_bless/poi_buff 消费）
     ② 组 sides（player + 怪组）
     ③ 装备装配（weapon_effect + affix → actor.triggers，N9/N9.7 已支持）
-    ④ 构造 Battle
+    ④ 构造 Battle（`Battle(...)` 只收它签名里真有的参数 —— N10 收口后
+        `title_bonus=` / `pet=` 这类「传了但引擎不读」的静默参已全清）
     """
     tb = self._title_bonus(group_id, qq_id) if (group_id is not None and qq_id is not None) else {}
     _BR.prepare_player_for_battle(player, tb, _es_arg(db))
@@ -1146,8 +1147,7 @@ def _open_battle(self, player: dict, enemies: list, btype: str = "monster",
     # battle 级 `title_bonus`（引擎已删该形参/字段，过渡语义收干净）。
     for _a in sides.get("player", []):
         _BR.apply_battle_loadout(_a, tb)
-    b = _BR.make_battle(btype, sides=sides,
-                        pet=pet if pet is not None else db.pet_get(qq_id))
+    b = _BR.make_battle(btype, sides=sides)
     # 流水采集（可拔插：未启用 DRAGONFALL_TLOG / 未 enable 时为 no-op，见 game/tlog_setup.py）
     return _attach_tlog(b, btype=btype, player=player, enemies=enemies)
 
@@ -3227,8 +3227,7 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     #（v181.M-bonus 统一数值容器；序列收敛于 BR.apply_battle_loadout，随 actor 落盘/恢复）
     _BR.apply_battle_loadout(_my_actor, _tb_me)
     _BR.apply_battle_loadout(_opp_actor, _tb_opp)
-    _b2 = _BR.make_battle("pvp", sides={"player": [_my_actor], "enemy": [_opp_actor]},
-                         pet=db.pet_get(qq_id))
+    _b2 = _BR.make_battle("pvp", sides={"player": [_my_actor], "enemy": [_opp_actor]})
     state = _b2.to_state()
     # meta 外壳（saintess_engine from_state 忽略未知键 → 只给命令层读）
     state["meta"] = {"pvp": True, "attacker_qq": str(qq_id), "actor": "attacker"}

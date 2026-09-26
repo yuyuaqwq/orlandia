@@ -521,15 +521,7 @@ def build_battle(st: dict, *, script_api=None, team_heal_text=None) -> "object":
             sides["enemy"].append(BR.monster_to_actor(u))
         except Exception:
             continue  # 个别单位翻译失败不阻断整场（数据异常容错）
-    _pet = {}
-    try:
-        _first_alive = next((a for a in sides["player"]), None)
-        if _first_alive:
-            _k0 = str(_first_alive.get("qq_id") or "")
-            _pet = (st.get("pets") or {}).get(_k0) or {}
-    except Exception:
-        pass
-    b = BR.make_battle("instance", sides=sides, pet=_pet or {})
+    b = BR.make_battle("instance", sides=sides)
     # 5b：构造时注入副本命令层钩子（target_picker 仇恨选目标等）
     _attach_instance_hooks(b, st, script_api=script_api, team_heal_text=team_heal_text)
     st["battle"] = b.to_state()

@@ -77,8 +77,11 @@ actor 上全部数值修正收敛为单容器 actor["bonus"] = {分域 dict}：
 
 命名迁移：v105 原名 title_bonus（只聚合称号）；v174 并入收藏册后语义已是
 "外部增幅"，N5b4-4 正名 stat_bonus（仅指聚合函数/模块名）；v181.M-bonus 起
-actor 键统称 bonus 容器（panel/cap/cost 分域）。命令层 _title_bonus 方法名与
-engine.player_final_stats 的 title_bonus 位置参数保留（旧引擎冻结区，N10 删旧收敛）。
+actor 键统称 bonus 容器（panel/cap/cost 分域）。**保留**的同名只是「聚合器/面板函数的
+参数名」：命令层 `_title_bonus` 方法与 `player_final_stats(..., title_bonus, ...)` 的第 7 个
+位置参数（引擎 `panel_fn` 注入面的形参名同）—— 它们指的**就是** actor 的 `bonus.panel`
+那一份值；与 2026-09-26 N10 收口删掉的 **battle 级容器**（`Battle(title_bonus=…)` /
+`battle.title_bonus` / 存档键）不是同一个东西。
 
 独立于命令层：commands/base.py:_title_bonus 与 store/players.py 惰性升级共用
 同一实现，避免 get_player 读档升级重算 max_hp 时缺称号加成（存档上限 < 面板
