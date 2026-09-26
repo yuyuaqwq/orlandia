@@ -44,7 +44,7 @@ def mk_battle(player):
     e = make_actor(uid="e_1", name="木桩", side="enemy", kind="monster",
                    atk=1, matk=1, spd=1, hp=999999, max_hp=999999)
     e['effects'] = {}
-    return B2("monster", sides={"player": [player], "enemy": [e]}, title_bonus={})
+    return B2("monster", sides={"player": [player], "enemy": [e]})
 
 
 def crit_buff_of(actor, key):

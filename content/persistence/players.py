@@ -245,9 +245,9 @@ def get_player(group_id, qq_id):
                     # 全 store 共用 connection._lock（已改 RLock），此处可安全调用 store 函数。
                     try:
                         from ..stat_bonus import stat_bonus
-                        p["_title_bonus"] = stat_bonus(group_id, qq_id, p)
+                        p["_panel_bonus"] = stat_bonus(group_id, qq_id, p)
                     except Exception:
-                        p["_title_bonus"] = {}
+                        p["_panel_bonus"] = {}
                     _logs, _p2 = check_player_level_up(group_id, qq_id, p)
                     if _p2.get("level", 1) > _lv0:
                         conn.execute(

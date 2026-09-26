@@ -45,7 +45,7 @@ async def main():
         "hp": 500, "max_hp": 500, "mp": 100, "max_mp": 100,
         "atk": 50, "def": 30, "matk": 10, "mdef": 20, "spd": 10,
         "equipment": {}, "skills": [], "learned_skills": [], "class_tier": 0,
-        "evolve_path": 0, "attributes": None, "title_bonus": {}, "race": None,
+        "evolve_path": 0, "attributes": None, "panel_bonus": {}, "race": None,
     }
     st["members"] = ["i1"]
     st["acted"] = [False]

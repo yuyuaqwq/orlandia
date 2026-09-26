@@ -123,7 +123,10 @@ CLASS = {
     "content/quests_flow.py::deliver_hint": "E",
     "content/quests_flow.py::grant_quest_rewards": "C",
     "content/quests_flow.py::branch_wait_sid": "E",
-    "content/profession_quests.py::settle_daily_quest": "E",
+    # ★ C 档（2026-09-26 N10 收口 3）：本段源码因「`_title_bonus` → `_panel_bonus` 全局改名」
+    #   改动（**行为逐字不变**：只换玩家 dict 的键名，值 = 同一份 stat_bonus 聚合结果；
+    #   13 064 格冻结网格实测无不一致）⇒ E → C（实测口径，与上面 29a 同法）。
+    "content/profession_quests.py::settle_daily_quest": "C",
     "content/profession_quests.py::daily_pool": "E",
     "content/world_cmds.py::_take_main_quest": "E",
     "content/cmds_world.py::_svc": "E",

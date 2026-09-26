@@ -98,7 +98,7 @@ def mk_battle(bard_skills, n_enemies=2, enemy_hp=99999):
                        **{"def": 80, "mdef": 60})
         e['effects'] = {}
         sides["enemy"].append(e)
-    b = B2("monster", sides=sides, title_bonus={})
+    b = B2("monster", sides=sides)
     return b, bard
 
 

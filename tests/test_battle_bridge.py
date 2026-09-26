@@ -153,7 +153,7 @@ check("build_monster_group 返回阵列", isinstance(group, list) and len(group)
 sides = BR.build_sides(player=p, enemies=group)
 check("sides player/enemy 非空", len(sides["player"]) == 1 and len(sides["enemy"]) >= 1)
 # 开战
-b = B2Battle("monster", sides=sides, title_bonus={})
+b = B2Battle("monster", sides=sides)
 check("battle 构造成功", b is not None)
 check("btype", b.btype == "monster")
 check("result None", b.result is None)
@@ -166,7 +166,7 @@ check("普攻执行不报错", isinstance(logs, list))
 check("攻击后敌方 hp 减少或死亡", enemy.get("hp", 0) <= mon_real["hp"] if not ended else True)
 # 自动跑完整战斗（auto_run——全自动直到结束）
 logs2 = []
-b2 = B2Battle("monster", sides=BR.build_sides(player=p, enemies=group), title_bonus={})
+b2 = B2Battle("monster", sides=BR.build_sides(player=p, enemies=group))
 b2.auto_run(logs2)
 check("auto_run 战斗有结果", b2.result in ("victory", "defeat", "fled"))
 check("auto_run 日志非空", len(logs2) > 0)
@@ -180,7 +180,7 @@ import json as _json
 db.set_event_state("bless_10001", "1")
 db.set_event_state("poi_buff_10001", _json.dumps(
     {"stat": "atk", "mult": 1.10, "name": "攻击", "left": 2}, ensure_ascii=False))
-BR.prepare_player_for_battle(_p2, title_bonus={}, event_state=BR._as_event_state(db))
+BR.prepare_player_for_battle(_p2, panel_bonus={}, event_state=BR._as_event_state(db))
 check("播种 shields/cooldown/resources/stacks（player dict 协议；buffs 容器已随 V 系列合并删除）",
       all(isinstance(_p2.get(k), dict) for k in
           ("shields", "cooldown", "resources", "stacks"))
@@ -200,7 +200,7 @@ check("max_hp 实时化 > 100", int(_p2.get("max_hp", 0)) > 100, "max_hp=%s" % _
 # 第二次开战：echo 不再重复；poi left 1→0 删 key
 _p3 = make_player(level=10, hp=80, mp=20)
 _p3["max_hp"], _p3["max_mp"] = 100, 30
-BR.prepare_player_for_battle(_p3, title_bonus={}, event_state=BR._as_event_state(db))
+BR.prepare_player_for_battle(_p3, panel_bonus={}, event_state=BR._as_event_state(db))
 check("二次开战 echo 不重复", not (_p3.get("_battle_boons") or {}).get("echo_bless"))
 check("poi left 耗尽删 key", not db.get_event_state("poi_buff_10001"))
 check("二次开战 poi_buff 仍挂上", (_p3.get("poi_buff") or {}).get("stat") == "atk")
@@ -208,7 +208,7 @@ check("二次开战 poi_buff 仍挂上", (_p3.get("poi_buff") or {}).get("stat")
 section("战斗回写 sync_player_from_actor")
 _p4 = make_player(level=10, hp=200, mp=50)
 _sides = BR.build_sides(player=_p4, enemies=group)
-_b3 = B2Battle("monster", sides=_sides, title_bonus={})
+_b3 = B2Battle("monster", sides=_sides)
 _focus = _b3.focus()
 _focus["hp"] = 77          # 引擎改 actor（副本）
 _focus["mp"] = 12

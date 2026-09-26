@@ -270,7 +270,11 @@ def _battle_cur_max(ctx, cur_key, max_key):
     from .panel import player_final_stats      # B13-L1：包内直取（等价 content_rules.panel）
     from .skills import skill_info              # B13-L1：包内直取（等价 content_rules.skills）
     try:
-        tb = (st or {}).get("title_bonus") or {}
+        # 面板增幅真源 = **actor 自己的容器**（`actor["bonus"]["panel"]`，N5b4-4 拍板唯一容器）。
+        # 2026-09-26 修：此处原读 `st.get("title_bonus")` —— 那是引擎旧 `to_state` 里那份
+        # **battle 级**副本；N10 收口 1 删掉该键后这里静默读成 {} ⇒ 普通战斗的上限重算
+        # 少了外部增幅（物品满血/满蓝判定会误判）。
+        tb = dict((ctx._focus.get("bonus") or {}).get("panel") or {})
         real = player_final_stats(
             ctx._focus.get("class_name", ""),
             ctx._focus.get("level", 1),

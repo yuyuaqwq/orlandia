@@ -281,7 +281,7 @@ def tpl_exp_gain(ctx):
     ctx._focus["exp"] = cur_exp + exp_gain
     db.update_player(ctx.group_id, ctx.qq_id, exp=ctx._focus["exp"])
     player = db.get_player(ctx.group_id, ctx.qq_id)
-    player["_title_bonus"] = ctx.hooks.get("title_bonus", lambda q: None)(ctx.qq_id)
+    player["_panel_bonus"] = ctx.hooks.get("panel_bonus", lambda q: None)(ctx.qq_id)
     lines = [ctx.param("header", _T.static("evt.exp_gain")).replace("{name}", ctx.name).replace("{exp}", str(exp_gain))]
     lv_logs, player = check_player_level_up(ctx.group_id, ctx.qq_id, player)
     if lv_logs:

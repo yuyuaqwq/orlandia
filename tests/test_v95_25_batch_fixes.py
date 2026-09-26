@@ -107,7 +107,7 @@ async def main():
     _s6 = _BR.build_sides(player=pl6, enemies=[_mon6])
     for _a in _s6.get("player", []):
         _a["bonus"] = {"panel": {}, "cap": {}, "cost": {}}
-    db.save_battle("g1", "w6", _B2("monster", sides=_s6, title_bonus={}).to_state())
+    db.save_battle("g1", "w6", _B2("monster", sides=_s6).to_state())
     out = await cmd(m, "attack", "g1", "w6", "攻击")
     check("死亡提示含 10% 规则", "10% 金币" in out, out[:300])
 
@@ -122,7 +122,7 @@ async def main():
     _s7 = _BR.build_sides(player=pl7, enemies=[_mon7])
     for _a in _s7.get("player", []):
         _a["bonus"] = {"panel": {}, "cap": {}, "cost": {}}
-    db.save_battle("g1", "w7", _B2("monster", sides=_s7, title_bonus={}).to_state())
+    db.save_battle("g1", "w7", _B2("monster", sides=_s7).to_state())
     out = await cmd(m, "skill", "g1", "w7", "技能 火球")
     check("报错含已学技能", "挥砍" in out, out[:300])
     check("不再显示遗留列", "你当前的技能：无" not in out, out[:300])

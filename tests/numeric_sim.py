@@ -104,7 +104,7 @@ def build_player(cls: str, lv: int, attr: dict, equip: dict | None, learned: lis
         "equipment": dict(equip or {}), "attributes": dict(attr),
         "learned_skills": list(learned or []),
         "hp": st["max_hp"], "mp": st["max_mp"], "max_hp": st["max_hp"], "max_mp": st["max_mp"],
-        "race": "human", "title_bonus": None,
+        "race": "human", "panel_bonus": None,
     }
 
 

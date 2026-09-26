@@ -51,7 +51,7 @@ group = D.build_monster_group(mon, map_obj, player)
 
 print("== 1. 开战（桥 → saintess_engine → save）==")
 sides = BR.build_sides(player=player, enemies=group)
-b = B2("monster", sides=sides, title_bonus={})
+b = B2("monster", sides=sides)
 check("saintess_engine 构造成功", b.result is None)
 st = b.to_state()
 check("to_state 含 sides", "sides" in st and len(st["sides"]["enemy"]) == len(group))
@@ -91,7 +91,7 @@ print("== 4. 旧格式存档作废（无 sides → 清 DB 重开，不做迁移�
 legacy = {
     "type": "monster", "now": 2.0, "round": 1, "result": None,
     "enemy": dict(mon), "enemies": [dict(u) for u in group],
-    "title_bonus": {}, "p_buffs": {"atk_up": 1},
+    "panel_bonus": {}, "p_buffs": {"atk_up": 1},
     "p_hot": {}, "p_shields": {}, "p_defending": False, "charging": None,
     "poi_buff": None, "cooldown": {}, "mech_stacks": {}, "resources": {},
     "eff_data": {}, "killed_enemies": [], "map": "测试平原",

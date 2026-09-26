@@ -53,7 +53,7 @@ def mk_enemy(spd=1, hp=999999):
 
 def mk_battle(players, enemy=None):
     e = enemy or mk_enemy()
-    return B2("monster", sides={"player": players, "enemy": [e]}, title_bonus={})
+    return B2("monster", sides={"player": players, "enemy": [e]})
 
 
 def skill_in_class(cls, name):

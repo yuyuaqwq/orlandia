@@ -386,7 +386,7 @@ def roll_blueprint_drop(host, group_id, qq_id, player, monster, gold):
     try:
         _lst_bp = host.player_final_stats(player["class_name"], player["level"], player.get("equipment", {}),
                                           player.get("class_tier", 0), player.get("attributes"),
-                                          player.get("evolve_path", 0), player.get("_title_bonus") or {}, player.get("race"))
+                                          player.get("evolve_path", 0), player.get("_panel_bonus") or {}, player.get("race"))
         _luck_bp = min(float(_lst_bp.get("luck", 0) or 0), 0.5)
     except Exception:
         _luck_bp = 0.0
@@ -583,7 +583,7 @@ def material_fold(host, group_id, qq_id, player, monster, gold, lucky_line):
     try:
         _lst = host.player_final_stats(player["class_name"], player["level"], player.get("equipment", {}),
                                        player.get("class_tier", 0), player.get("attributes"),
-                                       player.get("evolve_path", 0), player.get("_title_bonus") or {}, player.get("race"))
+                                       player.get("evolve_path", 0), player.get("_panel_bonus") or {}, player.get("race"))
         _luck = min(float(_lst.get("luck", 0) or 0), 0.5)
         _gold_bonus = min(float(_lst.get("gold_bonus", 0) or 0), 0.5)
     except Exception:
@@ -637,7 +637,7 @@ def know_exp_bonus(host, group_id, qq_id, player, exp):
     try:
         _lst_exp = host.player_final_stats(player["class_name"], player["level"], player.get("equipment", {}),
                                            player.get("class_tier", 0), player.get("attributes"),
-                                           player.get("evolve_path", 0), player.get("_title_bonus") or {}, player.get("race"))
+                                           player.get("evolve_path", 0), player.get("_panel_bonus") or {}, player.get("race"))
         _exp_bonus = min(float(_lst_exp.get("exp_bonus", 0) or 0), 0.5)
     except Exception:
         _exp_bonus = 0.0
@@ -663,7 +663,7 @@ def grant_player_exp(host, group_id, qq_id, player, exp):
     try:
         _st = host.player_final_stats(player["class_name"], player["level"], player.get("equipment", {}),
                                       player.get("class_tier", 0), player.get("attributes"),
-                                      player.get("evolve_path", 0), player.get("_title_bonus") or {}, player.get("race"))
+                                      player.get("evolve_path", 0), player.get("_panel_bonus") or {}, player.get("race"))
         player["max_hp"] = int(_st.get("max_hp", player.get("max_hp", 100)))
         player["max_mp"] = int(_st.get("max_mp", player.get("max_mp", _cc.DEFAULT_MAX_MP)))
     except Exception:
@@ -843,7 +843,7 @@ def victory_settle(host, group_id, qq_id, player, monster, result, extra_kills=N
                            _sp.MAP_BY_ID.get(player.get("cur_map"), {}),
                            "battle_win",
                            {"event": "win", "enemy": monster},
-                           hooks={"title_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
+                           hooks={"panel_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
     # ---- 段21 面板行骨架 ----
     need = C.exp_to_next(player["level"])
     exp_pct = min(100, int(player["exp"] / need * 100)) if need else 0
@@ -951,7 +951,7 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
                    _sp.MAP_BY_ID.get(player.get("cur_map"), {}),
                    "battle_win",
                    {"event": "lose"},
-                   hooks={"title_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
+                   hooks={"panel_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
         return {"lines": lines, "revive_state": {"lost": lost, "extra": extra,
                                                  "monster": monster.get("name", "?")},
                 "player": player}
@@ -970,5 +970,5 @@ def defeat_settle(host, group_id, qq_id, player, monster, result):
                _sp.MAP_BY_ID.get(player.get("cur_map"), {}),
                "battle_win",
                {"event": "lose"},
-               hooks={"title_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
+               hooks={"panel_bonus": lambda q: host.stat_bonus(group_id, q, db.get_player(group_id, q) or {})})
     return {"lines": lines, "revive_state": None, "player": player}

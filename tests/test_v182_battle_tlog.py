@@ -39,15 +39,24 @@ from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_ch
 check = bind_check(globals(), "passed", "failed")
 
 
-def build_battle(*, seed=SEED, tlog=None, pre_observer=None, cls="战士", mlv=11):
-    """按生产口径建一场战斗；`tlog` 给定时挂采集（seed = 重演起点，构造之后取）。"""
+def build_battle(*, seed=SEED, tlog=None, pre_observer=None, cls="战士", mlv=11,
+                 tb=None):
+    """按生产口径建一场战斗；`tlog` 给定时挂采集（seed = 重演起点，构造之后取）。
+
+    `tb`：外部面板增幅（= `actor["bonus"]["panel"]` 那一份）。默认**非空** ——
+    运行期玩家 dict 的真实写法是 `player["_panel_bonus"]`；回放必须能把这份增幅复原
+    （2026-09-26 修：原先测试用空增幅，掩盖了「回放丢增幅」的缺陷）。
+    """
     random.seed(999)                                  # 构造期随机（与重演无关）
+    if tb is None:
+        tb = {"atk": 12, "spd": 5}
     player = NS.build_player(cls, 11, NS.STD_ATTR[cls], {}, [])
+    player["_panel_bonus"] = dict(tb)                 # ★ 运行期真实键（下划线）
     m = NS.monster_of("dps", mlv)
-    prepare_player_for_battle(player, None, None)
+    prepare_player_for_battle(player, tb, None)
     sides = build_sides(player, [dict(m)])
     for a in sides.get("player", []):
-        apply_battle_loadout(a, None)
+        apply_battle_loadout(a, tb)
     b = B2("monster", sides=sides)
     if pre_observer is not None:
         b.on_event = pre_observer
@@ -135,6 +144,8 @@ def t3_replay():
     print("\n[3] ★ 回放复现同一场（硬验收）")
     mem = MemorySink()
     b, bt = build_battle(tlog=TLog(sinks=[mem]))
+    from ext_combat.battle.stats import actor_stats as _astats
+    _live_panel = _astats(b, b.focus())               # ★ 实况面板（跑之前取）
     _, _n = run_battle(b)
     bt.on_end(b)
     recs = list(mem.read_records())
@@ -142,6 +153,36 @@ def t3_replay():
     check("回放能跑完并给出结果", res["result"] != "")
     check("★ matched（result/rounds/p_acts 与记录逐项一致）", res["matched"],
           f"got={(res['result'], res['rounds'], res['p_acts'])} exp={res['expected']}")
+    # ★ 面板面：载荷必须带回外部增幅，且按载荷重建出的面板 == 实况面板
+    #   （2026-09-26 修：原先 REPRO_KEYS 只列 `panel_bonus`，运行期那支 shape 取不到
+    #    增幅 ⇒ 回放面板少了外部增幅，而 matched 仍是 True —— 判据漏了这一面）
+    _pl = dict((recs[0].fields.get("player") or {}))
+    check("★ start 载荷带面板增幅（规范键 panel_bonus，值=运行期那份）",
+          _pl.get("panel_bonus") == {"atk": 12, "spd": 5},
+          str({k: v for k, v in _pl.items() if "bonus" in k}))
+    _rp = {k: v for k, v in _pl.items() if k != "panel_bonus"}
+    prepare_player_for_battle(_rp, _pl.get("panel_bonus"), None)
+    _rsides = build_sides(_rp, [dict(e) for e in (recs[0].fields.get("enemies") or [])])
+    for _a in _rsides.get("player", []):
+        apply_battle_loadout(_a, _pl.get("panel_bonus"))
+    _rb = B2("monster", sides=_rsides)
+    _rp_panel = _astats(_rb, _rb.focus())
+    _keys = ("atk", "def", "spd", "max_hp")
+    check("★ 回放面板 == 实况面板（外部增幅不丢）",
+          all(int(_live_panel.get(k, 0) or 0) == int(_rp_panel.get(k, 0) or 0) for k in _keys),
+          "live=%s replay=%s" % ({k: _live_panel.get(k) for k in _keys},
+                                 {k: _rp_panel.get(k) for k in _keys}))
+    # 对照（同口径、去掉增幅）：atk 必须正好少 12 —— 证明上面那条不是恒真
+    _rp0 = {k: v for k, v in _pl.items() if k != "panel_bonus"}
+    prepare_player_for_battle(_rp0, None, None)
+    _rsides0 = build_sides(_rp0, [dict(e) for e in (recs[0].fields.get("enemies") or [])])
+    for _a in _rsides0.get("player", []):
+        apply_battle_loadout(_a, None)
+    _r0_panel = _astats(B2("monster", sides=_rsides0), _rsides0["player"][0])
+    check("对照：面板确实被增幅改变过（判据不是恒真）",
+          int(_live_panel.get("atk", 0) or 0) == int(_r0_panel.get("atk", 0) or 0) + 12,
+          "带增幅 atk=%s / 同口径无增幅 atk=%s" % (_live_panel.get("atk"),
+                                                 _r0_panel.get("atk")))
     # 缺 start / 缺重建输入 → 明确报错，不静默
     try:
         replay([r for r in recs if r.kind == "battle.act"])

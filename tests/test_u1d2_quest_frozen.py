@@ -182,14 +182,14 @@ _PIN = {
         'content/quests_flow.py::side_available_list': 'd546c1d2bfea908745d31af377890e546e0be2902cc1ffd3a1a61598f105c302',
         'content/quests_flow.py::offer_side_quest': '0f42aad855ff81db290910e772843a1f884a1df2fb809d958b949b52d4ee2a6f',
         'content/quests_flow.py::offer_side_quests': '400caf1e3a12334fde19c02e141eedc138f7de69c969c4cf115f058ea20c789e',
-        'content/quests_flow.py::grant_quest_rewards': 'dc6e9b7e32f56de2e26a16ed1a6a8b69eb7b74e9e4a12f6aaaa2d7810a8e073c',
+        'content/quests_flow.py::grant_quest_rewards': '35216eddb08ac1d1b1eb8600cf39bb26721d283a82560fce1c74f18746529e52',
         'content/quests_flow.py::complete_side_quest': '6794eb655138e4fc71041dd0b434730885c7f20e6c55a680b153596f9089e9f4',
         'content/quests_flow.py::talk_quest_progress': 'c837baa027c74bce8f7bedfa4330aa5e1bc29df012a0592898d8b5ab734c4d6d',
         'content/quests_flow.py::update_use_quests': 'de36c7fb21f9817cc6052a9b146cbf362e8a9e75a1c79f7e3cde9ad4876fb818',
         'content/quests_flow.py::branch_wait_sid': '4436a53533504b4be1d11d3dea8434c774039a48ffcec52c4991a3fcee47b680',
         'content/quests_flow.py::quest_kill_progress': 'd1ce86e92672c414e08b8a4921f09b955f947a5df9605d1022f3b57c829157c2',
         'content/profession_quests.py::daily_need': 'f7b449ec9e0af407af2523043cf674d53d0f0e8ead88e7916776bc035ed6b683',
-        'content/profession_quests.py::settle_daily_quest': 'c1e2cf3ddffb394bbbd905f6e41e440233907daa38a8fd6e024a9259aaf9da2f',
+        'content/profession_quests.py::settle_daily_quest': '2aeb61f4e2d046002e88070b17b2f01a33e929641be78085f06e5960ae7225cd',
         'content/profession_quests.py::bump_daily_progress': 'a3319e10964a6c78886ffcec98d1a973a713e5346166f576447b502980ba18f3',
         'content/profession_quests.py::daily_pool': '75d20348e9403773e5ba464e88aa86dad6de5cefc71611a822672a9c5cf17533',
         'content/profession_quests.py::draw_daily': '6c715ebc881c3bf10b3eecb0c31ff08d66c8329b139f524f11e195c14473a3a3',
@@ -216,7 +216,6 @@ _PIN = {
             'content/quests_flow.py::sq_stats_met',
             'content/quests_flow.py::deliver_hint',
             'content/quests_flow.py::branch_wait_sid',
-            'content/profession_quests.py::settle_daily_quest',
             'content/profession_quests.py::daily_pool',
             'content/world_cmds.py::_take_main_quest',
             'content/cmds_world.py::_svc',
@@ -238,6 +237,7 @@ _PIN = {
             'content/quests_flow.py::update_use_quests',
             'content/quests_flow.py::quest_kill_progress',
             'content/profession_quests.py::daily_need',
+            'content/profession_quests.py::settle_daily_quest',
             'content/profession_quests.py::bump_daily_progress',
             'content/profession_quests.py::draw_daily',
             'content/world_cmds.py::_obj_text',
@@ -521,7 +521,7 @@ def _mk_player(level, cur_map, gold=0, exp=0):
             "level": level, "cur_map": cur_map, "cur_subarea": "", "race": "human",
             "gold": gold, "exp": exp, "hp": 100, "mp": 50, "max_hp": 100, "max_mp": 50,
             "skills": [], "attr_pts": 0, "skill_points": 0, "learned_skills": [],
-            "hidden_class_unlock": [], "_title_bonus": 0}
+            "hidden_class_unlock": [], "_panel_bonus": 0}
 
 
 def _npc_of(npc_id):

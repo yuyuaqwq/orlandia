@@ -279,8 +279,8 @@ def _grant_bonus(ctx, bonuses):
 
     注意：游戏内永久属性走 stat_bonus() 动态计算（读 TITLES/ACHIEVEMENTS 已解锁项），
     **不落 players 表字段**。收藏册满套 bonus 的实装 = 让 stat_bonus() 认识"收藏册已集齐"，
-    由 title_bonus 模块动态给，这里不做存储。若数据里 bonus 到达这里，说明调用方用了
-    grant 的直接 bonus 语义——仅播报（属性由 title_bonus 动态源保证），不重复落库。
+    由 panel_bonus 模块动态给，这里不做存储。若数据里 bonus 到达这里，说明调用方用了
+    grant 的直接 bonus 语义——仅播报（属性由 panel_bonus 动态源保证），不重复落库。
     """
     lines = ctx.lines
     bonus = bonuses[0] if bonuses else None
@@ -355,7 +355,7 @@ def grant_reward(reward: dict, group_id, qq_id, *, player=None, lines=None) -> l
         if player:
             player = dict(player)
             player["qq_id"] = player.get("qq_id") or qq_id
-            player["_title_bonus"] = stat_bonus(group_id, qq_id, player)
+            player["_panel_bonus"] = stat_bonus(group_id, qq_id, player)
             if exp:
                 player["exp"] = player.get("exp", 0) + exp
             if gold:

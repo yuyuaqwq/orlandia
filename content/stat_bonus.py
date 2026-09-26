@@ -77,10 +77,13 @@ actor 上全部数值修正收敛为单容器 actor["bonus"] = {分域 dict}：
 
 命名迁移：v105 原名 title_bonus（只聚合称号）；v174 并入收藏册后语义已是
 "外部增幅"，N5b4-4 正名 stat_bonus（仅指聚合函数/模块名）；v181.M-bonus 起
-actor 键统称 bonus 容器（panel/cap/cost 分域）。命令层 _title_bonus 方法名与
-engine.player_final_stats 的 title_bonus 位置参数保留（旧引擎冻结区，N10 删旧收敛）。
+actor 键统称 bonus 容器（panel/cap/cost 分域）。**保留**的同名只是「聚合器/面板函数的
+参数名」：命令层 `_panel_bonus` 方法与 `player_final_stats(..., panel_bonus, ...)` 的第 7 个
+位置参数（引擎 `panel_fn` 注入面的形参名同）—— 它们指的**就是** actor 的 `bonus.panel`
+那一份值；与 2026-09-26 N10 收口删掉的 **battle 级容器**（`Battle(title_bonus=…)` /
+`battle.title_bonus` / 存档键）不是同一个东西。
 
-独立于命令层：commands/base.py:_title_bonus 与 store/players.py 惰性升级共用
+独立于命令层：commands/base.py:_panel_bonus 与 store/players.py 惰性升级共用
 同一实现，避免 get_player 读档升级重算 max_hp 时缺称号加成（存档上限 < 面板
 计算值，升级回满血只回到旧上限，面板长期"生命 861/891"不满）。
 - player 参数：已加载玩家 dict 时传入，避免重复读档（get_player 持锁调用必须传）。
@@ -137,7 +140,7 @@ def _has_enhanced(group_id, qq_id, level):
 def stat_bonus(group_id, qq_id, player=None) -> dict:
     """外部面板数值增幅聚合（称号加成 + 成就称号 + 收藏册满套；未来纯数值来源加这里）。
 
-    与 commands/base.py 旧 _title_bonus 同逻辑（TITLES 加成 + 成就加成 +
+    与 commands/base.py 旧 _panel_bonus 同逻辑（TITLES 加成 + 成就加成 +
     M18 同名去重 + v174 收藏册）；失败静默返回 {}（与旧实现一致）。
     """
     bonus = {}
@@ -160,13 +163,13 @@ def stat_bonus(group_id, qq_id, player=None) -> dict:
         # 阶段九：成就称号 bonus（14 章 3.3，达成即生效）
         # M18 修复：跳过与 TITLES 同名且带 bonus 的成就（副业 Lv.10 大师称号已由上方
         # TITLES 段累加，成就侧 ach_pro_*10 为同一称号的重复数据 → 跳过避免双倍发放）
-        title_bonus_names = {t["name"] for t in _cq.TITLES if t.get("bonus")}
+        titled_bonus_names = {t["name"] for t in _cq.TITLES if t.get("bonus")}
         try:
             unlocked_achs = {r["ach_key"] for r in db.get_achievements("", qq_id)}
         except Exception:
             unlocked_achs = set()
         for a in _cq.ACHIEVEMENTS:
-            if a.get("bonus") and a["id"] in unlocked_achs and a.get("name") not in title_bonus_names:
+            if a.get("bonus") and a["id"] in unlocked_achs and a.get("name") not in titled_bonus_names:
                 for k, v in a["bonus"].items():
                     if k == "prof_exp_mult":
                         continue  # v104.2 M13：全知全能副业经验倍率由 add_prof_exp 结算，非面板属性
@@ -179,7 +182,7 @@ def stat_bonus(group_id, qq_id, player=None) -> dict:
         for k, v in _book_bonus.items():
             bonus[k] = bonus.get(k, 0) + v
     except Exception:
-        obs.log().warning("[dragonfall] title_bonus 计算异常，称号加成降级为空", exc_info=True)
+        obs.log().warning("[dragonfall] panel_bonus 计算异常，称号加成降级为空", exc_info=True)
         pass
     return bonus
 

@@ -75,7 +75,7 @@ def test_2_poison_boost():
     e = mk_enemy(hp=10000)
     e['effects']['poison'] = {'stacks': 5, 'expire': None, 'pct': 0.02}  # 条目 pct 覆盖：2%×5=10% max_hp=1000
     #   （表内 poison 权威系数 = atk×0.8 flat 无 pct；本条用条目覆盖固定 2%，只验 dot_calc 乘区通道）
-    b = B2("monster", sides={"player": [p], "enemy": [e]}, title_bonus={})
+    b = B2("monster", sides={"player": [p], "enemy": [e]})
     logs = run_dot_tick(b, e)
     # DOT 落地：1000×1.35=1350 → hp 10000→8650
     check("毒跳 ×1.35 落地（hp 8650）", int(e.get("hp", 0)) == 8650,
@@ -90,7 +90,7 @@ def test_3_control():
     apply_class_mech(p)
     e = mk_enemy(hp=10000)
     e['effects']['poison'] = {'stacks': 5, 'expire': None, 'pct': 0.02}  # 条目 pct 覆盖 2%（表内 flat 型无 pct）
-    b = B2("monster", sides={"player": [p], "enemy": [e]}, title_bonus={})
+    b = B2("monster", sides={"player": [p], "enemy": [e]})
     logs = run_dot_tick(b, e)
     check("毒跳无加成（hp 9000）", int(e.get("hp", 0)) == 9000,
           f"hp={e.get('hp')}")
@@ -107,7 +107,7 @@ def test_4_weaken():
     e['effects']['poison'] = {'stacks': 5, 'expire': None, 'pct': 0.02}  # 同上（本组验毒≥5 层的减速降防）
     e['spd'] = 100
     e['def'] = 50
-    b = B2("monster", sides={"player": [p], "enemy": [e]}, title_bonus={})
+    b = B2("monster", sides={"player": [p], "enemy": [e]})
     logs = run_dot_tick(b, e)
     sd = (e.get("effects") or {}).get("spd_down")
     dd = (e.get("effects") or {}).get("def_down")
@@ -125,7 +125,7 @@ def test_5_weaken_low_layers():
     apply_class_mech(p)
     e = mk_enemy(hp=10000)
     e['effects']['poison'] = {'stacks': 3, 'expire': None, 'pct': 0.02}  # 3 层 < 5（验无减速；pct 覆盖仅为让毒跳有伤害）
-    b = B2("monster", sides={"player": [p], "enemy": [e]}, title_bonus={})
+    b = B2("monster", sides={"player": [p], "enemy": [e]})
     logs = run_dot_tick(b, e)
     sd = (e.get("effects") or {}).get("spd_down")
     check("毒层不足 → 无减速", sd is None, repr(sd))

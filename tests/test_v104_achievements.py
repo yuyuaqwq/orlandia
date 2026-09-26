@@ -156,10 +156,10 @@ make_player("g1", "q5", "测试戊", "战士", level=1)
 db.add_prof_exp("g1", "q5", "gather", 2200)          # 采集 → Lv.10（v105 曲线累计 2100）
 db.set_achievement("g1", "q5", "ach_pro_gather10", 1, 0)  # 同名成就『万物采集大师』也解锁
 m5 = Main(None)
-b5 = m5._title_bonus("g1", "q5")
+b5 = m5._panel_bonus("g1", "q5")
 check("采集 Lv.10：hp 加成 30（单次，非 60）", b5.get("hp") == 30)
 db.set_achievement("g1", "q5", "ach_kill500", 1, 0)  # 无同名 TITLES 的成就 bonus 对照
-b5b = m5._title_bonus("g1", "q5")
+b5b = m5._panel_bonus("g1", "q5")
 check("非重复成就 bonus 仍生效：ach_kill500 atk+5", b5b.get("atk") == 5)
 
 # ============ 6. 全知全能副业经验 ×1.10 ============

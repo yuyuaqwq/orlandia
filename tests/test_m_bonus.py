@@ -158,7 +158,7 @@ def t_a_container():
 
 
 def t_a_panel_read():
-    print("【A.2 面板读源 bonus.panel（actor 优先 / battle.title_bonus 兜底）】")
+    print("【A.2 面板读源 bonus.panel（actor 唯一容器；battle 级回落 N10 已删）】")
     from ext_combat.battle.stats import actor_stats
     a0 = mk_mage("b0")
     e0 = mk_enemy()
@@ -170,13 +170,18 @@ def t_a_panel_read():
     s1 = actor_stats(b1, a1)
     check("bonus.panel atk+33 生效", int(s1.get("atk", 0)) == int(s0.get("atk", 0)) + 33,
           f"A={s1.get('atk')} 基础={s0.get('atk')}")
-    # 无容器 actor → 回落 battle.title_bonus（N10 前过渡语义保持）
+    # N10 收口（2026-09-26）：battle 级回落已删 —— 无容器 actor 面板 = 基础
     a2 = mk_mage("b2")
-    b2 = B2(btype="monster", sides={"player": [a2], "enemy": [mk_enemy()]},
-            title_bonus={"spd": 7})
+    b2 = B2(btype="monster", sides={"player": [a2], "enemy": [mk_enemy()]})
+    check("Battle 形参表无 title_bonus（N10 收口）",
+          "panel_bonus" not in B2.__init__.__code__.co_varnames,
+          repr(B2.__init__.__code__.co_varnames))
+    check("Battle 无 title_bonus 实例字段（N10 收口）", not hasattr(b2, "title_bonus"))
+    # 有牙：外部硬塞回同名实例字段也无效（面板真源只有 actor.bonus.panel）
+    b2.title_bonus = {"spd": 7}
     s2 = actor_stats(b2, a2)
-    check("无 bonus 容器回落 battle.title_bonus（spd+7）",
-          int(s2.get("spd", 0)) == int(s0.get("spd", 0)) + 7,
+    check("无 bonus 容器 → 面板 = 基础（不吃 battle 级残留字段）",
+          int(s2.get("spd", 0)) == int(s0.get("spd", 0)),
           f"S={s2.get('spd')} 基础={s0.get('spd')}")
 
 

@@ -100,11 +100,11 @@ def race_name(race: str | None) -> str:
     return (tables.RACES.get(race) or {}).get("name", "")
 
 
-def player_final_stats(class_name: str, level: int, equipment: dict, tier: int = 0, attributes: dict = None, evolve_path: int = 0, title_bonus: dict = None, race: str = None, learned_skills: list | None = None) -> dict:
+def player_final_stats(class_name: str, level: int, equipment: dict, tier: int = 0, attributes: dict = None, evolve_path: int = 0, panel_bonus: dict = None, race: str = None, learned_skills: list | None = None) -> dict:
     """基础属性 + 装备加成(含强化增幅)+ 自由属性点加成 + 称号加成 + 种族天赋 + 已学属性被动(v110.4 X2)
     传 learned_skills 时并入属性被动(面板)；battle.py _player_stats 不传 → 不含 passive，由战斗侧自理
     """
-    st, _ = player_stats_detail(class_name, level, equipment, tier, attributes, evolve_path, title_bonus, race, learned_skills)
+    st, _ = player_stats_detail(class_name, level, equipment, tier, attributes, evolve_path, panel_bonus, race, learned_skills)
     return st
 
 
@@ -234,7 +234,7 @@ def passive_skills_learned(class_name: str, learned_skills: list | None = None) 
 STAT_NAMES: dict = keyed_values("stat_names")
 
 
-def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int = 0, attributes: dict = None, evolve_path: int = 0, title_bonus: dict = None, race: str = None, learned_skills: list | None = None) -> tuple:
+def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int = 0, attributes: dict = None, evolve_path: int = 0, panel_bonus: dict = None, race: str = None, learned_skills: list | None = None) -> tuple:
     """拆解属性来源。返回 (最终属性 dict, 来源明细 list)。
 
     来源明细每项: {"name": 来源名, "stats": {属性: 加值}}。
@@ -412,8 +412,8 @@ def player_stats_detail(class_name: str, level: int, equipment: dict, tier: int 
         names4 = [s for s, c in active_sets(equipment).items() if c >= 4]
         sources.append({"name": f"套装4件({'/'.join(names4)})", "stats": eff_src, "pct": True})
     # 6. 副业大师称号加成（固定数值）
-    if title_bonus:
-        tb = {k: v for k, v in title_bonus.items() if k in STAT_NAMES and v}
+    if panel_bonus:
+        tb = {k: v for k, v in panel_bonus.items() if k in STAT_NAMES and v}
         if tb:
             for k, v in tb.items():
                 if k in tables.PENE_PCT_STATS:

@@ -49,7 +49,7 @@ def mk_battle(a, e_spd=200):
                    atk=1, matk=1, spd=e_spd, hp=99999, max_hp=99999)
     e['effects'] = {}
     e['dodge'] = 0.0
-    return B2("monster", sides={"player": [a], "enemy": [e]}, title_bonus={})
+    return B2("monster", sides={"player": [a], "enemy": [e]})
 
 
 def test_1_shield_stun_applies():

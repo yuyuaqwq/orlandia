@@ -88,10 +88,10 @@ def replay(records: Iterable[Record], *, seed: Optional[int] = None,
         enemies = [dict(e) for e in (start.fields.get("enemies") or [])]
         if not player or not enemies:
             raise ValueError("流水缺少重建输入（player/enemies）")
-        prepare_player_for_battle(player, player.get("title_bonus"), None)
+        prepare_player_for_battle(player, player.get("panel_bonus"), None)
         sides = build_sides(player, enemies)
         for a in sides.get("player", []):
-            apply_battle_loadout(a, player.get("title_bonus"))
+            apply_battle_loadout(a, player.get("panel_bonus"))
 
     b = _BR.make_battle(btype, sides=sides)
     by_uid = {}
