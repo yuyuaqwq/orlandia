@@ -123,7 +123,7 @@ async def main():
         _sides = _BR.build_sides(player=pl, enemies=[_mk_mon()])
         for _a in _sides.get("player", []):
             _a["bonus"] = {"panel": {}, "cap": {}, "cost": {}}
-        return _B2("monster", sides=_sides, title_bonus={}).to_state()
+        return _B2("monster", sides=_sides).to_state()
     # 攻击扣 1
     db.clear_battle("g1", "q1")
     db.update_player("g1", "q1", cur_map="oak_town", cur_subarea="oak_town_1", stamina=30, stamina_ts=int(time.time()))

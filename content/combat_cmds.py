@@ -1141,10 +1141,12 @@ def _open_battle(self, player: dict, enemies: list, btype: str = "monster",
     _BR.prepare_player_for_battle(player, tb, _es_arg(db))
     sides = _BR.build_sides(player=player, enemies=enemies)
     # 装备词条 + 职业机制 + 外部增幅容器（序列收敛于 BR.apply_battle_loadout，
-    # 与数值门禁 tests/numeric_sim.py 同源）
+    # 与数值门禁 tests/numeric_sim.py 同源）。外部增幅只走 per-actor `bonus.panel`
+    #（N5b4-4 拍板唯一容器）—— N10 收口（2026-09-26）后不再向 Battle(...) 传
+    # battle 级 `title_bonus`（引擎已删该形参/字段，过渡语义收干净）。
     for _a in sides.get("player", []):
         _BR.apply_battle_loadout(_a, tb)
-    b = _BR.make_battle(btype, sides=sides, title_bonus=tb,
+    b = _BR.make_battle(btype, sides=sides,
                         pet=pet if pet is not None else db.pet_get(qq_id))
     # 流水采集（可拔插：未启用 DRAGONFALL_TLOG / 未 enable 时为 no-op，见 game/tlog_setup.py）
     return _attach_tlog(b, btype=btype, player=player, enemies=enemies)
@@ -2743,8 +2745,9 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     _tb = self._title_bonus(group_id, qq_id)
     _BR.prepare_player_for_battle(player, _tb, _es_arg(db))
     _sides = _BR.build_sides(player=player, enemies=[dict(u) for u in _boss_grp])
-    # 玩家侧 actor 塞 bonus.panel（v181.M-bonus 统一容器；Boss 敌侧不塞——回落
-    # battle.title_bonus 保持 N5b4-3 行为）
+    # 玩家侧 actor 塞 bonus.panel（v181.M-bonus 统一容器 = **唯一**容器，N10 收口后
+    # 无 battle 级回落）；Boss 敌侧不塞——敌侧是纯怪（无 class_name），stats 走
+    # `_monster_base_stats` 不读面板增幅容器。
     try:
         for _a in _sides.get("player", []):
             _a["bonus"] = {"panel": dict(_tb or {}), "cap": {}, "cost": {}}
@@ -2763,7 +2766,7 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     if _wb_mult != 1.0:
         for _a in _sides.get("enemy", []):
             _WBP.apply_gm_dmg_mult(_a, _wb_mult)
-    nb = _BR.make_battle("worldboss", sides=_sides, title_bonus=_tb)
+    nb = _BR.make_battle("worldboss", sides=_sides)
     # 敌 actor 技能索引已由引擎 Battle 构造建立；给 Boss 配首个技能自动行动（AI 轮换属上层怪 AI 模块）
     try:
         _boss_a = next((u for u in nb.sides_of("enemy") if u.get("is_boss")), None)
@@ -3185,10 +3188,9 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     # N5b4-4：创建 PVP 战斗状态（saintess_engine）——sides 双 actor 持久化 + meta 外壳。
     #   sides.player 固定 = 攻击者(发起方)、sides.enemy = 防守方；双方 human_controlled
     #   （PVP 轮流制由命令层 meta.actor 驱动，enemy 侧真人 actor 不自动行动）。
-    #   bonus.panel（v181.M-bonus 统一数值容器；N5b4-4 起 per-actor 增幅）：Battle.
-    #   title_bonus 战斗级单份无法区分双人——各自外部增幅（core/stat_bonus.py 聚合）
-    #   塞 actor["bonus"]["panel"]，stats 读 actor 优先，双方面板各自精确；
-    #   battle 级传 {} 仅兜底。
+    #   bonus.panel（v181.M-bonus 统一数值容器；N5b4-4 起 per-actor 增幅）：各自外部
+    #   增幅（core/stat_bonus.py 聚合）塞 actor["bonus"]["panel"]，stats **只**读该容器，
+    #   双方面板各自精确；N10 收口后无 battle 级兜底（旧 `title_bonus` 战斗级单份已删）。
     # 0. 双方各自外部增幅聚合（core 直调 + 已 load 的 player dict，避免 _title_bonus
     #    内部再读档；失败降级空 dict）
     from .stat_bonus import stat_bonus as _core_tb
@@ -3226,7 +3228,7 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     _BR.apply_battle_loadout(_my_actor, _tb_me)
     _BR.apply_battle_loadout(_opp_actor, _tb_opp)
     _b2 = _BR.make_battle("pvp", sides={"player": [_my_actor], "enemy": [_opp_actor]},
-                         title_bonus={}, pet=db.pet_get(qq_id))
+                         pet=db.pet_get(qq_id))
     state = _b2.to_state()
     # meta 外壳（saintess_engine from_state 忽略未知键 → 只给命令层读）
     state["meta"] = {"pvp": True, "attacker_qq": str(qq_id), "actor": "attacker"}

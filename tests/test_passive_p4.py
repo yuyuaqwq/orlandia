@@ -47,7 +47,7 @@ def mk_battle(player, e_hp=999999):
                    atk=1, matk=1, spd=1, hp=e_hp, max_hp=e_hp)
     e['effects'] = {}
     ps = player if isinstance(player, list) else [player]
-    return B2("monster", sides={"player": ps, "enemy": [e]}, title_bonus={})
+    return B2("monster", sides={"player": ps, "enemy": [e]})
 
 
 def test_1_assemble_dual():

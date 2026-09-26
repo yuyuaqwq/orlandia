@@ -51,7 +51,7 @@ group = D.build_monster_group(mon, map_obj, player)
 
 print("== 1. 开战（桥 → saintess_engine → save）==")
 sides = BR.build_sides(player=player, enemies=group)
-b = B2("monster", sides=sides, title_bonus={})
+b = B2("monster", sides=sides)
 check("saintess_engine 构造成功", b.result is None)
 st = b.to_state()
 check("to_state 含 sides", "sides" in st and len(st["sides"]["enemy"]) == len(group))

@@ -44,7 +44,7 @@ def mk_battle(a):
                    atk=1, matk=1, spd=1, hp=99999, max_hp=99999)
     e['effects'] = {}
     e['dodge'] = 0.0
-    return B2("monster", sides={"player": [a], "enemy": [e]}, title_bonus={})
+    return B2("monster", sides={"player": [a], "enemy": [e]})
 
 
 def test_1_enter():

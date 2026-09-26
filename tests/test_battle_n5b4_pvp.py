@@ -331,7 +331,7 @@ async def test_pvp_stat_bonus_per_actor():
     # 基础对照（battle.title_bonus 空、actor 无 bonus 容器）
     a0 = _mk("t0", "player")
     e0 = _mk("t0e", "enemy")
-    b0 = B2("pvp", sides={"player": [a0], "enemy": [e0]}, title_bonus={})
+    b0 = B2("pvp", sides={"player": [a0], "enemy": [e0]})
     s0 = actor_stats(b0, a0)
 
     # A 带 panel atk+20、E 带 panel spd+30 → 面板各自精确、互不污染
@@ -339,7 +339,7 @@ async def test_pvp_stat_bonus_per_actor():
     e = _mk("t1e", "enemy")
     a["bonus"] = {"panel": {"atk": 20}, "cap": {}, "cost": {}}
     e["bonus"] = {"panel": {"spd": 30}, "cap": {}, "cost": {}}
-    b = B2("pvp", sides={"player": [a], "enemy": [e]}, title_bonus={})
+    b = B2("pvp", sides={"player": [a], "enemy": [e]})
     sa, se = actor_stats(b, a), actor_stats(b, e)
     check("A 面板 atk = 基础 + 20", int(sa.get("atk", 0)) == int(s0.get("atk", 0)) + 20,
           f"A={sa.get('atk')} 基础={s0.get('atk')}")
@@ -350,13 +350,21 @@ async def test_pvp_stat_bonus_per_actor():
     check("A 面板 spd 不被 E 加成污染", int(sa.get("spd", 0)) == int(s0.get("spd", 0)),
           f"A spd={sa.get('spd')} 基础={s0.get('spd')}")
 
-    # actor 无 tb → 回落 battle.title_bonus（野外语义保持）
+    # N10 收口（2026-09-26）：battle 级 `title_bonus` 过渡语义已删 —— 唯一容器 = actor
+    # 自带 bonus.panel；Battle 不再收该形参、实例上也没有该字段，stats 不再回落。
     a2 = _mk("t2", "player")
     e2 = _mk("t2e", "enemy")
-    b2 = B2("pvp", sides={"player": [a2], "enemy": [e2]}, title_bonus={"atk": 5})
+    b2 = B2("pvp", sides={"player": [a2], "enemy": [e2]})
+    check("Battle 形参表无 title_bonus（N10 收口）",
+          "title_bonus" not in B2.__init__.__code__.co_varnames,
+          repr(B2.__init__.__code__.co_varnames))
+    check("Battle 无 title_bonus 实例字段（N10 收口）", not hasattr(b2, "title_bonus"))
+    # 有牙：外部硬塞回同名实例字段也无效（面板真源只有 actor.bonus.panel）
+    b2.title_bonus = {"atk": 5}
     s2 = actor_stats(b2, a2)
-    check("无 actor tb → 回落 battle.title_bonus", int(s2.get("atk", 0)) == int(s0.get("atk", 0)) + 5,
-          f"battle 级={s2.get('atk')} 基础={s0.get('atk')}")
+    check("无 bonus 容器 → 面板 = 基础（不吃 battle 级残留字段）",
+          int(s2.get("atk", 0)) == int(s0.get("atk", 0)),
+          f"actor={s2.get('atk')} 基础={s0.get('atk')}")
 
     # 序列化保留（PVP 续战恢复后 actor 仍带自己增幅 bonus.panel）
     st = b.to_state()

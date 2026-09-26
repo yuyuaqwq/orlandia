@@ -46,7 +46,7 @@ def mk_battle(w, e_hp=999999):
                    atk=1, matk=1, spd=1, hp=e_hp, max_hp=e_hp)
     e['effects'] = {}
     e['dodge'] = 0.0
-    return B2("monster", sides={"player": [w], "enemy": [e]}, title_bonus={})
+    return B2("monster", sides={"player": [w], "enemy": [e]})
 
 
 def zy_of(w):

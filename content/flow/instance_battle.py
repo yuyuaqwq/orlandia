@@ -529,7 +529,7 @@ def build_battle(st: dict, *, script_api=None, team_heal_text=None) -> "object":
             _pet = (st.get("pets") or {}).get(_k0) or {}
     except Exception:
         pass
-    b = BR.make_battle("instance", sides=sides, title_bonus={}, pet=_pet or {})
+    b = BR.make_battle("instance", sides=sides, pet=_pet or {})
     # 5b：构造时注入副本命令层钩子（target_picker 仇恨选目标等）
     _attach_instance_hooks(b, st, script_api=script_api, team_heal_text=team_heal_text)
     st["battle"] = b.to_state()

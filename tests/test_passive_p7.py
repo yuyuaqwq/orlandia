@@ -73,7 +73,7 @@ def test_3_damage():
                    atk=1, matk=1, spd=1, hp=999999, max_hp=999999)
     e['effects'] = {}
     e['dodge'] = 0.0
-    b = B2("monster", sides={"player": [a], "enemy": [e]}, title_bonus={})
+    b = B2("monster", sides={"player": [a], "enemy": [e]})
     logs, _, _ = b.human_act("skill", "终结·割喉", a)
     # 找 mech_cash_dmg_mult 生效日志（终结技）
     hit = [l for l in logs if "终结" in l or "连段" in l or "×" in l]

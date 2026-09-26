@@ -56,7 +56,7 @@ def mk_battle(players):
     enemy = make_actor(uid="e_1", name="木桩", side="enemy", kind="monster",
                        atk=1, matk=1, spd=1, hp=999999, max_hp=999999)
     enemy['effects'] = {}
-    return B2("monster", sides={"player": players, "enemy": [enemy]}, title_bonus={})
+    return B2("monster", sides={"player": players, "enemy": [enemy]})
 
 
 def test_1_assemble():

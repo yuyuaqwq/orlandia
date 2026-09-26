@@ -94,7 +94,7 @@ def test_worldboss_construction_and_sync():
         _a.setdefault("auto_act", {"act": {"type": "attack"}})
     _sides = BR.build_sides(player=player, enemies=_enemies)
     from ext_combat import Battle as B2
-    nb = B2("worldboss", sides=_sides, title_bonus=_tb,
+    nb = B2("worldboss", sides=_sides,
             dmg_mult=db.get_boss_dmg_mult(qid), pet=db.pet_get(qid))
     check("构造成功 sides player+enemy",
           len(nb.sides_of("player")) == 1 and len(nb.sides_of("enemy")) == 2)

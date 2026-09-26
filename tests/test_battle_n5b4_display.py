@@ -82,7 +82,7 @@ def new_battle(player, enemy):
                                    skills=[], learned_skills=[],
                                    **{"def": 10})],
              "enemy": [enemy]}
-    return B2("monster", sides=sides, title_bonus={})
+    return B2("monster", sides=sides)
 
 
 def test_status_line_battle_buffs():
