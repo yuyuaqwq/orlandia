@@ -4,7 +4,7 @@
 基于现有代码行为（不依赖未落地的原子性修复）：
 
 1) RLock 重入不死锁 —— connection.py:18-20 注释记录 v105 M01#11 死锁修复：
-   get_player 读档惰性升级会在锁内再调 title_bonus / check_player_level_up，
+   get_player 读档惰性升级会在锁内再调 panel_bonus / check_player_level_up，
    它们又各自调用 get_stats/get_quests/get_inventory/get_achievements 等 store
    函数（再次获取 _lock）。本测试构造 exp 足够触发惰性升级的玩家，验证该锁内嵌套
    store 调用路径不抛异常、不死锁、正确升级。
@@ -40,7 +40,7 @@ def main():
     # exp 远超 exp_to_next(2)（=60*2^1.45+50≈647），触发 get_player 惰性升级多条 store 嵌套
     db.update_player("g1", "q1", exp=5000)
     try:
-        p = db.get_player("g1", "q1")  # 内部 title_bonus→get_stats/get_quests/get_reputation/get_achievements，全部重新取 _lock
+        p = db.get_player("g1", "q1")  # 内部 panel_bonus→get_stats/get_quests/get_reputation/get_achievements，全部重新取 _lock
         check("get_player 惰性升级路径不抛异常、不死锁", p is not None, str(p)[:80])
         check("惰性升级已生效（level>2）", p["level"] > 2, "level=%s" % p["level"])
     except Exception as e:

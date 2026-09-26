@@ -55,7 +55,7 @@ def attr_alloc(cls, lv):
 def panel(cls, lv):
     """真实面板（裸装，主属性全投）——DPS 比值与装备无关（约掉）"""
     st = player_final_stats(cls, lv, {}, 0, attr_alloc(cls, lv),
-                            evolve_path=0, title_bonus={}, race="human")
+                            evolve_path=0, panel_bonus={}, race="human")
     return st
 
 

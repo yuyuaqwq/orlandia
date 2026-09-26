@@ -356,7 +356,7 @@ async def test_pvp_stat_bonus_per_actor():
     e2 = _mk("t2e", "enemy")
     b2 = B2("pvp", sides={"player": [a2], "enemy": [e2]})
     check("Battle 形参表无 title_bonus（N10 收口）",
-          "title_bonus" not in B2.__init__.__code__.co_varnames,
+          "panel_bonus" not in B2.__init__.__code__.co_varnames,
           repr(B2.__init__.__code__.co_varnames))
     check("Battle 无 title_bonus 实例字段（N10 收口）", not hasattr(b2, "title_bonus"))
     # 有牙：外部硬塞回同名实例字段也无效（面板真源只有 actor.bonus.panel）

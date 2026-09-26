@@ -111,8 +111,8 @@ def check_player_level_up(group_id, qq_id, player: dict) -> tuple[list, dict]:
         # v101.28l #419：升级横幅差值必须同口径裸装对比（此前新级最终属性−旧级裸装，
         # 装备/属性点/称号加成全被算进"升级成长"→ playtest 实锤虚高 50 倍/40 倍）
         new_base = player_base_stats(player["class_name"], player["level"], tier)
-        # v94 #41：升级重算必须传全 7 参数（race/evolve_path/title_bonus 漏传 → 写入值与面板/战斗重算不一致）
-        st = player_final_stats(player["class_name"], player["level"], player.get("equipment", {}), tier, player.get("attributes"), player.get("evolve_path", 0), player.get("_title_bonus", {}) or {}, player.get("race"))
+        # v94 #41：升级重算必须传全 7 参数（race/evolve_path/panel_bonus 漏传 → 写入值与面板/战斗重算不一致）
+        st = player_final_stats(player["class_name"], player["level"], player.get("equipment", {}), tier, player.get("attributes"), player.get("evolve_path", 0), player.get("_panel_bonus", {}) or {}, player.get("race"))
         player["attr_pts"] = player.get("attr_pts", 0) + 3  # 每级 +3 自由属性点
         player["skill_points"] = player.get("skill_points", 0) + 1  # 每级 +1 技能点
         player["max_hp"] = st["max_hp"]

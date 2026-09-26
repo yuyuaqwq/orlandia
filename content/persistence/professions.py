@@ -75,7 +75,7 @@ def get_prof_level(group_id, qq_id, key):
 
 def _has_achievement(qq_id, ach_key):
     """成就是否已解锁（achievements 表存在该行且 progress>=1，即"达成即生效"，
-    与 base.py _title_bonus 口径一致；已领取 claimed=1 是其子集）。
+    与 base.py _panel_bonus 口径一致；已领取 claimed=1 是其子集）。
 
     任何异常按未解锁处理，绝不阻断副业经验。
     """

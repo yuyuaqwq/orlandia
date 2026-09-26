@@ -12,7 +12,7 @@
     `_uid` / `_player` / `_in_any_battle` / `_tip_pool_map` / `_record_state` /
     `_host_handler_finder` / `_build_static_handlers` / `_build_command_regex_strings`
     与 hint 类属性名（`register_hint` / `battle_none_hint` / `logger_name` / `command_aliases`）；
-  * 已是一行转发的公共钩子：`_rule_fire` / `_title_bonus`（实现早在包内 `content/rule_engine` ·
+  * 已是一行转发的公共钩子：`_rule_fire` / `_panel_bonus`（实现早在包内 `content/rule_engine` ·
     `content/stat_bonus`）；
   * **平台发送能力口** `_broadcast`（`self.context.send_message` + onebot 平台前缀 —— 包内
     `content/social_cmds.py` 头注同样把它记为「平台发送，留宿主」）。

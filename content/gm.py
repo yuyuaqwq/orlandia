@@ -33,7 +33,7 @@
     host.C                  宿主 `game.content` 薄聚合层（B14-2 起只剩 `display` 函数；
                             ITEMS / MAPS / MAP_BY_ID 已切包内门面 catalog_{items,space}）
     host.player_final_stats 宿主 `game/content_rules/panel.player_final_stats`（`gm_设等级` 重算）
-    host.title_bonus        `(group_id, qq_id) -> dict`（宿主 `CommandBase._title_bonus`）
+    host.panel_bonus        `(group_id, qq_id) -> dict`（宿主壳 `_panel_bonus`）
 
 分页器直接用引擎 `saintess_engine.command.page_items`（真源 `self._page_items` 即它的转发壳）。
 """
@@ -323,7 +323,7 @@ def set_level(host, raw: str) -> str:
     try:
         st = host.player_final_stats(
             p["class_name"], n, p.get("equipment", {}), p.get("class_tier", 0),
-            p.get("attributes"), p.get("evolve_path", 0), host.title_bonus("", tgt),
+            p.get("attributes"), p.get("evolve_path", 0), host.panel_bonus("", tgt),
             p.get("race"))
     except Exception:
         return _T.static("gm.lv_recalc_fail")

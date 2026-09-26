@@ -342,7 +342,7 @@ def _player_actor(snap: dict, st: dict, key: str) -> dict:
         }
     else:
         actor["bonus"] = {
-            "panel": dict(snap.get("stat_bonus") or snap.get("title_bonus") or {}),
+            "panel": dict(snap.get("stat_bonus") or snap.get("panel_bonus") or {}),
             "cap": dict(snap.get("cap_bonus") or {}),
             "cost": {},
         }

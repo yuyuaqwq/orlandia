@@ -3314,7 +3314,7 @@ def _do_join_class(self, group_id, qq_id, player, new_cls):
     st = player_final_stats(
         new_cls, player.get("level", 1), player.get("equipment", {}), 0,
         player.get("attributes"), 0,
-        self._title_bonus(group_id, qq_id), player.get("race"))
+        self._panel_bonus(group_id, qq_id), player.get("race"))
     sk_table = _cat_core.PLAYER_SKILLS.get(new_cls, {})
     if isinstance(sk_table, dict) and "skills" in sk_table:
         sk_table = sk_table["skills"]
@@ -3362,7 +3362,7 @@ def _do_evolve_via_npc(self, group_id, qq_id, player, next_tier, path):
     st = player_final_stats(
         player["class_name"], player.get("level", 1), player.get("equipment", {}),
         next_tier, player.get("attributes"), new_evolve_path,
-        self._title_bonus(group_id, qq_id), player.get("race"))
+        self._panel_bonus(group_id, qq_id), player.get("race"))
     fields = {"class_tier": next_tier,
               "max_hp": st["max_hp"], "max_mp": st["max_mp"],
               "hp": st["max_hp"], "mp": st["max_mp"]}

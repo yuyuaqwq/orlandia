@@ -16,7 +16,7 @@ v104.1 M24 语义，含两条逐字提示语）。本模块把它接到**守卫*
   * 身份判定能力：`shell._is_gm(qq_id)` / `shell._gm_whitelist()`（真源在宿主共享
     `game/commands/base.py`，本批禁改 → 经能力口取；判定策略仍在包内 `gm_auth`）；
   * 停服状态：`shell._server_down()` / `shell._server_down_msg()`（同上，base.py 真源）；
-  * 属性重算句柄：`shell._title_bonus(gid, qid)`（`gm_设等级` 用，真源宿主 `CommandBase`）；
+  * 属性重算句柄：`shell._panel_bonus(gid, qid)`（`gm_设等级` 用，真源宿主 `CommandBase`）；
   * 平台身份映射：`shell._identity_ops()`（`commands/_identity.py`，openid ↔ QQ）；
   * 全服广播：`shell._broadcast(text)`（async → **fire-and-forget** `asyncio.create_task`，
     与包内既有同款先例一致：`content/economy_cmds._fish_legend_broadcast`，
@@ -73,8 +73,9 @@ class _Host:
 
     def __init__(self, shell):
         self.player_final_stats = _player_final_stats
-        tb = getattr(shell, "_title_bonus", None)
-        self.title_bonus = tb if callable(tb) else (lambda group_id, qq_id: {})
+        # 宿主壳提供的外部面板增幅聚合口（`saintess_engine/host/shell.py::_panel_bonus`）
+        # —— 不再 `getattr(..., None)` + 空 lambda 兜底：缺装配要当场现形（不留兼容壳）
+        self.panel_bonus = shell._panel_bonus
 
 
 def _host(env) -> "_Host":

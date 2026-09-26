@@ -44,14 +44,14 @@ def build_battle(*, seed=SEED, tlog=None, pre_observer=None, cls="战士", mlv=1
     """按生产口径建一场战斗；`tlog` 给定时挂采集（seed = 重演起点，构造之后取）。
 
     `tb`：外部面板增幅（= `actor["bonus"]["panel"]` 那一份）。默认**非空** ——
-    运行期玩家 dict 的真实写法是 `player["_title_bonus"]`；回放必须能把这份增幅复原
+    运行期玩家 dict 的真实写法是 `player["_panel_bonus"]`；回放必须能把这份增幅复原
     （2026-09-26 修：原先测试用空增幅，掩盖了「回放丢增幅」的缺陷）。
     """
     random.seed(999)                                  # 构造期随机（与重演无关）
     if tb is None:
         tb = {"atk": 12, "spd": 5}
     player = NS.build_player(cls, 11, NS.STD_ATTR[cls], {}, [])
-    player["_title_bonus"] = dict(tb)                 # ★ 运行期真实键（下划线）
+    player["_panel_bonus"] = dict(tb)                 # ★ 运行期真实键（下划线）
     m = NS.monster_of("dps", mlv)
     prepare_player_for_battle(player, tb, None)
     sides = build_sides(player, [dict(m)])
@@ -154,7 +154,7 @@ def t3_replay():
     check("★ matched（result/rounds/p_acts 与记录逐项一致）", res["matched"],
           f"got={(res['result'], res['rounds'], res['p_acts'])} exp={res['expected']}")
     # ★ 面板面：载荷必须带回外部增幅，且按载荷重建出的面板 == 实况面板
-    #   （2026-09-26 修：原先 REPRO_KEYS 只列 `title_bonus`，运行期那支 shape 取不到
+    #   （2026-09-26 修：原先 REPRO_KEYS 只列 `panel_bonus`，运行期那支 shape 取不到
     #    增幅 ⇒ 回放面板少了外部增幅，而 matched 仍是 True —— 判据漏了这一面）
     _pl = dict((recs[0].fields.get("player") or {}))
     check("★ start 载荷带面板增幅（规范键 panel_bonus，值=运行期那份）",

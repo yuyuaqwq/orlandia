@@ -174,7 +174,7 @@ def t_a_panel_read():
     a2 = mk_mage("b2")
     b2 = B2(btype="monster", sides={"player": [a2], "enemy": [mk_enemy()]})
     check("Battle 形参表无 title_bonus（N10 收口）",
-          "title_bonus" not in B2.__init__.__code__.co_varnames,
+          "panel_bonus" not in B2.__init__.__code__.co_varnames,
           repr(B2.__init__.__code__.co_varnames))
     check("Battle 无 title_bonus 实例字段（N10 收口）", not hasattr(b2, "title_bonus"))
     # 有牙：外部硬塞回同名实例字段也无效（面板真源只有 actor.bonus.panel）

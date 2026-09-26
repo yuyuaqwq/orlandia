@@ -594,7 +594,7 @@ async def profile(self, event: AstrMessageEvent, group_id, qq_id, player):
     st, sources = player_stats_detail(
         player["class_name"], player["level"], player["equipment"],
         player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0),
-        self._title_bonus(group_id, qq_id), player.get("race"),
+        self._panel_bonus(group_id, qq_id), player.get("race"),
         player.get("learned_skills", []),  # v110.4 X2 P1-2：面板接入已学属性被动
     )
     base = next((s["stats"] for s in sources if s["name"] == "基础"), {})
@@ -997,7 +997,7 @@ async def _evolve_hidden_generic(self, event, group_id, qq_id, player, cls_id, t
     st = player_final_stats(
         cls_id, player["level"], player.get("equipment", {}), tgt_tier,
         player.get("attributes"), path,
-        self._title_bonus(group_id, qq_id), player.get("race"))
+        self._panel_bonus(group_id, qq_id), player.get("race"))
     db.update_player(group_id, qq_id,
                      class_name=cls_id, class_tier=tgt_tier, evolve_path=path,
                      max_hp=st["max_hp"], max_mp=st["max_mp"], hp=st["max_hp"], mp=st["max_mp"],
@@ -1082,7 +1082,7 @@ async def attributes(self, event: AstrMessageEvent, group_id, qq_id, player):
     st, sources = player_stats_detail(
         player["class_name"], player["level"], player["equipment"],
         player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0),
-        self._title_bonus(group_id, qq_id), player.get("race"),
+        self._panel_bonus(group_id, qq_id), player.get("race"),
         player.get("learned_skills", []),  # v110.4 X2 P1-2：面板接入已学属性被动
     )
     if _battle_st is not None:
@@ -1232,7 +1232,7 @@ async def evolve_reset(self, event: AstrMessageEvent, group_id, qq_id, player):
         st = player_final_stats(
             src, player["level"], player.get("equipment", {}), 0,
             player.get("attributes"), 0,
-            self._title_bonus(group_id, qq_id), player.get("race"))
+            self._panel_bonus(group_id, qq_id), player.get("race"))
         db.update_player(group_id, qq_id,
                          gold=player["gold"] - cost,
                          class_name=src, class_tier=0, evolve_path=0,
@@ -1271,7 +1271,7 @@ async def evolve_reset(self, event: AstrMessageEvent, group_id, qq_id, player):
     st = player_final_stats(
         cls, player["level"], player.get("equipment", {}), 0,
         player.get("attributes"), 0,
-        self._title_bonus(group_id, qq_id), player.get("race"))
+        self._panel_bonus(group_id, qq_id), player.get("race"))
     db.update_player(group_id, qq_id,
                      gold=player["gold"] - cost,
                      class_tier=0,
@@ -1317,7 +1317,7 @@ async def reset_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     # 任一都会把 hp 抬回旧上限 → 倒挂复发；称号加成与面板同口径。
     _st0 = player_final_stats(player["class_name"], player["level"], player.get("equipment", {}),
                                player.get("class_tier", 0), attrs0,
-                               player.get("evolve_path", 0), self._title_bonus(group_id, qq_id),
+                               player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id),
                                player.get("race"))
     new_hp = min(int(player.get("hp", 0)), int(_st0.get("max_hp", player.get("max_hp", 100))))
     new_mp = min(int(player.get("mp", 0)), int(_st0.get("max_mp", player.get("max_mp", 100))))
@@ -1340,7 +1340,7 @@ async def reset_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     if dropped:
         _st0 = player_final_stats(player["class_name"], player["level"], equipment,
                                     player.get("class_tier", 0), attrs0,
-                                    player.get("evolve_path", 0), self._title_bonus(group_id, qq_id),
+                                    player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id),
                                     player.get("race"))
         new_hp = min(int(player.get("hp", 0)), int(_st0.get("max_hp", player.get("max_hp", 100))))
         new_mp = min(int(player.get("mp", 0)), int(_st0.get("max_mp", player.get("max_mp", 100))))
@@ -1357,7 +1357,7 @@ async def reset_attr(self, event: AstrMessageEvent, group_id, qq_id, player):
     yield event.plain_result(_T.text("points.attr_ok", used=used, cost=cost, drop=_drop_txt))
 
 async def power(self, event: AstrMessageEvent, group_id, qq_id, player):
-    st = player_final_stats(player["class_name"], player["level"], player["equipment"], player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
+    st = player_final_stats(player["class_name"], player["level"], player["equipment"], player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id), player.get("race"))
     pw = int(st["atk"] * 2 + st["matk"] * 2 + st["def"] * 1.5 + st["mdef"] * 1.5
             + st["max_hp"] / 10 + st["max_mp"] / 10 + st["spd"] * 3)
     tier = player.get("class_tier", 0)

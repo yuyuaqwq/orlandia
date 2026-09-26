@@ -5868,9 +5868,9 @@ class EconomyImpl(CommandBase):
         equipment = dict(player["equipment"])
         old = equipment.get(d["slot"])
         # v95.7 #28：无论槽位是否有旧装备都计算穿前属性——空槽穿第一件时 old 为 None，
-        # 旧代码 old_stats 保持 None 导致 diff 显示"(无变化)"；title_bonus 与穿后一致
+        # 旧代码 old_stats 保持 None 导致 diff 显示"(无变化)"；panel_bonus 与穿后一致
         old_stats = player_final_stats(player["class_name"], player["level"], equipment,
-                                         player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
+                                         player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id), player.get("race"))
         # 卸下旧装备回背包
         if old:
             import uuid
@@ -5879,7 +5879,7 @@ class EconomyImpl(CommandBase):
         db.update_player(group_id, qq_id, equipment=equipment)
         db.remove_item(group_id, qq_id, target["key"])
         q = _b143.QUALITY[d["quality"]]
-        st = player_final_stats(player["class_name"], player["level"], equipment, player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
+        st = player_final_stats(player["class_name"], player["level"], equipment, player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id), player.get("race"))
         # v16：属性变化对比（对比穿上前后的差值——旧装备属性已含在穿前快照里，
         # 即"卸下旧装备再穿上新装备"的净变化；空槽穿第一件=新装备全加成）
         diff_parts = []
@@ -5933,14 +5933,14 @@ class EconomyImpl(CommandBase):
         if not item:
             yield event.plain_result(_T.text("unequip.slot_bare", slot=_b143.EQUIP_SLOTS[slot]))
             return
-        # 属性变化对比（复用 equip 逻辑；v95.7 #28：title_bonus 与卸后一致）
+        # 属性变化对比（复用 equip 逻辑；v95.7 #28：panel_bonus 与卸后一致）
         old_stats = player_final_stats(player["class_name"], player["level"], equipment,
-                                         player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
+                                         player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id), player.get("race"))
         import uuid
         db.add_item(group_id, qq_id, f"eq_{uuid.uuid4().hex[:8]}", item)
         equipment[slot] = None
         db.update_player(group_id, qq_id, equipment=equipment)
-        st = player_final_stats(player["class_name"], player["level"], equipment, player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._title_bonus(group_id, qq_id), player.get("race"))
+        st = player_final_stats(player["class_name"], player["level"], equipment, player.get("class_tier", 0), player.get("attributes"), player.get("evolve_path", 0), self._panel_bonus(group_id, qq_id), player.get("race"))
         diff_parts = []
         keys = [("atk", _T.static("stat_name.atk")), ("def", _T.static("stat_name.def")), ("matk", _T.static("stat_name.matk")), ("mdef", _T.static("stat_name.mdef")),
                 ("spd", _T.static("stat_name.spd")), ("max_hp", _T.static("stat_name.hp")), ("max_mp", _T.static("stat_name.mp")), ("crit", _T.static("stat_name.crit")), ("dodge", _T.static("stat_name.dodge"))]

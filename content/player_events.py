@@ -181,7 +181,7 @@ def _sub_guild_daily(ctx):
 
 
 # ---------------------------------------------------------------------------
-# 订阅方 2：升级（title_bonus 注入 + check_player_level_up）——原 combat L2056-2063
+# 订阅方 2：升级（panel_bonus 注入 + check_player_level_up）——原 combat L2056-2063
 # 经验落库后重读 player（v105 M18 P2：rule_fire 彩蛋金币已在库）→ 注入 stat_bonus
 # → 升级检查 → 升级时写回 db 字段并重绑 ctx["player"]（后续订阅方拿最新 dict）。
 # 🔴 kind 守卫：仅 field 升级——副本战斗内不做升级检查（_instance_kill_reward
@@ -193,7 +193,7 @@ def _sub_levelup(ctx):
     if ctx.get("kind") != "field":
         return []
     player = db.get_player(ctx["group_id"], ctx["qq_id"]) or {}
-    player["_title_bonus"] = stat_bonus(ctx["group_id"], ctx["qq_id"], player)
+    player["_panel_bonus"] = stat_bonus(ctx["group_id"], ctx["qq_id"], player)
     lv_logs, player2 = check_player_level_up(ctx["group_id"], ctx["qq_id"], player)
     if not lv_logs:
         return []

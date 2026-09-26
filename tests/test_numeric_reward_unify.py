@@ -123,7 +123,7 @@ async def main():
     tb_no = _tb("gcb", "wcb2", db.get_player("gcb", "wcb2"))
     has_bonus = bool(b0.get("reward", {}).get("bonus"))
     if has_bonus:
-        check("集齐册 title_bonus 出加成", bool(tb_ok), f"{tb_ok}")
+        check("集齐册 panel_bonus 出加成", bool(tb_ok), f"{tb_ok}")
         check("未集齐无加成", not tb_no, f"{tb_no}")
     else:
         check("首册无 bonus 配置(跳过)", True)

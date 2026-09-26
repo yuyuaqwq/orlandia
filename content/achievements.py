@@ -271,13 +271,13 @@ def _item_name(key) -> str:
 
 
 def _enrich(group_id, qq_id, player):
-    """领奖前把加成字段挂到玩家副本上（真源 `player["_title_bonus"] = stat_bonus(...)`）。
+    """领奖前把加成字段挂到玩家副本上（真源 `player["_panel_bonus"] = stat_bonus(...)`）。
 
     K0-A1：复用统一单点 `stat_bonus()`（含 M18 同名去重 + TITLES 侧 bonus），不再用轻量
     `_title_bonus_plain` —— 避免 Lv.10 副业大师称号被当作第二份双算。
     """
     from .stat_bonus import stat_bonus
-    player["_title_bonus"] = stat_bonus(group_id, qq_id, player)
+    player["_panel_bonus"] = stat_bonus(group_id, qq_id, player)
     return player
 
 

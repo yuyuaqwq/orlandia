@@ -31,7 +31,7 @@
 ② 宿主耦合替身接口（本文件**不读玩家 DB / 平台 / 墙上时间**——一律由调用方给普通 dict）
 | 真源宿主耦合 | 包内替身 | 调用方给什么 |
 |---|---|---|
-| `prepare_player_for_battle(player, title_bonus, db)`（:256） | 同签名，第三参改 **`event_state`** | `event_state` = 普通 dict，等价于宿主的 event_state 存储（只用到 `get / 赋值 / del` 三动词）|
+| `prepare_player_for_battle(player, panel_bonus, db)`（:256） | 同签名，第三参改 **`event_state`** | `event_state` = 普通 dict，等价于宿主的 event_state 存储（只用到 `get / 赋值 / del` 三动词）|
 | `db.get_event_state("bless_<qq>")`（:304） / `("poi_buff_<qq>")`（:323） | `event_state.get(...)` | 键 → 原始字符串值（缺失 = `None`）|
 | `db.set_event_state(k, "")`（:314） / `set_event_state(k, json)`（:339） | `event_state[k] = v` | 同上（原地写回调用方的 dict）|
 | `db.delete_event_state(k)`（:337） | `event_state.pop(k, None)` | 同上 |
@@ -300,7 +300,7 @@ def build_sides(player: Optional[dict] = None, enemies: Optional[list] = None,
 # 开战仪式（旧 Battle.__init__ 的玩家侧副作用 → 命令层开战前对 player dict 处理）
 # ============================================================
 
-def apply_battle_loadout(actor: dict, title_bonus: Optional[dict] = None) -> dict:
+def apply_battle_loadout(actor: dict, panel_bonus: Optional[dict] = None) -> dict:
     """开战装配序列（每个 player actor 调一次）：外部面板增幅 + 装备词条 + 职业机制。
 
     ① `actor["bonus"] = {"panel": 外部增幅, "cap": {}, "cost": {}}`
@@ -320,7 +320,7 @@ def apply_battle_loadout(actor: dict, title_bonus: Optional[dict] = None) -> dic
        包内全链入口是 `content.apply.apply_game_content`（①→⑥）。
     """
     try:
-        actor["bonus"] = {"panel": dict(title_bonus or {}), "cap": {}, "cost": {}}
+        actor["bonus"] = {"panel": dict(panel_bonus or {}), "cap": {}, "cost": {}}
     except Exception:                                             # noqa: BLE001
         pass
     try:
@@ -336,7 +336,7 @@ def apply_battle_loadout(actor: dict, title_bonus: Optional[dict] = None) -> dic
     return actor
 
 
-def prepare_player_for_battle(player: dict, title_bonus: Optional[dict] = None,
+def prepare_player_for_battle(player: dict, panel_bonus: Optional[dict] = None,
                               event_state: Optional[dict] = None) -> dict:
     """开战仪式（player dict 侧，build_sides 前调用）——纯数据搬运/事件消费。
 
@@ -376,7 +376,7 @@ def prepare_player_for_battle(player: dict, title_bonus: Optional[dict] = None,
             int(player.get("class_tier", 0) or 0),
             player.get("attributes"),
             int(player.get("evolve_path", 0) or 0),
-            title_bonus or {},
+            panel_bonus or {},
             player.get("race"),
         )
         if _st.get("max_hp"):

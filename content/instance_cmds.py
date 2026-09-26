@@ -402,7 +402,7 @@ class InstanceImpl:
             "class_tier": _p.get("class_tier", 0),
             "evolve_path": _p.get("evolve_path", 0),
             "attributes": _p.get("attributes"),
-            "title_bonus": self._title_bonus(group_id, qq_id),
+            "panel_bonus": self._panel_bonus(group_id, qq_id),
             "race": _p.get("race"),
             "rank": CLASSES.get(_p["class_name"], {}).get("default_rank", 2),
             "reach": CLASSES.get(_p["class_name"], {}).get("reach",
@@ -2315,7 +2315,7 @@ class InstanceImpl:
                 "class_tier": p.get("class_tier", 0),
                 "evolve_path": p.get("evolve_path", 0),
                 "attributes": p.get("attributes"),
-                "title_bonus": self._title_bonus(group_id, m),
+                "panel_bonus": self._panel_bonus(group_id, m),
                 # v101.24 #303：快照必须存 race——Battle 战斗内 v95.19 实时刷新用 player.get("race")
                 # 重算 max_hp/max_mp，缺 race 会丢掉种族 hp 倍率（精灵月缺 ×0.95）→ 战斗内上限偏大
                 # 且战斗结束写回污染 DB（实测影刃 520→548）
