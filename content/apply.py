@@ -77,6 +77,7 @@ from .mech import worldboss as _worldboss        # 世界 Boss GM 增伤（1）
 from . import panel as _panel                    # 职业面板**完整版**（D3 面板批次；引擎 panel_fn 的实现）
 from . import bridge as _bridge                  # 开战构造半边（D3 bridge 批；宿主构造 actor 用）
 from . import skills as _skills                  # 技能查询链 + SKILL_UP（D3 skills 批；引擎 3 个 hook 的实现）
+from . import texts as T                         # 文案表读口（★ P-54：路由未命中回话；代码零中文，只传槽位）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))     # <pkg>/content
 _DATA_DIR = os.path.join(_HERE, "data")
@@ -168,6 +169,11 @@ def install_engine() -> None:
         #   本包 `recover` 段现全 0 ⇒ 行为与单段逐字节相同（数值要配时改 JSON 即可）。
         recover_model_fn=P.recover_model,      # fn(spd, base) -> float（第二段耗时，游戏秒）
         recover_base_fn=P.recover_base,        # fn(action) -> float（行动类别 → 第二段基准耗时）
+        # ★ P-54（2026-09-26）内容半边：路由未命中回话 —— 引擎 `host/runtime.py::_miss_reply`
+        #   改成**必需注入**（未装配 ⇒ 抛 `EngineNotConfigured`，引擎零玩家文案、不提宿主命令）。
+        #   缺这一行 = 玩家敲一个没命中的词时**一句回话都拿不到**（直接抛）。
+        #   实现见本文件 `route_miss_text`；句子真源 = 文案表 `route.miss`。
+        route_miss_text_fn=route_miss_text,
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
     GC.load_game_rules(P)
@@ -230,6 +236,27 @@ def basic_skill_of(class_name):
 # 切片期的 `skill_up`（恒空 = 无成长）与 `skill_level_of`（恒 1）已删：真源已在包内
 # `content/skills.py`。`skill_up` 也保留别名（保持 `from ..apply import skill_up` 这条路可用）。
 skill_up = _skills.skill_up
+
+
+# ============================================================
+# 路由未命中回话（route_miss_text_fn）—— ★ P-54 内容半边
+# ============================================================
+# 引擎侧：`saintess_engine/host/runtime.py::Host._miss_reply`（P-54，2026-09-26）把
+# 「玩家敲了一个没命中任何包内声明的词」这句话改成**必需注入** —— `_optional_hook(
+# "route_miss_text_fn")` 为 None 就抛 `EngineNotConfigured`：引擎不自己编中文、
+# 也不引用别层的命令名（原实现里那句带着 `<prefix>help`）。
+# 内容侧这一半就是本函数：装配期经 `config.mount(route_miss_text_fn=…)` 挂上去。
+#
+# 形状（引擎口径）：`fn(text, prefix) -> str | 序列[str]`
+#   · `text`   = 玩家原话（引擎已 strip；空文本根本走不到这条路 —— `Host.route` 先返回 []）
+#   · `prefix` = 宿主自己的管理命令前缀。本作的回话**不引宿主命令**（红线：只说本包真有的词），
+#                故该参数只收不用（形状必需；引擎那条路也从不把宿主命令名交给内容侧）。
+# 句子真源 = 文案表 `route.miss`（`content/data/text_specs.json`）—— 本函数**不写中文串**（只传槽位；
+# 判据见 `tests/test_route_miss_text.py` 的「该函数源码零中文」一条）。
+
+def route_miss_text(text: str, prefix: str = "") -> str:
+    """路由未命中的回话（钩子形状 `fn(text, prefix) -> str`；文案在表，代码只传槽位）。"""
+    return T.text("route.miss", word=text)
 
 
 # ============================================================

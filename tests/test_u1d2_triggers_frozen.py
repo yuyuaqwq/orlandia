@@ -1152,10 +1152,14 @@ _AUX_SHA_INTENT = {
     #   · 2026-09-24 **纠偏**：鱼鱼拍板「效果相关的一切（体 + 形状）都属奥兰迪亚专用，回数据包」
     #     ⇒ 扩展包 `ext_effect` 整个删除、B7a/B7b 回滚，`content/apply.py` 那行注入随之撤销
     #     ⇒ new 值**回到 B7b 之前**的 `e78326d7…`（与 5ab556a 提交里被顶掉的那个旧 new 值同一个）
+    #   · 2026-09-26 **P-54**（路由未命中回话内容半边）：装配期多挂一条 hook
+    #     （`route_miss_text_fn` → 包内 `content/apply.py::route_miss_text`，句子真源 = 文案表
+    #     `route.miss`；引擎侧 `host/runtime.py::_miss_reply` 同期改成**必需注入**）
+    #     ⇒ new = `c913d68b…`
     # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        '25195b1fa79454aa9b08a40107eb74381562d74d25867feccd4021a53c762925',
+        'c913d68b07315feaef37ca400b23fd1a54c86ba835392276dfe519cb8de9df3d',
     ),
 }
 
@@ -1179,7 +1183,7 @@ def test_aux():
           not badv, badv[:3])
     badc = [k for k, want in aux.items() if k.startswith("contract:")
             and _aux_expected(k) != _file_sha(k.split(":", 1)[1])]
-    check("`content/apply.py` sha256 == aux（有意差异登记优先：装配契约只多挂两条 hook）",
+    check("`content/apply.py` sha256 == aux（有意差异登记优先：装配契约挂点变化）",
           not badc, badc)
     check("★ 有意差异登记自洽（旧值 = 冻结基准 · 新值 = 实跑值 · 条数恒 1）",
           len(_AUX_SHA_INTENT) == 1

@@ -16851,6 +16851,14 @@
     "category": "掉落播报",
     "desc": "搬自 content/settlement.py:roll_mount_drop（B 批 C 档）"
   },
+  "route.miss": {
+    "value": "没接住「{word}」。你可以发『帮助』，看全部可用指令。",
+    "params": [
+      "word"
+    ],
+    "category": "路由回话",
+    "desc": "★ P-54（2026-09-26）路由未命中的回话 —— 引擎 `host/runtime.py::_miss_reply` 必需注入（未装配即抛 EngineNotConfigured，引擎零玩家文案）；内容侧装配点 = `content/apply.py::route_miss_text`（`route_miss_text_fn`）。句子里指的『帮助』必须是本包**真有**的声明（不许指宿主命令）。"
+  },
   "rrune": {
     "value": "💎 掉落了【{name}】！({desc})『附魔 <装备> {name2}』使用",
     "params": [

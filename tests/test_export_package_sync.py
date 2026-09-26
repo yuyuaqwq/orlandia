@@ -218,7 +218,11 @@ FROZEN_COUNTS = {
     # ★ 2026-09-20 T3 第 1 轮（『重铸』保底产物绑定 · 台账 §0 D4）：新增 2 条玩家可见文案
     #   （`reroll.bound` 拒绝语 / `reroll.bound_skip` 批量跳过行）⇒ 3205 → 3207。
     #   口径变更（有意）：文案仍只由 `text_specs.json` 一个真源驱动，本账只反映条目数。
-    "texts": 3207,
+    # ★ P-54（2026-09-26）路由未命中回话（引擎侧必需注入 `route_miss_text_fn`）：新增 1 条
+    #   （`route.miss`，新分类 路由回话，引用面 = `content/apply.py`）⇒ 3207 → 3208。
+    #   ⚠ 改锚点 = 改**本判据里的数字**（只改标签字会假红）；引擎侧
+    #   `tests/test_texts_schema_contract.py` 的三处锚点随之 +1（搬移/合入时一并改）。
+    "texts": 3208,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

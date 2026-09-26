@@ -37,7 +37,8 @@
     "收藏册": "『收藏册 [册名]』『收藏册 领取 [册名]』：总览 / 单册明细 / 满套领奖（含已领取/发放失败/无宝箱配置）（B 批 C 档 33b，搬自 content/cmds_collection.py）",
     "野王": "野王击杀广播与野王状态摘要（B 批 C 档 33c，搬自 content/wild_king.py）",
     "野王宝箱": "野王宝箱资格判定 / 摸箱入口 / 宝箱奖励播报行（B 批 C 档 33c，搬自 content/wild_king.py）",
-    "出行提示": "『前往』的出行拦截与提示：不可直达 / 未在出口 / 等级提示 / 体力耗尽 / 隐藏房与隐藏图准入 / 方碑到场（B 批 C 档 33c，搬自 content/travel.py）"
+    "出行提示": "『前往』的出行拦截与提示：不可直达 / 未在出口 / 等级提示 / 体力耗尽 / 隐藏房与隐藏图准入 / 方碑到场（B 批 C 档 33c，搬自 content/travel.py）",
+    "路由回话": "宿主路由**未命中任何包内声明**时的回话（P-54：引擎零玩家文案，由内容侧经 `route_miss_text_fn` 声明；句子里指的指令必须是本包真有的声明）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
@@ -16896,6 +16897,14 @@
     ],
     "category": "掉落播报",
     "desc": "搬自 content/settlement.py:roll_mount_drop（B 批 C 档）"
+  },
+  "route.miss": {
+    "value": "没接住「{word}」。你可以发『帮助』，看全部可用指令。",
+    "params": [
+      "word"
+    ],
+    "category": "路由回话",
+    "desc": "★ P-54（2026-09-26）路由未命中的回话 —— 引擎 `host/runtime.py::_miss_reply` 必需注入（未装配即抛 EngineNotConfigured，引擎零玩家文案）；内容侧装配点 = `content/apply.py::route_miss_text`（`route_miss_text_fn`）。句子里指的『帮助』必须是本包**真有**的声明（不许指宿主命令）。"
   },
   "rrune": {
     "value": "💎 掉落了【{name}】！({desc})『附魔 <装备> {name2}』使用",

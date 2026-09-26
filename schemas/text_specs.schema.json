@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saintessengine.local/schema/text_specs.schema.json",
   "title": "文案真源（text_specs）—— 一条 = 一个文案 key → 玩家可见文案",
-  "description": "真源 = 包内 `content/data/text_specs.json`（`content/texts.py:52` `SPEC_PATH`）。装载口 = `content/texts.py:139`：**跳过 `_` 开头的顶层键**（`_meta` / `_categories` 是文件级元信息，不是条目）→ 本文件即「元信息 + 条目」同档；编辑器侧同口径见 `framework/editor/packages.py::list_entries / domain_status`。消费 = 引擎 `saintess_engine.text.TextTable`：代码只传槽位、不再内联玩家可见文案（2026-09-12 v185 起，见本文件 `_meta.purpose`）。导出投影 = `content/data/texts.json`（`content/texts.py:56` `PROJECTION_PATH`），与真源由 `tests/test_texts_specs_sync.py` 双向钉死。门禁 = `tests/test_texts_table.py`：key 集合双向对账 + 每条 `params` 与调用实参对账 + `validate()` 干净。实测 3207 条 / 2 种字段组合（1859 条带 params · 1348 条无）。",
+  "description": "真源 = 包内 `content/data/text_specs.json`（`content/texts.py:52` `SPEC_PATH`）。装载口 = `content/texts.py:139`：**跳过 `_` 开头的顶层键**（`_meta` / `_categories` 是文件级元信息，不是条目）→ 本文件即「元信息 + 条目」同档；编辑器侧同口径见 `framework/editor/packages.py::list_entries / domain_status`。消费 = 引擎 `saintess_engine.text.TextTable`：代码只传槽位、不再内联玩家可见文案（2026-09-12 v185 起，见本文件 `_meta.purpose`）。导出投影 = `content/data/texts.json`（`content/texts.py:56` `PROJECTION_PATH`），与真源由 `tests/test_texts_specs_sync.py` 双向钉死。门禁 = `tests/test_texts_table.py`：key 集合双向对账 + 每条 `params` 与调用实参对账 + `validate()` 干净。实测 3208 条 / 2 种字段组合（1860 条带 params · 1348 条无）。",
   "x-primary": "text_spec",
   "type": "object",
   "propertyNames": {
     "pattern": "^[^\\s_][^\\s]*$",
-    "description": "键 = 文案 key（如 `abandon.done` / `instance.日志_通关_宝石`）。实测 3207/3207 合规：无空白字符、不以 `_` 开头（`_` 开头是文件级元信息键，见 `content/texts.py:139`）；3202/3207 带 `.`。"
+    "description": "键 = 文案 key（如 `abandon.done` / `instance.日志_通关_宝石`）。实测 3208/3208 合规：无空白字符、不以 `_` 开头（`_` 开头是文件级元信息键，见 `content/texts.py:139`）；3203/3208 带 `.`。"
   },
   "additionalProperties": {
     "$ref": "#/$defs/text_spec"
@@ -27,13 +27,13 @@
         "value": {
           "type": "string",
           "title": "文案本体",
-          "description": "玩家可见原文；`{slot}` 槽由调用方渲染，未知槽原样保留（不静默丢字 —— 见本文件 `_meta.howto`）。实测 3207/3207 为字符串。",
+          "description": "玩家可见原文；`{slot}` 槽由调用方渲染，未知槽原样保留（不静默丢字 —— 见本文件 `_meta.howto`）。实测 3208/3208 为字符串。",
           "minLength": 1
         },
         "params": {
           "type": "array",
           "title": "槽位名清单",
-          "description": "该条文案用到的槽位名；`tests/test_texts_table.py` 与调用实参双向对账（多写/漏写即红）。实测 1859/3207 条有该键（其余为无槽文案）；有该键的条目里存在**空数组**（=声明「本条无槽位」，读口不区分有无该键）。",
+          "description": "该条文案用到的槽位名；`tests/test_texts_table.py` 与调用实参双向对账（多写/漏写即红）。实测 1860/3208 条有该键（其余为无槽文案）；有该键的条目里存在**空数组**（=声明「本条无槽位」，读口不区分有无该键）。",
           "items": {
             "type": "string"
           }
@@ -47,7 +47,7 @@
         "desc": {
           "type": "string",
           "title": "溯源说明",
-          "description": "搬自哪个文件/函数、哪批（如 `搬自 content/world_cmds.py:quest_abandon（B 批 C 档）`）；只写来历，不参与渲染。实测 3207/3207 非空。",
+          "description": "搬自哪个文件/函数、哪批（如 `搬自 content/world_cmds.py:quest_abandon（B 批 C 档）`）；只写来历，不参与渲染。实测 3208/3208 非空。",
           "minLength": 1
         }
       }
