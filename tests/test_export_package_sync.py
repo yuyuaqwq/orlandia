@@ -222,7 +222,14 @@ FROZEN_COUNTS = {
     #   （`route.miss`，新分类 路由回话，引用面 = `content/apply.py`）⇒ 3207 → 3208。
     #   ⚠ 改锚点 = 改**本判据里的数字**（只改标签字会假红）；引擎侧
     #   `tests/test_texts_schema_contract.py` 的三处锚点随之 +1（搬移/合入时一并改）。
-    "texts": 3208,
+    # ★ P-11（2026-09-27）内置守卫拦截句（引擎侧 `Host._guard_text` 经 `guard_text_fn` 取句、
+    #   宿主 `main.py` 只传中性键）：新增 2 条（`guard.register_missing` / `guard.battle_missing`，
+    #   新分类 守卫回话，引用面 = `content/apply.py::guard_text`）⇒ 3208 → 3210。
+    #   ★ 玩家看到的那两句**一字不变**（逐字 = 宿主改前 `main.py` 那两句；判据
+    #   `tests/test_guard_text.py` 把它们冻成基线）。
+    #   ⚠ 改锚点 = 改**本判据里的数字**（只改标签字会假红）；引擎侧
+    #   `tests/test_texts_schema_contract.py` 的三处锚点随之 +2（搬移/合入时一并改）。
+    "texts": 3210,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

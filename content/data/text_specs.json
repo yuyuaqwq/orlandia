@@ -38,7 +38,8 @@
     "野王": "野王击杀广播与野王状态摘要（B 批 C 档 33c，搬自 content/wild_king.py）",
     "野王宝箱": "野王宝箱资格判定 / 摸箱入口 / 宝箱奖励播报行（B 批 C 档 33c，搬自 content/wild_king.py）",
     "出行提示": "『前往』的出行拦截与提示：不可直达 / 未在出口 / 等级提示 / 体力耗尽 / 隐藏房与隐藏图准入 / 方碑到场（B 批 C 档 33c，搬自 content/travel.py）",
-    "路由回话": "宿主路由**未命中任何包内声明**时的回话（P-54：引擎零玩家文案，由内容侧经 `route_miss_text_fn` 声明；句子里指的指令必须是本包真有的声明）"
+    "路由回话": "宿主路由**未命中任何包内声明**时的回话（P-54：引擎零玩家文案，由内容侧经 `route_miss_text_fn` 声明；句子里指的指令必须是本包真有的声明）",
+    "守卫回话": "内置守卫（`player` / `battle`）拦下时的回话（P-11：宿主 `main.py` 只传引擎给的中性键，句子搬进本表；引擎 `host/runtime.py::Host._guard_text` 经 `guard_text_fn` 取句）"
   },
   "_meta": {
     "purpose": "奥兰迪亚·余烬纪年 —— 文案声明表（引擎 saintess_engine.text.TextTable 消费）。本文件是**玩家可见文案的唯一真源**：代码侧只传槽位，不再内联任何一句玩家可见文案（2026-09-12 v185 起）。",
@@ -8161,6 +8162,18 @@
     ],
     "category": "GM指令",
     "desc": "搬自 content/cmds_gm.py:gm_spy（B 批 C 档）"
+  },
+  "guard.battle_missing": {
+    "value": "你现在不在战斗中。",
+    "params": [],
+    "category": "守卫回话",
+    "desc": "★ P-11（2026-09-27）内置 `battle` 守卫（不在战斗中）拦下的那一句 —— 同上（键 `guard.battle_missing`）。逐字 = 宿主改前 `main.py` 那两句之一。"
+  },
+  "guard.register_missing": {
+    "value": "未找到你的角色档 —— 请先创建角色。",
+    "params": [],
+    "category": "守卫回话",
+    "desc": "★ P-11（2026-09-27）内置 `player` 守卫（没建档）拦下的那一句 —— 引擎 `host/runtime.py::Host._guard_text` 经 `guard_text_fn` 取句 （宿主只传中性键）；内容侧装配点 = `content/apply.py::guard_text`。逐字 = 宿主改前 `main.py` 那两句之一（玩家看到的字一个没动）。"
   },
   "guild.already": {
     "value": "你已经在一个公会里啦！",

@@ -174,6 +174,12 @@ def install_engine() -> None:
         #   缺这一行 = 玩家敲一个没命中的词时**一句回话都拿不到**（直接抛）。
         #   实现见本文件 `route_miss_text`；句子真源 = 文案表 `route.miss`。
         route_miss_text_fn=route_miss_text,
+        # ★ P-11（2026-09-27）内容半边（同类第二处）：内置守卫（`player` / `battle`）拦下时的
+        #   回话 —— 宿主 `main.py` 改成只传**中性键**（引擎 `host/runtime.py::GUARD_KEYS`），
+        #   句子搬进文案表（键 `guard.register_missing` / `guard.battle_missing`）。
+        #   缺这一行 = 宿主那两个键没人配句 ⇒ 守卫一拦就抛（引擎不编兜底、也不把键投给玩家）。
+        #   实现见本文件 `guard_text`；判据 `tests/test_guard_text.py`。
+        guard_text_fn=guard_text,
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
     GC.load_game_rules(P)
@@ -257,6 +263,48 @@ skill_up = _skills.skill_up
 def route_miss_text(text: str, prefix: str = "") -> str:
     """路由未命中的回话（钩子形状 `fn(text, prefix) -> str`；文案在表，代码只传槽位）。"""
     return T.text("route.miss", word=text)
+
+
+# ============================================================
+# 内置守卫拦截句（guard_text_fn）—— ★ P-11 内容半边
+# ============================================================
+# 引擎侧：`saintess_engine/host/runtime.py::Host._guard_text`（P-11，2026-09-27）把**内置守卫**
+# （`player` / `battle`）拦下时的回话交给内容侧 —— 宿主在 `Host(register_hint=…, battle_hint=…)`
+# 上只传**中性键**（引擎 `host/runtime.py::GUARD_KEYS` 全集：
+# `guard.register_missing` / `guard.battle_missing`），句子由内容侧经
+# `config.mount(guard_text_fn=…)` 给（形状 `fn(key) -> str | None`）。
+#
+# 为什么这么改（鱼鱼拍板「甲案」）：那两句原先写在**宿主** `main.py` 里，宿主面因此带着
+# 「角色」「战斗」这类游戏业务词 ⇒ 宿主自己的零游戏知识门禁（`scripts/check_host_boundary.py`）
+# 恒红。句子搬进包、宿主只留键，三条口径同时成立：
+#   ① 宿主零游戏词 ② 玩家看到的那两句一字不变 ③ 引擎零玩家文案。
+#
+# 键名 = 引擎给的中性键（本包不再自己起名：表里那两格的键与引擎全集逐个对齐 ⇒
+# 引擎加键/改名时 `tests/test_guard_text.py` 当场红）。句子真源 = 文案表那两格；
+# 本函数**不写中文串**（只把引擎给的键当槽位名交给文案表）。
+
+#: 内置守卫那两格**在本包文案表里的键**（与引擎 `GUARD_KEYS` 逐字同键）。
+#: 写成**字面量元组**有两个用处：① 门禁 `tests/test_texts_table.py`「表里没有死文案」按
+#: 字面量认引用（动态传键 `T.static(key)` 扫不到 ⇒ 会被判成死文案）；② 引擎加键/改名时
+#: `tests/test_guard_text.py` 里那条「键集与引擎全集对齐」当场红。
+GUARD_TEXT_KEYS = ("guard.register_missing", "guard.battle_missing")
+
+
+def guard_text(key: str) -> str:
+    """内置守卫的拦截句（钩子形状 `fn(key) -> str`；文案在表，代码只传槽位）。
+
+    ★ 只认 `GUARD_TEXT_KEYS` 里那两格；缺槽位 ⇒ 当场抛（文案读口 `on_miss` 只记日志 +
+      回显键名，那是**给开发者的**回显，不该当玩家可见的回话交出去 —— 引擎那头也是
+      「装了却给不出文本 ⇒ 抛」）。
+    """
+    if key not in GUARD_TEXT_KEYS or T.table().spec(key) is None:
+        raise _guard_key_missing(key)
+    return T.static(key)
+
+
+def _guard_key_missing(key):
+    """缺槽位时的异常（消息给写代码的人看，不是玩家文案）。"""
+    return KeyError("守卫拦截句槽位 %r 不在文案表里（guard_text_fn 取不到句子）" % (key,))
 
 
 # ============================================================

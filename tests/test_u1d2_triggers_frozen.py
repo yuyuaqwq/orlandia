@@ -1156,10 +1156,16 @@ _AUX_SHA_INTENT = {
     #     （`route_miss_text_fn` → 包内 `content/apply.py::route_miss_text`，句子真源 = 文案表
     #     `route.miss`；引擎侧 `host/runtime.py::_miss_reply` 同期改成**必需注入**）
     #     ⇒ new = `c913d68b…`
+    #   · 2026-09-27 **P-11**（内置守卫拦截句内容半边）：装配期多挂一条 hook
+    #     （`guard_text_fn` → 包内 `content/apply.py::guard_text`，句子真源 = 文案表
+    #     `guard.register_missing` / `guard.battle_missing`；宿主 `main.py` 改成只传中性键，
+    #     引擎侧 `host/runtime.py::Host._guard_text` 同期开读口）⇒ new = `341b08c6…`
+    #     —— 仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关；玩家可见文案一字未变
+    #     （判据 `tests/test_guard_text.py` 把改前那两句冻成基线）。
     # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        'c913d68b07315feaef37ca400b23fd1a54c86ba835392276dfe519cb8de9df3d',
+        'b2801ce1d5a8e499663d1b0d68dca15769864ed600453d7d86dc16b642dc9117',
     ),
 }
 
