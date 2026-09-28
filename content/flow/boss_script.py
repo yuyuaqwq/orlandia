@@ -276,8 +276,13 @@ def _check_phases(st: dict, battle, actor: dict, cfg: dict, bs: dict,
     logs.append(_T.text("boss.phase_enter", name=name, npc=npc + 1))
     # ---- atk 乘区（覆盖式：entry/模板 atk_mult；无 → 旧行为 1+0.2×npc）----
     am = None
-    if _merged is not None and (_merged.get("atk_mult") or 1.0) != 1.0:
-        am = float(_merged.get("atk_mult"))
+    # ★ 2026-09-29 审计 L246 同族：原写法 `(_merged.get("atk_mult") or 1.0) != 1.0`
+    #   会把 **合法 0.0**（模板把阶段 atk 压到 0）吞成 1.0 ⇒ 判成「模板没写系数」
+    #   ⇒ 落进下面的 `1.0 + 0.2*npc` 旧行为兜底 ⇒ **模板值被无声丢弃**。
+    #   这一处是「用乘区判一个布尔谓词」那一族（同 we_procs 的减益判定），
+    #   不是单纯的乘法读点。与 boss_phases 域已用 atk_mult=0.8（减益方向）同向。
+    if _merged is not None and _merged.get("atk_mult") is not None:
+        am = float(_merged["atk_mult"])
     if am is None and (_ph or {}).get("atk_mult") is not None:
         am = float(_ph["atk_mult"])
     if am is None:

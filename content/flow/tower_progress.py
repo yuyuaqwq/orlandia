@@ -201,10 +201,18 @@ def build_tower_guard(floor: int, build_monster) -> dict:
             "mech": "", "mod": "",
         }
     # 层挑战系数（hp/atk 放大；exp/gold 覆盖为层奖励）
-    guard["hp"] = max(1, int(guard.get("hp", 100) * float(fd.get("hp_mult") or 1.0)))
+    # ★ 2026-09-29 审计 L246 同族：原写法 `float(fd.get("atk_mult") or 1.0)` 会把
+    #   **合法 0.0**（层系数把面板压到 0 = 「本层塔卫不输出」）吞成 1.0 ⇒ 该层系数
+    #   静默不生效，且零报错。与 we_procs._mul_lt_one / cond_procs 同口径：
+    #   「0 是合法值，None 才是缺字段」。
+    _hp_mult = fd.get("hp_mult")
+    _atk_mult = fd.get("atk_mult")
+    _hp_mult = 1.0 if _hp_mult is None else float(_hp_mult)
+    _atk_mult = 1.0 if _atk_mult is None else float(_atk_mult)
+    guard["hp"] = max(1, int(guard.get("hp", 100) * _hp_mult))
     guard["max_hp"] = guard["hp"]
-    guard["atk"] = max(1, int(guard.get("atk", 10) * float(fd.get("atk_mult") or 1.0)))
-    guard["matk"] = max(1, int(guard.get("matk", 10) * float(fd.get("atk_mult") or 1.0)))
+    guard["atk"] = max(1, int(guard.get("atk", 10) * _atk_mult))
+    guard["matk"] = max(1, int(guard.get("matk", 10) * _atk_mult))
     # v93 经济：怪物 gold 字段不直接入账（折算材料），塔的金币奖励改由
     # tower_guard_on_kill 结算时显式发放 → 怪物 gold 置 0 防白嫖材料掉落
     guard["exp"] = int(fd.get("reward_exp") or 0)
