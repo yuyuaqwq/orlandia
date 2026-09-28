@@ -92,17 +92,28 @@ from ext_achieve.ledger import labels as _ledger_labels         # noqa: E402
 from ext_achieve.ledger import points as _ledger_points         # noqa: E402
 # v140 波2：3 个新条件类型注册（数据已有零消费点或最小接线）
 # 与 achievement_conds.py 共用 COND_CHECKS 单例：本模块 import 它再注册，cond_met 同 dict 生效。
-try:
-    from .achievement_conds import COND_CHECKS as _COND_CHECKS
-except Exception:
-    _COND_CHECKS = None
+# ★ C-R2.6（2026-09-28）：删掉 `except Exception: _COND_CHECKS = None` 兜底。
+#   兜底实测形态（黑盒探针 _c_r2/_probe_condreg.py，改前）：
+#     重新 import: 成功（无异常）
+#     !! _COND_CHECKS = None  ⇒ 静默兜底生效
+#     → 5 条注册（3×v140 + 2×S4）静默跳过，cond_met 走 fn is None -> False
+#     → 成就恒不达成、零报错、零日志
+#   改法依据（两点，均已实测，不是推断）：
+#     ① **import 图无环** —— `achievement_conds` 只在 `_c_kills_type` / `_c_bestiary_all`
+#        的**函数体内**延迟 import 本模块（两处都是运行时才取），模块级不互引
+#        ⇒ 顶层直接 import 不会构成循环。
+#     ② 本模块 docstring 已把「import 本模块即注册」写成**顺序不变式** ⇒ 顶层 import
+#        才是被声明的契约；except 分支与之矛盾。
+#   判据：同仓模块 import 失败是**真 import 错**（不是「未声明」）⇒ fail-closed 上抛。
+from .achievement_conds import COND_CHECKS as _COND_CHECKS
 
 
 def _register_cond(key):
     """向 COND_CHECKS 注册条件判定（v140 波2 新增类型）。"""
     def deco(fn):
-        if _COND_CHECKS is not None:
-            _COND_CHECKS.register(key, fn)
+        # ★ C-R2.6：随兜底 import 一并去掉 —— 注册表拿不到就该在 import 期炸，
+        #   而不是在这里静默跳过（原来这层判空是兜底的一部分）。
+        _COND_CHECKS.register(key, fn)
         return fn
     return deco
 
@@ -111,9 +122,8 @@ def _register_cond(key):
 #   `content/data/cond_specs.json`（此处只保留登记动作，注册表与签名不变）。
 _S4_DECL = _load_specs("achievement")
 for _k in ("blueprints_learned", "chests_opened"):
-    if _COND_CHECKS is not None:
-        _COND_CHECKS.register(_k, bind_spec(
-            _S4_DECL[_k], ("player", "stats", "profs", "extra", "cond")))
+    _COND_CHECKS.register(_k, bind_spec(
+        _S4_DECL[_k], ("player", "stats", "profs", "extra", "cond")))
 
 
 @_register_cond("quests_done")
