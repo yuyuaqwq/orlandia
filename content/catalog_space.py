@@ -53,25 +53,40 @@ import os
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 
 
-def _read(sub: str, name: str, default):
-    """读包内 `content/<sub>/<name>.json`（缺文件 / 坏 JSON → default，不抛 —— 与 `content/tables.py` 同款）。"""
+def _read(sub: str, name: str):
+    """读包内 `content/<sub>/<name>.json`；缺文件 / 坏 JSON / 空表 → `raise`（**不静默空表**）。
+
+    口径与 `content/config.py:_read_table` 同款。域文件是本模块**全部导出表的唯一真源**，
+    读失败会静默变成「121 张图 → 0 张」「27 个副本 → 0 个」而**零报错**：黑盒实测
+    （探针猴补 `open` 让 `exploration.json` / `instances.json` 读失败）两种域分别得到
+    `MAPS=0` 与 `INSTANCES=0`，import **照样成功** ⇒ 症状是运行期「地图列表空 / 副本找不到」，
+    与内容改动无法区分、也无法从报错栈定位到读文件那一步。
+    ⇒ 「没声明 ≠ 声明错了」：域是**声明过**的（下方 7 处调用各自点名了文件名），
+    读不到就是**声明与磁盘不一致**，上抛并点名路径。
+    """
+    path = os.path.join(_HERE, sub, name)
+    if not os.path.exists(path):
+        raise RuntimeError("%s 域文件不存在（%s）—— 空表 = 静默失效，拒绝继续" % (name, path))
     try:
-        with open(os.path.join(_HERE, sub, name), encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:                                        # noqa: BLE001
-        return default
+        with open(path, encoding="utf-8") as fh:
+            tbl = json.load(fh)
+    except Exception as e:                                   # noqa: BLE001
+        raise RuntimeError("%s 域文件坏 JSON（%s）：%s —— 拒绝继续" % (name, path, e)) from e
+    if not isinstance(tbl, dict) or not tbl:
+        raise RuntimeError("%s 域文件不是非空 dict（%s）—— 拒绝继续" % (name, path))
+    return tbl
 
 
 # ============================================================
 # ① 域（全是包内 JSON，零宿主依赖）
 # ============================================================
-_MAPS_DOM: dict = _read("data", "maps.json", {})                  # 形状：nodes/roles/topology/links
-_SUBS_DOM: dict = _read("data", "subareas.json", {})              # 子区域行（含注入的 `map` 键）
-_WORLDS_DOM: dict = _read("data", "worlds.json", {})              # 地图元数据（宿主 MAPS 行的 16 个字段）
-_EXPL_DOM: dict = _read("data", "exploration.json", {})           # {map:subarea} → {map, region, hidden, order}
-_PORTALS_DOM: dict = _read("data", "portals.json", {})            # 方碑：图 id → {name, icon}
-_INST_DOM: dict = _read("data", "instances.json", {})             # 副本（槽位拆成 id + *_data）
-_INV_DOM: dict = _read("data", "instance_investigation.json", {})  # 副本调查点（扁平 + `instance` 键）
+_MAPS_DOM: dict = _read("data", "maps.json")                  # 形状：nodes/roles/topology/links
+_SUBS_DOM: dict = _read("data", "subareas.json")              # 子区域行（含注入的 `map` 键）
+_WORLDS_DOM: dict = _read("data", "worlds.json")              # 地图元数据（宿主 MAPS 行的 16 个字段）
+_EXPL_DOM: dict = _read("data", "exploration.json")           # {map:subarea} → {map, region, hidden, order}
+_PORTALS_DOM: dict = _read("data", "portals.json")            # 方碑：图 id → {name, icon}
+_INST_DOM: dict = _read("data", "instances.json")             # 副本（槽位拆成 id + *_data）
+_INV_DOM: dict = _read("data", "instance_investigation.json")  # 副本调查点（扁平 + `instance` 键）
 
 # ============================================================
 # ② 顺序真源：`exploration.order`（全局 0..627 唯一）
