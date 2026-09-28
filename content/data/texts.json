@@ -13007,11 +13007,6 @@
     "category": "地图导航",
     "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
   },
-  "nav.here": {
-    "value": " (你在这里)",
-    "category": "地图导航",
-    "desc": "搬自 content/world_cmds.py:_map_nav_body（B 批 C 档）"
-  },
   "nav.hidden_corner": {
     "value": "  🔒？？？(隐藏角落)",
     "category": "地图导航",

@@ -239,7 +239,10 @@ FROZEN_COUNTS = {
     #   读口 = `content/world_cmds.py::_STAT_COUNT_CN`，调用点 `_req_stats_label`）
     #   ⇒ 3273 → 3275。原先内部键 `fish_count` / `craft_count` 直接上屏。
     #   引擎侧 `tests/test_texts_schema_contract.py` 的锚点**本批未触及**（未 bump 引擎指针）。
-    "texts": 3275,
+    # ★ 2026-09-29 审计 afix2 批次 2：删死文案 `nav.here`（地图面板 🔚 尽头标记那一支
+    #   自 v132.2 紧凑模式起就不可达，唯一读点随死支一起删掉 ⇒ 零消费者）
+    #   ⇒ 3275 → 3274。中文键数锚点仍 169（nav.here 键名全 ASCII）。
+    "texts": 3274,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

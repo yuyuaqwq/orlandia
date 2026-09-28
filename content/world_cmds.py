@@ -968,18 +968,15 @@ def _map_nav_body(self, player: dict, cur_map: dict, cur_sa: str,
     shown = [(i, s) for i, s in shown if s]
     # 深度标记——v114.3 精简：只保留尽头标记 🔚（死胡同连接数==1 且非入口，提示此路到头需回头）
     _depth = getattr(_maps, "subarea_depth", None)
-    _entry_id = _maps.map_entry_subarea(cur_map.get("id", ""))
 
-    def _sa_mark(sa):
-        if _depth is None:
-            return ""
-        # 死胡同（连接数==1 且非入口）
-        try:
-            if sa["id"] != _entry_id and len(_maps.subarea_links(cur_map.get("id", ""), sa["id"])) == 1:
-                return "🔚"
-        except Exception:
-            pass
-        return ""
+    # ★ v132.2 紧凑模式起 🔚 尽头标记已停用：`_compact` 在本函数里硬写 True（无参数化），
+      #   ⇒ 下面 `if _compact and shown: … else: …` 的 **else 支永不可达**，而那个 else 支
+      #   是 `_sa_mark` 的**唯一**调用点 ⇒ 这个闭包连同它里面的
+      #   `except Exception: pass`（静默吞掉 subarea_links 读失败）整体是死代码。
+      #   原先它一直没被认出来，是因为「定义 + 有调用点」这两条都在 grep 眼里成立
+      #   —— 死的是**可达性**（Step 0f「先读结构」同族）。
+      #   连同 `_entry_id` 一并清掉（唯一消费者就是这个闭包）；`_depth` 保留 ——
+      #   :1048 还有 `if _depth is not None and not _compact:` 那一处真读点。
 
     if shown or neighbors:
         # v132.2 全地图紧凑模式（鱼鱼拍板）：●横排、无📍/无Lv/无🔚——模板统一，野外同款
@@ -992,15 +989,13 @@ def _map_nav_body(self, player: dict, cur_map: dict, cur_sa: str,
             # 仅『地图』面板（show_here=True）按鱼鱼模板隐藏（标题已含位置）
             lines.append(_T.text("nav.cur_pos", name=sa_now or title))
         lines.append(_T.static("nav.dest_head"))
+        # ★ `_compact` 在本函数里硬写 True ⇒ 这一支恒成立；原来那个 else 支
+        #   （非紧凑排版 + 🔚 尽头标记 + Lv 标注）自 v132.2 起就不可达，
+        #   本轮随 `_sa_mark` 闭包一起删掉（它带的 `except Exception: pass`
+        #   已在死路上，无需再判 fail-closed）。零行为变化：玩家看到的仍是同一条紧凑行。
         if _compact and shown:
             _parts = [f"●{i}. {sa['name']}" for i, sa in shown]
             lines.append("  " + " ".join(_parts))
-        else:
-            for i, sa in shown:
-                # v128 位置面板精简：不显示 "(你在这里)"（show_here=True 时保留）
-                mark = _T.text("nav.here", ) if (show_here and sa["id"] == cur_sa) else ""
-                lv_mark = f" Lv.{sa['lv']}" if sa.get("lv") else ""
-                lines.append(f"  {i}. {_sa_mark(sa)}{sa['name']}{lv_mark}{mark}")
         # 隐藏未揭示房：显示 🔒？？？ 不编号（不可直接前往）
         _hidden_sas = [s for s in sas if s["id"] in links and s["id"] not in _v_ids]
         if _hidden_sas:
