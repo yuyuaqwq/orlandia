@@ -4103,12 +4103,15 @@ class EconomyImpl(CommandBase):
         try:
             visited = db.get_visited_subareas(qq_id)
             # 子区域首访时间 {map:sa: ts}
-            _first = {}
-            try:
-                for r in db.get_visited_subareas_rows(qq_id):
-                    _first[f"{r['map_id']}:{r['sa_id']}"] = r["first_at"]
-            except Exception:
-                pass
+            # ★ 台账 L4578 #3：原先内层 `except Exception: pass` 把「首访日期读失败」
+            #   降级成 `{}` ⇒ 每行回落成**无日期形态**（下面 `if _d else _sn` 那格），
+            #   而页脚图例**仍然**印着「（MM-DD）=首访日期」⇒ 承诺在、数据没了、零报错。
+            #   实跑：注入 `get_visited_subareas_rows` 抛错，卡片上 `(09-29)` 整格消失。
+            #   与本函数外层 `except Exception as e: footprint.fail`（真兜底，给玩家报错）
+            #   语义相反：外层已有可见失败出口，这层不该把错误**降级**成假数据。
+            #   同 #1（足迹 0/0）已按同一口径删掉内层兜底。
+            _first = {f"{r['map_id']}:{r['sa_id']}": r["first_at"]
+                      for r in db.get_visited_subareas_rows(qq_id)}
             # 只统计城镇/野外（副本/隐藏不进足迹）
             by_reg = {}
             order = []
@@ -4218,32 +4221,35 @@ class EconomyImpl(CommandBase):
             # 组装物品定义：材料 + 物品 + 装备原型
             # 结构 {大类: [(display名, key, 是否曾拥有, 当前持有), ...]}
             cat_items = {}
-            try:
-                for _k, _v in (_cit.MATERIALS or {}).items():
-                    _nm = _v.get("name") or _k
-                    _cat = self._item_cat(_v)
-                    if _cat is None:
-                        continue
-                    cat_items.setdefault(_cat, []).append(
-                        (_nm, _k, _k in poss, inv_cnt.get(_k, 0)))
-                for _k, _v in (_cit.ITEMS or {}).items():
-                    if _k in (_cit.MATERIALS or {}):
-                        continue
-                    if not isinstance(_v, dict):
-                        continue
-                    _nm = _v.get("name") or _k
-                    _cat = self._item_cat(_v)
-                    if _cat is None:
-                        continue
-                    cat_items.setdefault(_cat, []).append(
-                        (_nm, _k, _k in poss, inv_cnt.get(_k, 0)))
-                for _k, _v in (getattr(C, "EQUIP_ROSTER", None) or {}).items():
-                    _nm = _v.get("name") or _k
-                    _cat = self._item_cat(_v)  # 装备 v 带 slot → 归装备
-                    cat_items.setdefault(_cat, []).append(
-                        (_nm, _k, _k in poss, inv_cnt.get(_k, 0)))
-            except Exception:
-                pass
+            # ★ 台账 L4578 #5：原先三段（材料 / 物品 / 装备原型）**共用**一个 `try`，
+            #   末段抛错就把它**已攒的**留在 `cat_items` 里、后面整段丢掉 ⇒ 玩家看到一个
+            #   「看着正常、实则少一大类」的收藏页，零报错。那层 `except` 无论窄化还是
+            #   `raise` 重抛都是装饰性的 ⇒ 直接删掉，由本函数外层
+            #   `except Exception as e: adv.item_fail`（真兜底，给玩家报错）接管。
+            #   与 L4578 #1/#3 同一口径：内层不许把错误**降级**成假数据。
+            for _k, _v in (_cit.MATERIALS or {}).items():
+                _nm = _v.get("name") or _k
+                _cat = self._item_cat(_v)
+                if _cat is None:
+                    continue
+                cat_items.setdefault(_cat, []).append(
+                    (_nm, _k, _k in poss, inv_cnt.get(_k, 0)))
+            for _k, _v in (_cit.ITEMS or {}).items():
+                if _k in (_cit.MATERIALS or {}):
+                    continue
+                if not isinstance(_v, dict):
+                    continue
+                _nm = _v.get("name") or _k
+                _cat = self._item_cat(_v)
+                if _cat is None:
+                    continue
+                cat_items.setdefault(_cat, []).append(
+                    (_nm, _k, _k in poss, inv_cnt.get(_k, 0)))
+            for _k, _v in (getattr(C, "EQUIP_ROSTER", None) or {}).items():
+                _nm = _v.get("name") or _k
+                _cat = self._item_cat(_v)  # 装备 v 带 slot → 归装备
+                cat_items.setdefault(_cat, []).append(
+                    (_nm, _k, _k in poss, inv_cnt.get(_k, 0)))
             if not cat_items:
                 return _T.static("adv.item_empty")
             # 大类过滤
