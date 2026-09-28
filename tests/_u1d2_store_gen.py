@@ -48,6 +48,16 @@ WORK_ROOT = os.path.dirname(PKG_ROOT)
 LANE_ROOT = os.path.dirname(WORK_ROOT)
 BASE_PKG = None            # ★ 由文件末尾的 _resolve_base_pkg() 解析（改动前基线副本）
 BASE_SOURCE = "unresolved"
+# ★ C-R2.13（2026-09-29）：钉住的「改动前基线」提交（同 C-R2.12 形态）。
+#   为什么钉：⑤ git 回溯窗口是 `-n 20`（最近 20 个动过被测文件的提交），
+#   而基线在 250+ 提交之前 ⇒ 够不着 ⇒ 报「找不到 base」
+#   （症状伪装成「基线副本丢了」，真因是**候选池给小了**，不是异常类型错）。
+#   为什么钉而不是放宽窗口：`-n 300` 每次跑生成器都要付几十秒，
+#   且再过 280 提交会**再次**够不着（时效性缺陷）；钉 rev 毫秒级且不随时间失效。
+#   判据零改动：命中与否仍由 `_base_matches_pins` 的 sha 全等判；
+#   钉的 rev 命中不了（含仓库里没有该 rev）时**照旧**回落到 ⑤ 回溯，
+#   回溯也够不着仍然 fail-closed 报「找不到 base」，不许退化成静默通过。
+BASE_REV = "48d21f0fe5a5471278d64187fe1ac9fb7940f96c"
 TEST_FILE = os.path.join(_HERE, "test_u1d2_store_frozen.py")
 
 BEGIN = "# >>> _u1d2_store_gen (auto) >>>"
@@ -227,6 +237,27 @@ def _resolve_base_pkg():
             if _base_matches_pins(path):
                 return path, tag
             return path, tag + "(pin-mismatch)"
+    # ★ C-R2.13（2026-09-29）：④ 先试钉住的基线 rev，再走 ⑤ git 历史回溯。
+    #   判据零改动：命中与否仍由 `_base_matches_pins` 的 sha 全等判；
+    #   钉的 rev 命中不了时**照旧**回落 ⑤ 回溯，回溯也够不着仍 fail-closed 报「找不到 base」。
+    import subprocess
+    import tempfile
+    _probe = sorted({rel for rel, _sym in SEGMENTS})
+    _tmp = None
+    for _rel in _probe:
+        _blob = subprocess.run(["git", "-C", PKG_ROOT, "show", "%s:%s" % (BASE_REV, _rel)],
+                               capture_output=True).stdout
+        if not _blob:
+            _tmp = None
+            break
+        if _tmp is None:
+            _tmp = tempfile.mkdtemp(prefix="u1d2s_pin_")
+        _dst = os.path.join(_tmp, _rel.replace("/", os.sep))
+        os.makedirs(os.path.dirname(_dst), exist_ok=True)
+        with open(_dst, "wb") as _fh:
+            _fh.write(_blob)
+    if _tmp is not None and _base_matches_pins(_tmp):
+        return _tmp, "pinned:%s" % BASE_REV[:8]
     try:
         import subprocess
         import tempfile
