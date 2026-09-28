@@ -134,14 +134,16 @@ def test_2_awareness():
     CMP.apply_class_mech(p)
     e = mk_enemy()
     from ext_combat.gauge import bar_gain as _bg
-    _bg(e, "shaken", 15, [])
+    b = new_battle(p, e)         # ★ B4 起 bar_gain 首参是战斗本体（cue 总线在它身上）
+    _bg(b, e, "shaken", 15, [])
     m, logs = calc_mult(p, e)
     check("val=15 命中门槛 → mult 1.2", abs(m - 1.2) < 1e-9, f"mult={m} logs={logs}")
     check("被动生效日志", any("气力之心" in str(x) or "被动生效" in str(x) for x in logs),
           f"logs={logs}")
     # 边界：14（差 1 点）不增伤
     e2 = mk_enemy()
-    _bg(e2, "shaken", 14, [])
+    b2 = new_battle(p, e2)      # ★ 同上
+    _bg(b2, e2, "shaken", 14, [])
     m2, _ = calc_mult(p, e2)
     check("val=14 未达门槛 → mult 1.0", abs(m2 - 1.0) < 1e-9, f"mult={m2}")
     # 边界：条不存在（从未被推过）不增伤

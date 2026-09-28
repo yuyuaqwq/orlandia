@@ -76,9 +76,11 @@ def test_1_decay_rate():
     bd = bar_def("shaken")
     check("配置 decay_per_turn = 1.7", abs(float(bd.get("decay_per_turn", 0)) - 1.7) < 1e-9,
           f"bd={bd.get('decay_per_turn')}")
+    p = mk_player()
     e = mk_enemy()
     e["effects"] = {}
-    bar_gain(e, "shaken", 30, [], now=0.0)
+    b = mk_battle(p, e)          # ★ B4 起 bar_gain 首参是战斗本体（cue 总线在它身上）
+    bar_gain(b, e, "shaken", 30, [], now=0.0)
     bar_settle(e, "shaken", 2.0)
     v = float(bar_of(e).get("val", -1))
     check("2 刻后衰减 3.4（30 → 26.6，非 28）", abs(v - 26.6) < 1e-6, f"val={v}")
@@ -132,7 +134,7 @@ def test_3_threshold_sequence():
     for i in range(4):
         th = int(bar_of(e).get("threshold", 50) or 50)
         got.append(th)
-        bar_gain(e, "shaken", th + 1, [], now=now)
+        bar_gain(b, e, "shaken", th + 1, [], now=now)
         fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 1}}, [])
         now += 3.0
     check("实跑阈值序列与公式一致", got == [50, 67, 90, 121], f"got={got}")
@@ -156,13 +158,13 @@ def test_5_immune_window():
     CMP.apply_class_mech(p)
     e = mk_enemy()
     b = mk_battle(p, e)
-    bar_gain(e, "shaken", 50, [], now=0.0)
+    bar_gain(b, e, "shaken", 50, [], now=0.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 1}}, [])
     check("触发后免疫截止 = 当刻 + 2", abs(float(bar_of(e).get("immune_until", -1)) - 2.0) < 1e-9,
           f"bs={bar_of(e)}")
-    bar_gain(e, "shaken", 20, [], now=1.0)
+    bar_gain(b, e, "shaken", 20, [], now=1.0)
     check("免疫期内注入忽略（val 仍 0）", float(bar_of(e).get("val", -1)) == 0.0, f"bs={bar_of(e)}")
-    bar_gain(e, "shaken", 20, [], now=2.5)
+    bar_gain(b, e, "shaken", 20, [], now=2.5)
     check("免疫到期后注入生效（val=20）", float(bar_of(e).get("val", -1)) == 20.0, f"bs={bar_of(e)}")
 
 
@@ -172,7 +174,7 @@ def test_6_no_inject_on_trigger():
     CMP.apply_class_mech(p)
     e = mk_enemy()
     b = mk_battle(p, e)
-    bar_gain(e, "shaken", 50, [], now=0.0)
+    bar_gain(b, e, "shaken", 50, [], now=0.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 15}}, [])
     check("触发当帧（now=0）注入被吞（val=0 而非 15）",
           float(bar_of(e).get("val", -1)) == 0.0 and bar_of(e).get("trigger_count") == 1,
@@ -200,7 +202,7 @@ def test_7_container_safety():
     # 面板折算不受污染：有破绽条的单位 spd/atk 不因条变化
     from ext_combat.battle.stats import actor_stats
     s1 = dict(actor_stats(b, e))
-    bar_gain(e, "shaken", 40, [], now=b._now)
+    bar_gain(b, e, "shaken", 40, [], now=b._now)
     s2 = dict(actor_stats(b, e))
     check("条不影响敌方面板（stats 不读条容器）",
           s1.get("atk") == s2.get("atk") and s1.get("spd") == s2.get("spd"),
@@ -209,10 +211,12 @@ def test_7_container_safety():
 
 def test_8_container_location():
     print("【8. 容器位置：条写进 effects[bar:*]，不新建 buffs 死容器】")
+    p = mk_player()
     e = mk_enemy()
     e["effects"] = {}
     e.pop("buffs", None)
-    bar_gain(e, "shaken", 10, [], now=0.0)
+    b = mk_battle(p, e)          # ★ B4 起 bar_gain 首参是战斗本体（cue 总线在它身上）
+    bar_gain(b, e, "shaken", 10, [], now=0.0)
     check("条在 effects[bar:shaken]", isinstance(bar_of(e), dict) and bar_of(e).get("val") == 10,
           f"effects={list((e.get('effects') or {}).keys())}")
     check("未创建 buffs 键（V 系列已删容器）", "buffs" not in e, f"keys={sorted(e.keys())[:8]}")

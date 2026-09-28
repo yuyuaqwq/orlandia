@@ -149,9 +149,14 @@ def test_1_assembly():
 # 2. 破绽感知（shaken_decay_half）
 # ============================================================
 
-def prep_bar(e, val=10.0):
-    """宿主挂条 + 自安装时钟订阅（真实装配路径）。"""
-    bar_gain(e, "shaken", val, [], now=0.0)
+def prep_bar(b, e, val=10.0):
+    """宿主挂条 + 自安装时钟订阅（真实装配路径）。
+
+    ★ B4（2026-09-27）起 bar_gain 首参是**战斗本体**（日志走 cue ⇒ 总线在它身上）；
+      本行原按旧签名调用 ⇒ bar_key 被塞成 val ⇒ bar_def() 返 {} ⇒ 静默 no-op，
+      条从没被推起来（症状：本 case 全红 + KeyError: bar:shaken）。
+    """
+    bar_gain(b, e, "shaken", val, [], now=0.0)
     _ensure_tick(e)
 
 
@@ -162,7 +167,7 @@ def test_2_shaken_decay_half():
     CMP.apply_class_mech(p)
     e = mk_enemy()
     b = new_battle(p, [e])
-    prep_bar(e, 10.0)
+    prep_bar(b, e, 10.0)
     logs = advance(b, 2.0)
     check("半衰：10 → 8.3（2 刻 × 0.85）",
           abs(bar_val(e) - 8.3) < 1e-9, f"val={bar_val(e)} logs={logs}")
@@ -174,7 +179,7 @@ def test_2_shaken_decay_half():
     CMP.apply_class_mech(p2)
     e2 = mk_enemy()
     b2 = new_battle(p2, [e2])
-    prep_bar(e2, 10.0)
+    prep_bar(b2, e2, 10.0)
     advance(b2, 2.0)
     check("对照组无被动 → 全衰 10 → 6.6",
           abs(bar_val(e2) - 6.6) < 1e-9, f"val={bar_val(e2)}")
@@ -189,7 +194,7 @@ def test_2_shaken_decay_half():
     # 边界：val=0 → 不回补（不产生负值/虚增）
     e4 = mk_enemy()
     b4 = new_battle(p, [e4])
-    prep_bar(e4, 10.0)
+    prep_bar(b4, e4, 10.0)
     e4["effects"][bar_effect_key("shaken")]["val"] = 0.0
     advance(b4, 1.0)
     check("val=0 → 仍为 0（不回补）", bar_val(e4) == 0.0, f"val={bar_val(e4)}")
@@ -197,7 +202,7 @@ def test_2_shaken_decay_half():
     # 边界：条被推满触发后（免疫窗口内）半衰照常按 val 计算，不越 max
     e5 = mk_enemy()
     b5 = new_battle(p, [e5])
-    prep_bar(e5, 100.0)
+    prep_bar(b5, e5, 100.0)
     advance(b5, 1.0)
     check("半衰不超 max(125)", bar_val(e5) < 125.0, f"val={bar_val(e5)}")
 

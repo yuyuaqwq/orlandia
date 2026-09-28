@@ -135,7 +135,7 @@ def test_threshold_trigger():
     e = mk_enemy()
     b = new_battle(p, e)
     logs = []
-    _bg(e, "shaken", 45, logs, now=0.0)          # 垫到 45
+    _bg(b, e, "shaken", 45, logs, now=0.0)          # 垫到 45
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 5}}, logs)
     bs = bar_of(e)
     check("触发后 val 清零", float(bs.get("val", -1)) == 0.0, f"bs={bs}")
@@ -148,7 +148,7 @@ def test_threshold_trigger():
           f"eff={e.get('effects')}")
     # 免疫期内：注入被忽略（不积蓄）
     logs2 = []
-    _bg(e, "shaken", 30, logs2, now=1.0)
+    _bg(b, e, "shaken", 30, logs2, now=1.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 15}}, logs2)
     check("免疫期内注入忽略（val 仍 0）", float(bar_of(e).get("val", -1)) == 0.0,
           f"bs={bar_of(e)}")
@@ -156,7 +156,7 @@ def test_threshold_trigger():
     # 免疫到期后：可再推、可再触发（阈值递增不封死——条上限 125 容得下 67/90/122）
     b._now = 3.0
     logs3 = []
-    _bg(e, "shaken", 67, logs3, now=3.0)
+    _bg(b, e, "shaken", 67, logs3, now=3.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 5}}, logs3)
     bs3 = bar_of(e)
     check("免疫到期后可再次触发（trigger_count=2）", bs3.get("trigger_count") == 2, f"bs={bs3}")
@@ -166,12 +166,12 @@ def test_threshold_trigger():
     # 第三次：90 → 121（floor(90×1.35)=121）→ 再 ×1.35 = 163 → 封顶 125
     b._now = 6.0
     logs4 = []
-    _bg(e, "shaken", 90, logs4, now=6.0)
+    _bg(b, e, "shaken", 90, logs4, now=6.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 5}}, logs4)
     check("第三次阈值 90 → 121", bar_of(e).get("threshold") == 121, f"bs={bar_of(e)}")
     b._now = 9.0
     logs5 = []
-    _bg(e, "shaken", 121, logs5, now=9.0)
+    _bg(b, e, "shaken", 121, logs5, now=9.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 5}}, logs5)
     check("第四次阈值封顶 125（121×1.35=163 → 125）", bar_of(e).get("threshold") == 125,
           f"bs={bar_of(e)}")
@@ -186,7 +186,7 @@ def test_skip_consumed():
     e = mk_enemy()
     b = new_battle(p, e)
     logs = []
-    _bg(e, "shaken", 49, logs, now=0.0)
+    _bg(b, e, "shaken", 49, logs, now=0.0)
     fire(b, "skill_hit", {"actor": p, "target": e, "info": {"shaken_gain": 5}}, logs)
     check("触发已挂 skip", "bar_skip:shaken" in (e.get("effects") or {}), f"eff={e.get('effects')}")
     e_hp0 = e["hp"]
@@ -262,7 +262,7 @@ def test_per_hit_multisegment():
     e3 = mk_enemy()
     b3 = new_battle(p, e3)
     logs3 = []
-    _bg(e3, "shaken", 45, logs3, now=0.0)
+    _bg(b3, e3, "shaken", 45, logs3, now=0.0)
     fire(b3, "skill_hit", {"actor": p, "target": e3,
                            "info": {"shaken_gain": 5, "hits": 3}}, logs3)
     check("45 + 5/段×3 = 触发（val 清 0）",
