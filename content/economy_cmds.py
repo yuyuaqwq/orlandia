@@ -6323,30 +6323,14 @@ class EconomyImpl(CommandBase):
         """v181.P4-3：转发 services.shop.is_smith_shop（economy 本地定义已随迁）"""
         return _shop_svc.is_smith_shop(player)
 
-    def _item_fits_shop(self, it: dict, sa_kind: str | None) -> bool:
-        """v101.25h 消耗品是否适合当前子区域类型出售：
-        herb（草药/炼金）→ 只卖药剂类；
-        tavern（酒馆/旅店）→ 只卖食物类；
-        general（普通商店/集市/商行）→ 卷轴/杂物类；
-        smith/None（行商货摊等）→ 全量。
-        """
-        if sa_kind not in ("herb", "tavern", "general"):
-            return True
-        name = it.get("name", "")
-        kind = "food"
-        # 食物判据：有 stamina 或典型食物词
-        if it.get("stamina") or any(k in name for k in ("面包", "肉", "酒", "果", "炖", "盛宴", "果冻", "汤", "饼")):
-            kind = "food"
-        elif any(k in name for k in ("药水", "药剂", "圣水", "草药", "绷带", "露", "泪", "卷轴", "护符")):
-            kind = "potion" if "卷轴" not in name and "护符" not in name else "scroll"
-        else:
-            kind = "misc"
-        if sa_kind == "herb":
-            return kind == "potion"
-        if sa_kind == "tavern":
-            return kind == "food"
-        # general：卷轴/杂物（+武器走独立分支）
-        return kind in ("scroll", "misc")
+    # ★ 审计 L5468：原 `_item_fits_shop`（v101.25h 消耗品按 kind 过滤能否摆进该类型店）
+    #   已删除。判定依据（两轮核实）：① 全仓零读者（除定义行外零引用）；
+    #   ② 现行出货真源是配货数据表 `SHOP_SUBAREA_ITEMS`，三个出货点直接读它
+    #   （shop 面板 / buy 序号分支 / buy 名称分支）；
+    #   ③ 它按物品名猜 food/potion/scroll 的那层判据与数据表口径不同
+    #   （「这家店卖什么」≠「消耗品能否摆进该类型店」），留着就是第二套口径。
+    #   常驻护栏见 tests/test_l5468_shop_items_true_source.py：若有人把 kind 猜法
+    #   接回出货路径，该门禁转红。**不要**留兼容壳或转发桩。
 
     def _pawn_rate(self, player: dict, d: dict):
         """v181.P4-3：转发 services.shop.pawn_rate（economy 本地定义已随迁，含 F1 P1-5 消耗品 0.85 档）"""
