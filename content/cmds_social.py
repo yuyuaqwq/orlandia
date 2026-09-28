@@ -549,7 +549,7 @@ def guild_donate_cmd(env):
     return [err]
 
 
-@register("guild_rank", guards=(), params=("cmd=公会排行",))
+@register("guild_rank", params=("cmd=公会排行",))   # 【L2501】省略 guards（=写 None，引擎回落到 spec.guards）；明写 `guards=()` 会把「本条不带 guard」与「你忘了写」压成同一个值。
 def guild_rank(env):
     """『公会排行』：空榜提示 / 排行行（**无守卫**：注册前可查，声明里也不给 guards）。"""
     shell = _shell(env)

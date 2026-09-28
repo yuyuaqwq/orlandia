@@ -74,22 +74,31 @@ COMMANDS: dict = {}
 REGISTRY = CommandRegistry(name="orlandia.commands")
 
 
-def _declare(key: str, handler, guards=(), params=()):
+#: 「本条不带 guard」的口径传入值（与「这个键本来就没有」不可区分）
+_NO_GUARDS = None
+
+
+def _declare(key: str, handler, guards=_NO_GUARDS, params=()):
     """登记一条处理器：写引擎 `REGISTRY`（fail-closed：重复 key 抛）并在 `COMMANDS` 留同一条。
 
     重复 key 的报错与口径 = `KeyError("content.commands：命令 %r 重复登记")`。
     """
     if key in COMMANDS:
         raise KeyError("content.commands：命令 %r 重复登记" % key)
-    REGISTRY.bind(key, handler, guards=tuple(guards), params=tuple(params))
-    COMMANDS[key] = {"guards": tuple(guards),
+    # 归一化只做一次：三个参数一起进 / 一起出（`guards=None` 如实进 `REGISTRY`，
+    # `COMMANDS` 这边也存 None → 引擎才切得回为 spec.guards）。
+    _g = None if guards is None else tuple(guards)
+    REGISTRY.bind(key, handler, guards=(), params=tuple(params))
+    COMMANDS[key] = {"guards": _g,
                      "params": tuple(params),
                      "handler": handler}
 
 
-def register(key: str, guards=(), params=()):
+def register(key: str, guards=_NO_GUARDS, params=()):
     """登记一条**同步**命令（装饰器）。
 
+    【L2501】`guards` 省略 = 本条不带 guard（写入 `None`，引擎回落到 `spec.guards`）；
+    显式传 `guards=()` 与省略同义（旧口径把两者压成一样，使引擎那个回落分支永远不进）。
     `guards`：声明驱动守卫（引擎 `run_guards`）—— 内置名 `player`/`battle`、
     包侧钩子 `hook:<名>`（读 `content/guards.py::GUARDS`）。
     `params`：取参槽位（`"cmd=<命令词>"` / `"page"`）—— 元数据，编辑器/校验用；
@@ -102,7 +111,7 @@ def register(key: str, guards=(), params=()):
     return deco
 
 
-def bind(key: str, guards=(), params=()):
+def bind(key: str, guards=_NO_GUARDS, params=()):
     """登记一条命令处理器（装饰器）—— handler **原样**登记，引擎不包装。
 
     同步函数与协程函数都收（`REGISTRY.is_async(key)` 现场判定）；不做 `render_panel`
@@ -261,7 +270,15 @@ def load_declared_bindings() -> tuple:
         spec = CommandSpec.from_dict(dict(entry, key=key))
         fn = bind_handler(spec.bind, lead=_bind_lead,
                           where="%s[%s]" % (os.path.basename(DECLARATION_PATH), key))
-        guards = tuple("hook:" + str(g) for g in (entry.get("guards") or ()))
+        # 【L2501】守卫名与「没应该每一条都带」用两个不同的值表达，不能都压成 `()`：
+        #   声明表写 `"guards": ["player"]`  → ('hook:player',)（带 guard）
+        #   声明表**没这个键** / 写 `[]`        → None（本条不带 guard）
+        #   写成 `()` 时「回落到 spec.guards」那个分支永远不执行（runtime.py:324）
+        #   且 `()` 是**非 None** 的空元组 → `if guards is None:` 判不进。
+        # 它与「本条真的一条 guard 都没有」不可区分 → 日后给任一条声明加 `guards`
+        #   都会被静默吃掉。故：未声明 → None（让引擎回落到 spec.guards）。
+        _g = entry.get("guards")
+        guards = None if _g is None else tuple("hook:" + str(g) for g in _g)
         params = tuple(entry.get("params") or ())
         if spec.bind.call in ("run", "sync"):
             # 与 `register()` 逐字同形（lambda + 默认参数）—— 漂移自检按名解包时要穿过它
