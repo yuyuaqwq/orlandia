@@ -1444,15 +1444,7 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
     # 玩家当前属性（表达式代入用；面板口径与战斗一致——称号加成省略，
     # 展示目的是比较各级数值曲线，非精确面板；learned_skills 传入让属性被动生效）
     # 仅表达式技能需要（旧百分比技能无玩家属性代入，省一次属性计算）
-    _stats = None
-    if (info.get("exprs") or info.get("expr")
-            or info.get("heal_formula") or info.get("heal_expr") or info.get("heal_exprs")):
-        _stats = player_final_stats(
-            player["class_name"], player["level"], player.get("equipment", {}),
-            player.get("class_tier", 0), player.get("attributes"),
-            player.get("evolve_path", 0), None,
-            player.get("race"), player.get("learned_skills"))
-        _stats["_player_lv"] = int(player.get("level", 1) or 1)
+    _stats = _expr_preview_stats(player) if _is_expr_skill(info) else None
     if info.get("kind") != "被动" and mx > 1:
         # v134.5 意见#57：LOL 式逐级数值——每级一行，展示 Lv.1→满级全部数值
         # （原只显示当前级单行）。维度与 _skill_upgrade_gains 同源。
@@ -1516,7 +1508,9 @@ def _skill_detail_message(self, player: dict, skill_name: str) -> str | None:
             lines.append(_T.static("skill_card.passive_note"))
         elif slv < mx:
             cost = skill_upgrade_cost(slv, info)
-            nxt = " · ".join(self._skill_upgrade_gains(info, slv + 1))
+            nxt = " · ".join(self._skill_upgrade_gains(
+                info, slv + 1,
+                _expr_preview_stats(player) if _is_expr_skill(info) else None))
             lines.append(_T.text("skill_card.upgrade_hint", name=display_name, cost=cost, lv=slv + 1, gains=nxt,
                              pts=player.get('skill_points',0)))
         else:
@@ -1612,6 +1606,31 @@ def _skill_cast_text(self, info: dict) -> str:
         # 增益/治疗/嘲讽等即时类（v154 立即生效不读条）
         return _T.static("skill_card.cast_instant")
     return _T.text("skill_card.cast_time", s=_c)
+
+def _is_expr_skill(info: dict) -> bool:
+    """该技能是否走 v160 表达式数值（决定要不要为预览算一遍玩家属性）。"""
+    return bool(info.get("exprs") or info.get("expr")
+                or info.get("heal_formula") or info.get("heal_expr")
+                or info.get("heal_exprs"))
+
+
+def _expr_preview_stats(player: dict) -> dict:
+    """表达式技能预览用的属性快照（技能详情 / 升级提示 / 学习提示三处共用一个真源）。
+
+    ★ 键名跟引擎读口对齐：引擎取等级一律 stats["level"]
+      （formulas.py:448/579 的 build_vars(player_lv=int(stats.get("level", 0) or 0))），
+      而 player_final_stats 不返回 level —— 早前这里塞的是 _player_lv，
+      引擎从没读过它 ⇒ 表达式里的 player_lv 恒按 0 算，技能数值随等级全部低估。
+    面板口径与战斗一致（称号加成省略，展示目的是比较各级数值曲线，非精确面板）。
+    """
+    st = player_final_stats(
+        player["class_name"], player["level"], player.get("equipment", {}),
+        player.get("class_tier", 0), player.get("attributes"),
+        player.get("evolve_path", 0), None,
+        player.get("race"), player.get("learned_skills"))
+    st["level"] = int(player.get("level", 1) or 1)
+    return st
+
 
 def _skill_formula_text(self, info: dict, lv: int = 1) -> str:
     """v160 表达式技能公式展示：exprs/expr/heal_formula 翻译成中文公式。
@@ -1748,7 +1767,9 @@ async def skill_upgrade(self, event: AstrMessageEvent, group_id, qq_id, player):
     db.update_player(group_id, player["qq_id"], skill_points=pts - cost + refund,
                      skill_levels=levels, skill_spent=spent)
     display_name = info.get("name", skill_name)
-    gains = self._skill_upgrade_gains(info, cur_lv + 1)
+    gains = self._skill_upgrade_gains(
+        info, cur_lv + 1,
+        _expr_preview_stats(player) if _is_expr_skill(info) else None)
     desc = " · ".join(gains)
     next_cost = skill_upgrade_cost(cur_lv + 1, info)
     tail = _T.text("skill.upgrade_tail_next", lv=cur_lv + 2, cost=next_cost) if next_cost else _T.static("skill.upgrade_tail_maxed")
