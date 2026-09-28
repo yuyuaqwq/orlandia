@@ -453,7 +453,8 @@ class InstanceImpl:
         # ★ R2：`p_defending` 这份平铺账不再维护（面板与结算都读容器窗口）
         st.setdefault("contribution", {})[new_key] = 0
         st.setdefault("threat", {})[new_key] = 0
-        st.setdefault("player_hit", {})[new_key] = False
+        # C6-1：旧 st["player_hit"] 平铺账为死字段——eca1a47(B11-B14) 播种后全域零读
+        # （受击留痕已随战斗快照进 saintess_engine actor 侧）——不再为新成员播种
         # v181.M-R3：旧 st["mech_stacks"]/st["resources"] 容器无生产写入无读取
         # （战斗资源在 saintess_engine actor.effects 叠层）——不再为新成员播种死字段
         st.setdefault("cooldown", {}).setdefault(new_key, {})
