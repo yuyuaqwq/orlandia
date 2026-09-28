@@ -195,7 +195,6 @@ def mk_st(qids, enemy=None, inst_id="inst_goblin_camp", **kw):
         "p_buffs": {q: {} for q in qids},
         "p_hot": {q: {} for q in qids},
         "p_food_effects": {q: [] for q in qids},
-        "p_defending": {q: False for q in qids},
         "mech_stacks": {q: {} for q in qids},
         "now": 0.0, "battle": None,
         "contribution": {}, "threat": {q: 0 for q in qids}, "over": False,

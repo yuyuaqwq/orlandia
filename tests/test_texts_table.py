@@ -849,7 +849,7 @@ def _is_mk_st(qids, inst_id="inst_goblin_camp", names=None, **kw):
           "boss": None, "enemy": None, "enemies": [], "turn": 0, "round": 1,
           "mode": "battle", "pets": {}, "p_buffs": {q: {} for q in qids},
           "p_hot": {q: {} for q in qids}, "p_food_effects": {q: [] for q in qids},
-          "p_defending": {q: False for q in qids}, "mech_stacks": {q: {} for q in qids},
+          "mech_stacks": {q: {} for q in qids},
           "now": 0.0, "battle": None, "contribution": {},
           "threat": {q: 0 for q in qids}, "over": False, "turn_time": 0,
           "stage_pending": [], "inst_stages": [], "stage_idx": 0,
@@ -1425,7 +1425,7 @@ def _il_st(qids, inst_id="inst_goblin_camp", names=None, **kw):
           "boss": None, "enemy": None, "enemies": [], "turn": 0, "round": 1,
           "mode": "battle", "pets": {}, "p_buffs": {q: {} for q in qids},
           "p_hot": {q: {} for q in qids}, "p_food_effects": {q: [] for q in qids},
-          "p_defending": {q: False for q in qids}, "mech_stacks": {q: {} for q in qids},
+          "mech_stacks": {q: {} for q in qids},
           "now": 0.0, "battle": None, "contribution": {}, "threat": {q: 0 for q in qids},
           "over": False, "turn_time": 0, "stage_pending": [], "inst_stages": [],
           "stage_idx": 0, "stage_cleared": False, "world_id": ""}
@@ -2269,7 +2269,7 @@ def _pb_st(qids, inst_id="inst_goblin_camp", names=None, **kw):
           "boss": None, "enemy": None, "enemies": [], "turn": 0, "round": 1,
           "mode": "battle", "pets": {}, "p_buffs": {q: {} for q in qids},
           "p_hot": {q: {} for q in qids}, "p_food_effects": {q: [] for q in qids},
-          "p_defending": {q: False for q in qids}, "mech_stacks": {q: {} for q in qids},
+          "mech_stacks": {q: {} for q in qids},
           "now": 0.0, "battle": None, "contribution": {}, "threat": {q: 0 for q in qids},
           "over": False, "turn_time": 0, "stage_pending": [], "inst_stages": [],
           "stage_idx": 0, "stage_cleared": False, "world_id": ""}

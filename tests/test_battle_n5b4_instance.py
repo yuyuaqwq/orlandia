@@ -97,7 +97,6 @@ def mk_st(qids, enemy=None):
         "p_buffs": {str(q): {} for q in qids},
         "p_hot": {str(q): {} for q in qids},
         "p_food_effects": {str(q): [] for q in qids},
-        "p_defending": {str(q): False for q in qids},
         "mech_stacks": {str(q): {} for q in qids},
         "now": 0.0, "battle": None,
     }
