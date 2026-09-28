@@ -2499,7 +2499,7 @@ def _player_unit_for_formation(self, player: dict) -> dict:
         "reach": int(cls_info.get("reach", 2) or 2),
         "name": f"{player.get('name', '你')}({cls_cn})",
         "hp": player.get("hp", 0), "max_hp": player.get("max_hp", 0),
-        "defending": False, "charging": None,
+        "charging": None,
     }
 
 def _battle_formation_panel(self, player: dict, b) -> str:
@@ -2709,8 +2709,8 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     b["reach"] = 1
     b["is_boss"] = True
     b["is_elite"] = False
-    b.setdefault("effects", {})
-    b["defending"] = False; b["charging"] = None
+    b.setdefault("effects", {})     # ★ 防御姿态走容器窗口（引擎自己开/读/消费），不播种裸 bool
+    b["charging"] = None
     # DOT/减益重构（契约 §6）：世界 Boss 全局共享减益层/dot 结算计数/抗性（事件数据可覆写）。
     # 老世界 Boss 存档无这些键 → setdefault 兜底，保证向前兼容。
     b.setdefault("debuffs", {})
@@ -3040,7 +3040,7 @@ def _pvp_snapshot(self, p: dict, group_id: str = "", qq_id: str = "") -> dict:
         "side": "enemy",
         "rank": 1,
         "reach": int(cls_info.get("reach", 2) or 2),
-        "defending": False, "charging": None,
+        "charging": None,
         # v109.2 战斗结算属性（_enemy_stats/_pvp_enemy_turn 消费）
         "atk": st.get("atk", 0), "def": st.get("def", 0),
         "matk": st.get("matk", 0), "mdef": st.get("mdef", 0),
@@ -3309,13 +3309,14 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
             if _pvp_mp_need > 0 and int(my_actor.get("mp") or 0) < _pvp_mp_need:
                 yield event.plain_result(_T.static("pv.no_mp"))
                 return
-    # PVP『防御』（saintess_engine：目标 actor defending=True → landing deal_damage 减半统一消费）。
-    # 防御姿态随 actor dict 持久化（to_state 带 defending）——上一击 defend 的人恢复后
-    # 自动在 defending 状态，无需命令层再搬运。这里只做"覆盖/消耗"语义：
-    # - defend 行动：己方由引擎 _do_defend 置 True；对方旧防御被覆盖清掉
-    # - 攻击/技能行动：对方防御在本次伤害结算中生效（引擎）→ 行动后双方防御都被消耗
-    if action == "defend":
-        opp_actor["defending"] = False
+    # PVP『防御』：**姿态完全归引擎的容器窗口**（`effects["defend"]`，`until="own_act"`）。
+    #   · 己方 defend → 引擎 `battle.py` 的 `open_window(actor, DEFEND_TAG)` 自己开窗；
+    #   · 减半结算 → 引擎 `landing.py:185` 的 `window_open(target, DEFEND_TAG)` 自己读；
+    #   · 到期消费 → 引擎 `actors.consume_windows`（**本方下一个行动**的帧，不是对方出手）。
+    # ⇒ 命令层**不再搬运**这个状态：原来那两行
+    #   （`opp_actor["defending"] = False` / 行动后清双方）写的是**裸 bool 兄弟键**，
+    #   引擎侧该键已删净（`grep defending` = 0）⇒ 写它**零效果**、且是第二本账。
+    #   同批清掉（不留兼容壳：没开服）。判据 `tests/test_battle_n5b4_pvp.py` 已跟到窗口口径。
     # 目标：攻击类技能打对方；治疗/增益类作用自己（PVP 无友方——传敌方 actor
     # 会让 heal 奶对手 / buff 挂敌人）
     _tgt = opp_actor if (opp_actor.get("hp") or 0) > 0 else None
@@ -3325,9 +3326,6 @@ async def _pvp_act(self, event, group_id, qq_id, player, state, action, skill_na
             _tgt = None
     logs, ended, _who = b.human_act(action, skill_name, actor=my_actor, target=_tgt)
     _BR.land_pending(b, logs, my_actor)  # T15 两段化：本次出手推进到落地（包内唯一落地口）
-    if action != "defend":
-        my_actor["defending"] = False
-        opp_actor["defending"] = False
     # 回写 player dict（展示/后续结算读 player 时拿到最新值；db 不写——PVP 快照制）
     _BR.sync_player_from_actor(player, my_actor)
     my_alive = (my_actor.get("hp") or 0) > 0

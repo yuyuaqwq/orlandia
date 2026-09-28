@@ -280,9 +280,14 @@ _TEAM_HEAL_RENDERER = team_heal_text
 #   护盾不再是一个独立容器，而是 `effects` 容器里一条带 `value` 的条目，随
 #   `p_effects` 一起持久化（快照里存的就是**容器条目形状** `{stacks, value, expire}`，
 #   回填时直接进 `effects` —— **不搞翻译层**，避免第二本账）。
+# ★ R2（2026-09-28）：`defending` 从这份翻译表**删除** —— 防御姿态已进状态容器
+#   （`effects["defend"]` 窗口条目，随 `effects` 一起快照 / 回填，无翻译层）。
+#   原来那行 `"defending": "p_defending"` 让包侧把姿态**平铺**成裸 bool 存进
+#   `st["p_defending"]`，而引擎**根本不读它**（`grep defending` 引擎侧 = 0）⇒
+#   副本战斗里「上一击 defend 的人」恢复后**并没有防御姿态**，而门禁只看那份平铺账 ⇒ 假绿。
 _VIEW_ST_KEYS = {
     "effects": "p_effects", "food_effects": "p_food_effects",
-    "defending": "p_defending", "charging": "charging", "cooldown": "cooldown",
+    "charging": "charging", "cooldown": "cooldown",
 }
 
 _MODS = None
@@ -316,7 +321,7 @@ def _player_actor(snap: dict, st: dict, key: str) -> dict:
     # ★ 收口第 2 批（2026-09-28）：`shields` 键从合并名单删除（护盾已并进 `effects`
     #   容器条目，随 `effects` 一起进快照 `p_effects`、一起回填 —— 无翻译层）。
     _snap_src = {}
-    for _k in ("effects", "defending", "charging", "ct",
+    for _k in ("effects", "charging", "ct",
                "cooldown", "food_effects"):
         if snap.get(_k) is not None:
             _snap_src[_k] = snap[_k]
@@ -325,8 +330,6 @@ def _player_actor(snap: dict, st: dict, key: str) -> dict:
             _snap_src[_snap_k] = (st.get(_st_k) or {}).get(str(key))
     if _snap_src.get("effects") is not None:
         actor["effects"] = dict(_snap_src["effects"])
-    if _snap_src.get("defending") is not None:
-        actor["defending"] = bool(_snap_src["defending"])
     if _snap_src.get("charging") is not None:
         actor["charging"] = _snap_src["charging"]
     if _snap_src.get("cooldown") is not None:
@@ -584,7 +587,7 @@ def act(st: dict, group_id, qq_id, action: str, skill_name=None,
     _attach_instance_hooks(b, st, script_api=script_api, team_heal_text=team_heal_text)
     # 从重建后的 b.sides 定位行动者（不能从 st 旧 dict 找——from_state 是反序列化
     # 副本，引擎修改落在 b 内 actor，若用 st 旧 actor 则 to_state 落回时修改丢失：
-    # hp/ct/defending 全部不写回，副本战斗永远无进展）。PVP act 同口径。
+    # hp/ct/容器条目 全部不写回，副本战斗永远无进展）。PVP act 同口径。
     my = None
     try:
         for _a in b.sides_of("player"):
@@ -652,8 +655,8 @@ def _pkg_sync_player(snap: dict, actor: dict) -> None:
 def sync_views(st: dict, group_id, sync_player_fn=None, db_update_fn=None) -> None:
     """唯一视图/DB 同步点：saintess_engine actors → 玩法壳旧键 + 玩家 DB 血量。
 
-    - st["players"][k] 快照：hp/mp/max/effects/defending/charging/ct/...
-    - st per-player 键（p_buffs/p_hot/p_defending/...）同帧更新（老玩法壳读）
+    - st["players"][k] 快照：hp/mp/max/effects/charging/ct/...（防御姿态在 effects 里）
+    - st per-player 键（p_buffs/p_hot/...）同帧更新（老玩法壳读）
     - st["boss"]/st["enemy"]/st["enemies"]：存活敌视图（死亡由玩法壳 compact）
     - st["now"]
     - DB：存活玩家 hp/mp 写回（战斗内 DB 保持开本值每刻同步，保留现行为）
@@ -675,7 +678,7 @@ def sync_views(st: dict, group_id, sync_player_fn=None, db_update_fn=None) -> No
         if snap is None:
             continue
         if sync_player_fn is not None:
-            sync_player_fn(snap, _a)  # hp/mp/max/effects/defending/charging...
+            sync_player_fn(snap, _a)  # hp/mp/max/effects/charging...
         for _ak, _sk in _VIEW_ST_KEYS.items():
             if _a.get(_ak) is not None:
                 st.setdefault(_sk, {})[_k] = _a[_ak]

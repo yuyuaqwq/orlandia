@@ -119,6 +119,12 @@ async def pvp_start(cmds, att_qq, def_qq, att_player):
     return msgs
 
 
+def _defend_on(actor) -> bool:
+    """某 actor 是否处于防御姿态（读**容器窗口**，不认已死的裸 bool 键）。"""
+    ent = (actor.get("effects") or {}).get("defend")
+    return isinstance(ent, dict) and bool(ent)
+
+
 def pvp_state_of(qid):
     row = db.get_battle(GID, qid)
     return row["state"] if row else None
@@ -264,8 +270,10 @@ async def test_pvp_round_switch_and_defend():
     meta = (st or {}).get("meta") or {}
     e_actor = ((st or {}).get("sides") or {}).get("enemy", [{}])[0]
     check("defend 后 meta 轮到 attacker", meta.get("actor") == "attacker", f"meta={meta}")
-    check("防守方 defending=True 持久化", e_actor.get("defending") is True,
-          f"defending={e_actor.get('defending')}")
+    # ★ 状态容器收口：防御姿态落容器窗口 `effects["defend"]`（读口
+    #   `actors.window_open(actor, DEFEND_TAG)`；裸 bool 兄弟键引擎侧已删净 = 死键）。
+    check("防守方防御窗口开着且持久化", _defend_on(e_actor),
+          f"effects={e_actor.get('effects')}")
     # ③ 攻击者行动（攻击）→ 非 defend 行动消耗双方 defending（防守方减半结算后清 False）
     pl_att2 = db.get_player(GID, att_qq)
     msgs = await collect(cmds._pvp_act(FakeEvent(GID, att_qq), GID, att_qq, pl_att2,
@@ -273,9 +281,16 @@ async def test_pvp_round_switch_and_defend():
     st = pvp_state_of(att_qq)
     e_actor = ((st or {}).get("sides") or {}).get("enemy", [{}])[0]
     p_actor = ((st or {}).get("sides") or {}).get("player", [{}])[0]
-    check("攻击后防守方 defending 被消耗清 False", e_actor.get("defending") is False,
-          f"defending={e_actor.get('defending')}")
-    check("攻击者自身 defending 也清 False", p_actor.get("defending") is False)
+    # ★ 口径随状态容器改：窗口条目的 `until` = `own_act` ⇒ 它在**防守方自己下一次行动**
+    #   的通用消费段（`actors.consume_windows`）才被清，**对方出手不清**。
+    #   旧断言（「对方一出手就清 False」）量的是**已删净的裸 bool** 的行为 ——
+    #   那条命令层搬运（`combat_cmds._pvp_act` 里 `opp_actor["defending"] = False`）
+    #   引擎**根本不读** ⇒ 它是死代码，本批同批清掉（见提交消息）。
+    check("对方出手后防守方窗口**仍在**（until=own_act：本方下个行动才消费）",
+          _defend_on(e_actor) and (e_actor["effects"]["defend"].get("until") == "own_act"),
+          f"effects={e_actor.get('effects')}")
+    check("攻击者自身防御窗口也清掉", not _defend_on(p_actor),
+          f"effects={p_actor.get('effects')}")
 
     # 清理
     for q in (att_qq, def_qq):

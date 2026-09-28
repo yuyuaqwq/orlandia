@@ -102,10 +102,14 @@ def test_defend_action():
     p, m = mk_ctx()
     b = BT_NEW(btype="monster", sides={"player": [p], "enemy": [m]})
     logs, ended, who = human_land(b, "defend", None, p)
-    check("defend 置位 defending", p.get("defending") is True)
+    # ★ 状态容器收口：姿态不再用裸 bool，落在容器窗口 `effects["defend"]`
+    #   （引擎 `battle.py:653` 的 `open_window(actor, DEFEND_TAG)`；
+    #    读口 `landing.py:185` 的 `window_open(target, DEFEND_TAG)`）。
+    check("defend 置位容器窗口 effects[defend]",
+          A.window_open(p, A.DEFEND_TAG), p.get("effects"))
     check("defend 有日志", any("防御" in l or "姿态" in l for l in logs))
-    # 防御中受伤减半（landing 走 defending；等级压制后减半）
-    p["defending"] = True
+    # 防御中受伤减半（landing 走容器窗口；等级压制后减半）
+    A.open_window(p, A.DEFEND_TAG)
     p["hp"] = 100
     logs2 = []
     L.deal_damage(b, m, p, 40, logs2)

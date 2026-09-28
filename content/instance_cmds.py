@@ -126,6 +126,20 @@ from ._domainio import read_domain as _read_domain
 _WIRE = Wire()
 
 
+def _defend_window_on(st: dict, key: str) -> bool:
+    """该成员此刻是否处于防御姿态 —— 读**容器窗口** `effects["defend"]`。
+
+    ★ R2（2026-09-28）：真源 = 状态容器条目（与引擎 `actors.window_open(actor,
+    DEFEND_TAG)` 同一口径）。面板这一层取的是**玩家快照** `st["players"][key]["effects"]`
+    —— `flow/instance_battle.py` 每帧用 `sync_player_from_actor` 把 actor 的 `effects`
+    原样回写进快照（容器条目形状 `{stacks, until}`），所以窗口就在那儿；`p_effects`
+    只是老存档兜底（面板不必读它）。
+    """
+    snap = ((st or {}).get("players") or {}).get(str(key)) or {}
+    ent = (snap.get("effects") or {}).get("defend")
+    return isinstance(ent, dict) and bool(ent)
+
+
 def bind_host(**objs):
     """宿主薄壳 import 期注入（**兼容保留**；本文件读点已全部包内直取）。
 
@@ -408,7 +422,7 @@ class InstanceImpl:
             "reach": CLASSES.get(_p["class_name"], {}).get("reach",
                              CLASSES.get(_p["class_name"], {}).get("default_rank", 2)),
             "uid": "p_{}".format(new_key),
-            "defending": False,
+            # ★ R2：防御姿态在容器 `effects["defend"]`，不播种裸 bool
             "charging": None,
         }
         # 5. CTB 播种（docs/archive/RESEARCH_join_battle.md §四.2）：参考点 = min(存活敌方 ct, 存活玩家 ct)，
@@ -437,7 +451,7 @@ class InstanceImpl:
         st.setdefault("p_hot", {})[new_key] = {}
         st.setdefault("p_food_effects", {})[new_key] = []
         st.setdefault("p_food_affixes", {})[new_key] = []
-        st.setdefault("p_defending", {})[new_key] = False
+        # ★ R2：`p_defending` 这份平铺账不再维护（面板与结算都读容器窗口）
         st.setdefault("contribution", {})[new_key] = 0
         st.setdefault("threat", {})[new_key] = 0
         st.setdefault("player_hit", {})[new_key] = False
@@ -675,7 +689,7 @@ class InstanceImpl:
             st["p_buffs"][m] = {}
             st["p_hot"][m] = {}
             st["p_food_effects"][m] = []
-            st["p_defending"][m] = False
+            # R2: p_defending flat ledger no longer initialised (pose lives in container window)
         st["turn"] = 0
         st["turn_time"] = int(time.time())
         # 锁全队（层推进重新上锁）
@@ -1198,7 +1212,7 @@ class InstanceImpl:
             st["p_buffs"][m] = {}
             st["p_hot"][m] = {}
             st["p_food_effects"][m] = []
-            st["p_defending"][m] = False
+            # R2: p_defending flat ledger no longer initialised (pose lives in container window)
         st["turn"] = 0
         st["turn_time"] = int(time.time())
         st["threat"] = {str(m): 0 for m in IR.roster_of(st).members}  # 仇恨表（v49）
@@ -1334,8 +1348,7 @@ class InstanceImpl:
         copy["name"] = name
         copy["rank"] = rank
         copy["reach"] = reach
-        copy["defending"] = False
-        copy["charging"] = None
+        copy["charging"] = None   # R2: pose lives in effects[defend], no bare bool seed
         # 爪牙不属于首领/精英本体（身份/奖励判定走主怪）
         copy["is_boss"] = False
         copy["is_elite"] = False
@@ -1354,8 +1367,7 @@ class InstanceImpl:
         copy["name"] = name
         copy["rank"] = 1  # 爪牙恒前排挡刀
         copy["reach"] = 1
-        copy["defending"] = False
-        copy["charging"] = None
+        copy["charging"] = None   # R2: pose lives in effects[defend], no bare bool seed
         copy["is_boss"] = False
         copy["is_elite"] = False
         copy["is_minion"] = True
@@ -1365,7 +1377,7 @@ class InstanceImpl:
 
     def _instance_build_enemy_array(self, st: dict, boss: dict) -> list:
         """v2：由主怪 st["boss"] 构建敌方阵列 st["enemies"]。
-        Boss 主单位 = build_monster 产物（含 rank/reach/uid/buffs/stacks/defending/charging）；
+        Boss 主单位 = build_monster 产物（含 rank/reach/uid/buffs/stacks/charging；防御姿态在 `effects["defend"]`）；
         配置 minions 展开为 rank1 的爪牙（属性 ×0.5、名字"XX的{minion名}"、uid 唯一、is_boss/is_elite False）。
         精英/普通怪 → 单怪阵列 [boss]。缺省无 minions → 仅 Boss。
         v121 CTB：每个敌方单位补 ct = -spd（越小越先行动）。
@@ -1420,7 +1432,7 @@ class InstanceImpl:
         return [u for u in (st.get("enemies") or []) if u.get("hp", 0) > 0]
 
     def _instance_ensure_player_fields(self, st: dict) -> None:
-        """v2：确保每玩家快照含站位字段（rank/reach/uid/buffs/stacks/defending/charging），
+        """v2：确保每玩家快照含站位字段（rank/reach/uid/buffs/stacks/charging；姿态在 effects），
         老存档恢复时补缺。"""
         for key, snap in (st.get("players") or {}).items():
             cls = snap.get("class_name", "")
@@ -1428,7 +1440,7 @@ class InstanceImpl:
             snap.setdefault("rank", cinfo.get("default_rank", 2))
             snap.setdefault("reach", cinfo.get("reach", cinfo.get("default_rank", 2)))
             snap.setdefault("uid", "p_{}".format(key))
-            snap.setdefault("defending", False)
+            # ★ R2：不再播种 `defending`（防御姿态在 `effects["defend"]` 容器条目里）
             snap.setdefault("charging", None)
             # v121 CTB：玩家快照 ct 缺省 -spd（老存档恢复时兜底；越小越先行动）
             snap.setdefault("ct", -float(snap.get("spd", 0) or 0))
@@ -1664,7 +1676,11 @@ class InstanceImpl:
             mark = "✅" if alive else "💀"
             line = f"{mark} {pname}：❤️ {snap.get('hp', 0)}/{snap.get('max_hp', 1)} 💙 {snap.get('mp', 0)}/{snap.get('max_mp', 1)}"
             # 防御姿态标记（下一敌方行动减伤）
-            if st.get("p_defending", {}).get(k):
+            # ★ R2（2026-09-28）：真源改读**容器窗口** `effects["defend"]`
+            #   （`p_effects` 随 `effects` 一起进快照，见 `flow/instance_battle.py`）。
+            #   原来读 `st["p_defending"][k]` —— 那份平铺账引擎**根本不读**，它
+            #   与真实机制**各走各的** ⇒ 面板显示的「防御中」可能与结算不同步（假绿）。
+            if _defend_window_on(st, k):
                 line += _T.static("instance.面板_站位_防御")
             lines.append(line)
             # v110 P0（#119 宠物不动）：各成员宠物战斗可用性提示（饿肚子/Lv 不足），
@@ -2051,7 +2067,7 @@ class InstanceImpl:
             "p_buffs": {m: {} for m in _members},
             "p_hot": {m: {} for m in _members},
             "p_food_effects": {m: [] for m in _members},
-            "p_defending": {m: False for m in _members},
+            # R2: p_defending flat ledger no longer initialised
             # v181.M-R3：旧 mech_stacks/resources 容器为死字段（战斗资源在
             # saintess_engine actor.effects 叠层）——新开本不再初始化
             "dot_pending": True,             # δ副本层：dot 结算闸门（首行动者结算）
@@ -2346,7 +2362,7 @@ class InstanceImpl:
                 "reach": CLASSES.get(p["class_name"], {}).get("reach",
                                  CLASSES.get(p["class_name"], {}).get("default_rank", 2)),
                 "uid": "p_{}".format(str(m)),
-                "defending": False,
+                # ★ R2：防御姿态在容器 `effects["defend"]`，不播种裸 bool
                 "charging": None,
             }
         # v167.3 副本带宠物（鱼鱼拍板：野外/副本完全同一套逻辑）：每名成员按 DB 宠物挂载，

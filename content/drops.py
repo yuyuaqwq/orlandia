@@ -508,7 +508,8 @@ def build_monster(monster_def: tuple, map_obj: dict, lv_jitter: int = 0):
         "role": role,
         "rank": rank,             # v27b 站位层（caster/healer/boss → 2，其余 → 1）
         "reach": reach,           # v27b 攻击范围（同 rank）
-        "defending": False,       # v27b 本刻防御
+        # ★ R2（2026-09-28）：`defending`（v27b 本刻防御）**删** —— 引擎侧该裸 bool
+        #   兄弟键已删净，防御姿态只住在容器窗口 `effects["defend"]` 里。
         "charging": None,         # v27b 蓄力状态
         "hp": stats["hp"],
         "max_hp": stats["hp"],
@@ -578,7 +579,7 @@ def _scale_monster(m: dict, mult: float, uid: str, name: str, rank: int, reach: 
     copy["name"] = name
     copy["rank"] = rank
     copy["reach"] = reach
-    copy["defending"] = False
+    # ★ R2：不再平铺 `defending`（引擎不读它；姿态在 `effects["defend"]` 容器条目）
     copy["charging"] = None
     # 爪牙/幼崽不属于首领/精英本体（身份/奖励判定走主怪）
     copy["is_boss"] = False
@@ -591,7 +592,7 @@ def build_monster_group(monster: dict, map_obj: dict, player: dict = None,
     """将单只怪物构建为敌方阵列（v27b §8.1）。
 
     参数:
-      monster : build_monster 产出的单怪 dict（含 rank/reach/uid/buffs/stacks/defending/charging）
+      monster : build_monster 产出的单怪 dict（含 rank/reach/uid/buffs/stacks/charging；防御姿态在 `effects["defend"]`）
       map_obj : 地图对象（透传，仅用于产物一致）
       player  : 玩家 dict（透传，预留；当前不参与派生）
       double  : 仅对普通怪生效的分支开关——True 生成"主怪 + 幼崽"双只，False 单只。

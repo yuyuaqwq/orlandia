@@ -194,7 +194,7 @@ def build_tower_guard(floor: int, build_monster) -> dict:
         guard = {
             "id": f"tower_{floor}", "uid": f"e_tower_{floor}", "name": name, "lv": lv,
             "role": role, "rank": 1, "reach": 1,
-            "defending": False, "charging": None,
+            "charging": None,        # ★ R2：防御姿态在容器 `effects["defend"]`，不播种裸 bool
             "hp": 600, "max_hp": 600, "atk": 60, "def": 30, "matk": 30, "mdef": 30,
             "spd": 12, "exp": 0, "gold": 0, "skills": [], "drops": [],
             "map": "修炼塔", "map_area": "tower", "is_boss": False, "is_elite": False,

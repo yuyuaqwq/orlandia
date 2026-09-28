@@ -198,7 +198,10 @@ def player_to_actor(player: dict) -> dict:
     # poi_buff 已由 V6 翻译进 effects 面板快照条目，不再透传冗余 actor 字段）
     # ★ 收口第 2 批（2026-09-28）：`shields` 独立容器键删除（引擎已删该容器；
     #   护盾现住在 `effects` 容器里，作为一条带 `value` 的条目随 `effects` 一起透传）。
-    for k in ("cooldown", "charging", "defending",
+    # ★ R2（2026-09-28）：`defending` 从透传名单**删除** —— 防御姿态是容器窗口条目
+    #   （`effects["defend"]`），随 `effects` 一起透传；裸 bool 键引擎侧已删净
+    #   （`grep defending` 引擎侧 = 0）⇒ 透传它只是**平铺一份引擎不读的第二本账**。
+    for k in ("cooldown", "charging",
               "ct"):
         if player.get(k) is not None:
             stats_kw[k] = player[k]
@@ -246,7 +249,7 @@ def monster_to_actor(mon: dict, idx: int = 0) -> dict:
     # 同构状态键透传（V 系列：effects/cooldown；旧 buffs/debuffs/hot/state 废弃剔除）
     # ★ 收口第 2 批（2026-09-28）：`shields` 键删除（护盾已并进 `effects` 容器条目）。
     for k in ("cooldown", "charging",
-              "defending", "ct"):
+              "ct"):
         if mon.get(k) is not None:
             stats_kw[k] = mon[k]
     actor = make_actor(
@@ -459,7 +462,8 @@ def _seed_battle_keys(player: dict) -> dict:
         #   三个键从播种表删除 —— 引擎第 2 批已删 `shields` 独立容器与 `reduce_left`
         #   影子字段（后者是容器 `expire` 的第二本账）。护盾改由容器写口落进
         #   `effects`（一条带 `value` 的条目，`absorb: true` 声明决定是否吸收）。
-        "poi_buff": None, "charging": None, "defending": False,
+        "poi_buff": None, "charging": None,
+        # ★ R2：`defending` 不播种（姿态走容器窗口 `effects["defend"]`，引擎自己开/读/消费）
     }
     for _k, _ctor in _seeds.items():
         if _k not in player or player[_k] is None:
@@ -484,12 +488,12 @@ _BACK_SYNC_SCALARS = (
 )
 
 # 战斗可变状态键（actor → player dict 同构回写；V 系列：效果状态在 effects，
-# cooldown 独立容器，defending/charging/ct 行动状态——战斗内由引擎维护
+# cooldown 独立容器，charging/ct 行动状态——战斗内由引擎维护（防御姿态在 effects 容器里）
 # 在 actor 上，战斗结束/展示前回写 player 保证命令层读得到）。
 # ★ 收口第 2 批（2026-09-28）：`shields`（独立容器已删，护盾随 `effects` 一起回写）
 #   与 `reduce_all_left` / `reduce_left`（影子账已删）三个键从回写名单移除。
 _BACK_SYNC_BAGS = (
-    "effects", "cooldown", "charging", "defending",
+    "effects", "cooldown", "charging",
     "ct", "poi_buff",
     # 旧玩家 dict 兼容键（职业层可能在 player 上读，见 _PLAYER_PASSTHROUGH）
     "resources", "stacks", "eff", "food_effects", "buff_hits",

@@ -21,6 +21,7 @@ from _engine_harness import boot as _eng_cfg; _eng_cfg()
 from ext_combat import Battle as B2, make_actor  # noqa: E402
 from ext_combat.battle import landing as L  # noqa: E402
 from ext_combat.battle import actions as A  # noqa: E402
+from ext_combat.battle import actors as AC  # noqa: E402  状态容器窗口读口
 from ext_combat.battle.actors import ActCtx  # noqa: E402
 
 PASS = 0
@@ -40,8 +41,11 @@ def mk_player(hp=5000):
                    atk=100, matk=80, spd=15, crit=0.0,
                    equipment={}, skills=[], learned_skills=[],
                    race=None, evolve_path=0, class_tier=0, attributes={},
-                   defending=True,  # 防御姿态
                    **{"def": 40, "mdef": 30})
+    # ★ 状态容器收口：防御姿态不再用裸 bool，改开容器窗口 `effects["defend"]`
+    #   （引擎写口 `battle.py:653` `open_window(actor, DEFEND_TAG)`；
+    #    读口 `landing.py:185` `window_open(target, DEFEND_TAG)`）。
+    AC.open_window(p, AC.DEFEND_TAG)
     return p
 
 
@@ -87,7 +91,9 @@ def test_skill_pipeline_passes():
     lost_def = 5000 - pd["hp"]
     # 非防御玩家（对照：不吃 defend_reduce，全伤 ~240-360）
     pn = mk_player()
-    pn["defending"] = False
+    # 对照组 = **没有**防御窗口（引擎没有 close_windows；消费口是 `consume_windows`，
+    # 这里只要「这一帧没开窗口」⇒ 直接摘掉那一条，同「非防御玩家」口径）。
+    pn.setdefault("effects", {}).pop(AC.DEFEND_TAG, None)
     mn = mk_monster(atk=200, matk=300)
     bn = B2(btype="monster", sides={"player": [pn], "enemy": [mn]})
     A.do_skill(bn, ActCtx(caster=mn, action="skill", skill_name="风暴之眼·风眼",

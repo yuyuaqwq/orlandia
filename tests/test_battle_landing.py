@@ -32,6 +32,7 @@ from ext_combat import Battle as BT_NEW, make_actor  # noqa: E402
 from saintess_engine import config as _b2config  # noqa: E402
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # noqa: E402
 from ext_combat.battle import landing as L                        # noqa: E402
+from ext_combat.battle import actors as A                         # noqa: E402  状态容器读口
 
 PASS = 0
 FAIL = 0
@@ -129,7 +130,9 @@ def test_damage_defending():
     b = BT_NEW(btype="monster", sides={"player": [], "enemy": []})
     src = mk_actor("p", "打手", "player", hp=500)
     tgt = mk_actor("e", "防御中", "enemy", hp=100)
-    tgt["defending"] = True
+    # ★ 状态容器收口：姿态落容器窗口 `effects["defend"]`（读口 `landing.py` 的
+    #   `window_open(target, DEFEND_TAG)`；裸 bool 兄弟字段已在引擎侧删净）。
+    A.open_window(tgt, A.DEFEND_TAG)
     logs = []
     real = L.deal_damage(b, src, tgt, 60, logs)
     check("defending 60 → 30", real == 30, f"real={real} hp={tgt['hp']}")
