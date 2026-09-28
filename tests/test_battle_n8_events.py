@@ -221,7 +221,7 @@ def test_on_taken_self_shield():
     do_attack(b, p, m)
     # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器条目（到期间读 `expire`，
     #   旧容器的 `expire_at` 已随独立容器一起删）。
-    _sh = sh_of(m, "buff")
+    _sh = sh_of(m, "shield")
     check("受击触发 → 护盾 50（容器条目）", int(_sh.get("value", 0)) == 50,
           f"effects={m.get('effects')}")
     check("★ 盾 stacks=1", int(_sh.get("stacks", 0)) == 1, str(_sh))
@@ -234,21 +234,26 @@ def test_on_taken_self_shield():
     check("★ 无 halve 死字段（实测引擎全仓只写不读）", "halve" not in _sh, str(_sh))
     check("★ on_taken 触发的盾走容器写口（不建独立容器 shields）", "shields" not in m,
           str(sorted(m)))
-    # ★ 实测发现（2026-09-28 收口第2批，**登记为发现、不当场改产品**）：
-    #   `act_shield` 的 key 缺省是 `"buff"`，而 `content/rules/effect_rules.json` 的
-    #   21 条 `absorb: true` 声明里**没有** `buff` ⇒ 这条容器条目**不会被承伤路径吸收**。
-    #   旧形状下这个键写在独立容器 `shields` 里、**是**吸收的（landing 无条件遍历），
-    #   ⇒ 收口把这条 on_taken 路径的行为改掉了。此处断的是**实测形状**（不断言「会吸收」），
-    #   由本车道上报给主线裁决：要么给 `buff` 补 absorb 声明，要么把调用方 key 改掉。
+    # ★ R4-2b（2026-09-28）实测更正：上一版此处记的是「`buff` 未声明 absorb ⇒
+    #   on_taken 触发的盾不会被承伤路径吸收」，并上报给主线裁决。逐字复刻后查明那是
+    #   **夹具假象**，不是产品缺陷：
+    #     · 本 case 的触发器不带 key，但引擎 `resolve_actions("shield")` 会补
+    #       `{"action":"shield","key":"shield"}` ⇒ 护盾实际落在 `shield`，
+    #       而 `shield` 在 `effect_rules.json` 的 21 条 `absorb: true` 声明里；
+    #     · 原判据读的是 `buff`（收口前的键）⇒ 读出来恒 `{}` ⇒ 误判成「盾没吸」。
+    #   ⇒ 产品侧无需改动（7 个真实调用点 gameplay/we_procs/equip/item_use/game_config
+    #     全部显式传 key，已逐处 grep 核过）。下面几条改为断**吸收真的发生**，
+    #   即判据只加强、不削弱。
     _hp0 = m["hp"]
     #   `no_dodge=True`：闪避 roll 在吸收**之前**，躲开就整笔早返回、掉血不是 20
-    #   （本条要断的正是「没吸收 ⇒ 血照掉」，闪避会把它变成断另一件事）
-    L.deal_damage(b, p, m, 20, [], dmg_kind="true", no_dodge=True)
-    check("★ 实测：`buff` 未声明 absorb ⇒ 承伤 20 掉血 20（盾没吸）", m["hp"] == _hp0 - 20,
+    #   （本条要断的正是「盾吸了 ⇒ 掉血被顶掉」，闪避会把它变成断另一件事）
+    L.deal_damage(b, p, p and m, 20, [], dmg_kind="true", no_dodge=True)
+    check("★ 承伤 20 被盾吸收（血没掉）", m["hp"] == _hp0,
           f"{_hp0}→{m['hp']}")
-    check("★ 实测：同一次受击又叠了一条同键盾（value 50→100）", sh_value_of(m, "buff") == 100,
+    # ★ 这次受击本身又触发一次 on_taken ⇒ 盾按既有语义再叠 30（50→80）
+    check("★ 同一次受击又叠了一条同键盾（50→80）", sh_value_of(m, "shield") == 80,
           f"effects={m.get('effects')}")
-    check("★ 实测：`buff` 不在 absorb 族里（shield_names 为空）", shield_names(m) == [],
+    check("★ `shield` 在 absorb 族里（承伤路径认它）", shield_names(m) == ["shield"],
           f"absorb_names={shield_names(m)}")
 
 

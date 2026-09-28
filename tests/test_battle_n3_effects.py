@@ -219,7 +219,7 @@ def test_buff_effect_handler():
                      [{"type": "shield_self", "mech_val": 300, "info": {"effect_val": 0}}], logs)
     # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器里一条带 value 的条目
     #   （旧独立容器 `caster["shields"]` 已随引擎删除 ⇒ 原断言恒空）。
-    check("shield_self 300（容器条目）", sh_value_of(caster, "buff") == 300,
+    check("shield_self 300（容器条目）", sh_value_of(caster, "shield_self") == 300,
           f"effects={caster.get('effects')}")
     check("★ shield_self 走容器写口（不建独立容器 shields）", "shields" not in caster,
           str(sorted(caster)))
@@ -342,7 +342,7 @@ def test_n72_more_branches():
                      [{"type": "shield_self", "value": 100, "turns": 3}], logs)
     FX.apply_effects(b, caster, caster,
                      [{"type": "shield_self", "value": 50, "turns": 5}], logs)
-    _sh = sh_of(caster, "buff")
+    _sh = sh_of(caster, "shield_self")
     check("同源叠厚 value=150（容器条目）", int(_sh.get("value", 0)) == 150, f"sh={_sh}")
     check("expire 取 max≈5（容器 `expire`，非旧 `expire_at`）",
           abs(float(_sh.get("expire", 0)) - 5.0) < 1e-9, f"exp={_sh.get('expire')}")
@@ -350,8 +350,8 @@ def test_n72_more_branches():
     # 缺省盾值：value=0 且无 pct → max_hp×20%
     clear_shields(caster)
     FX.apply_effects(b, caster, caster, [{"type": "shield_self", "turns": 3}], logs)
-    check("缺省盾 max_hp×20% = 200（容器条目）", sh_value_of(caster, "buff") == 200,
-          f"sh={sh_of(caster, 'buff')}")
+    check("缺省盾 max_hp×20% = 200（容器条目）", sh_value_of(caster, "shield_self") == 200,
+          f"sh={sh_of(caster, 'shield_self')}")
 
 
 def test_on_hit_n73():

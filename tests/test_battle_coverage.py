@@ -295,7 +295,7 @@ def test_effects_branches():
     # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器里一条带 value 的条目
     #   （旧独立容器 `p["shields"]` 已随引擎删除，判据必须断新形状；且 `halve`
     #   死字段删除 —— 实测引擎只写不读，删它不改行为）。
-    check("shield 动词直通写 caster（容器条目）", sh_value_of(p, "buff") == 30,
+    check("shield 动词直通写 caster（容器条目）", sh_value_of(p, "shield") == 30,
           f"p.effects={p.get('effects')}")
     check("shield 走容器写口（不再建独立容器 shields）", "shields" not in p,
           str(sorted(p)))
@@ -443,8 +443,8 @@ def test_more_branches():
     FX3.apply_effects(b6, m6, p6, [{"type": "shield", "pct": 0.5}], logs6)
     expect_sh = int(m6["max_hp"] * 0.5)
     # ★ 收口第 2 批（2026-09-28）：读容器条目（`sh_of`）而非已删的独立容器 `shields`。
-    check("shield pct 0.5（容器条目）", sh_value_of(m6, "buff") == expect_sh,
-          f"sh={sh_of(m6, 'buff')} expect={expect_sh}")
+    check("shield pct 0.5（容器条目）", sh_value_of(m6, "shield") == expect_sh,
+          f"sh={sh_of(m6, 'shield')} expect={expect_sh}")
     check("★ shield pct 分支同样不建独立容器 shields", "shields" not in m6,
           str(sorted(m6)))
     # float 值 buff 折算（spd_down 快照形态：{stat: spd, op: reduce, mult: 0.5}）
