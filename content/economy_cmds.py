@@ -1446,10 +1446,6 @@ class EconomyImpl(CommandBase):
             daily_prof_bump=self._daily_prof_bump,
         )
 
-    def _fishing_surprise(self, group_id, qq_id, player, fish, force_legend=False):
-        """v181.P4-7：转发 services.profession.fishing_surprise_fn"""
-        return _prof_svc.fishing_surprise_fn(group_id, qq_id, player, fish, force_legend)
-
     def _settle_gather(self, group_id, qq_id, st):
         """v181.P4-7：转发 services.profession.settle_gather（collect_any/tip/daily 注入）"""
         _ps = _h('_prof_svc')  # ← from ..services import profession as _ps

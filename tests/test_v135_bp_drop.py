@@ -135,10 +135,37 @@ src = inspect.getsource(_EcoImpl)
 #   `EconomyImpl`（同一对象）⇒ 源码面就是实现本体，断言与原意不变。
 # v168.2 鱼鱼拍板：惊喜不绑定宝箱——每次鱼获按品质判定惊喜（白0/绿2%/蓝5%/紫15%/橙30%），
 # 内容池=图纸30/装备25/符文20/宝石15/材料10；彩蛋收藏鱼必橙装。FISH_RARE_CHANCE 常量不再被垂钓消费。
-has_surprise_fn = "def _fishing_surprise" in src
 has_trigger_map = "_FISHING_SURPRISE_TRIGGER" in src
-check("垂钓惊喜层函数 _fishing_surprise 存在", has_surprise_fn)
 check("惊喜触发品质表存在", has_trigger_map)
+# ★ 审计 L5467（2026-09-28）：原来这条是 `"def _fishing_surprise" in src` —— **恒真断言**
+# （只验源码里有个同名子串，不验任何行为；实现早已从命令壳搬进
+# `content/profession.py::fishing_surprise_fn`，壳方法 `_fishing_surprise` 零调用点已成死方法并删除）。
+# 现换成**行为断言**：彩蛋收藏鱼（force_legend=True）必给一档惊喜且**真的入包**，
+# 白档按 0% 触发率必须空手 —— 两个方向都验，覆盖原「惊喜层能跑」的原意。
+from content import profession as _PRF  # noqa: E402
+import random as _random  # noqa: E402
+# ★ 确定性纪律（本段 2026-09-28 补）：上面【2】已经 consume 了 4 万次 random，
+# 本段若吃「剩下的随机数」就是概率性断言（实测 5 跑 3 红）⇒ **钉死随机源**：
+# force_legend 路径**不掷触发随机**（那一整段 if 条件被跳过），只吃内容池档位 roll，
+# 固定种子的第一次取值落在图纸档 30% 内 ⇒ 每次都是同一条惊喜，断言可复现。
+_random.seed(20260928)
+_fish_orange = {"quality": "orange", "type": "鱼", "name": "测试橙鱼",
+                "desc": "d", "price": 1, "lv": 1}
+_inv_before = len(db.get_inventory("g1", "q1"))
+_sv_legend = _PRF.fishing_surprise_fn("g1", "q1", db.get_player("g1", "q1"),
+                                      _fish_orange, force_legend=True)
+_inv_after = db.get_inventory("g1", "q1")
+check("彩蛋收藏鱼必给惊喜档（force_legend 绕过 30% 触发率）", bool(_sv_legend))
+check("惊喜真的入包（背包 +1 件）", len(_inv_after) == _inv_before + 1,
+      f"before={_inv_before} after={len(_inv_after)}")
+check("惊喜档是橙装（收藏鱼必橙）",
+      any((it.get("data") or {}).get("quality") == "orange" for it in _inv_after),
+      f"qualities={[((it.get('data') or {}).get('quality')) for it in _inv_after]}")
+check("白档按 0% 触发率空手（不掷内容池）",
+      _PRF.fishing_surprise_fn("g1", "q1", db.get_player("g1", "q1"),
+                               dict(_fish_orange, quality="white"), False) == "")
+check("无 player 档安全返回空（不崩）",
+      _PRF.fishing_surprise_fn("g1", "q1", None, _fish_orange, True) == "")
 # 内容池边界（累积）：图纸30/装备55/符文75/宝石90/材料100（源码为类属性不带 self. 前缀）
 for name, key, val in [("图纸 30%", "_FISHING_SURPRISE_BP", 0.30),
                        ("装备 55%(累)", "_FISHING_SURPRISE_EQ", 0.55),
