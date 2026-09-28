@@ -81,6 +81,8 @@ def _script_api():
     return _ScriptApi()
 
 
+from content.instance_cmds import _defend_window_on  # noqa: E402  C6-3：防御窗口真源读口
+
 _IB = _IB_impl
 IB = _IB_impl   # 其余机械指向名（player_actor_of / next_actor_key / _players_of …）同名可直取
 
@@ -288,8 +290,26 @@ def test_2_turn_wait():
         msgs = _sync_run(inst, st, 70012, "attack")
         joined = "\n".join(msgs)
         check("非请求者 → 等待提示", "等待" in joined or "的刻" in joined, joined[:100])
-        check("未行动者未被自动防御（defending False）",
-              not st["p_defending"].get("70011"), str(st.get("p_defending")))
+        # ★ C6-3：原判据读 `st["p_defending"]` —— 那份平铺账 R2 已整体退休
+        #   （生产代码不再播种它），夹具里那一行字面量是**测试自造的**，
+        #   于是这条绿是假绿：验的是一个已不存在的机制。改读真源窗口
+        #   `players[key]["effects"]["defend"]`（= 引擎 actors.window_open 同口径）。
+        check("未行动者未被自动防御（容器窗口未开）",
+              not _defend_window_on(st, "70011"),
+              str(((st.get("players") or {}).get("70011") or {}).get("effects"))[:120])
+        # 反证：窗口打开时上面那条必须变红（否则「恒 False」也是绿）
+        _snap = (st["players"]["70011"].setdefault("effects", {}))
+        _keep = _snap.get("defend")
+        _snap["defend"] = {"stacks": 1, "until": "own_act"}
+        _probe = _defend_window_on(st, "70011")
+        if _keep is None:
+            _snap.pop("defend", None)
+        else:
+            _snap["defend"] = _keep
+        check("★ 反证：窗口打开后读口为真（证明上面那条不是恒 False）",
+              _probe is True, str(_probe))
+        check("★ 反证撤除后读口回到 False", not _defend_window_on(st, "70011"),
+              str(_defend_window_on(st, "70011")))
     finally:
         _restore_current_members(orig)
 
