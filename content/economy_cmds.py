@@ -5468,12 +5468,15 @@ class EconomyImpl(CommandBase):
             self._record_list_state(qq_id, f"背包 {category}" if category else "背包", 1, 1)
             return _T.static("bag.empty")
         page_items, pages, page = self._page_items(items, page, per_page=10)  # v127.2 背包每页 10 件
-        # 记录当前视图(分类+页码)，供『上一页/下一页』相对翻页
-        try:
-            db.set_event_state(f"bag_page_{group_id}_{qq_id}",
-                               json.dumps({"cat": category or "", "page": page}, ensure_ascii=False))
-        except Exception:
-            pass
+        # 记录当前视图(分类+页码)，供『上一页/下一页』相对翻页。
+        # ★ 审计 L5466：原为 `try: db.set_event_state(...) / except Exception: pass` ——
+        #   写库失败被静默吞掉，玩家「上一页/下一页」落在第 1 页且无任何提示（准则 3/4）。
+        #   同一文件另一个同族写点 `item_view_mode_cmd` 的 `db.set_event_state` **本就是裸调无 try**
+        #   ⇒ 单源化到「无静默」这一支：写不进去就让异常上抛，不再谎称翻页状态已记录。
+        #   写法与 :5580 的读口对称：读侧收窄成 (ValueError, TypeError) + 回落空 dict（存档容错，
+        #   那是**读**旧档的正当兜底），写侧无兜底。
+        db.set_event_state(f"bag_page_{group_id}_{qq_id}",
+                           json.dumps({"cat": category or "", "page": page}, ensure_ascii=False))
         # v123 通用列表状态：翻页快捷键 +/−/= 恢复本列表（保留上方旧相对翻页状态，两者并存）
         self._record_list_state(qq_id, f"背包 {category}" if category else "背包", page, pages)
         title = _T.text("bag.title", cat=category) if category else _T.static("bag.title_all")
