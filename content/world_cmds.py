@@ -3217,15 +3217,24 @@ def _render_talk_node(self, npc, dlg, node, ctx) -> list:
                or (o.get("action") or {}).get("side_take") or (o.get("action") or {}).get("side_take_one")
                or (o.get("action") or {}).get("quest_take")
                for o in opts):
-        try:
-            npc_id = ctx.get("npc_id") or ""
-            _auto_opt = {"text": _T.static("talk.auto_quest_opt"), "next": "__end__",
-                         "need": {"side_available": True}, "side_menu": {"after": "welcome"}}
-            _expanded = self._side_menu_expand(ctx.get("_gid") or "", ctx.get("_qid") or "", npc_id, _auto_opt)
-            if _expanded:
-                opts = list(opts) + _expanded
-        except Exception:
-            pass
+        # ★ afix2 收口：这一段原先是 `except Exception: pass`。它盖住的是
+        #   「自动补任务入口」——读支线清单一抛，整个补入口步骤被跳过 ⇒
+        #   **玩家在对话菜单里看不到『有委托可接』那个按钮**，NPC 名下的支线
+        #   静默不可见（回话照常、少一条选项、零报错）。
+        #   实测（真调本函数，替身只在 side_menu_expand 抛）：
+        #     读成功 -> ['1. 1. 随便聊聊', '2. 2. 【支线】测试委托']
+        #     读失败 -> ['1. 1. 随便聊聊']                ← 支线入口整条消失
+        #   `_side_menu_expand` → `_side_available_list` → services.quests_flow
+        #   全程**无外层兜底**（本函数与三个调用点 :2842/:3609/:3617 都没有）⇒
+        #   按铁律 fail-closed 上抛，交给派发层 `command/router.py` 真兜底。
+        #   刻意不保留「静默跳过」：这条按钮是 v173.3 鱼鱼拍板加的**新手可发现性**
+        #   功能（「新手不再找不到任务」），静默吞掉等于把该功能悄悄关掉。
+        npc_id = ctx.get("npc_id") or ""
+        _auto_opt = {"text": _T.static("talk.auto_quest_opt"), "next": "__end__",
+                     "need": {"side_available": True}, "side_menu": {"after": "welcome"}}
+        _expanded = self._side_menu_expand(ctx.get("_gid") or "", ctx.get("_qid") or "", npc_id, _auto_opt)
+        if _expanded:
+            opts = list(opts) + _expanded
     if opts:
         lines.append("━━━━━━━━━━━━")
         for i, opt in enumerate(opts, 1):
