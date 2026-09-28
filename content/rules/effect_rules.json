@@ -145,6 +145,9 @@
       "turns": 4
     }
   },
+  "boss_opening_shield": {
+    "absorb": true
+  },
   "burn": {
     "cap": 5,
     "on": "target",
@@ -365,9 +368,6 @@
       "op": "mul",
       "mult": 1.1
     }
-  },
-  "boss_opening_shield": {
-    "absorb": true
   },
   "food_shield": {
     "absorb": true
