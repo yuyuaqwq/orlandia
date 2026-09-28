@@ -76,8 +76,76 @@ if _missing:
           "git submodule update --init games/orlandia`。"])
 
 # ---- ② 交包根 ----
+# ★ 引擎面一致性取证与**归因提示**（2026-09-28 实测 · 同一件事第三次撞，台账 §3.5）
+#   包内测试吃哪份引擎由 `tests/_paths.py::find_engine_root()` 决定，`GWEN_FRAMEWORK_DIR`
+#   **优先**。但真正被调用的是**宿主跑器**，它在自己那份
+#   `base_env["GWEN_FRAMEWORK_DIR"] = <plugin>/framework`（部署面检出）上**强制覆盖** ——
+#   与它自己文档第 40 行写的「环境变量 `GWEN_FRAMEWORK_DIR` 覆盖」**矛盾**。
+#   ⇒ 在工作树上跑全量时，包测实际吃的是**部署面那份旧引擎**：本树 `Slots.load` 有
+#     `strict=`（存仓/取仓的 fail-closed 形状），部署面 `78da079` 没有 ⇒
+#     `home_storage_deposit_atomic` 抛 `TypeError: Slots.load() got an unexpected
+#     keyword argument 'strict'`，**5 支测试假红**（逐支单跑全绿）—— 长得极像真回归。
+#   ★ 本入口**不修**那个覆盖（跑器在宿主仓，不在本车道文件面），也**不因此中止**：
+#     中止 = 门禁彻底不可用 = 判据被削弱。所以只做两件**不削弱**的事：
+#     ① 开跑前把「本次红集可能是环境红」这条证据（两棵树的路径 + HEAD）打在最前面；
+#     ② 有红时在末尾**再打一遍**并附「逐支单跑复核」配方 ⇒ 归因不再靠人记得台账。
+GU_DECLARED = (os.environ.get("GWEN_FRAMEWORK_DIR") or "").strip()
+GU_INJECTED = os.path.join(os.path.dirname(os.path.dirname(RUNNER)), "framework")
+GU_MISMATCH = bool(
+    GU_DECLARED
+    and os.path.normcase(os.path.abspath(GU_DECLARED))
+    != os.path.normcase(os.path.abspath(GU_INJECTED))
+)
+
+
+def _gu_banner(where):
+    """引擎面不一致的取证横幅（开着这一态才打印；两棵树各给 HEAD）。"""
+    if not GU_MISMATCH:
+        return
+    import subprocess as _sp
+
+    def _head(root):
+        try:
+            return _sp.run(["git", "-C", root, "rev-parse", "--short", "HEAD"],
+                           capture_output=True, text=True,
+                           errors="replace").stdout.strip() or "?"
+        except Exception:  # noqa: BLE001 —— 取证失败不许影响主流程
+            return "?"
+
+    print("!" * 78, flush=True)
+    print("!! ★ 引擎面不一致（台账 §3.5 · 已第三次撞）—— **本次若有红，先按环境红归因**：",
+          flush=True)
+    print("!!   导出的引擎根   = %s  @ %s" % (GU_DECLARED, _head(GU_DECLARED)), flush=True)
+    print("!!   实际被注入的   = %s  @ %s" % (GU_INJECTED, _head(GU_INJECTED)),
+          flush=True)
+    print("!!   机制：宿主跑器 `base_env['GWEN_FRAMEWORK_DIR']` **强制覆盖**了导出值",
+          flush=True)
+    print("!!         （与它自己文档第 40 行「环境变量覆盖」矛盾）⇒ 包测 import 的是部署面引擎。",
+          flush=True)
+    print("!!   症状：引擎侧新形状缺失 ⇒ 几支测试假红，而**逐支单跑全绿**。", flush=True)
+    if where == "before":
+        print("!!   复核配方：把下面几支**逐支单跑**（同环境、单进程）⇒ 全绿即坐实环境红：",
+              flush=True)
+    print("!" * 78, flush=True)
+
+
+_gu_banner("before")
+
 os.environ["GWEN_PACKAGE_DIR"] = PKG_ROOT
 cmd = [sys.executable, RUNNER, "--pkg-only", "--pkg-root=" + PKG_ROOT] + sys.argv[1:]
 
 # ---- ③ 转调（同机同解释器；stdio 继承，输出逐行直通）----
-sys.exit(subprocess.call(cmd))
+_rc = subprocess.call(cmd)
+if _rc != 0 and GU_MISMATCH:
+    # ★ 有红且引擎面不一致 ⇒ 把归因**再钉一次**在末尾（人只会看最后一段输出）
+    print("!" * 78, flush=True)
+    print("!! ↑ 上面这份红集**可能有环境红**（引擎面不一致，见开头横幅）。", flush=True)
+    print("!! 归因判据：把红的那几支**逐支单跑**（逐文件独立进程）：", flush=True)
+    print("!!   unset SAINTESS_EXTENDS  GWEN_FRAMEWORK_DIR=<工作树>  GWEN_HOST_DIR=<宿主>", flush=True)
+    print("!!   <python> tests/<红的那支>.py    —— 全绿 ⇒ 环境红，**不是回归**。", flush=True)
+    print("!! 真回归的判据：单跑**仍然红**（真回归在单跑与全量里指向同一处）。", flush=True)
+    print("!! 根治（两条都不是本入口能替你做的）：① 同步部署面 `git -C <plugin>/framework", flush=True)
+    print("!!   fetch origin main && git -C <plugin>/framework checkout <引擎 sha>`（引擎须已 push）；", flush=True)
+    print("!!   ② 跑器侧改成尊重 `GWEN_FRAMEWORK_DIR`（一行归属改动，需宿主仓立项）。", flush=True)
+    print("!" * 78, flush=True)
+sys.exit(_rc)
