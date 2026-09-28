@@ -6209,11 +6209,16 @@ class EconomyImpl(CommandBase):
             logs, ended, _who = b.human_act("use_item", payload, _my)
             _BR.land_pending(b, logs, _my)  # T15 两段化：本次出手推进到落地（包内唯一落地口）
             # saintess_engine 行动后回写 player dict（副本 actor 改动不自动落回）
-            try:
-                sync_player_from_actor = _h('sync_player_from_actor')  # ← from ..services.battle_bridge import sync_player_from_actor
-                sync_player_from_actor(player, _my)
-            except Exception:
-                pass
+            # ★ 审计 L5463/L5464（2026-09-28）：回写走包内真源，不再经宿主注入面 + 吞异常。
+            #   真源 = `content/bridge.py::sync_player_from_actor`（B9-L8 批已从宿主
+            #   `game/services/battle_bridge.py` 逐字搬入包内，`facade.py:376` 也把它登记成
+            #   **包内真能力**）。旧写法 `_h('sync_player_from_actor')` 绕宿主注入面取件，
+            #   失败被 `except: pass` 吞掉，紧接着的
+            #   `db.update_player(hp=player["hp"], …)`
+            #   就把**没回写的旧值写进库** —— 道具回血/耗蓝静默丢失。
+            #   本文件 `:43` 已 `from . import bridge as _BR`，与三个兄弟点
+            #   （`combat_cmds.py:1165/3295/3330`）同口径。
+            _BR.sync_player_from_actor(player, _my)
             db.update_player(group_id, qq_id, hp=player["hp"], mp=player["mp"],
                              max_hp=player["max_hp"], max_mp=player["max_mp"])
             if ended:
