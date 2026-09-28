@@ -405,7 +405,13 @@ def prepare_player_for_battle(player: dict, panel_bonus: Optional[dict] = None,
                 import json as _json2
                 try:
                     _bless = _json2.loads(_raw)
-                    _pct = float((_bless or {}).get("pct", 5) or 5)
+                    # ★ 审计 L246 同族：回落只认 None。`pct` 是**百分数**（写点
+                    # event_templates.tpl_shrine_bless 的 `ctx.param("pct", 5)`），
+                    # 合法值 0 表示「本次战斗不额外加攻」⇒ 原 `or 5` 把它静默吞成 5%，
+                    # 让「零增益神龛」在实机上和「+5%」完全一样。黑盒实测确认：
+                    # 写入 {"pct": 0} 时消费端拿到的 mult 仍是 1.05。
+                    _p = (_bless or {}).get("pct")
+                    _pct = 5.0 if _p is None else float(_p)
                 except Exception:
                     _pct = 5.0
                 player.setdefault("_battle_boons", {})["echo_bless"] = {

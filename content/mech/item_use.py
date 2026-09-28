@@ -203,7 +203,12 @@ def translate(battle, actor: dict, payload: str,
         if "shield" in aids:
             try:
                 _sh = _food_params().get("shield") or {}
-                _sh_pct = float(_sh.get("pct", 0.10) or 0.10)
+                # ★ 审计 L246 同族：回落只认 None。合法值 0.0（圣餐面包 0% 盾 =
+                #   「吃下去不套盾」）会被原 `or 0.10` 静默吞成 10% ⇒ 数据面写 0
+                #   表达出的「无盾」在实机上照样吃到一个 10% 盾（food_effects.json
+                #   的 shield.pct 是声明式字段，0 与「键缺失」语义不同）。
+                _shp = _sh.get("pct")
+                _sh_pct = 0.10 if _shp is None else float(_shp)
                 _sh_turns = int(_sh.get("turns", 3) or 3)
                 from ext_combat.battle.effects import apply_effects
                 apply_effects(battle, actor, actor,

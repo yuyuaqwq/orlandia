@@ -296,7 +296,12 @@ def build_king_monster(king: dict, map_obj: dict, player: dict) -> dict:
     hp = max(1000, int(king.get("hp_base", 0) * mult))
     monster["hp"] = hp
     monster["max_hp"] = hp
-    atk_mult = float(king.get("atk_mult", 1.3) or 1.3)
+    # ★ 审计 L246 同族：回落只认 None。这是**纯乘法读点**（同 tower_progress 那处，
+    #   不是用乘区判布尔谓词的那族）—— 合法值 0.0 表示「野王本场零攻击」可被数据面
+    #   表达（wild_king.json 的 atk_mult 是声明式字段），原 `or 1.3` 把它静默吞成 1.3，
+    #   即「配置成 0 的野王在实机上照常打人」。黑盒实测：king.atk_mult=0.0 ⇒ 乘区 1.3。
+    _akm = king.get("atk_mult")
+    atk_mult = 1.3 if _akm is None else float(_akm)
     for ak in ("atk", "matk"):
         if isinstance(monster.get(ak), (int, float)):
             monster[ak] = int(monster[ak] * atk_mult)
