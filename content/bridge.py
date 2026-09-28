@@ -553,9 +553,18 @@ def attach_tlog(b, *, btype: str = "monster", player=None, enemies=None, seed=No
 # ============================================================
 
 def _text_table():
-    """包内文案表单例（延迟取件 = `content/texts.py::table()`；唯一真源在数据文件里）。"""
-    from . import texts as _T
-    return _T.table()
+    """战斗日志的**措辞表**单例（cue 那一族；延迟取件）。
+
+    ★ R1（2026-09-28）：战斗日志的措辞真源不再是「整张文案表」，而是
+      `content/battle_text.py` 那张**只含 62 条 cue** 的表 —— 引擎发表现事件、
+      由订阅表按 cue 名取句（`Battle(text=…)` 是这条路的入口）。
+      非战斗日志的文案仍走 `content/texts.py`（`T.text(...)` / `T.static(...)`）。
+
+    为什么不直接给整张文案表：cue 那条路走**必须命中**口（`render_required`），
+    给一张没有这些键的表 ⇒ 每条 cue 只出一行坏数据。这里给的是**点名到位**的那张。
+    """
+    from . import battle_text as _BT
+    return _BT.table()
 
 
 def make_battle(btype: str, **kwargs):

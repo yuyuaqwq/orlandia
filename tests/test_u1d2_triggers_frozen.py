@@ -1162,10 +1162,19 @@ _AUX_SHA_INTENT = {
     #     引擎侧 `host/runtime.py::Host._guard_text` 同期开读口）⇒ new = `341b08c6…`
     #     —— 仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关；玩家可见文案一字未变
     #     （判据 `tests/test_guard_text.py` 把改前那两句冻成基线）。
+    #   · 2026-09-28 **R1**（战斗日志 cue 内容半边 · C 车道 `c-r2`）：装配期多挂**两条** hook
+    #     （`cue_subs_fn` → 包内 `content/cues.py::cue_subs`（订阅表，装配期现读引擎
+    #     `CUE_NAMES`，不抄名单）；`text_table_fn` → 包内 `content/battle_text.py::battle_text`
+    #     （`Battle(...)` 没显式传 `text=` 时引擎要的那张表；**两个口都必需**，只装前一个
+    #     时包自己的入口 / 测试直接构造战斗 ⇒ 总线建成空表 ⇒ 每条 cue 仍只出坏数据行）。
+    #     战斗日志的 62 条措辞随之内迁进包内文案真源（`content/data/text_specs.json`，
+    #     逐字 = cue 迁移前引擎 `render_via` 模板）⇒ 玩家可见文案**一字未变**，
+    #     只是从「引擎侧兜底模板」搬到「内容侧文案表」。判据 = `tests/test_battle_cue_text.py`
+    #     （逐条渲染 62 条 + 缺格/多 cue 两条反证）。
     # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        'b2801ce1d5a8e499663d1b0d68dca15769864ed600453d7d86dc16b642dc9117',
+        '83aeb604a66dc362bf0c5e6aa3dfb70b269282832a25f7d9b40060360211dfec',
     ),
 }
 

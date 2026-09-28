@@ -23448,5 +23448,542 @@
     "value": "🗺️ 探索进度",
     "category": "探索进度",
     "desc": "搬自 content/cmds_explore.py:explore_progress（B 批 C 档）"
+  },
+  "battle.actions.effect_on": {
+    "value": "✨ {key} 生效！",
+    "params": [
+      "key"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.effect_on」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.enchant_followup": {
+    "value": "{tag} 附魔追击，追加 {dmg} 点伤害！",
+    "params": [
+      "dmg",
+      "tag"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.enchant_followup」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.lifesteal": {
+    "value": "🩸 吸血：回复 {heal} 点生命！",
+    "params": [
+      "heal"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.lifesteal」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.no_target": {
+    "value": "但没有可攻击的目标！",
+    "params": [],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.no_target」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.resource_lack": {
+    "value": "⚡ 核心资源不足：需要 {rv:g} {rk}，当前 {cur:g}！",
+    "params": [
+      "cur",
+      "rk",
+      "rv"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.resource_lack」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.skill_cast": {
+    "value": "你施展【{name}】！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.skill_cast」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.skill_cd": {
+    "value": "⏳ 【{name}】冷却中：还需 {left:.1f} 刻！",
+    "params": [
+      "left",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.skill_cd」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.skill_heal": {
+    "value": "你施展【{name}】，治愈了 {heal} 点生命！",
+    "params": [
+      "heal",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.skill_heal」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.actions.skill_heal_full": {
+    "value": "你施展【{name}】，圣光治愈了你 {heal} 点生命！",
+    "params": [
+      "heal",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.actions.skill_heal_full」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.core.controlled": {
+    "value": "💫 {name} 被【{tag}】控制，无法行动！",
+    "params": [
+      "name",
+      "tag"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.controlled」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.core.defend": {
+    "value": "🛡 {name} 摆出防御姿态，受到的伤害减半！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.defend」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.core.finished": {
+    "value": "战斗已结束！",
+    "params": [],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.finished」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.core.fled": {
+    "value": "💨 {name} 逃跑了！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.fled」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.core.no_actor": {
+    "value": "没有可行动的玩家！",
+    "params": [],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.no_actor」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.core.silenced": {
+    "value": "🤐 {name} 被沉默，无法使用技能！(只能普攻/防御)",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.silenced」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.core.unknown_action": {
+    "value": "未知行动类型：{action}",
+    "params": [
+      "action"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.core.unknown_action」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.effects.buff_boost": {
+    "value": "✦ {key} 提升（{op}×{mult}，持续 {turns} 刻）",
+    "params": [
+      "key",
+      "mult",
+      "op",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.buff_boost」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.cast_broken": {
+    "value": "💥 {name} 的出招被打断了！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.cast_broken」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.cleanse_none": {
+    "value": "✨ 净化（无减益可解）",
+    "params": [],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.cleanse_none」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.cleansed": {
+    "value": "✨ 净化了 {names}！",
+    "params": [
+      "names"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.cleansed」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.damaged": {
+    "value": "💥 {name} 受到 {dmg} 点伤害！",
+    "params": [
+      "dmg",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.damaged」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.healed": {
+    "value": "✨ {name} 恢复了 {heal} 点生命！",
+    "params": [
+      "heal",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.healed」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.immune_control": {
+    "value": "🛡️ {name} 免疫控制：{key} 未生效",
+    "params": [
+      "key",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.immune_control」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.immune_debuff": {
+    "value": "🚫 {name} 免疫【{key}】，异常未生效",
+    "params": [
+      "key",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.immune_debuff」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.on_hit_ready": {
+    "value": "✦ {key} 出手效果就绪（{turns} 刻内生效）",
+    "params": [
+      "key",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.on_hit_ready」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.shield_gain": {
+    "value": "🛡️ {name} 获得护盾 {value} 点！",
+    "params": [
+      "name",
+      "value"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.shield_gain」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.shield_pct": {
+    "value": "🛡️ {value:.0%}（持续 {turns} 刻）",
+    "params": [
+      "turns",
+      "value"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.shield_pct」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.stack_active": {
+    "value": "✦ {key}（持续 {turns} 刻）",
+    "params": [
+      "key",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.stack_active」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.stack_add": {
+    "value": "✦ {key} +{n}（当前 {amount}{cap}）",
+    "params": [
+      "amount",
+      "cap",
+      "key",
+      "n"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.stack_add」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue new）。"
+  },
+  "battle.effects.stack_applied": {
+    "value": "💫 {name} 被【{key}】{turns} 刻！",
+    "params": [
+      "key",
+      "name",
+      "turns"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.stack_applied」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.stack_set": {
+    "value": "✦ {key} 置为 {n}",
+    "params": [
+      "key",
+      "n"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.stack_set」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.stack_short": {
+    "value": "⚠️ {key} 不足（需 {amount}，当前 {cur}）",
+    "params": [
+      "amount",
+      "cur",
+      "key"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.stack_short」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.effects.stack_spent": {
+    "value": "✦ 消耗 {amount} 点 {key}（剩余 {left}）",
+    "params": [
+      "amount",
+      "key",
+      "left"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.effects.stack_spent」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.gauge.gain": {
+    "value": "✦ {bar} 积蓄 +{add}（{val}/{maxcap}）",
+    "params": [
+      "add",
+      "bar",
+      "maxcap",
+      "val"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.gauge.gain」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue new）。"
+  },
+  "battle.gauge.phase_preserve": {
+    "value": "💢【{name}】阶段更迭：{bar}积蓄保留 {pct}%（{before} → {after}）",
+    "params": [
+      "after",
+      "bar",
+      "before",
+      "name",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.gauge.phase_preserve」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.gauge.reflect": {
+    "value": "🪨 反震：反弹 {dmg} 点伤害！",
+    "params": [
+      "dmg"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.gauge.reflect」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.gauge.shaken": {
+    "value": "💢 【{name}】被{bar}震慑，无法行动！",
+    "params": [
+      "bar",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.gauge.shaken」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.gauge.trigger": {
+    "value": "✦ {bar} 积蓄触发（第 {count} 次）",
+    "params": [
+      "bar",
+      "count"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.gauge.trigger」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue new）。"
+  },
+  "battle.landing.block_reduce": {
+    "value": "🛡️ 格挡！减免 {red} 点伤害！",
+    "params": [
+      "red"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.block_reduce」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.blocked_amount": {
+    "value": "(格挡后 {dmg} 点伤害)",
+    "params": [
+      "dmg"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.blocked_amount」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.damage": {
+    "value": "💥 {name} 受到 {dmg} 点伤害！",
+    "params": [
+      "dmg",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.damage」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.death_guard": {
+    "value": "✨ {name} 濒死意志触发，保住了性命！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.death_guard」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.dodged": {
+    "value": "💨 {name} 闪避了攻击！",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.dodged」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.down": {
+    "value": "💥 {name} 受到 {dmg} 点伤害，倒下了！",
+    "params": [
+      "dmg",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.down」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.element_immune": {
+    "value": "💠 免疫！【{name}】免疫{element}伤害！",
+    "params": [
+      "element",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.element_immune」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.element_weak": {
+    "value": "⚡ 弱点！【{name}】弱{element}，受到额外伤害！",
+    "params": [
+      "element",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.element_weak」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.guard_cover": {
+    "value": "🛡️ 【{guard}】替【{target}】挡下了这一击！",
+    "params": [
+      "guard",
+      "target"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.guard_cover」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.heal_forbid": {
+    "value": "🩸 禁疗：治疗量 -{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.heal_forbid」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.heal_shared": {
+    "value": "✨ 治疗由【{name}】分担",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.heal_shared」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.heal_wound": {
+    "value": "🩸 重伤：治疗量 -{pct}%！",
+    "params": [
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.heal_wound」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.magic_resist": {
+    "value": "🛡️ 魔法抗性，减免 {red} 点魔法伤害！",
+    "params": [
+      "red"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.magic_resist」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.phys_immune": {
+    "value": "🪨 物理免伤，减免 {red} 点物理伤害！",
+    "params": [
+      "red"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.phys_immune」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.resist_reduce": {
+    "value": "🛡️ 元素抗性减免 {red} 点伤害！",
+    "params": [
+      "red"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.resist_reduce」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.shield_absorb": {
+    "value": "🛡️ {name} 的护盾吸收了 {absorb} 点伤害！",
+    "params": [
+      "absorb",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.shield_absorb」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.landing.taken_mult_skipped": {
+    "value": "🛡️ 承伤减免走声明通道 {pct}%：【{name}】的减伤乘区（{mult_pct}%）已跳过。",
+    "params": [
+      "mult_pct",
+      "name",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.taken_mult_skipped」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue new）。"
+  },
+  "battle.landing.taken_reduce": {
+    "value": "🛡️ 承伤减免 {pct}%：【{name}】少受了这部分伤害。",
+    "params": [
+      "name",
+      "pct"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.taken_reduce」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue new）。"
+  },
+  "battle.landing.woken": {
+    "value": "💥 目标被攻击惊醒！",
+    "params": [],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.landing.woken」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.schedule.actor_turn": {
+    "value": "—— {name} 行动 ——",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.schedule.actor_turn」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.schedule.cast_begin": {
+    "value": "🌀 {name} 开始出招…",
+    "params": [
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.schedule.cast_begin」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue recovered）。"
+  },
+  "battle.schedule.dot_tick": {
+    "value": "🔥 {name} 受 {key} {n} 层影响，损失 {dmg} 生命",
+    "params": [
+      "dmg",
+      "key",
+      "n",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.schedule.dot_tick」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.schedule.regen_hp": {
+    "value": "🍲 {name} 持续恢复，恢复 {heal} 点生命！",
+    "params": [
+      "heal",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.schedule.regen_hp」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
+  },
+  "battle.schedule.regen_mp": {
+    "value": "🍲 {name} 持续恢复，恢复 {heal} 点魔力！",
+    "params": [
+      "heal",
+      "name"
+    ],
+    "category": "战斗日志",
+    "desc": "★ R1（2026-09-28）表现事件（cue）「battle.schedule.regen_mp」的内容半边措辞 —— 单一真源 = 引擎 `ext_combat.battle.cues.CUE_NAMES`；槽位从引擎调用点 payload 现取。逐字 = 迁移前引擎 `render_via` 模板（cue hist:f8bf262^）。"
   }
 }

@@ -78,6 +78,8 @@ from . import panel as _panel                    # 职业面板**完整版**（D
 from . import bridge as _bridge                  # 开战构造半边（D3 bridge 批；宿主构造 actor 用）
 from . import skills as _skills                  # 技能查询链 + SKILL_UP（D3 skills 批；引擎 3 个 hook 的实现）
 from . import texts as T                         # 文案表读口（★ P-54：路由未命中回话；代码零中文，只传槽位）
+from . import cues as _cues                     # ★ R1：cue 订阅表（战斗日志措辞的内容半边）
+from . import battle_text as _bt               # ★ R1：战斗日志措辞表（cue 那一族的内容半边）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))     # <pkg>/content
 _DATA_DIR = os.path.join(_HERE, "data")
@@ -180,6 +182,19 @@ def install_engine() -> None:
         #   缺这一行 = 宿主那两个键没人配句 ⇒ 守卫一拦就抛（引擎不编兜底、也不把键投给玩家）。
         #   实现见本文件 `guard_text`；判据 `tests/test_guard_text.py`。
         guard_text_fn=guard_text,
+        # ★ R1（2026-09-28）内容半边：战斗日志的**措辞真源**（62 条 cue）。
+        #   引擎 B1–B6 把「结算里顺手拼玩家文案」改成**发表现事件**（cue），并把引擎自己的
+        #   兜底模板**删净**（B2 起）⇒ 缺这一行 = 每一行战斗日志只出
+        #   「⚠️ 这条表现没渲染出来（cue 装配/文案缺口，见诊断）」。
+        #   订阅表**不在这里写**、也不是手抄名单：`content/cues.py::cue_subs` 在装配期
+        #   现读引擎 `CUE_NAMES` 生成 ⇒ 引擎加一条点位，本包自动跟上（前提：文案真源补一格）。
+        cue_subs_fn=_cues.cue_subs,
+        # ★ R1 同批第二口：`text_table_fn` —— `Battle(...)` **没显式传 `text=`** 时
+        #   引擎向内容侧要那张表（`battle.py::_text_table_of_content`）。包自己的入口
+        #   （宿主驱动 / 冒烟脚本 / 测试）常直接 `Battle(...)` ⇒ 漏这一口 =
+        #   `self.text is None` ⇒ 总线建成一张**空表** ⇒ 每条 cue 只出坏数据行。
+        #   措辞仍是同一张表（`battle_text.table()`），不新增第二份真源。
+        text_table_fn=_bt.battle_text,
     )
     # EFFECT_RULES（85 条，单源在 params.py）/ EFFECT_ACTIONS（70 名词，单源在 gameplay.py，P 再导出）
     GC.load_game_rules(P)
@@ -189,6 +204,15 @@ def install_engine() -> None:
     #   形状在引擎 `saintess_engine.acts`；执行壳与 ctx 形状见 `content/mech/seq_plans.py`。
     from .mech.seq_plans import load_plans as _load_seq_plans
     _load_seq_plans()
+    # ★ R1：装完**回读一次** `cue_subs_fn` —— `config.mount` 对不认识的名字**静默丢弃**，
+    #   只在引擎树**真有 cue 形状**（`ext_combat.battle.cues` 导得进来）时才要求：
+    #   有形状却不认这个口（引擎 config 版本旧）⇒ 当场抛，别让玩家去看坏数据行。
+    if _cues.engine_has_cues():
+        for _hook in ("cue_subs_fn", "text_table_fn"):
+            if config.optional_hook(_hook) is None:
+                raise RuntimeError(
+                    "%s 没装配上：引擎认识 cue 形状，却不认这个口（引擎 config 版本旧？"
+                    "装上会每一行战斗日志都只出坏数据行）" % _hook)
     _MOUNTED = True
 
 
