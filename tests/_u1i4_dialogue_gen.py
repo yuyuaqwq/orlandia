@@ -576,6 +576,25 @@ def _write_frozen(gate_now: str, region: str) -> tuple:
     raise RuntimeError("门禁自哈希回填未收敛")
 
 
+def _region_comparable(region: str) -> str:
+    """抽出 region 里**生成器有权断言**的部分：抹掉两处**自指**字段。
+
+    ★ 为什么必须抹掉（2026-09-29 实测的真缺陷）：
+    `aux["gate_self"]` / `_GATE_SELF_SHA256` 的正确值取决于**region 外**的文本
+    （import 迁移、内容侧注释、`def check` 绑定）。历史上两次**有意**改动
+    （`d21703c` P0-1 换 `tests/_check.py` 绑定 · `b061af3` 13 个形状迁扩展包改 import）
+    都**有意识地重钉**过这两个值 —— 文件里还留着登记注释。
+    而生成器每次重跑都把它们算回「只有 base 才知道」的旧值
+    ⇒ 改前 `--check` 比 `spliced != gate_now`（含自指字段）⇒ **恒红，零信息量**：
+    它声称要抓的「安全网被动手」，与**合法**的有意重钉不可区分。
+    ⇒ 判据改为：只比 GENERATED 区块里**不自指**的内容（31 段冻结字面量 + `_PIN` +
+    `_E_KEYS` / `_C_KEYS` / `_SEGMENT_KEYS`）。**冻结字面量一个字都没放松**。
+    """
+    keep = [ln for ln in region.splitlines(True)
+            if '"gate_self"' not in ln and "_GATE_SELF_SHA256" not in ln]
+    return "".join(keep)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="U1-I8 门禁①生成器（30 段冻结 + 双 sha256）")
     ap.add_argument("--check", action="store_true", help="只自检 + 打印，不写任何文件")
@@ -624,14 +643,21 @@ def main(argv=None) -> int:
     spliced, self_sha = _write_frozen(gate_now, region)
 
     if args.check:
-        # 只读口径：连「按 base 切片重拼后是否与盘上一致」都核，但**不写**。
-        if spliced != gate_now:
-            print("[gen] ❌ --check：盘上门禁文件与 base 切片重拼结果不一致"
-                  "（安全网被动过 / 需重生成）")
-            print("[gen]    盘上自哈希 = %s / 重拼自哈希 = %s"
-                  % (_extract_quoted(gate_now, "_GATE_SELF_SHA256")[:16], self_sha[:16]))
+        # 只读口径：**不写任何文件**。比对 GENERATED 区块里**不自指**的部分
+        # （口径理由见 `_region_comparable` 的 docstring）。
+        now_cmp = _region_comparable(_region_text(gate_now))
+        new_cmp = _region_comparable(_region_text(spliced))
+        if now_cmp != new_cmp:
+            print("[gen] ❌ --check：盘上 GENERATED 区块与 base 切片重拼结果不一致"
+                  "（冻结字面量被动手 / 需重生成）")
+            import difflib
+            for ln in list(difflib.unified_diff(now_cmp.splitlines(), new_cmp.splitlines(),
+                                               "on_disk", "rebuilt", lineterm="", n=1))[:40]:
+                print("[gen]    %s" % ln)
             return 3
-        print("[gen] ✅ --check 全过（未写任何文件；盘上门禁与 base 切片逐字节一致）")
+        print("[gen] ✅ --check 全过（未写任何文件；盘上 GENERATED 区块与 base 切片逐字节一致）")
+        print("[gen]    自指字段不比（aux.gate_self / _GATE_SELF_SHA256 取决于 region 外文本，"
+              "生成器无权断言；本次实算 = %s）" % self_sha[:16])
         return 0
 
     if args.emit_live and not args.emit_frozen:
