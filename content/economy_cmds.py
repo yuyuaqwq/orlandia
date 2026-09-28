@@ -542,15 +542,25 @@ def _render_encyclopedia_equip(r):
 
 def _roster_gen_equip(r: dict):
     """按名册条目生成一件标准装备用于百科展示。rid 不在条目内 → 用名册名反查
-    EQUIP_ROSTER_BY_NAME（与掉落/商店生成同源）；失败返回 None（安全降级为无属性视图）。"""
-    try:
-        _rids = _cit.EQUIP_ROSTER_BY_NAME.get(r.get("name", "")) or [
-            _k for _k, _rr in _cit.EQUIP_ROSTER.items() if _rr.get("name") == r.get("name")]
-        if not _rids:
-            return None
-        return C.generate_roster_equip(_rids[0])
-    except Exception:
+    EQUIP_ROSTER_BY_NAME（与掉落/商店生成同源）。
+
+    ★ 口径（L4574 同族 · 审计 afix2 自查）：**只有「名册里没这一条」才返回 None**。
+      原来这里 `except Exception: return None` 把「生成抛错」也塌成同一个 None，
+      而两个调用点（`:4648` / `:4786`）都只有 `if _eq:` **没有 else** ⇒ 一次生成失败
+      就让百科装备卡静默少掉**属性 / 词条 / 专属**三段，只剩名字·部位·等级·品质，零报错。
+      现在生成侧抛错原样上抛（`from _e` 保住原因），由 `command/router.py` 的真兜底
+      接管 —— 玩家看到一句「操作失败」而不是一张骗人的残卡。
+      数据面现状：`EQUIP_ROSTER` 687 条按名反查悬空 **0** ⇒ 今天无玩家可见差异，属潜伏项。
+    """
+    _rids = _cit.EQUIP_ROSTER_BY_NAME.get(r.get("name", "")) or [
+        _k for _k, _rr in _cit.EQUIP_ROSTER.items() if _rr.get("name") == r.get("name")]
+    if not _rids:
         return None
+    try:
+        return C.generate_roster_equip(_rids[0])
+    except Exception as _e:                    # noqa: BLE001
+        raise RuntimeError(
+            "百科装备 %r 的标准装备生成失败：%s" % (r.get("name"), _e)) from _e
 
 
 def _render_blueprint(d, lines, equipped):
