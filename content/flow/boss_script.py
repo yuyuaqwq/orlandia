@@ -215,11 +215,7 @@ def _new_script_state() -> dict:
     return {
         "phase_count": 0,
         "round_no": 0,
-        "summon_cd": 0,
-        "summoned": [],
         "flags": {},
-        "chain_i": 0,
-        "chain_cd": 0,
     }
 
 
@@ -616,7 +612,6 @@ def _check_summon(st: dict, battle, actor: dict, cfg: dict, bs: dict,
     # 与日志「它挡在身前！」矛盾。
     battle.add_actor(m, "enemy", front=True)
     bs["summon_last"] = rn
-    bs.setdefault("summoned", []).append(m["uid"])
     logs.append(_T.text("boss.summon", boss=actor.get('name',''), minion=m['name']))
     # Boss 攻击联动（旧 mon_atk_up 2 刻 = atk×1.30，线上行为——策划案文字 +20% 为概数）
     try:
