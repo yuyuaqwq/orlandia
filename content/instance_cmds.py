@@ -450,7 +450,6 @@ class InstanceImpl:
         st.setdefault("p_buffs", {})[new_key] = {}
         st.setdefault("p_hot", {})[new_key] = {}
         st.setdefault("p_food_effects", {})[new_key] = []
-        st.setdefault("p_food_affixes", {})[new_key] = []
         # ★ R2：`p_defending` 这份平铺账不再维护（面板与结算都读容器窗口）
         st.setdefault("contribution", {})[new_key] = 0
         st.setdefault("threat", {})[new_key] = 0
