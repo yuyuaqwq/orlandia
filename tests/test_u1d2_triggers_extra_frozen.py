@@ -160,7 +160,7 @@ _PIN = {
         'content/mech/class_mech.py::class_guard_stance_enter': '16aee4fad695f931ee04a8658615deb4a819a88055382b8f71becb552ffc3d49',
         'content/mech/class_mech.py::apply_class_channels': '8955439388152e79adb8096643735347f410748c756dca63199716f7e15080b6',
         'content/mech/class_mech.py::apply_class_passives': '051d6d5c84382fdeca35718d4611d3d7181287b7b8d9c7d0822f7d97223883db',
-        'content/mech/class_mech.py::apply_class_mech': '8f17bdd67ab2424856a09617181359289a6e36a065e2a7ddb8704b1456723298',
+        'content/mech/class_mech.py::apply_class_mech': '4269b88c765c6356ad57240a2ac102fee40f07a76d0add7ceeedd9ecc646b4d4',
     },
     'aux': {
         'class_mech_action::class_faith_load_tier': '7444f5dda57ac810e3a3a6f2b27cea678a3b7f59d1dc74846560ea9cdfdfb99a',
@@ -305,6 +305,17 @@ def _old_fn(relpath, symbol, *, register_noop=False):
     ns = dict(vars(mod))
     if register_noop:
         ns["register_action"] = _noop_register
+    # ★ 2026-09-28 审计 L5580：活模块的**第二份** `LAST_ERRORS`（+ `_note_error`）已删除
+    #   （收归 `content/apply.py` 单一真源 —— 那份有真读者 tests/test_apply_game_content.py
+    #   D4/D4b，本模块那份零读者且被 16 上限静默截断）。
+    #   本 exec 跑的是 `_FROZEN_TEXT` 里的**历史成品文本**，它 `apply_class_mech` 开头
+    #   有一句 `LAST_ERRORS.clear()` —— 那在它自己的年代是合法的、也是本门禁要比对的对象。
+    #   `ns = dict(vars(mod))` 取的是**活**模块命名空间，删除后该名字不存在 ⇒ NameError。
+    #   ⇒ 在 exec 命名空间里补回一个**历史语义**的记账面（只服务冻结文本，不代表活实现）。
+    #   这不是放宽判据：判据 ①（sha256 全等）仍要求冻结文本逐字不动，判据 ② 仍逐格比对行为。
+    ns.setdefault("LAST_ERRORS", [])
+    ns.setdefault("_MAX_ERRORS", 16)
+    ns.setdefault("_note_error", lambda name, exc: ns["LAST_ERRORS"].append((name, repr(exc))))
     text = _FROZEN_TEXT[_key(relpath, symbol)]
     tag = "<frozen:%s>" % _key(relpath, symbol)
     exec(compile(text, tag, "exec"), ns)                                     # noqa: S102

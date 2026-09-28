@@ -2186,26 +2186,32 @@ __all__ = [
 #          `content/rules/passive_proc.json`（D2 收口：不再转发 `..apply`，那份已随切片退役）
 #          `content/rules/passive_proc.json`，42 条）
 #   ② 去 `install()` 调用（真源 :2049 / :2273）：包版动作 **import 即注册**（`content/apply.py`
-#      顶部的 `from .mech import class_mech` 已完成注册），无需再 install；
-#      `apply_class_mech` 里 `install()` 的位置换成 `LAST_ERRORS.clear()`（「最近一次装配的
-#      失败步」语义，同 `content/apply.py:284`）。
+#      顶部的 `from .mech import class_mech` 已完成注册），无需再 install。
 #   ③ bar / cond 装配入口改包内模块，**缺件不静默**：真源
 #      `from .battle_bar_procs import apply_bar_procs` → `from .bar_procs import apply_bar_procs`
-#      （同 `.cond_procs`）；包内**没有**该函数时 try/except 记 `LAST_ERRORS`（照实记录，
-#      不静默、不伪造）；其余装配异常仍按真源「容错铁律」静默续走。
+#      （同 `.cond_procs`）；包内**没有**该函数时 **ImportError 直接上抛**（见下方
+#      「★ 审计 L5580」段：缺件 = 装配缺陷，由 `content/apply.py::_step` 的
+#      `LAST_ERRORS` 统一记账——单一真源，不在本模块再存第二份）；其余装配异常仍按
+#      真源「容错铁律」静默续走。
 #   ④ `_learned_proc` / `_learned_proc_param` / `_res_ge_ok` / `_has_effect_ok` / `_when_ok`
 #      已在本文件动作段逐字搬过（:108-215），本块不重复搬运。
 # ============================================================
 
-# 最近一次装配的失败步（排障用；不写 actor、不进存档）——`content/apply.py:76 LAST_ERRORS` 同款
-LAST_ERRORS: list = []
-_MAX_ERRORS = 16
-
-
-def _note_error(name: str, exc: BaseException) -> None:
-    """包侧新增（真源无，见本块头注 ③）：装配缺件记入 LAST_ERRORS，不静默。"""
-    if len(LAST_ERRORS) < _MAX_ERRORS:
-        LAST_ERRORS.append((name, repr(exc)))
+# ★ 审计 L5580（2026-09-28）：本文件原有**第二份** `LAST_ERRORS` + `_note_error`，
+# 已删除，理由三条（全部实测，非推断）：
+#   ① **零读者** —— AST 扫本文件，`LAST_ERRORS` 只有 1 个写点（模块级定义）与
+#      2 处 `.clear()`，**没有任何读取方**；宿主仓 + 引擎仓 + tests 全仓 grep 同样零读点。
+#      「排障用」是注释里的说法，代码里没人读它。
+#   ② **记账被上限静默截断** —— `_MAX_ERRORS = 16` 让第 17 条装配失败直接丢弃，
+#      而唯一的写入点只有 2 处（bar_procs / cond_procs 的 ImportError 分支），
+#      所以「超过 16 条」这条路径**实际不可达**，但承诺本身是假的（判据 2「不静默」）。
+#   ③ **与真源重复（判据 5）** —— `content/apply.py` 已有一份 `LAST_ERRORS`，
+#      且它有真读者（`content/apply.py::_step` 在每个装配步失败时记账，
+#      `tests/test_apply_game_content.py` D4/D4b 真读它）。
+# ⇒ 收口：不再在本模块存第二份。bar / cond 缺件时 `ImportError` **直接上抛**，
+#   由 `apply.py::_step` 统一捕获并记入**那一份** `LAST_ERRORS`
+#   （同一条信息、真读者、单一上限口径）。行为变化：包缺件时错误会出现在
+#   `apply.py` 的记账里而不是本模块的孤岛里——这正是「不静默」本来的意思。
 
 
 def _mech_cash_rules() -> dict:
@@ -2328,7 +2334,9 @@ def _passive_proc_rules() -> dict:
     ⚠️ **直读包内 JSON**（不经 `..apply`）：D2 收口后 `apply.py` 只保留「入口 + 顺序契约」，
     装配实现全在各族模块里。早前版本转发给 `..apply._passive_proc_rules`（D1 期产物）——
     那份被删后这里会**静默返回 {}**，症状 = 被动一条都不装配（实测：`taken_calc` 里只剩
-    EFFECT_RULES 派生的每核减伤，`core_full`/`core_reduce` 全丢，而 `LAST_ERRORS` 为空）。
+    EFFECT_RULES 派生的每核减伤，`core_full`/`core_reduce` 全丢）。
+    ★ L5580 后本模块已无 `LAST_ERRORS`，该症状**不再**表现为「本模块记账为空」——
+      它会一路静默到 `content/apply.py` 的装配链；真正的对拍口径是「被动触发器一条都没挂」。
     """
     try:
         import json as _json
@@ -2521,7 +2529,10 @@ def apply_class_mech(actor: dict) -> None:
     """
     if not actor:
         return
-    LAST_ERRORS.clear()
+    # ★ 审计 L5580：**在主 try 之前**做前置检查 —— 缺件（ImportError）必须真的
+    # 上抛到 `content/apply.py::_step` 那里被记账；放进主 try 会被尾部的
+    # `except Exception: pass` 吞掉（容错铁律），那就等于什么都没做。
+    _apply_bar_procs, _apply_cond_procs = _require_mech_ports()
     try:
         rules = _mech_cash_rules()
         if not rules:
@@ -2611,20 +2622,17 @@ def apply_class_mech(actor: dict) -> None:
             apply_class_passives(actor)
         except Exception:
             pass  # 被动装配异常不阻断开战（容错铁律）
-        # v181 破绽接线：挂敌身条注入装配（BAR_INJECT_FIELDS 声明表 → skill_hit 触发器）
+        # v181 破绽接线 / v181 cond 接线 —— ★ 审计 L5580 后**移到外层 blanket
+        # except 之外**（见本函数尾部「装配前置检查」段）：原先它们在本 try 内，
+        # 任何 ImportError 都被尾部的 `except Exception: pass` 吞掉 ⇒ 「记 LAST_ERRORS」
+        # 那层保护**从未真正生效**（首版把 except 改成 raise 同样被吞，等于没改）。
+        # 这里只留容错铁律：装配**执行**出错不阻断开战。
         try:
-            from .bar_procs import apply_bar_procs
-            apply_bar_procs(actor)
-        except ImportError as _e:
-            _note_error("bar_procs", _e)  # 包内缺件 → 不静默（见本块头注 ③）
+            _apply_bar_procs(actor)
         except Exception:
             pass  # 挂条装配异常不阻断开战（容错铁律）
-        # v181 cond 接线：技能条件倍率装配（info.cond → dmg_calc/heal_calc 乘区）
         try:
-            from .cond_procs import apply_cond_procs
-            apply_cond_procs(actor)
-        except ImportError as _e:
-            _note_error("cond_procs", _e)  # 包内缺件 → 不静默（见本块头注 ③）
+            _apply_cond_procs(actor)
         except Exception:
             pass  # 条件乘区装配异常不阻断开战（容错铁律）
         mechs = {info.get("mech") for _s, info in _learned_mech_skills(actor)}
@@ -2697,6 +2705,24 @@ def apply_class_mech(actor: dict) -> None:
                 _DECL.mount(actor, {"skill_hit": [cl]}, merge="append")
     except Exception:
         pass  # 技能机制装配异常不阻断开战（容错铁律）
+
+
+def _require_mech_ports() -> None:
+    """装配前置检查（★ 审计 L5580）：bar / cond 装配入口**缺件即 fail-closed 上抛**。
+
+    为什么要单独一个函数：这两个 import 原先在 `apply_class_mech` 的主 try 体内，
+    而那个 try 的 `except Exception: pass`（容错铁律）会把 ImportError 一并吞掉 ——
+    缺件的表现是「破绽条 / 条件乘区一条都不装配」，**没有任何报错**。
+    旧代码想在 except 里记 `LAST_ERRORS`，但那条路被外层 catch 抢先，**从未生效**。
+
+    现在把「能不能 import」这件事提到**任何 blanket catch 之外**：
+      · 缺件 ⇒ `ImportError` 上抛 ⇒ 由 `content/apply.py::_step` 统一记进那一份
+        `LAST_ERRORS`（唯一真源、有真读者 `tests/test_apply_game_content.py` D4/D4b）。
+      · 正常 ⇒ import 结果交给调用方用（函数内已 import 到闭包外，见下）。
+    """
+    from .bar_procs import apply_bar_procs
+    from .cond_procs import apply_cond_procs
+    return apply_bar_procs, apply_cond_procs
 
 
 __all__ += ["apply_class_channels", "apply_class_passives", "apply_class_mech"]
