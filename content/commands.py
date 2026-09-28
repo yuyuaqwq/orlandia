@@ -249,7 +249,14 @@ def load_declared_bindings() -> tuple:
     bound = []
     for key in sorted(table):
         entry = table[key]
-        if not isinstance(entry, dict) or not entry.get("bind"):
+        # 声明项形状由本包守：引擎 `load_table` 只验顶层是 dict，条目本身没人验。
+        # 畸形项（旧写法留下的裸 str / null / 漏了 patterns 的壳）**当场抛**，不静默少一条
+        # ——与下面 `CommandSpec.from_dict` / `bind_handler()` 的 import 期 fail-closed 同口径。
+        if not isinstance(entry, dict):
+            raise ValueError(
+                "指令声明 %s[%s]：声明项必须是对象，实为 %s"
+                % (os.path.basename(DECLARATION_PATH), key, type(entry).__name__))
+        if not entry.get("bind"):
             continue
         spec = CommandSpec.from_dict(dict(entry, key=key))
         fn = bind_handler(spec.bind, lead=_bind_lead,
