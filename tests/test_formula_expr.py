@@ -51,7 +51,16 @@ check("atk*0.8=80", approx(eval_expr("atk*0.8", vars_), 80))
 check("atk*0.8 + player_lv*5=220", approx(eval_expr("atk*0.8 + player_lv*5", vars_), 80 + 120))
 check("(atk*0.8 + player_lv*5) * (1 + skill_lv*0.1)=300", approx(eval_expr("(atk*0.8 + player_lv*5) * (1 + skill_lv*0.1)", vars_), 300))
 check("max_hp*0.05 + atk*0.3=55", approx(eval_expr("max_hp*0.05 + atk*0.3", vars_), 25 + 30))
-check("未知变量=0", approx(eval_expr("missing*2", vars_), 0))
+# ★ 2026-09-29（引擎审计 L1281 #3）本条**换口径**：原断言钉「未声明变量名静默取 0」，
+#   那正是被修掉的静默失效（拼错一个字母 ⇒ 整条公式算出一个看起来正常的错数，无报错）。
+#   改为钉**意图**（不是放宽）：变量名不在当前变量表 ⇒ 编译期抛 ExprError，现形在装配期。
+try:
+    eval_expr("missing*2", vars_)
+    check("★ 未声明变量名 ⇒ 抛（不再静默取 0）", False)
+except ExprError:
+    check("★ 未声明变量名 ⇒ 抛（不再静默取 0）", True)
+# 合法名字取值为 0 仍是允许的（属性表里没这一条 ⇒ 该变量本期就是 0，不是拼错）：
+check("已声明变量取到 0 照常算", approx(eval_expr("crit*2", vars_), 0))
 
 print("\n【4. 一元负号】")
 check("-5=-5", approx(eval_expr("-5"), -5))
