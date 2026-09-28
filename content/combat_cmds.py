@@ -3234,11 +3234,24 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
     from .stat_bonus import stat_bonus as _core_tb
     _tb_me = {}
     _tb_opp = {}
+    # ★ 审计 L4918-6（2026-09-29）：原先这里包着 `try/except Exception: pass`。
+    #   `_core_tb`（= `content.stat_bonus.stat_bonus`）抛错时静默跳过 ⇒ 双方
+    #   `_tb_*` 留空 dict ⇒ 下面 `apply_battle_loadout(actor, {})` 落**空增幅容器**，
+    #   而紧邻的注释自称「stats **只**读该容器、N10 收口后无 battle 级兜底」
+    #   = **整场 PVP 双方面板增幅全失效、零报错零日志**（玩家只看到「我称号加成呢」）。
+    #   为什么不能留兜底：`stat_bonus` 自己**已经有**一层带 warning 日志的降级
+    #   （`content/stat_bonus.py:183`）——本处这层是**第二道静默**，把上层的
+    #   `warning` 也一起吃掉，运维侧连日志都查不到。
+    #   处置 = fail-closed（认不出就抛）：供体形状不对当场点名，不静默开一场
+    #   没有增幅的 PVP。正常档（dict / None / 空 dict）行为逐字节不变。
     try:
         _tb_me = _core_tb(group_id, qq_id, player) or {}
         _tb_opp = _core_tb(group_id, target_qq, target_player) or {}
-    except Exception:
-        pass
+    except (TypeError, ValueError, KeyError, AttributeError) as _e:
+        raise RuntimeError(
+            "content.combat_cmds：PVP 开战的面板增幅聚合崩了"
+            "（stat_bonus 读称号/成就/收藏册时形状不对）——拒绝开一场没有增幅的战斗"
+        ) from _e
     # ① 开战仪式（仅攻击方：echo_bless/神龛祝福是发起者消耗自己的祝福；max_hp/max_mp
     #    重算带自己增幅 → 与 actor_stats 面板口径一致）
     _BR.prepare_player_for_battle(player, _tb_me, _es_arg(db))
@@ -3255,8 +3268,16 @@ async def _pvp_start(self, event, group_id, qq_id, player, target_arg):
             _def_p["max_hp"] = int(_dst["max_hp"])
         if _dst.get("max_mp") is not None:
             _def_p["max_mp"] = int(_dst["max_mp"])
-    except Exception:
-        pass
+    # ★ 审计 L4918-6（同段第二处）：防守方 max_hp/max_mp 实时化原被
+    #   `try/except Exception: pass` 包住 ⇒ 抛错时 `_def_p` 保留**目标档里的旧值**，
+    #   而 actor 是从 `_def_p` 造的 ⇒ 防守方带着过期血上限入战场、被多打一轮才死。
+    #   与上面同一口径：形状不对当场点名，不静默开一场血量对不上的战斗。
+    #   正常档逐字节不变（同一份 `player_final_stats` 调用，只是不再吞它的错）。
+    except (TypeError, ValueError, KeyError, AttributeError) as _e:
+        raise RuntimeError(
+            "content.combat_cmds：PVP 防守方面板实时化崩了"
+            "（player_final_stats 读职业/等级/装备时形状不对）——拒绝开一场血量对不上的战斗"
+        ) from _e
     # ③ 组 sides + 双方装备装配（PVP 双方都是真人 actor，武器/词条一视同仁）
     _my_actor = _BR.player_to_actor(player)
     _opp_actor = _BR.player_to_actor(_def_p)
