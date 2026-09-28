@@ -4062,7 +4062,10 @@ class EconomyImpl(CommandBase):
             except Exception:
                 pass
             # 收藏品 defs（type=收藏 非鱼，去重；与 _collect_items_bestiary 同源）
+            # ★ def_owned 与 defs 同源同算：持有面走背包条目 data.name，
+            #   与 _collect_items_bestiary 的 owned 判定逐字同口径（审计 L4577）。
             _defs = 0
+            _def_owned = 0
             try:
                 _fish_names = {cf["name"] for cf in _b143.FISH_COLLECT}
                 _def_names = set()
@@ -4075,6 +4078,9 @@ class EconomyImpl(CommandBase):
                             and _v.get("name") not in _fish_names:
                         _def_names.add(_v.get("name", _k))
                 _defs = len(_def_names)
+                _inv_names = {(it.get("data") or {}).get("name", "")
+                              for it in db.get_inventory(group_id, qq_id)}
+                _def_owned = len(_def_names & _inv_names)
             except Exception:
                 pass
             _kill = sum(r["kills"] for r in best)
@@ -4088,9 +4094,9 @@ class EconomyImpl(CommandBase):
                 _T.text("adventure.overview_monster", kinds=len(best), total=best_total,
                         kills=_kill),
                 _T.text("adventure.overview_item", owned=poss, held=len(inv_keys)),
-                # ★ def_owned 传 0：搬前源码此位是 f-string 里的字面量 `{0}`（收藏品计数未接数据）
                 _T.text("adventure.overview_collect", fish=fish_n,
-                        fish_total=len(_b143.FISH_COLLECT), def_owned=0, defs=_defs),
+                        fish_total=len(_b143.FISH_COLLECT),
+                        def_owned=_def_owned, defs=_defs),
                 _T.text("adventure.overview_pet", hatched=len(_pet_dex), total=_pet_total),
                 "━━━━━━━━━━━━",
                 _T.static("adventure.overview_tip"),
