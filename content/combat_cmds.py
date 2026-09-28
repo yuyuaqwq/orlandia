@@ -1394,15 +1394,22 @@ def _roll_find_quest_events(self, group_id, qq_id, player, cur_map):
 
 def _rain_boost(self, group_id, qq_id) -> bool:
     """读取『突如其来的雨』set_state 写入的 rain_{gid}_{qid}({"ts": float})，
-    30 分钟窗口内返回 True → 探索遇怪率 +15%（combat.py 探索分支消费）。"""
+    30 分钟窗口内返回 True → 探索遇怪率 +15%（combat.py 探索分支消费）。
+
+    ★ 审计 L4914：删掉「裸时间戳旧值」死兼容支（`except: ts = float(raw)`）。
+      取证：唯一写 `rain_{gid}_{qid}` 的是 `content/data/events.json` 的
+      `/rain`（`template:"set_state"` · `value:"ts"`），而 `tpl_set_state`
+      （`content/event_templates.py:334`）**恒 `json.dumps`** ⇒ 值必是 `{"ts": …}`。
+      递归扫 `events.json` 全部 3 个 `set_state`（`bless_{qid}` dict / `rain_{gid}_{qid}`
+      'ts' / `wish_{gid}_{qid}` 'ts'）**无一个是裸 float** ⇒ 该支永不命中。
+      口径与同文件 `wish`（`:1229-1234`「v83 旧值统一按过期处理」）对齐 ——
+      此前同文件两处对同一历史问题的处理方式相反（wish 按过期、rain 猜旧值）。
+      坏值仍由下面外层 `except` 统一按「无加成」处理（fail-closed，不静默给 15%）。"""
     try:
         raw = db.get_event_state(f"rain_{group_id}_{qq_id}")
         if not raw:
             return False
-        try:
-            ts = float(json.loads(raw).get("ts", 0))
-        except Exception:
-            ts = float(raw)  # 兼容裸时间戳旧值
+        ts = float(json.loads(raw).get("ts", 0))
         return 0 <= time.time() - ts <= _RAIN_WINDOW
     except Exception:
         return False
