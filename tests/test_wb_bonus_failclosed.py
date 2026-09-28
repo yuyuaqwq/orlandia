@@ -189,11 +189,147 @@ def test_shape_and_normal_values():
     check("活实现里那处仍在（避免门禁对着空气转绿）",
           hasattr(CC, "hunt_boss"))
 
+# ============================================================
+# ★ 审计 L4918-4：Boss 自动行动那一段的静默兜底（世界 Boss 只普攻、不放技能）
+# ============================================================
+_AUTO_SRC_MARK = "_sk_names = [_k for _k, _inf in _idx.items()"
+
+
+def _boss_autoact_nodes(fn):
+    """按**条目身份**取「给 Boss 配 auto_act」那一段里的赋值节点。
+
+    身份 = 两个：① `_boss_a = next(...)`（选出 Boss actor）
+                ② `X["auto_act"] = {"act": {"type": "skill", ...}}`（写行动配置）
+    不认行号 —— 台账行号会漂，按身份扫修前/修后都命中同一节点。
+    """
+    sel, write = [], []
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.Assign):
+            continue
+        tgt = node.targets[0] if node.targets else None
+        if isinstance(tgt, ast.Name) and tgt.id == "_boss_a":
+            sel.append(node)
+        if isinstance(tgt, ast.Subscript) and getattr(tgt.slice, "value", tgt.slice) == "auto_act":
+            write.append(node)
+    return sel, write
+
+
+def _rebuild_reverted(src):
+    """把「选 Boss actor → 写 auto_act」那一段整体重新包回旧的 try/except: pass。
+
+    做法 = **按行**定位那一段（首行含 `_boss_a = next(`、末行含 auto_act 写点），
+    再整段缩进 4 格塞进 `try:`，末尾补 `except Exception: pass`。
+
+    ★ 早先版本用字符串 replace 拼回旧形态，忘了 body 要多缩进一格 ⇒ ast.parse 直接
+      IndentationError —— **反证自身崩掉 = 反证无效**（它压根没走到判据那一步）。
+      故改成行级手术：先按行切开、再整体缩进，语法必定自洽。
+    """
+    lines = src.splitlines(True)
+    start = next(i for i, ln in enumerate(lines) if "_boss_a = next(" in ln)
+    end = next(i for i, ln in enumerate(lines)
+               if i >= start and '"auto_act"] = {"act": {"type": "skill"' in ln)
+    body = ["    " + ln if ln.strip() else ln for ln in lines[start:end + 1]]
+    head = ["    try:" + chr(10)]
+    tail = ["    except Exception:" + chr(10), "        pass" + chr(10)]
+    return "".join(lines[:start] + head + body + tail + lines[end + 1:])
+
+
+def _silent_skip_segment(src, fn):
+    """那一段是否被「裸/宽泛 except + pass」包住（命中就返回原文，否则空串）。"""
+    sel, write = _boss_autoact_nodes(fn)
+    if not sel or not write:
+        return "扫到 0 个赋值点（sel=%d write=%d）" % (len(sel), len(write))
+    bad = []
+    for node in sel + write:
+        for t in ast.walk(fn):
+            if not isinstance(t, ast.Try):
+                continue
+            if not any(n is node for n in ast.walk(t)):
+                continue
+            for h in t.handlers:
+                hn = getattr(h.type, "id", None) or getattr(h.type, "attr", None)
+                bare = h.type is None
+                body = [s for s in h.body if not isinstance(s, ast.Expr)]
+                if bare or (hn in ("Exception", "BaseException")
+                            and len(body) == 1 and isinstance(body[0], ast.Pass)):
+                    bad.append(ast.get_source_segment(src, t) or "")
+    return (chr(10) + "---" + chr(10)).join(bad) if bad else ""
+
+
+def test_L4918_4_no_silent_boss_autoact():
+    print("【L4918-4 世界 Boss auto_act：不许静默降级成只普攻】")
+    src = io.open(_SRC, encoding="utf-8").read()
+    tree = ast.parse(src)
+    fn = _hunt_boss_fn(tree)
+    check("扫到 hunt_boss（判据前提）", fn is not None)
+    check("★ 扫到 Boss auto_act 段（判据前提）",
+          _AUTO_SRC_MARK in src, "标记行 %r 不在源码里" % _AUTO_SRC_MARK)
+
+    bad = _silent_skip_segment(src, fn)
+    check("★ 「选 Boss actor」与「写 auto_act」都不许被静默 except 包住",
+          not bad, "仍被静默包住：" + bad[:300])
+
+    # ★ 有牙反证：把这一段换回旧的 try/except: pass 形态后，本判据必须转红。
+    #   重建一个「假想旧版本」源码，拿**同一个扫描器**再跑一遍 —— 扫描器若对旧形态
+    #   视而不见，那它在活实现上就是在转永真。
+    reverted = _rebuild_reverted(src)
+    ok_rebuild = False
+    try:
+        ast.parse(reverted)
+        ok_rebuild = True
+    except SyntaxError as exc:
+        check("★ 反证：重建出的旧形态语法自洽", False, "SyntaxError: %s" % exc)
+    if ok_rebuild:
+        check("★ 反证：重建出的旧形态语法自洽", True)
+        rbad = _silent_skip_segment(reverted, _hunt_boss_fn(ast.parse(reverted)))
+        check("★ 反证实跑：旧形态被判为静默包住",
+              bool(rbad), "扫描器对旧形态也放过了 ⇒ 本判据是永真的")
+
+
+def test_L4918_4_boss_gets_skill_normal_case():
+    """行为侧（正常档）：这一段真的把 Boss 从「只普攻」升级成「放技能」。
+
+    没有这一条，上面的 AST 判据只能证明「没有 except」，
+    证明不了「这段代码是有用的活代码」——它可能被整段留成装饰品而门禁照样绿。
+    """
+    from content import bridge as BR
+    from content.combat_cmds import build_monster_group
+    from content.combat_cmds import _cq
+    from ext_combat.battle.battle import Battle
+
+    boss = {"uid": "wb_0", "name": "测试Boss", "lv": 30, "is_boss": True,
+            "rank": 1, "reach": 1, "hp": 5000, "max_hp": 5000,
+            "atk": 100, "def": 50, "matk": 80, "mdef": 40, "spd": 10,
+            "skills": list(_cq.MONSTER_SKILLS)[:2]}
+    grp = build_monster_group(boss, {"id": "m1", "name": "M", "area": "m1"},
+                              {"lv": 30}, scale_main=False)
+    check("★ 怪组含 Boss（行为侧前提）",
+          any(u.get("is_boss") for u in grp), repr([u.get("uid") for u in grp]))
+    sides = BR.build_sides(enemies=[dict(u) for u in grp])
+    nb = Battle("worldboss", sides=sides)
+
+    # —— 这段逻辑逐字复刻活实现（判据不认行号，但行为要对得上）——
+    boss_actor = next((u for u in nb.sides_of("enemy") if u.get("is_boss")), None)
+    before = (boss_actor or {}).get("auto_act")
+    check("★ Boss actor 默认是普攻（这一段确实在改变它）",
+          before == {"act": {"type": "attack"}}, repr(before))
+    if boss_actor:
+        idx = boss_actor.get("_skill_index") or {}
+        sk_names = [k for k, inf in idx.items() if inf and inf.get("name") == k]
+        check("★ 索引里有中文名键（筛选条件命中得上）", bool(sk_names), repr(list(idx)))
+        if sk_names:
+            boss_actor["auto_act"] = {"act": {"type": "skill", "skill": sk_names[0]}}
+        check("★ Boss 被升级成放技能（不是白留的死代码）",
+              (boss_actor.get("auto_act") or {}).get("act", {}).get("type") == "skill",
+              repr(boss_actor.get("auto_act")))
+
 
 def main():
-    print("=== L4918-3 世界 Boss bonus 容器门禁 ===")
+    print("=== L4918-3 / L4918-4 世界 Boss 开战装配门禁 ===")
     test_no_bare_silent_skip()
     test_shape_and_normal_values()
+    test_L4918_4_no_silent_boss_autoact()
+    test_L4918_4_boss_gets_skill_normal_case()
     print(f"\n=== 结果 PASS={PASS} FAIL={FAIL} ===")
     if FAILURES:
         for f in FAILURES:

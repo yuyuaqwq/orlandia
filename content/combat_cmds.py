@@ -2796,16 +2796,26 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
             _WBP.apply_gm_dmg_mult(_a, _wb_mult)
     nb = _BR.make_battle("worldboss", sides=_sides)
     # 敌 actor 技能索引已由引擎 Battle 构造建立；给 Boss 配首个技能自动行动（AI 轮换属上层怪 AI 模块）
-    try:
-        _boss_a = next((u for u in nb.sides_of("enemy") if u.get("is_boss")), None)
-        if _boss_a:
-            _idx = _boss_a.get("_skill_index") or {}
-            _sk_names = [_k for _k, _inf in _idx.items()
-                         if _inf and _inf.get("name") == _k]  # 中文名键 = 技能显示名
-            if _sk_names:
-                _boss_a["auto_act"] = {"act": {"type": "skill", "skill": _sk_names[0]}}
-    except Exception:
-        pass
+    # ★ 审计 L4918-4（2026-09-29）：删掉原 here 的 `try / except Exception: pass`。
+    #   缺陷实跑复现（按条目身份，不靠行号）：`nb.sides_of("enemy")` 抛错时那一段
+    #   静默跳过 ⇒ Boss actor 保留 `monster_to_actor` 给的默认
+    #   `{"act": {"type": "attack"}}`，于是**世界 Boss 全程只会普攻、一次技能都不放**，
+    #   玩家零报错、战斗照开。对照：`battle.actor_auto` 读 auto_act 决定行动，
+    #   显式招缺失才回落 AI 决策器/普攻 ⇒ 这一处的失败没有任何下游补救。
+    #   实跑（正常档）：改前/改后都把 Boss 的 auto_act 从 attack 升级成 `skill:攻击`，
+    #   中文名键筛选（`_inf.get("name") == _k`）逐条一致。
+    #   为什么能整块删掉兜底（不是把 pass 换个地方）：这段里的每一步在合法输入上都不会抛 ——
+    #     · `sides_of` = `list(self.sides.get(side) or [])`（纯读取）
+    #     · `_boss_a.get(...)` 要求它已是非 None 的 dict（`next` 只在命中时给值）
+    #     · `_idx.items()` 前已 `or {}` 归一成 dict
+    #   保留 try 只会把「形状已经错了」降级成「Boss 不会放技能」——正是本条要治的病。
+    _boss_a = next((u for u in nb.sides_of("enemy") if u.get("is_boss")), None)
+    if _boss_a:
+        _idx = _boss_a.get("_skill_index") or {}
+        _sk_names = [_k for _k, _inf in _idx.items()
+                     if _inf and _inf.get("name") == _k]  # 中文名键 = 技能显示名
+        if _sk_names:
+            _boss_a["auto_act"] = {"act": {"type": "skill", "skill": _sk_names[0]}}
     # 同步回全局事件（含 enemies 阵列，供其他玩家响应共享血量）
     db.save_world_event(cur["etype"], cur["ends_at"], cur["data"])
     db.save_battle(group_id, qq_id, nb.to_state())
