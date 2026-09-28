@@ -51,7 +51,7 @@ def wb_gm_dmg_mult(battle, caster, target, params, logs):
         return
     if f == 1.0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * f
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * f
 
 
 def apply_gm_dmg_mult(actor: dict, mult: float) -> bool:

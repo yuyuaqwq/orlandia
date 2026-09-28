@@ -391,7 +391,7 @@ def team_ss_reduce_apply(battle, caster, target, params, logs):
     r = _norm_pct(_num(e, "reduce"))
     if r <= 0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 - r)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 - r)
 
 
 # ============================================================
@@ -437,7 +437,7 @@ def timed_vuln_apply(battle, caster, target, params, logs):
     amp = _norm_pct(_num(e, "amp"))
     if amp <= 0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + amp)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 + amp)
 
 
 # ============================================================
@@ -513,7 +513,7 @@ def team_dmg_aura_apply(battle, caster, target, params, logs):
     add = _norm_pct(_num(params, "add"))
     if add <= 0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + add)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 + add)
 
 
 @register_action("target_lock_mark")
@@ -793,6 +793,6 @@ def arcane_edge_apply(battle, caster, target, params, logs):
     add = _norm_pct(_num(e, "add") or _num(params, "add"))
     if add <= 0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + add)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 + add)
     holder["effects"].pop(key, None)      # 一次性
     logs.append(_T.text("tp.arcane_edge_apply", pct=int(add * 100)))

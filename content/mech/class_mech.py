@@ -610,7 +610,7 @@ def mech_cash_per_system_mult(battle, caster, target, params, logs):
             hit_systems.append(k)
     if not hit_systems:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * factor
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * factor
     label = params.get("label") or params.get("mech") or ""
     icon = params.get("icon") or "💥"
     logs.append(_T.text("cmech.cash_per_system", icon=icon, label=label, systems='、'.join(hit_systems),
@@ -726,7 +726,7 @@ def class_faith_load_tier(battle, caster, target, params, logs):
             mult = float(_last.get("heal_mult", 1.0) or 1.0)
             label = str(_last.get("label") or "")
     if mult != 1.0:
-        ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+        ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
         logs.append(_T.text("cmech.faith_tier_heal", label=label or '专注', mult=mult, cur=cur))
 
 
@@ -1095,7 +1095,7 @@ def passive_dmg_mult(battle, caster, target, params, logs):
                                  or params.get("dmg_add") or 0)
     if not ok or mult <= 0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + mult)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 + mult)
     logs.append(_T.text("cmech.passive_dmg_mult", mult=1.0 + mult))
 
 
@@ -1269,7 +1269,7 @@ def passive_taken_reduce(battle, caster, target, params, logs):
                 return
         else:
             return  # 未知 judge kind = fail-closed
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 - min(reduce_v, 0.9))
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 - min(reduce_v, 0.9))
     logs.append(_T.text("cmech.taken_reduce", label=params.get('label') or '被动', pct=int(reduce_v * 100)))
 
 
@@ -1482,7 +1482,7 @@ def passive_dot_mult(battle, caster, target, params, logs):
     mult = float(params.get("mult") or params.get("dmg_add") or 0)
     if mult <= 0:
         return  # 缺字段 = 无此行为
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + mult)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 + mult)
     logs.append(_T.text("cmech.dot_mult", label=params.get('label') or '被动', mult=1.0 + mult))
 
 

@@ -879,7 +879,7 @@ def we_dmg_mult_cond(battle, caster, target, params, logs):
     except Exception:
         hit = False
     if hit:
-        ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+        ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
         tag = params.get("tag") or _MULT_TAG.get(cond, "")
         if tag:
             ctx["tags"] = list(ctx.get("tags") or []) + [f"{tag}x{mult:.2f}"]
@@ -927,7 +927,7 @@ def we_taken_mult_cond(battle, caster, target, params, logs):
     except Exception:
         hit = False
     if hit:
-        ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+        ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
         tag = params.get("tag") or ""
         if tag:
             ctx["tags"] = list(ctx.get("tags") or []) + [f"{tag}x{mult:.2f}"]
@@ -1024,7 +1024,7 @@ def we_amp_consume(battle, caster, target, params, logs):
             # rune_amp/eternal_codex 分支都写作 `1.0 + per×n`——这里漏了 `1.0 +`。
             mult = 1.0 + float(cp)
     if mult != 1.0:
-        ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+        ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
         ctx["tags"] = list(ctx.get("tags") or []) + [f"📈x{mult:.2f}"]
 
 
@@ -1101,7 +1101,7 @@ def we_combo_end(battle, caster, target, params, logs):
     n = int(entry.get("stacks", 0) or 0) if isinstance(entry, dict) else 0
     if n < need:
         return  # 本刻连段不足：不触发
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * (1.0 + cd)
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * (1.0 + cd)
     ctx["tags"] = list(ctx.get("tags") or []) + [f"💢连击终点x{1.0 + cd:.2f}"]
     logs.append(_T.text("we.combo_end_line", need=need, pct=int(cd * 100)))
 

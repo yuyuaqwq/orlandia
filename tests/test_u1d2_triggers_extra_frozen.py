@@ -163,7 +163,7 @@ _PIN = {
         'content/mech/class_mech.py::apply_class_mech': '4269b88c765c6356ad57240a2ac102fee40f07a76d0add7ceeedd9ecc646b4d4',
     },
     'aux': {
-        'class_mech_action::class_faith_load_tier': '7444f5dda57ac810e3a3a6f2b27cea678a3b7f59d1dc74846560ea9cdfdfb99a',
+        'class_mech_action::class_faith_load_tier': '4602a8bd4b835a52fc5643dbcef0db3683fd577b8e72d1f55fe650bd05551ea9',
         'class_mech_action::class_faith_overload': '927633f7837552a4b95626ad9092d4d4eda10948b612a3e9b55d5ed5f5aaaead',
         'class_mech_action::class_guard_stance_enter': '16aee4fad695f931ee04a8658615deb4a819a88055382b8f71becb552ffc3d49',
         'class_mech_action::class_melody_act': 'f0535d951fd2b88bcd9dd03db9f14785600448c5d93b4fc885c93dfbee281877',
@@ -176,7 +176,7 @@ _PIN = {
         'class_mech_action::mech_cash_dmg_mult': '7f8a949f749d0137eacf92da87bca1aacfd298b15653298fc552577aa0e3f81a',
         'class_mech_action::mech_cash_finisher_crit': '87ae21139a15f3559ba8e4b7253132162e03cc70634a31a09b6269119e2bae35',
         'class_mech_action::mech_cash_fury_enter': 'f0201757543a4b4b55bc6d939b8191f86fcba41f1f80b8b5fbf53d0426a072db',
-        'class_mech_action::mech_cash_per_system_mult': '82fb433a137411943b53099e4a8191f40e0f2dea88c1ac519f247dc188d034f7',
+        'class_mech_action::mech_cash_per_system_mult': 'd9a406fda6ddfa599ae574765cc27c5d2ded37722d632978c50b7daac9a90c13',
         'class_mech_action::passive_bar_decay_half': '0193e491942c855c7c86da9a2d3e60da159a6d7de2aa262d0347d63e5cf68652',
         'class_mech_action::passive_bar_extend': '99743f0f24582f9dfd2be50f2f2046ba2140fafc4b48656196441cc3172a24d4',
         'class_mech_action::passive_cc_break': '28fbd11690055d667c79764922ce93e7a6189bda45db96fce5257badb9fc1c73',
@@ -184,8 +184,8 @@ _PIN = {
         'class_mech_action::passive_cond_crit': 'd2355a00738aa7fc000fb25d2229f437d8613a1ebdf4c6c7a9682efa314e8fab',
         'class_mech_action::passive_counter': '2db7bf50e430bc9b0a1d66db2fccdc1de1d439a783c6897b8dbf25d21ea3a3c2',
         'class_mech_action::passive_ctrl_extend': 'a00b2ee7deed9ed75d348cd3cd947ea9da4f58ab29574f3429e045aea0e843e7',
-        'class_mech_action::passive_dmg_mult': '3bc2a6faa8e6a08e0068165fcdb54dac193e48a43065ca8d80c515b2bdaa6195',
-        'class_mech_action::passive_dot_mult': '795bde0c0d82abe973129d4758ba36b5dcf3c50628e5b0d23ab056f2be3f3b38',
+        'class_mech_action::passive_dmg_mult': '09c654bb5151915b2d8dbe03d8c85780d16d2f3f7fc5af0e8765daa818b7731d',
+        'class_mech_action::passive_dot_mult': 'd802e3027253a1e39559b73cb7dfd79986366fbcecdd404b2d11e7162e1d4931',
         'class_mech_action::passive_element_core_crit': 'd2fc6aebe628323df47c120571ce9e93a8a88d0a0d5d3ef1ab64055394f90a33',
         'class_mech_action::passive_heal_overflow_shield': 'be14efaf0615d9ec7d8357b362adecd4b7529f93267488234548d0197ca656d4',
         'class_mech_action::passive_kill_gain': 'fb977ebe12cc1ecdf1c824b68c76967ee2d6108fe22ac3e9dfcede85c119f3f8',
@@ -201,9 +201,9 @@ _PIN = {
         'class_mech_action::passive_revive_berserk': '937a9f4531a784b50ccb997d07a4b1c36a27dfa5d14177e1c86fade793f85e89',
         'class_mech_action::passive_revive_guard': '94948d0c59d3a364ef59c61503b80038820d0f65ec6ace5e2152f0a7acc1a44f',
         'class_mech_action::passive_shadow_buff': '75d6446c3dee1e07e218d68e6712ad500d2c04f2a5d93f7ea9f66880ea18bc54',
-        'class_mech_action::passive_taken_reduce': '6e6e259dece0ede0f1e4ddfe1165e4c96e55a55a7c610e2a5ed1d185427a606e',
-        'class_mech_actions': '9db2ebb7e1bbba27055aa831f682c2876e06501ae54e0fb3e9730cbdc8439c80',
-        'class_mech_actions_37': 'dd5eef40e6a1faf3ce3a96624435ea6690f6bddefa823a1f50575df6161d11aa',
+        'class_mech_action::passive_taken_reduce': 'b95da006aa4d9c75fbf5099d9f48638c368517b81f23e63aa496787eb3743771',
+        'class_mech_actions': 'c8d817d8ea93942acf625aeee319ad50b217600a347aa9bd606e174df6e22930',
+        'class_mech_actions_37': 'f357fd25f20fc4114a4a5b11b25dd29f8c311c8087dcee0daf08d01f962dc7a0',
     },
     'segments': {
         'E': [
@@ -652,6 +652,22 @@ _MOUNT_ACTIONS = ("class_stance_guard_enter", "class_guard_stance_enter")
 def _probe_action_bodies():
     """⑤ 39 格：@register_action 动作体 getsource sha256 ↔ `_PIN["aux"]`（逐名比）。
 
+    ★ 2026-09-29 审计 L5618 同族登记（晚到批 · 承伤乘区 falsy 吞）：5 个动作体
+      **有意改动** —— `mech_cash_per_system_mult` / `class_faith_load_tier` /
+      `passive_dmg_mult` / `passive_dot_mult` / `passive_taken_reduce`，
+      全部是同一处改写：`ctx.get("mult", 1.0) or 1.0` → **只认 None 的回落**
+      （`ctx.get("mult") if ctx.get("mult") is not None else 1.0`）。
+      依据：引擎 `landing.py:138-139` 自己写明「乘区值 **0.0 是合法值**
+      （完全免伤——格挡/无敌帧），而 `0.0 or 1.0` 会被吞成 1.0 → 0 乘区永远失效」。
+      实测可达：格挡（`block_once_apply` 置 `mult=0.0`）与任一乘法型 taken_calc
+      动作同挂一个 actor、且乘法那支后跑时，黑盒 `fire()` 实测 `mult` 出参
+      **0.7**（= 1.0×0.7）⇒ 格挡被静默取消。口径级别：只改**回落判据**
+      （`or` → `is not None`），非 0 的所有取值**逐值行为不变**（float 转换、
+      乘法顺序、clamp 位置一字未动）。重钉值由 `--emit-aux` 跑活实现取件
+      （不重采 frozen：frozen 仍是 U1-D2 前基线）。本次只重钉 **7 个键**
+      （5 个动作体 + `class_mech_actions` / `class_mech_actions_37` 两条聚合），
+      其余 34 个动作体键**一字未动**（差异表实测恰好 7 条）。
+      配套常驻门禁：`tests/test_taken_mult_zero_gate.py`（静态清点 + 黑盒行为 + 反证）。
     ★ 2026-09-26 E5-1 登记：`mech_cash_finisher_crit` **有意改动**，`_PIN["aux"]` 三个键
       （该动作体 + `class_mech_actions` / `class_mech_actions_37` 两个聚合）已重钉。
       依据：E5-1 删引擎 `effects.apply_action` 兼容便捷名 ⇒ 该动作体里 3 行

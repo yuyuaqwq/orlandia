@@ -160,7 +160,7 @@ def elem_reaction(battle, caster, target, params, logs):
     except Exception:
         mult = 1.0
     if mult != 1.0:
-        ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+        ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
     name = r.get("name") or "元素反应"
     logs.append(_T.text("ep.reaction", name=name) + (f" 伤害 ×{mult:g}" if mult != 1.0 else ""))
     # 清印（反应消耗印记）
@@ -225,7 +225,7 @@ def elem_counter(battle, caster, target, params, logs):
     if not hit:
         return
     mult = float(rule.get("mult", 1.25) or 1.25)
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
     logs.append(_T.text("ep.counter", name=rule.get('name'), mult=mult, note=rule.get('note', '')))
     # 附带：解冻 / 打断
     if rule.get("cleanse"):

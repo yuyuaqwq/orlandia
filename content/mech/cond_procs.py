@@ -201,7 +201,7 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
         mult = float(cond.get("mult", 1.0) or 1.0)
     if mult == 1.0:
         return
-    ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult
+    ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
     # ★ 2026-09-19：本行原被 `audit_predicate_bytes` 的 needle ① 冻结；该门禁冻结面已收窄为
     #   「判定 / 累乘 / 异常」三样（展示文案属文案表迁移面，不该由它冻结）⇒ 本行入表。
     logs.append(_T.text("cmech.cond_mult_line", type=cond.get("type"), mult=mult))

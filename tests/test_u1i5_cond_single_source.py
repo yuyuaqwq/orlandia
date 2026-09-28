@@ -203,10 +203,21 @@ FROZEN_TEXT_SHA256 = "7796b0dc66464e29f07733cd061715e1ce74f1aa987730f11344c7e1ef
 #: 活实现 sha256 —— `inspect.getsource`（5 谓词按声明序拼接，含装饰器行）
 LIVE_PREDS_SHA256 = "6356de64b918896850598dec2e30de193bc32c820fda6456405a44569d022b0c"
 #: 活实现 sha256 —— `inspect.getsource(skill_cond_mult_act)`（含装饰器行）
+# ★ 2026-09-29 重钉（审计 L5618 同族 · 晚到批）：动作体的「累乘行」亦**有意改动** ——
+#   `ctx.get("mult", 1.0) or 1.0` → **只认 None 的回落**。依据 = 引擎权威口径
+#   `extends/ext_combat/battle/landing.py:138-139`（2026-09-11 修）：
+#     「⚠️ 不可写 `... or 1.0`：乘区值 **0.0 是合法值**（完全免伤——格挡/无敌帧），
+#       而 `0.0 or 1.0` 会被吞成 1.0 → 0 乘区永远失效。None 才回落 1.0。」
+#   实测可达（黑盒 `fire()`，由 `tests/test_taken_mult_zero_gate.py` 常驻钉住）：
+#   格挡（`block_once_apply` 置 `mult=0.0`）与本动作同挂一个 actor 的 `taken_calc`、
+#   且本动作后跑时，实测出参 `mult=0.7`（=1.0×0.7）⇒ 格挡被静默取消。
+#   ★ 本 needle 的**意图**（「本次只许动查表那几行；判定/累乘/异常必须逐字节保留」）
+#     仍然成立且更强：本次把「累乘」从**逐字节相等**升级为**语义口径相等**（只认 None）；
+#     判定（cond 分派）与异常（`except` 回 1.0）两个字面上**一字未动**。
 # ★ 2026-09-19（39b）重钉：动作体里的「条件达成播报行」由硬编码改为 `_T.text("cmech.cond_mult_line", …)`
 #   入表 ⇒ getsource 必变；冻结面已同步收窄（`audit_predicate_bytes` 的 needle ① 移出）。
 #   ★ 判定 / 累乘 / 异常三样**一字未动**（另两个 needle 仍逐字节冻结）。
-LIVE_ACTION_SHA256 = "bba4473a5f71c7289b1f5c8ce583e3442904ca55c19292d64f6be129b1eea114"
+LIVE_ACTION_SHA256 = "0b9c4784acca9b300312d6197d0c82f3fca9ff6088f97055055c12ad2c58904f"
 
 PRED_ORDER = ("player_first", "enemy_debuff", "enemy_broken", "melody_buff", "melody_stacks")
 COND_KEYS = frozenset(PRED_ORDER)
@@ -325,7 +336,7 @@ def audit_predicate_bytes():
     # ★ 2026-09-19 收窄：原 needle ① 「logs.append(f"✨ 条件达成…")」是**展示文案**、
     #   属文案表迁移面（已入表 `cmech.cond_mult_line`），移出本冻结面；②③ 仍逐字节冻结。
     for needle in (
-                   'ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * mult',
+                   'ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult',
                    'except Exception:\n        return  # 判定异常不阻断战斗'):
         if needle not in live_a:
             v.append("动作里被冻结的字节丢了：%r" % needle[:48])
