@@ -223,7 +223,7 @@ PIN_UNCHANGED = {
 }
 # 2026-09-28 重钉：ea9433e（L1545 加载 strict=）改了 stack.py 却没重钉本 PIN，
 # 门禁自那时起常驻红（23/24）。本次叠加 L1540/L1544（cap 形态 fail-closed）后重钉。
-PIN_ENGINE = 'dfb3f1907e912ad80859ba94c292e8f94e7eb566ac1f4ba18e061f69c7ff53a4'
+PIN_ENGINE = '57772578cd72b7603e81830e7a084a353831957516b7070c7c43a8c1f9e42314'
 
 # ============================================================
 # 通用件
@@ -813,6 +813,53 @@ def divergence_violations():
 # ============================================================
 # ⑥ 序列化（纯 JSON）
 # ============================================================
+def count_violations():
+    """`count`（**物品件数**）必须 fail-closed —— 台账 L1547（作业书 L1543）。
+
+    钉住的意图（「曾经零报错做错事」的形态）：负件数 = **负资产面**。
+      * `count=-5` ⇒ 改前 `int(c)` 照单全收，`total() == -5`，
+        `dump()` 把 `count: -5` 原样写回落盘 ⇒ 读→改→写回这条链上负库存**静默扩散**；
+      * `count=True` ⇒ `int(True)==1`，把「一件」写成了别的含义。
+    ★ 同时钉住**合法口径逐项不变**（收窄不许变成「什么都拒」）：
+      `count=0` 照原样不夹紧（零格 = 「已扣空未落库」的在途形态，R2 两条已钉）、
+      缺 `count` / `None` → 1、数字字符串 `'2'` / 浮点 `5.0` 照旧解析、零格上 `add` 累加成 1。
+    """
+    bad = []
+    def must_raise(label, fn_):
+        try:
+            got = fn_()
+        except ValueError:
+            return
+        except Exception as exc:                       # noqa: BLE001
+            bad.append("%s 抛的是 %s（口径要求 ValueError）：%s"
+                       % (label, type(exc).__name__, exc))
+        else:
+            bad.append("%s 零报错返回了 %r（负资产面静默扩散）" % (label, got))
+
+    must_raise("load count=-5",  lambda: Stack.load('[{"key":"a","count":-5}]', marks="m", strict=True).total())
+    must_raise("load count=-1",  lambda: Stack.load('[{"key":"a","count":-1}]', marks="m", strict=True).total())
+    must_raise("load count=True", lambda: Stack.load('[{"key":"a","count":true}]', marks="m", strict=True).total())
+    must_raise("load count='-3'", lambda: Stack.load('[{"key":"a","count":"-3"}]', marks="m", strict=True).total())
+    must_raise("构造 count=-2",    lambda: Stack(({"key": "a", "count": -2},), marks="m").total())
+
+    # 合法口径必须逐项不变（零格 / 缺键 / None / 字符串 / 浮点 / 累加）
+    if Stack(({"key": "a", "count": 0},), marks="m").count_of("a") != 0:
+        bad.append("合法 count=0 的零格被夹紧了（R2 契约被改）")
+    if Stack(({"key": "a", "count": 0},), marks="m").add("a", 1).count_of("a") != 1:
+        bad.append("合法「零格上累加」变了（R2 契约被改）")
+    if Stack(({"key": "a", "data": {}},), marks="m").count_of("a") != 1:
+        bad.append("缺 count 的历史裸行不再按 1 解析")
+    if Stack(({"key": "a", "count": None},), marks="m").count_of("a") != 1:
+        bad.append("count=None 不再按 1 解析")
+    if Stack(({"key": "a", "count": "2"}, {"key": "b", "count": 3}), marks="m").total() != 5:
+        bad.append("数字字符串 count='2' 不再按原口径解析")
+    if Stack(({"key": "a", "count": 5.0},), marks="m").count_of("a") != 5:
+        bad.append("浮点 count=5.0 不再按原口径解析")
+    if Stack((("x",),), marks="m").count_of(("x",)) != 1:
+        bad.append("裸标量历史行不再按 1 解析（key 就是该标量本身）")
+    return bad
+
+
 def cap_violations():
     """`cap`（个体记录条数上限）必须 fail-closed —— 台账 L1540 / L1544。
 
@@ -1001,6 +1048,9 @@ def test_serialization():
     bad_c = cap_violations()
     check("cap 上限 fail-closed（0/负/bool/非整数抛 · 合法口径不变）",
           not bad_c, "；".join(bad_c[:4]))
+    bad_n = count_violations()
+    check("count 件数 fail-closed（负数/bool 抛 · 零格与合法口径不变）",
+          not bad_n, "；".join(bad_n[:4]))
 
 
 def test_order_and_double_fault():
@@ -1013,6 +1063,33 @@ def test_order_and_double_fault():
     check("两处同时坏（顺序反转 + 尾删）→ 门禁变红", bool(bad_d),
           "（没红说明顺序/双故障矩阵没牙）")
     check("双故障还原后复绿", not order_violations())
+
+
+def test_count_teeth():
+    print("【⑩ count fail-closed 有牙反证：拆掉 _normalize 的负数拒绝 → 门禁必须变红；跑完还原】")
+    base = count_violations()
+    check("基线：count 判据本来全绿", not base, "；".join(base[:3]))
+    src = _lf(inspect.getsource(STK.Stack._normalize))
+    # 猴补：把「负数/bool 拒绝」拆成放行 ⇒ count=-5 又静默成负资产
+    m = src.replace("    if isinstance(c, bool) or n < 0:", "    if False:", 1)
+    check("猴补目标存在（_normalize 的负数拒绝那一行）", m != src,
+          "（没找到猴补点，判据可能已改名）")
+    # _normalize 是 @staticmethod：猴补源码首行是装饰器，exec 到模块级命名空间时会被拒
+    # （IndentationError）⇒ 剥掉装饰器 + 顶层 dedent，改成普通函数再挂回去。
+    lines2 = [ln for ln in m.splitlines() if ln.strip() != "@staticmethod"]
+    body = chr(10).join(ln[4:] if ln.startswith("    ") else ln for ln in lines2)
+    ns = dict(vars(STK))          # 带上 Any / Optional 等注解名，exec 才认
+    exec(compile(body, "<tamper:_normalize>", "exec"), ns)            # noqa: S102 测试用内存猴补
+    # ★ 还原必须从 __dict__ 取：STK.Stack._normalize 取到的是描述符解包后的**函数**，
+    #   直接挂回去会变成普通绑定方法（self._normalize(e) 传两个实参 ⇒ TypeError）。
+    orig = STK.Stack.__dict__["_normalize"]
+    STK.Stack._normalize = staticmethod(ns["_normalize"])
+    try:
+        check("M6 拆掉负数拒绝 → count 判据变红", bool(count_violations()),
+              "（没红说明 count 判据没牙）")
+    finally:
+        STK.Stack._normalize = orig
+    check("猴补还原后复绿", not count_violations())
 
 
 def test_cap_teeth():
@@ -1110,6 +1187,7 @@ def main():
     test_serialization()
     test_order_and_double_fault()
     test_teeth()
+    test_count_teeth()
     test_cap_teeth()
     print("\n== 结果：通过 %d / 共 %d ==" % (PASS, PASS + FAIL))
     for f in FAILURES:
