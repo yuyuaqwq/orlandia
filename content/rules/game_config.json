@@ -3262,12 +3262,14 @@
       ],
       "shield_self": [
         {
-          "action": "shield"
+          "action": "shield",
+          "key": "shield_self"
         }
       ],
       "shield": [
         {
-          "action": "shield"
+          "action": "shield",
+          "key": "shield"
         }
       ],
       "cleanse": [

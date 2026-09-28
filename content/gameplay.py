@@ -172,8 +172,14 @@ EFFECT_ACTIONS: dict = {
     "reduce":    [{"action": "apply", "key": "reduce", "pct_from_mech_val": True}],
     # ---- 护盾 ----
     # ★ 收口第 2 批（2026-09-28）：`halve` 死字段删除（引擎只写不读，见上面护盾族那段注）。
-    "shield_self": [{"action": "shield"}],
-    "shield":      [{"action": "shield"}],
+    # ★★ **补 `key`**：这两条原先不传 key ⇒ 吃引擎 `act_shield` 的 `or "buff"` 兜底，
+    #   护盾落在一个**泛名**条目 `effects["buff"]` 上。而「是否吸收」由内容侧
+    #   `effect_rules[key].absorb` 决定 ⇒ 泛名 `buff` 没有任何 `absorb` 声明时，
+    #   **这些盾写进去了却一滴不吸（不掉的血）**。实测就是这个症状：
+    #   `ef={'buff': {...}}` 而 `absorb_keys()` 返回空。
+    #   两条各给一个**专名** key（而不是给 `buff` 加声明 —— 泛名声明会误伤同名状态）。
+    "shield_self": [{"action": "shield", "key": "shield_self"}],
+    "shield":      [{"action": "shield", "key": "shield"}],
     # ---- 净化 ----
     "cleanse":     [{"action": "cleanse"}],
     "cleanse_all": [{"action": "cleanse_all"}],
