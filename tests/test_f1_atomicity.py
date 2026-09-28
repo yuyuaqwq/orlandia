@@ -187,6 +187,39 @@ async def main():
     ok, it = db.home_storage_take_atomic("g1", "h1", key, 1)
     check("空仓取出第二次失败", ok is False, str(ok))
 
+    # ★ 坏档不许被「读成空仓」再写回（审计 L1545）：那会把整仓静默清空。
+    #   改前：Slots.load 默认容错把坏档读成空容器 → 存 1 件 → 写回只剩那 1 件。
+    print("【9b. 坏仓档：存仓必须当场抛，且存档原样不动】")
+    _good = '[{"key":"iron_ore","data":{},"count":5},{"key":"coal","data":{},"count":3}]'
+    for _raw in ('{CORRUPT', '"a string"', '42'):
+        _conn = sqlite3.connect(db.DB_PATH)
+        _conn.execute("INSERT OR REPLACE INTO event_state (key,value) VALUES (?,?)", (key, _good))
+        _conn.execute("UPDATE event_state SET value=? WHERE key=?", (_raw, key))
+        _conn.commit(); _conn.close()
+        db.add_item("g1", "h1", "eq_sa", {"name": "存物", "slot": "weapon", "stackable": False}, 1)
+        _raised = None
+        try:
+            db.home_storage_deposit_atomic(
+                "g1", "h1", key, "eq_sa", {"name": "存物", "slot": "weapon", "stackable": False}, 5)
+        except Exception as _e:                      # noqa: BLE001 —— 这里要的就是「它抛了」
+            _raised = type(_e).__name__
+        check(f"★ 坏档 {_raw!r}：存仓当场抛（不静默读成空仓）", _raised is not None, str(_raised))
+        _after = _q("SELECT value FROM event_state WHERE key=?", (key,))
+        check(f"★ 坏档 {_raw!r}：存档原样未动（没被这一笔覆盖）",
+              _after and _after[0]["value"] == _raw, str(_after))
+    # 恢复成好档，确认正常路径没被 strict 波及
+    _conn = sqlite3.connect(db.DB_PATH)
+    _conn.execute("INSERT OR REPLACE INTO event_state (key,value) VALUES (?,?)", (key, _good))
+    _conn.commit(); _conn.close()
+    db.add_item("g1", "h1", "eq_sa", {"name": "存物", "slot": "weapon", "stackable": False}, 1)
+    ok2, _n2 = db.home_storage_deposit_atomic(
+        "g1", "h1", key, "eq_sa", {"name": "存物", "slot": "weapon", "stackable": False}, 5)
+    check("★ strict 不波及正常路径：好档存仓仍成功", ok2 is True, str(ok2))
+    _ok_raw = _q("SELECT value FROM event_state WHERE key=?", (key,))
+    check("★ 好档存仓后原有 2 件仍在（没被清空）",
+          _ok_raw and "iron_ore" in _ok_raw[0]["value"] and "coal" in _ok_raw[0]["value"],
+          str(_ok_raw)[:120])
+
     print("【10. 强化强化写回命令层走原子路径（弱断言：函数存在且可调用）】")
     check("update_item_data 已导出至 db 命名空间", hasattr(db, "update_item_data"), "")
     check("market_buy_atomic 已导出", hasattr(db, "market_buy_atomic"), "")

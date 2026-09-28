@@ -462,7 +462,12 @@ def home_storage_deposit_atomic(group_id, qq_id, storage_key, item_key, item_dat
     """
     with atomic() as conn:
         raw = conn.execute("SELECT value FROM event_state WHERE key=?", (storage_key,)).fetchone()
-        lst = Slots.load(raw["value"] if raw else None, max_slots=max_slots)
+        # ★ strict=True（审计 L1545）：本函数是「读 → 改 → 写回」那一类。
+        #   默认容错会把坏档读成**空仓**，紧接着 `lst.add(...)` + 写回就把整个仓
+        #   覆盖成刚存的那 1 件 —— 原有几十件**永久消失**，全程零异常零回话。
+        #   这里宁可让「存仓」当场抛（回话报错、事务回滚、存档原样不动），
+        #   也不能拿玩家的仓库去换一次「不报错」。
+        lst = Slots.load(raw["value"] if raw else None, max_slots=max_slots, strict=True)
         if lst.is_full():
             return False, -1
         # v126.4 审计 P1：存仓按 1 件流转，快照只带 1 条个体 tags（防整堆快照回流
@@ -484,7 +489,11 @@ def home_storage_take_atomic(group_id, qq_id, storage_key, idx):
     返回 (ok, item_dict) 或 (False, None)。"""
     with atomic() as conn:
         raw = conn.execute("SELECT value FROM event_state WHERE key=?", (storage_key,)).fetchone()
-        lst = Slots.load(raw["value"] if raw else None)
+        # ★ strict=True（审计 L1545）：同为「读 → 改 → 写回」。坏档塌成空仓会让
+        #   take_at 判「该格没有东西」→ 返回 (False, None)，而这一笔**不写回**看似安全；
+        #   但它与 deposit 走的是**同一份存档**，坏档必须在这里就暴露出来，
+        #   否则玩家只会看到「东西不见了」，永远查不到是哪一步坏的。
+        lst = Slots.load(raw["value"] if raw else None, strict=True)
         it = lst.take_at(idx)          # 1-based；越界 → None（框架容器保证安全）
         if it is None:
             return False, None
