@@ -218,12 +218,17 @@ DP_FN_ORDER = tuple(n for n in DP_ORDER if n != "_STORY_PREFIX")
 #: E 栏（`U1-I4_FROZEN_GATE.md` §2.3）：本批**不该动**的段 → 生成时断言 `frozen == live`。
 #: = `dialogue.py` 的 `_read_domain` / `_dialogues` / `_main_quests` / `_story_to_line` / `_STORY_PREFIX`
 #:   + `dialogue_conds.py` 全部 20 段。
+#: ★ C-R2.9（2026-09-29）：两处 `_read_domain` 由 E 栏**移入 C 栏** ——
+#: 本车道按台账 C-R2.9 把两处读口改成 fail-closed（域读失败静默清零 39 棵对话树 / 70 条主线任务），
+#: 它们从「本批不该动的段」变成「本批**会改**的段」⇒ 归位 C 栏。
+#: C 栏的判据是 `frozen != live`（**防没真接上**）⇒ 改完即自动变红→转绿，比 E 栏更贴靶子。
 E_KEYS = frozenset(
     set(k for k, f, s, kd in SEGMENTS
-        if k in ("content/dialogue.py::_read_domain", "content/dialogue.py::_dialogues",
-                 "content/dialogue.py::_main_quests", "content/dialogue.py::_story_to_line",
+        if k in ("content/dialogue.py::_dialogues",
+                 "content/dialogue.py::_main_quests",
+                 "content/dialogue.py::_story_to_line",
                  "content/dialogue.py::_STORY_PREFIX"))
-    | set("content/dialogue_conds.py::" + s for s in DC_BARE)
+    | set("content/dialogue_conds.py::" + s for s in DC_BARE if s != "_read_domain")
 )
 
 #: C 栏：本批**会改**的段（`dialogue.py` 的对外 6 名）→ 生成时断言 `frozen != live`。
@@ -234,11 +239,14 @@ C_KEYS = frozenset((
     "content/dialogue.py::visible_options",
     "content/dialogue.py::node_text",
     "content/dialogue.py::is_end",
+    # ★ C-R2.9：两处域读口本批改成 fail-closed（原先 `except → {}` 静默清零整域）
+    "content/dialogue.py::_read_domain",
+    "content/dialogue_conds.py::_read_domain",
 ))
 
 assert len(SEGMENTS) == 31, len(SEGMENTS)                         # 30 段 + `_STORY_PREFIX`（§1.4 表外）
-assert len(E_KEYS) == 25, len(E_KEYS)      # 5（dialogue.py）+ 20（dialogue_conds.py）
-assert len(C_KEYS) == 6, len(C_KEYS)
+assert len(E_KEYS) == 23, len(E_KEYS)      # ★ C-R2.9：4（dialogue.py）+ 19（dialogue_conds.py，_read_domain 移入 C 栏）
+assert len(C_KEYS) == 8, len(C_KEYS)      # ★ C-R2.9：原 6 + 两处 _read_domain
 assert E_KEYS | C_KEYS == frozenset(k for k, *_ in SEGMENTS)
 
 

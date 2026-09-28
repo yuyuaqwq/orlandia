@@ -506,7 +506,7 @@ _PIN = {
         'content/dialogue_conds.py::_c_evolve_ready': 'dd58a307f122163846e19c61a22bba22733c13358ee23a37b6c6546137a3c8e2',
     },
     "live": {
-        'content/dialogue.py::_read_domain': '4cbe68fb2a39091716a522948ef5a2882d09a9914a83e34e8368a2b9bf6f64eb',
+        'content/dialogue.py::_read_domain': '00e95a27c7e10cabaccc24244b3151ba77ab13f769dd6118e7fe3bd2e0606658',
         'content/dialogue.py::_dialogues': 'f49aeddf11c5042f4f7cccd45adf87f3a1762f3baa6cd7c9a64c94820a5174bc',
         'content/dialogue.py::_main_quests': 'e271d0b6915c300b5fe99314be051dcd4d0f912871fbbce337f604384a4478d5',
         'content/dialogue.py::get_dialogue': '7ba49acf164594d47c32fe81ca552423993b63822c1e1509c3e89a00e2531a26',
@@ -517,7 +517,7 @@ _PIN = {
         'content/dialogue.py::_story_to_line': 'd9cb0c4b54a3414dcc3372cee0b12478e087d712caeaa434b833edbcd5f04be1',
         'content/dialogue.py::node_text': '2f60992994a51a2b265cf85fb3b08b5b6c78e2ace55a3cc6c10aa992a0564582',
         'content/dialogue.py::is_end': '13eaf9933cb02617407a352d545444467d8f109ed90d208b933165e27a7ee366',
-        'content/dialogue_conds.py::_read_domain': 'c93e7a0c9878f1166aff13380f6d1fab475a5eecfb44222b7a29d0d813fe5708',
+        'content/dialogue_conds.py::_read_domain': 'ed35f469c51446eeaf199400682f123c92ee0e9c959b4bf9a1d857a144336918',
         'content/dialogue_conds.py::_main_quests': '4a0fee274d5da62574840cea84508640dc27831fc3eace55fa0d1a717d3db0c1',
         'content/dialogue_conds.py::register': 'bdbc062f40ae9e366d2d0685540d12669167cda57035787f9e26f1c24d914a62',
         'content/dialogue_conds.py::_quest_state': '04766d5f14600c1755037bdbcbeae4430cb0caa2ab210a1b6659b764b57bc160',
@@ -549,12 +549,12 @@ _PIN = {
         'trees_count': '39',
         'trees_fp': '7210a690418955a289855a8e009e92c41bbd7dc1033c1bf9418d24c3a451020d',
         'trees_n': '39',
-        "gate_self": '85d81227c7edabf2f6bc59b6be298f62b15a507c0bb73676cf867c79fad82836',
+        "gate_self": 'c2c7588e212b81503262ac8c72473f8bc90fc4a34b07b95feee93d65ab7163ef',
     },
 }
 
 #: 本文件（门禁本体）的自哈希 —— 去掉 gate_self 那一行后算；防「安全网自己被动过」
-_GATE_SELF_SHA256 = '85d81227c7edabf2f6bc59b6be298f62b15a507c0bb73676cf867c79fad82836'
+_GATE_SELF_SHA256 = 'c2c7588e212b81503262ac8c72473f8bc90fc4a34b07b95feee93d65ab7163ef'
 
 #: 冻结侧的段落表（段序 = 设计稿 §1.4 的行号序）
 _SEGMENT_KEYS = (
@@ -594,7 +594,6 @@ _E_KEYS = (
     'content/dialogue.py::_STORY_PREFIX',
     'content/dialogue.py::_dialogues',
     'content/dialogue.py::_main_quests',
-    'content/dialogue.py::_read_domain',
     'content/dialogue.py::_story_to_line',
     'content/dialogue_conds.py::_c_class_any',
     'content/dialogue_conds.py::_c_evolve_ready',
@@ -614,16 +613,17 @@ _E_KEYS = (
     'content/dialogue_conds.py::_c_side_ready',
     'content/dialogue_conds.py::_main_quests',
     'content/dialogue_conds.py::_quest_state',
-    'content/dialogue_conds.py::_read_domain',
     'content/dialogue_conds.py::register',
 )
 _C_KEYS = (
+    'content/dialogue.py::_read_domain',
     'content/dialogue.py::check_need',
     'content/dialogue.py::dialogue_node',
     'content/dialogue.py::get_dialogue',
     'content/dialogue.py::is_end',
     'content/dialogue.py::node_text',
     'content/dialogue.py::visible_options',
+    'content/dialogue_conds.py::_read_domain',
 )
 # <<< GENERATED
 
@@ -1734,12 +1734,13 @@ def main():
     # ---------------------------------------------------------------- ③ 档位
     section("【③】E 栏 frozen == live（防范围蔓延）· C 栏 frozen != live（防没真接上）")
     e_bad = [k for k in _E_KEYS if _sha(_frozen_text(k)) != _sha(live_texts[k])]
-    check("E 栏 25 段 frozen == live", not e_bad, "；".join(e_bad[:3]))
+    check("E 栏 %d 段 frozen == live" % len(_E_KEYS), not e_bad, "；".join(e_bad[:3]))
     c_same = [k for k in _C_KEYS if _sha(_frozen_text(k)) == _sha(live_texts[k])]
     # 红基线阶段（实现线还没动手）C 栏本来就相等 → 只告警不判红；改完后应全不等。
     c_all_diff = not c_same
-    print("        C 栏 6 段：%s" % ("全部 frozen != live（已接上引擎形状）" if c_all_diff
-                                     else "仍有 %d 段与冻结一致（红基线阶段正常）" % len(c_same)))
+    print("        C 栏 %d 段：%s" % (len(_C_KEYS),
+              "全部 frozen != live（已接上引擎形状 / 改完的段）" if c_all_diff
+              else "仍有 %d 段与冻结一致（该改的还没改）" % len(c_same)))
     # 切片口径的机器证明：ast 切片 == inspect.getsource
     ins_bad = []
     for key in _SEGMENT_KEYS:

@@ -33,19 +33,25 @@ import os
 from saintess_engine.conditions import Conditions
 from saintess_engine.conditions.declarative import register_specs
 from .cond_specs import load as _load_specs
+from ._domainio import read_data_json_strict, read_domain   # 域读口单点（fail-closed）
 
 from .tables import CLASS_NOVICE      # 包内读口（真源 `C.CLASS_NOVICE`）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 
 
-def _read_domain(domain: str, sub: str = "data", default=None):
-    """读包内 `content/<sub>/<domain>.json`（缺文件 / 坏 JSON → default，不抛）。"""
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                       # noqa: BLE001
-        return {} if default is None else default
+def _read_domain(domain: str, sub: str = "data", default=None) -> dict:
+    """读包内 `content/<sub>/<domain>.json` —— **fail-closed**（台账 C-R2.9）。
+
+    原先与 `dialogue.py` 那份逐字同体的坏 JSON → `{}` 静默兜底；口径改成与
+    `content/_domainio.py::read_data_json_strict` 一致：读不到就点名抛，
+    绝不把「域读失败」伪装成「没有主线任务」。
+    """
+    if default is not None:
+        return read_domain(domain, sub, default)
+    return read_data_json_strict("%s.json" % domain,
+                                label="对话条件域 %r" % domain,
+                                hint="空表 = 全部主线任务条件静默失效")
 
 
 _MAIN_QUESTS = None

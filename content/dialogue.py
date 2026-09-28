@@ -45,21 +45,29 @@ import re
 from ext_dialogue.dialogue import Dialogue
 
 from . import obs                                 # noqa: E402  包内唯一日志取用口（fail-closed）
+from ._domainio import read_data_json_strict, read_domain   # 域读口单点（fail-closed）
 from .dialogue_conds import CONDITIONS            # 条件名 + 谓词实现全在内容侧
 
 _HERE = os.path.dirname(os.path.abspath(__file__))          # <pkg>/content
 
 
-def _read_domain(domain: str, sub: str = "data", default=None):
-    """读包内 `content/<sub>/<domain>.json`（缺文件 / 坏 JSON → default，不抛）。
+def _read_domain(domain: str, sub: str = "data", default=None) -> dict:
+    """读包内 `content/<sub>/<domain>.json` —— **fail-closed**（台账 C-R2.9）。
 
-    与 `content/talk_actions.py:48` / `content/quests_flow.py:62` 同款小门面。
+    原先与 `content/talk_actions.py:48` / `content/quests_flow.py:62` 同款小门面，
+    坏 JSON / 缺文件一律 `except → {}`：**39 棵对话树 + 70 条主线任务静默清零、
+    零异常、玩家只看到 NPC 不说话**。口径照抄 `content/_domainio.py::read_data_json_strict`
+    （`social_guild` / `flow/weekly_progress` 已是同一口径）：读不到就点名抛。
+
+    `default` 参数保留为**兼容签名**（包内 4 个调用点都走 `domain` 单参、无人传 `default`）
+    —— 保留它只是为了让外部按名传参的探针不必改；**一旦传入即视为「我明确要兜底」**，
+    故仍走原语义（`default` 或 `{}`），不抛。
     """
-    try:
-        with open(os.path.join(_HERE, sub, "%s.json" % domain), encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                       # noqa: BLE001
-        return {} if default is None else default
+    if default is not None:
+        return read_domain(domain, sub, default)
+    return read_data_json_strict("%s.json" % domain,
+                                label="对话域 %r" % domain,
+                                hint="空表 = 全部对话树/主线任务静默消失")
 
 
 _DIALOGUES = None
