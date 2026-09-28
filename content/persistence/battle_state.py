@@ -136,8 +136,10 @@ def save_battle(group_id, qq_id, state: dict):
             # v152 时刻制：round 删除，now = 战斗绝对时刻
             "type": "monster", "now": 0.0,
             # v181 P3：敌方一律走 enemies 阵列（每怪自带 buffs/defending）；无共享 e_buffs/e_defending 键
+            # C6-2：`p_defending` 这份平铺账在 R2 已整体退休（姿态真源 = 容器窗口
+            # effects["defend"]，引擎 `grep defending` = 0 命中），此处 fallback 包装是
+            # §R2 清 bridge/instance_battle/instance_cmds 时**漏掉的第四处播种点**。
             "enemies": [state], "p_buffs": {},
-            "p_defending": False,
         }
     with _lock:
         conn = _connect()

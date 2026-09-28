@@ -165,7 +165,7 @@ _PIN = {
     'live': {
         'content/persistence/battle_state.py::_json_ready': '<deleted>',
         'content/persistence/battle_state.py::_monster_display_name': '6dba7c5d03011e63b858b278069cd48d05b9de282819bbc5d7ae2119be7ebe58',
-        'content/persistence/battle_state.py::save_battle': 'a856b0d9c423f7dc8ffa2a6e809bc84a8f76a7dbc7634555de5000820978fcb2',
+        'content/persistence/battle_state.py::save_battle': '05b62afeb169597e63678298b43661737517be9a76c0304c09621b0e1875c50b',
         'content/persistence/battle_state.py::get_battle': 'b1379e6aaadfdc6b9759e36f23b843153103cdf38b40c7f6f0bb8219a0e52d3f',
         'content/persistence/battle_state.py::get_battle_raw': 'b895521b5e7241749d57cbac1ab3a60140a1644a33bcb4600d45017b912eab51',
         'content/persistence/battle_state.py::clear_battle': '6d99612e6ddf803104f2422ad16839f2221c5fa3c5f9d99487e55c8233e951c3',
