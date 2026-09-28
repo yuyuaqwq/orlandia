@@ -96,6 +96,7 @@ from __future__ import annotations
 from ext_combat.battle.declarations import Compiler
 from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from ext_combat.battle.effects import register_action
+from ext_combat.battle.game_config import get_effect_rules  # 审计 L5576：EFFECT_RULES 读口提顶层单源（缺件 import 期 fail-closed）
 
 # 包内参数表单源（真源见 class_data.py 头注）。本族 39 个动作不直接读这些表（由装配层
 # 消费），此处 import = 保持「表 → 装配层 → 动作」的包内单源缝，并为后续接线预置。
@@ -2208,21 +2209,26 @@ def _note_error(name: str, exc: BaseException) -> None:
 
 
 def _mech_cash_rules() -> dict:
-    """当前挂载的兑现声明表（缺省空——装配层不崩）。"""
-    try:
-        from .class_data import MECH_CASH
-        return MECH_CASH or {}
-    except Exception:
-        return {}
+    """当前挂载的兑现声明表（包内单源取件 = 模块顶层已 import 的 `MECH_CASH`）。
+
+    ★ 审计 L5576（2026-09-28）：原来这里**惰性 import** + `except Exception: return {}`。
+    `MECH_CASH` 是本包**同进程已装配的域表**（本文件 `:102` 顶层已 import，
+    同 :105 的 `from .class_data import MECH_CASH`），惰性 import 失败 = 装配缺陷；
+    吞成空表则「玩家学了但没挂兑现」**整套职业机制静默归零而不崩不报错**。
+    改：真源提**模块顶层**（缺件在 import 期 fail-closed，与同批 L5577 element_procs 同一手法）。
+    """
+    return MECH_CASH or {}
 
 
 def _effect_rules() -> dict:
-    """当前 EFFECT_RULES（缺省空）。"""
-    try:
-        from ext_combat.battle.game_config import get_effect_rules
-        return get_effect_rules() or {}
-    except Exception:
-        return {}
+    """当前 EFFECT_RULES（模块顶层已 import 的公开读口，单源取件）。
+
+    ★ 审计 L5576（2026-09-28）：同 `_mech_cash_rules`——`get_effect_rules()` 是
+    引擎装配面读口（`ext_combat/battle/game_config.py:66` → `_cfg.get_config`），
+    空表 ⇒ **职业共鸣/信仰档位/守护核心渠道的数值唯一来源**（消费点 :2529/:2548/:2559/:2578）
+    整套静默归零。改：真源提模块顶层，缺件 import 期 fail-closed。
+    """
+    return get_effect_rules() or {}
 
 
 # ============================================================
