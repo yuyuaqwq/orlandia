@@ -100,18 +100,38 @@ _MAX_ERRORS = 16
 # 包内数据（活读 JSON 文件，不 import 数据模块）
 # ============================================================
 
-def _read_json(name: str, default):
-    """读 content/data/<name>（缺文件/坏 JSON → default，不抛）。"""
+def _read_json(name: str) -> dict:
+    """读 content/data/<name>；缺文件 / 坏 JSON / 空表 → `raise`（**不静默空表**）。
+
+    口径与 `content/catalog_space.py::_read` / `content/config.py::_read_table` /
+    `content/_domainio.py:read_data_json_strict` 同款（本包**已有的** fail-closed 先例）。
+
+    改前是 `except Exception: return default`，两种失败都把表清零而**零报错**
+    （黑盒实测 C-R2.8：缺文件与坏 JSON 都得 `{}`）⇒ 下游症状 =
+    `monster_skill(key)` 恒 `None`（引擎回落默认技能）、`basic_skill_of()` 恒 `None`
+    （回落 `basic_fallback` 物理 `atk*1.0`；法师/牧师全 int、atk=0 ⇒ 普攻 0 伤害，
+    与 `content/apply.py:255` 注释里那起 B8 事故同形复发）、`AFFIXES`/`TIPS` 空表
+    （词缀池 / 提示语整类消失）。症状与内容改动**无法区分**、也无法从报错栈定位到读文件。
+
+    ★ 本函数是**全包共享读口**（改前 6 个直接调用方：`apply` 自身 ×2 · `affix` ×2 ·
+      `item_templates` ×1 · `mech/equip` ×2 惰性），所以 `default` 实参**整体删掉** ——
+      删兜底却留默认参数 = 兜底的影子还在（6 处调用方同批改，判据见 `tests/test_cr2_8_readfail.py`）。
+    """
     path = os.path.join(_DATA_DIR, name)
+    if not os.path.exists(path):
+        raise RuntimeError("%s 域文件不存在（%s）—— 空表 = 静默失效，拒绝继续" % (name, path))
     try:
         with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:                                        # noqa: BLE001
-        return default
+            tbl = json.load(f)
+    except Exception as e:                                   # noqa: BLE001
+        raise RuntimeError("%s 域文件坏 JSON（%s）：%s —— 拒绝继续" % (name, path, e)) from e
+    if not isinstance(tbl, dict) or not tbl:
+        raise RuntimeError("%s 域文件不是非空 dict（%s）—— 拒绝继续" % (name, path))
+    return tbl
 
 
-_CLASSES = _read_json("classes.json", {})
-_MONSTERS = _read_json("monsters.json", {})
+_CLASSES = _read_json("classes.json")
+_MONSTERS = _read_json("monsters.json")
 # ★ 技能表不再由本文件读：真源 = 包内 `content/skills.py`（D3 skills 批逐字搬入游戏仓
 # `game/content_rules/skills.py` + `game/data/skill_up.py`）。切片期那份 `_SkillTable` /
 # `_SKILLS_BY_NAME` 已删（第二份同义实现 = 双源）。

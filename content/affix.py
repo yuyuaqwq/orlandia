@@ -52,8 +52,8 @@ from .apply import _read_json
 
 
 # ---- 包内域读口（B10-L1 已证逐条 deep-equal；本线复核见报告 §3）----
-AFFIXES: dict = _read_json("affixes.json", {})
-LEGENDARY_EFFECTS: dict = _read_json("legendary_effects.json", {})
+AFFIXES: dict = _read_json("affixes.json")
+LEGENDARY_EFFECTS: dict = _read_json("legendary_effects.json")
 
 # ---- 包内门面（B16-W11：4 张表全数归包）----
 from .catalog_b143 import AFFIX_POOL_BY_QUALITY              # `game_config.affixes` 域

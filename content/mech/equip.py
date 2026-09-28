@@ -28,7 +28,7 @@
    与游戏仓 `game/data/weapon_effect_data.py` 逐条相等——见验收 A1 的对拍）。
 2. **:129 词条表来源**（`_affix_data()` 内，惰性）：`from ..data import affixes as _A` +
    `getattr(_A, "AFFIXES", {})` → `from ..apply import _read_json` +
-   `_read_json("affixes.json", {})`（包内 `content/data/affixes.json`，76 条，
+   `_read_json("affixes.json")`（包内 `content/data/affixes.json`，76 条，
    与游戏仓 `game/data/affixes.py:AFFIXES` 逐条相等）。**同一张表、同一形状**，仅换载体。
 3. **:1089 去扩展动作注册调用**（`install_ext_actions()` 内）：真源
    `from .import battle_we_procs as _WEP` + `_WEP.ensure_registered()` → 包内
@@ -36,7 +36,7 @@
    自己写明「装饰器已随模块 import 注册——本函数仅做幂等标记」，故删调用不丢注册。
 4. **传说专属表来源**（`_legendary_data()` 内，惰性，D3 传说装配批新增）：真源
    `from ..data import affixes as _A` + `getattr(_A, "LEGENDARY_EFFECTS", {})` →
-   `from ..apply import _read_json` + `_read_json("legendary_effects.json", {})`
+   `from ..apply import _read_json` + `_read_json("legendary_effects.json")`
    （包内 `content/data/legendary_effects.json`，93 条，与游戏仓
    `game/data/affixes.py:LEGENDARY_EFFECTS` **逐条 deep-equal**——见
    `overnight/d3_legendary_verify.py` A2 的对拍）。**同一张表、同一形状**，仅换载体。
@@ -292,11 +292,8 @@ def _affix_data() -> dict:
     """AFFIXES 表（数值权威，惰性读）。"""
     global _AFFIX_TABLE
     if _AFFIX_TABLE is None:
-        try:
-            from ..apply import _read_json
-            _AFFIX_TABLE = _read_json("affixes.json", {})
-        except Exception:
-            _AFFIX_TABLE = {}
+        from ..apply import _read_json
+        _AFFIX_TABLE = _read_json("affixes.json")
     return _AFFIX_TABLE
 
 
@@ -1367,11 +1364,8 @@ def _legendary_data() -> dict:
     """LEGENDARY_EFFECTS 表（数值权威，惰性读）。"""
     global _LEGENDARY_TABLE
     if _LEGENDARY_TABLE is None:
-        try:
-            from ..apply import _read_json
-            _LEGENDARY_TABLE = _read_json("legendary_effects.json", {})
-        except Exception:
-            _LEGENDARY_TABLE = {}
+        from ..apply import _read_json
+        _LEGENDARY_TABLE = _read_json("legendary_effects.json")
     return _LEGENDARY_TABLE
 
 

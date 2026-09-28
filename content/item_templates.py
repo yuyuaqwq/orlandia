@@ -94,7 +94,7 @@ from . import texts as _T                 # ★ C 档 15（B-2 第 6 片）：�
 # `game/data/tips.py:TIPS` 的**裸列表**形状。逐键/逐条/逐序对拍见报告 §3。
 TIPS: dict = {
     _k: (_v.get("lines") if isinstance(_v, dict) else _v)
-    for _k, _v in (_read_json("tips.json", {}) or {}).items()
+    for _k, _v in _read_json("tips.json").items()
 }
 
 # 宿主面惰性替身（正文 `db.` / `C.` 一字未改）

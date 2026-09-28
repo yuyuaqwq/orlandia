@@ -1171,10 +1171,18 @@ _AUX_SHA_INTENT = {
     #     逐字 = cue 迁移前引擎 `render_via` 模板）⇒ 玩家可见文案**一字未变**，
     #     只是从「引擎侧兜底模板」搬到「内容侧文案表」。判据 = `tests/test_battle_cue_text.py`
     #     （逐条渲染 62 条 + 缺格/多 cue 两条反证）。
-    # 语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
+    #   · 2026-09-29 **C-R2.8**（C 车道 `c-r2`）：`content/apply.py::_read_json` 由
+    #     `except Exception: return default` 收成 fail-closed（缺文件 / 坏 JSON / 空表 /
+    #     非 dict 四态各自点名抛），`default` 实参与 6 处调用方同批删
+    #     （`affix` ×2 · `item_templates` ×1 · `mech/equip` ×2 惰性 + 各自 except 兜底）。
+    #     ★ 这次是**读口行为**变了，不是挂点变了：但 U1-D2 盯的是「触发面」
+    #     （trigger 声明 / 装配六步顺序 / 条件谓词表），与读口无关 ⇒ 走同一条登记。
+    #     玩家可见数值零变化（五张表在真源上逐条读到，判据
+    #     `tests/test_cr2_8_readfail.py` 的正常态组把条数钉死：8 / 330 / 76 / 93 / 58）。
+    #   语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        '83aeb604a66dc362bf0c5e6aa3dfb70b269282832a25f7d9b40060360211dfec',
+        'f43100ab637b9ac04545c40df8a0980fef07afd10dc7961ead3546f55be93ab1',
     ),
 }
 
