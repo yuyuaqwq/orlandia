@@ -186,11 +186,17 @@ def target_in_battle(group_id, target_qq, inst_battle_hook=None):
     if _tb and not (_tb["state"].get("type") == "instance" and _tb["state"].get("retreated")):
         return "battle"
     if inst_battle_hook is not None:
+        # 审计 L891：原为 `except Exception: pass` ⇒ 副本判定读不到时**静默当成「不在战斗中」**，
+        # 于是正在副本里的人照样能被拉进队伍（副本当场僵尸化）。fail-closed：读不到就抛。
         try:
-            if inst_battle_hook(group_id, target_qq):
-                return "instance"
-        except Exception:
-            pass
+            _hit = inst_battle_hook(group_id, target_qq)
+        except Exception as _e:
+            raise RuntimeError(
+                "party.target_in_battle：副本战斗判定读不到（inst_battle_hook 抛）——"
+                "拒绝静默当成「目标不在战斗中」把人拉进队伍（副本会僵尸化）"
+            ) from _e
+        if _hit:
+            return "instance"
     return None
 
 
