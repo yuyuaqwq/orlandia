@@ -1664,7 +1664,8 @@ def _skill_formula_text(self, info: dict, lv: int = 1) -> str:
                 _se = skill_formula_expr_for_seg(_seg, lv)
                 if _se:
                     _t = translate_expr(_se)
-                    _m = float(_seg.get("mult", 1.0) or 1.0)
+                    _m0 = _seg.get("mult", 1.0)
+                    _m = 1.0 if _m0 is None else float(_m0)   # ★ 2026-09-29 审计 L246 同族：只认 None
                     if _m != 1.0:
                         _t = f"{_t}×{_m:g}"
                     _parts.append(_t)

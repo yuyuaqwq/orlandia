@@ -217,7 +217,12 @@ LIVE_PREDS_SHA256 = "6356de64b918896850598dec2e30de193bc32c820fda6456405a44569d0
 # ★ 2026-09-19（39b）重钉：动作体里的「条件达成播报行」由硬编码改为 `_T.text("cmech.cond_mult_line", …)`
 #   入表 ⇒ getsource 必变；冻结面已同步收窄（`audit_predicate_bytes` 的 needle ① 移出）。
 #   ★ 判定 / 累乘 / 异常三样**一字未动**（另两个 needle 仍逐字节冻结）。
-LIVE_ACTION_SHA256 = "0b9c4784acca9b300312d6197d0c82f3fca9ff6088f97055055c12ad2c58904f"
+#   ★ 2026-09-29 重钉（审计 L246 同族）：动作体里**乘区读点**两行由 `or 1.0` 改为
+#     「只认 None」（合法 0.0 = 该条件下零伤，吞成 1.0 = 条件不生效）。
+#     本 needle 的**意图**（「判定 / 累乘 / 异常必须保留」）仍成立且更强：
+#     「累乘」由逐字节相等升级为**语义口径相等**；判定（cond 分派）与
+#     `except` 那两行仍由 needle ②③ 逐字节冻结，一字未动。
+LIVE_ACTION_SHA256 = "def6fee4271d87203c04563bc392dc30461b3686f834701d108eb19f69fe75a3"
 
 PRED_ORDER = ("player_first", "enemy_debuff", "enemy_broken", "melody_buff", "melody_stacks")
 COND_KEYS = frozenset(PRED_ORDER)

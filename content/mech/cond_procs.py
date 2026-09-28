@@ -196,9 +196,11 @@ def skill_cond_mult_act(battle, caster, target, params, logs):
         skill_info = _PKG_SKILLS.skill_info
         name = info.get("name") or ""
         lv = skill_level_of(actor, name) if (actor or {}).get("class_name") else 1
-        mult = float(skill_cond_mult(cond, max(1, int(lv or 1)), info) or 1.0)
+        _cm = skill_cond_mult(cond, max(1, int(lv or 1)), info)
+        mult = 1.0 if _cm is None else float(_cm)   # ★ 2026-09-29 审计 L246 同族：只认 None
     except Exception:
-        mult = float(cond.get("mult", 1.0) or 1.0)
+        _cm = cond.get("mult", 1.0)
+        mult = 1.0 if _cm is None else float(_cm)
     if mult == 1.0:
         return
     ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult

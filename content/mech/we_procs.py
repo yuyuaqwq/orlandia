@@ -77,6 +77,22 @@ from .. import texts as _T                      # 文案表（B 批 B-1 + C 档 
 from . import seq_plans as _SP                  # ★ P2 试点（2026-09-24）：声明表执行壳（_SP.run）
 
 
+def _mul_lt_one(mult) -> bool:
+    """`op:"mul"` 的 mult 是否 < 1.0（= 该条目是减益）。**只认 None**，合法 0 照旧算减益。
+
+    ★ 2026-09-29 审计 L246 同族：原写法 `float(e.get("mult", 1) or 1) < 1.0` 会把
+      **合法 0.0**（属性被压到 0 = 最强减益）吞成 1.0 ⇒ 判成「不是减益」⇒
+      `we_affix_tenacity` 的负面清单漏掉它 ⇒ 坚韧不回血也不净化。与 `_roll` 同口径：
+      「0 是合法值，None 才是缺字段」。
+    """
+    if mult is None:
+        return False
+    try:
+        return float(mult) < 1.0
+    except (TypeError, ValueError):
+        return False
+
+
 def _roll(chance) -> bool:
     """概率判定：chance None（无字段）= 恒触发；0 不触发。"""
     if chance is None:
@@ -1354,7 +1370,7 @@ def we_affix_tenacity(battle, caster, target, params, logs):
     bf = owner.get("effects") or {}
     neg = [k for k, e in bf.items() if isinstance(e, dict) and e.get("stat")
            and ((e.get("op") == "reduce") or
-                (e.get("op") == "mul" and float(e.get("mult", 1) or 1) < 1.0))]
+                (e.get("op") == "mul" and _mul_lt_one(e.get("mult"))))]
     if not neg:
         return
     import random as _r

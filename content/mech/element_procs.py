@@ -156,7 +156,8 @@ def elem_reaction(battle, caster, target, params, logs):
         return
     mult = 1.0
     try:
-        mult = float(r.get("mult", 1.0) or 1.0)
+        _m0 = r.get("mult", 1.0)
+        mult = 1.0 if _m0 is None else float(_m0)   # ★ 2026-09-29 审计 L246 同族：只认 None
     except Exception:
         mult = 1.0
     if mult != 1.0:
@@ -224,7 +225,8 @@ def elem_counter(battle, caster, target, params, logs):
         hit = _mark_of(tgt, str(victim_mark)) > 0
     if not hit:
         return
-    mult = float(rule.get("mult", 1.25) or 1.25)
+    _rm = rule.get("mult", 1.25)
+    mult = 1.25 if _rm is None else float(_rm)   # ★ 2026-09-29 审计 L246 同族：只认 None
     ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
     logs.append(_T.text("ep.counter", name=rule.get('name'), mult=mult, note=rule.get('note', '')))
     # 附带：解冻 / 打断
