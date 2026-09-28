@@ -3411,6 +3411,25 @@ class EconomyImpl(CommandBase):
         if player["gold"] < rec["gold"]:
             yield event.plain_result(_T.text("refine.gold_short", gold=rec['gold'], have=player['gold']))
             return
+        _inh = rec.get("inherit", "half")
+        # 旧装备名册基础 lv（按名反查名册；查不到兜底用当前 lv 当已含全部升级 → 不继承）
+        _base_lv = d.get("lv", 0) or 0
+        # ★ afix2 收口（两处一起改，顺序也是修法的一部分）：
+        #   ① 这一段原先是 `except Exception: pass`，盖住「按装备名反查名册基础 lv」。
+        #      读不到 ⇒ `_base_lv` 停在旧装备当前 lv ⇒ `_upg_boost = max(0, lv - lv)
+        #      = 0` ⇒ **升级投资一层都不继承**。名册索引是纯数据表，抛错 = 数据坏了。
+        #   ② 它原先跑在**扣完材料 + 扣完金币 + 扣掉旧装备之后** —— 那里抛等于
+        #      「收了钱再报错」，比静默更糟。⇒ 整段前移到**扣任何东西之前**，
+        #      数据坏了就在玩家还没付代价时炸，存档不动。
+        #   ★ 与「查不到**名字**」那一路口径不同、刻意保留：那是**有意的兜底**
+        #     （注释明写「查不到兜底用当前 lv 当已含全部升级 → 不继承」——「不继承」
+        #       是它写在文档里的设计，不是故障）。本次只动「抛了被吃掉」。
+        #   实测索引自身完好（EQUIP_ROSTER_BY_NAME 686 个名字 · 指向缺失名册
+        #     0 条 · 首个 rid 缺 lv 0 个）⇒ 属潜伏项，正常路径逐字节未变。
+        for _rid in _cit.EQUIP_ROSTER_BY_NAME.get(src_name, []):
+            _base_lv = _cit.EQUIP_ROSTER[_rid].get("lv", _base_lv)
+            break
+        _upg_boost = max(0, ((d.get("lv", 0) or 0) - _base_lv))
         # 扣材料 + 扣金币 + 扣旧装备
         for m, n in rec["mats"].items():
             db.remove_item(group_id, qq_id, m, n)
@@ -3431,16 +3450,6 @@ class EconomyImpl(CommandBase):
             new_equip = C.generate_roster_equip(rec["target"])
         else:
             new_equip = C.craft_recipe_make(rec["target"])
-        _inh = rec.get("inherit", "half")
-        # 旧装备名册基础 lv（按名反查名册；查不到兜底用当前 lv 当已含全部升级 → 不继承）
-        _base_lv = d.get("lv", 0) or 0
-        try:
-            for _rid in _cit.EQUIP_ROSTER_BY_NAME.get(src_name, []):
-                _base_lv = _cit.EQUIP_ROSTER[_rid].get("lv", _base_lv)
-                break
-        except Exception:
-            pass
-        _upg_boost = max(0, ((d.get("lv", 0) or 0) - _base_lv))
         if _inh == "full":
             new_equip["enhance"] = d.get("enhance", 0)
             new_equip["lv"] = new_equip.get("lv", 0) + _upg_boost
