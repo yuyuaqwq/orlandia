@@ -38,6 +38,7 @@ from ext_combat.battle.declarations import Compiler
 from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
 from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
+from .element_data import ELEMENT_REACTIONS   # 审计 L5577：反应表提模块顶层单源取件（无循环依赖，已双向 import 验证）
 
 # 印记 key（元素 → 印记）
 ELEMENT_MARKS = {"fire": "fire_mark", "ice": "ice_mark", "thunder": "thunder_mark"}
@@ -98,12 +99,13 @@ def _mark_of(target: dict, mark_key: str) -> int:
 
 
 def _reactions() -> dict:
-    """反应表（内容侧配置；缺省空表 = 无反应，不崩）。"""
-    try:
-        from .element_data import ELEMENT_REACTIONS
-        return ELEMENT_REACTIONS or {}
-    except Exception:
-        return {}
+    """反应表（内容侧配置）。
+
+    审计 L5577：原实现是「惰性 import + `except Exception: return {}`」——缺件时静默
+    退化成「无反应」，元素反应整族静默失效且无任何痕迹。按铁律「认不出 ⇒ 抛」收口：
+    表改在模块顶层 import（与 `:ELEMENT_MARKS` 同一取件面），缺件在 import 期 fail-closed。
+    """
+    return ELEMENT_REACTIONS or {}
 
 
 def _reaction_of(element: str, target: dict) -> dict:

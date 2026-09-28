@@ -38,6 +38,7 @@
 from ext_combat.battle.declarations import Compiler
 from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 from ext_combat.battle.effects import apply_effects, register_action
+from ext_combat.battle import now_of          # 审计 L5578：公开读口（引擎 `_now_of` 同款实现），不再吞异常回落私槽
 
 from .. import texts as _T                    # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
 
@@ -50,11 +51,13 @@ PREFIX = "team:"
 # ============================================================
 
 def _now(battle) -> float:
-    try:
-        from ext_combat.battle import now_of
-        return float(now_of(battle) or 0.0)
-    except Exception:
-        return float(getattr(battle, "_now", 0) or 0)
+    """battle 绝对时刻（审计 L5578：原实现吞异常回落 `getattr(battle,"_now",0)`）。
+
+    引擎 `now_of` 的实现逐字就是 `float(getattr(battle, "_now", 0) or 0)`
+    ⇒ 原 except 分支与公开读口**行为完全同值**，属纯冗余的静默兜底（读私槽 + 吞异常）。
+    按铁律收口为单一取件通路：模块顶层 import 公开读口，缺件在 import 期 fail-closed。
+    """
+    return float(now_of(battle) or 0.0)
 
 
 def _alive(a) -> bool:
