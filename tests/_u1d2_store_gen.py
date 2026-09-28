@@ -165,6 +165,17 @@ _BASELINE_PINS = {
 }
 
 
+class SliceUnavailable(SystemExit, ValueError):
+    """某个候选副本里切不出某一段（符号已删 / 不唯一 / 文件损坏）。
+
+    ★ 双继承是这个类型的**全部意义**：`slice_source` 对「真跑时切不出来」必须 fail-closed
+    （`SystemExit` 才是调用方预期的终态），而 `_base_matches_pins` 拿它当**候选淘汰**判据
+    （`Exception` 才接得住）。此前 `slice_source` 抛裸 `SystemExit`、`except Exception` 接不住
+    ⇒ git 回溯循环在**第一个**候选 rev 上就被打死，压根走不到更早的提交
+    ⇒ 明明存在合法基线（`_BASELINE_PINS` 全等），却报「找不到 base」。
+    """
+
+
 # ══════════════════════════════════════════════════════════════ 切片口径（§1.2）
 def slice_source(path: str, symbol: str) -> str:
     """从 `path` 里切出 `symbol` 的**整段源码文本**（含装饰器，保留原行尾）。"""
@@ -174,8 +185,8 @@ def slice_source(path: str, symbol: str) -> str:
     hits = [n for n in ast.walk(tree)
             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == symbol]
     if len(hits) != 1:
-        raise SystemExit("切不出来：%s 里 `def %s` 有 %d 个（期望 1）"
-                         % (path, symbol, len(hits)))
+        raise SliceUnavailable("切不出来：%s 里 `def %s` 有 %d 个（期望 1）"
+                               % (path, symbol, len(hits)))
     node = hits[0]
     lo = min([d.lineno for d in node.decorator_list] + [node.lineno])
     return "".join(src.splitlines(True)[lo - 1:node.end_lineno])
@@ -246,7 +257,10 @@ def _resolve_base_pkg():
 
 
 def _base_matches_pins(path) -> bool:
-    """候选 base 的 23 段切片是否全等 `_BASELINE_PINS`。"""
+    """候选 base 的 23 段切片是否全等 `_BASELINE_PINS`。
+
+    任一段切不出（`SliceUnavailable`）⇒ 本候选**淘汰**（return False），让回溯继续试更早的 rev。
+    """
     try:
         for relpath, symbol in SEGMENTS:
             want = _BASELINE_PINS.get(key_of(relpath, symbol))
