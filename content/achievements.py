@@ -136,11 +136,16 @@ def _c_quests_done(player, stats, profs, extra, cond):
 
 
 def _bestiary_kills(qq_id, keyword) -> int:
-    """bestiary 按怪物名关键词统计击杀数"""
-    try:
-        rows = db.get_bestiary("", qq_id)
-    except Exception:
-        return 0
+    """bestiary 按怪物名关键词统计击杀数
+
+    ★ L5469 #1：原先 `except Exception: return 0`。
+    读失败被降级成「这只怪物一只也没杀过」，
+    `kills_type` 条件因此恒不达成，而成就永久挂在那儿。
+    玩家看到的是「尚未达成」，实为库读失败，零报错、零诊断。
+    修法：删掉内层兜底 —— 异常一路上走，由调用方 `cond_met` 统一记诊断并返回「未达成」。
+    （`cond_met` 本身已有 `except → return False` 且已记诊断口，这里不再复制一份兜底。）
+    """
+    rows = db.get_bestiary("", qq_id)
     total = 0
     for r in rows:
         name = _index_display("monsters", r["monster"])
@@ -151,17 +156,20 @@ def _bestiary_kills(qq_id, keyword) -> int:
 
 def _monster_total() -> int:
     """地图怪物去重总数(图鉴全解锁判定)"""
-    try:
-        ids = set()
-        for mid, m in MAP_BY_ID.items():
-            for mon in (m.get("monsters") or []):
-                if isinstance(mon, dict):
-                    ids.add(mon.get("id") or mon.get("name"))
-                else:
-                    ids.add(mon)
-        return max(len(ids), 100)
-    except Exception:
-        return 150
+    # ★ L5469 #2：原先这里是 `except Exception: return 150`。
+    #   读失败 → 分母变成硬编码 150 → `bestiary_all`（图鉴全收集）
+    #   被判成「你只要凑足 150 只就算全收集了」——
+    #   一个无依据的假成绩，且**随地图改动而漂**（MAP_BY_ID 一变就变」。
+    #   流程：DB 读图鉴失败 → 这里返回 150 → 判定为真。
+    # 修法：删掉 try/except，让异常上路到 `bestiary_all` 的调用方。
+    ids = set()
+    for mid, m in MAP_BY_ID.items():
+        for mon in (m.get("monsters") or []):
+            if isinstance(mon, dict):
+                ids.add(mon.get("id") or mon.get("name"))
+            else:
+                ids.add(mon)
+    return max(len(ids), 100)
 
 
 def cond_met(player: dict, stats: dict, profs: dict, extra: dict, cond: dict, group_id: str = None) -> bool:

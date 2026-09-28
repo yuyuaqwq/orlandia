@@ -219,11 +219,18 @@ def _c_set_has(player, stats, profs, extra, cond):
 
 @register("visited")
 def _c_visited(player, stats, profs, extra, cond):
-    """到访区域数"""
-    try:
-        return db.get_visited_count("", player["qq_id"]) >= _value(cond)
-    except Exception:
-        return stats.get("visited_areas", 0) >= _value(cond)
+    """到访区域数
+
+    ★ L5469 #3：原 `except Exception: return stats.get("visited_areas", 0) >= _value(cond)`。
+    实测证明（探针 _afix6，INJECT=visited_count）：注入读失败后
+    条件直接转真 **True**（因 `stats["visited_areas"]` 存在旧值 10，≥ 3）——
+    即「库读失败」被直接偷换成「你已到访过 10 个区域」，
+    把一个**读失败**变成了一个**真实成绩**（且无任何诊断记录）。
+    这是本批最严重的一处：它不是「少给一个数」，而是**把失败变成了成功**。
+    修法：删掉 try/except。`stats["visited_areas"]` 全包零**写点**
+    （grep 只有读口，无人写）→ 这个兜底分支根本不可能真实命中。
+    """
+    return db.get_visited_count("", player["qq_id"]) >= _value(cond)
 
 
 @register("hidden_area")
@@ -320,10 +327,7 @@ def _faction_contribute(player, extra):
     gid = extra.get("_group_id")
     if not gid:
         return 0
-    try:
-        raw = db.get_event_state(f"faction_camp_{gid}_{player['qq_id']}")
-    except Exception:
-        return 0
+    raw = db.get_event_state(f"faction_camp_{gid}_{player['qq_id']}")
     if not raw:
         return 0
     try:
