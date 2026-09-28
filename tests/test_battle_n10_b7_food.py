@@ -42,7 +42,7 @@ FAILURES = []
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
 from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
-                            shield_names, arm_shield, clear_shields)
+                            shield_names)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -217,8 +217,29 @@ def test_sacred_bread_shield():
     b = B2(btype="monster", sides={"player": [p], "enemy": [e]})
     logs, cast, recover = eat_food(b, p, ["shield"])
     # ★ 收口第 2 批：护盾 = effects 容器里声明 absorb 的条目（不再是独立容器）
-    check("盾已上（容器条目）", shield_total(p) > 0,
-          f"effects={p.get('effects')}")
+    _exp = int(p["max_hp"] * 0.10)          # 圣餐面包 shield 缺省 10% maxhp
+    check("盾已上（容器条目）", sh_value_of(p, "food_shield") == _exp,
+          f"effects={p.get('effects')} expect={_exp}")
+    check("★ 盾落在容器条目 food_shield", shield_names(p) == ["food_shield"],
+          f"names={shield_names(p)} effects={list((p.get('effects') or {}))}")
+    _fe = sh_of(p, "food_shield")
+    check("★ food_shield stacks=1", int(_fe.get("stacks", 0)) == 1, str(_fe))
+    # ★ 到期走容器条目的 `expire`（turns 缺省 3 ⇒ 授予时 now + 3；旧 expire_at 已删）
+    from ext_combat.battle.battle import _now_of as _nowx
+    check("★ food_shield expire = 授予时 now + 3 刻（容器那一个 expire 字段）",
+          abs(float(_fe.get("expire", -1)) - (_nowx(b) + 3.0)) < 1e-6,
+          f"expire={_fe.get('expire')} now={_nowx(b)}")
+    check("★ 无 expire_at 影子字段", "expire_at" not in _fe, str(_fe))
+    check("★ 不建独立容器 shields", "shields" not in p, str(sorted(p)))
+    # ★ 吸收真的发生（food_shield 声明了 absorb）；`no_dodge=True` ⇒ 无闪避早返回
+    _hp0 = p["hp"]
+    from ext_combat.battle.landing import deal_damage as _dd
+    _dd(b, e, p, 100, [], dmg_kind="true", no_dodge=True)
+    check("★ 100 点伤害被面包盾全吸收（hp 不变）", p["hp"] == _hp0, f"{_hp0}→{p['hp']}")
+    check("★ 吸收逐条扣 value（{0}-100={1}）".format(_exp, _exp - 100),
+          sh_value_of(p, "food_shield") == _exp - 100, f"effects={p.get('effects')}")
+    check("★ shield_total 读容器 absorb 族", shield_total(p) == _exp - 100,
+          f"total={shield_total(p)}")
 
 
 def test_duplicate_idempotent():

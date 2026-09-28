@@ -52,7 +52,7 @@ FAILURES = []
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
 from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
-                            shield_names, arm_shield, clear_shields)
+                            shield_names)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -314,6 +314,30 @@ def test_arcane_field():
     shields = shield_total(p)      # ★ 收口第 2 批：读容器 absorb 族条目
     check(f"盾档：面板魔攻 {_matk:.0f} × {_left:g}层×8% = {_expect} 护盾", shields == _expect,
           f"got={shields} expect={_expect}")
+    # ★ 精确到「哪一条」：盾落在 `shield` 容器条目上
+    #   （team_procs.self_shield 的 key 缺省就是 `"shield"`，而 `shield` 在 21 条
+    #    absorb 声明里；本测试的技能数据没给 shield_key，所以走缺省键——不是 arcane_shield）
+    check("★ 盾落在容器条目 `shield`（self_shield 缺省键）",
+          shield_names(p) == ["shield"],
+          f"names={shield_names(p)} effects={list((p.get('effects') or {}))}")
+    _ash = sh_of(p, "shield")
+    check("★ shield value = 期望值（逐条）", sh_value_of(p, "shield") == _expect,
+          f"value={_ash.get('value')} expect={_expect}")
+    check("★ shield stacks=1", int(_ash.get("stacks", 0)) == 1, str(_ash))
+    # ★ 到期走容器条目的 `expire`（turns=10 ⇒ 授予时 now + 10；旧 expire_at 已删）
+    from ext_combat.battle.battle import _now_of as _nowx
+    check("★ shield expire = 授予时 now + turns 10（容器那一个 expire 字段）",
+          abs(float(_ash.get("expire", -1)) - (_nowx(b) + 10.0)) < 1e-6,
+          f"expire={_ash.get('expire')} now={_nowx(b)}")
+    check("★ 无 expire_at 影子字段", "expire_at" not in _ash, str(_ash))
+    check("★ 不建独立容器 shields", "shields" not in p, str(sorted(p)))
+    # ★ 吸收真的发生（`shield` 声明了 absorb）
+    _hp0 = p["hp"]
+    from ext_combat.battle.landing import deal_damage as _dd
+    _dd(b, e, p, 10, [], dmg_kind="true", no_dodge=True)
+    check("★ 10 点伤害被力场盾全吸收（hp 不变）", p["hp"] == _hp0, f"{_hp0}→{p['hp']}")
+    check("★ 吸收逐条扣 value（{0}-10={1}）".format(_expect, _expect - 10),
+          sh_value_of(p, "shield") == _expect - 10, f"effects={p.get('effects')}")
     check("盾档消耗 2 点充能（5 → 3）",
           float((p["effects"].get("arcane") or {}).get("stacks", 0) or 0) == 3.0,
           f"arcane={p['effects'].get('arcane')}")

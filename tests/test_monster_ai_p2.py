@@ -92,14 +92,14 @@ def test_2_director_and_ai_coexist():
            "mdef": 50, "spd": 80, "lv": 20, "skills": ["ms_lve_duo_h_ling",
                                                         "ms_lian_zhan",
                                                         "ms_zhao_huan"],
-           "effects": {}, "shields": {}, "cooldown": {}, "auto_act": None,
+           "effects": {}, "cooldown": {}, "auto_act": None,
            "ai": dict(src), "act_count": 0, "ct": 0.0}
     b = B2("instance", sides={
         "enemy": [mon],
         "player": [{"uid": "p1", "name": "勇者", "side": "player",
                     "hp": 999999, "max_hp": 999999, "atk": 100, "matk": 100,
                     "def": 50, "mdef": 50, "spd": 50, "lv": 20, "effects": {},
-                    "shields": {}, "ct": 0.0}]})
+                    "ct": 0.0}]})
     b._now = 0.0
     random.seed(3)
     # 场景 A：auto_act 显式指定 → 必用显式招（导演换招/连招链语义）
@@ -113,16 +113,40 @@ def test_2_director_and_ai_coexist():
     check("auto_act 显式招真实结算（连斩 ×1.4 伤害掉血）", hp_a1 < hp_a0,
           f"{hp_a0}->{hp_a1}")
     # 场景 B：清 auto_act → AI weights 生效（掠夺号令权重最高 → 战斗多样）
+    # ★ 2026-09-28：断言口径从「日志里出现技能名」改为**结算层可观测量**。包侧没装配
+    #   `cue_subs_fn` ⇒ `Battle.cues is None` ⇒ 引擎已迁移点位只吐一行可读坏数据，
+    #   技能名永不进日志（该断点自引擎 2026-09-27 cue 解耦起恒红，与容器收口无关）。
+    #   咕噜三个技能都**不是**普攻：蓄力/召唤类本刻不打人，连斩按 atk×1.4 结算 ⇒
+    #   「本刻零伤害」只在 AI 选中非普攻招时出现（对照：清空 ai 走普攻时恒 0，见
+    #   场景 D 反证）。既验了 AI 生效，又比旧的「日志有名字」判得更实。
     mon["auto_act"] = None
     mon["act_count"] = 0
-    used_b = set()
+    _pb = b.sides_of("player")[0]
+    idle_b = hits_b = 0
     for _ in range(30):
+        _hp0 = int(_pb.get("hp"))
         logs, ended = auto_land(b, mon)
-        for l in logs:
-            for nm in ("掠夺", "连斩"):
-                if nm in str(l):
-                    used_b.add(nm)
-    check("无 auto_act 时 AI 生效（至少一类技能）", len(used_b) > 0, f"used={used_b}")
+        if int(_pb.get("hp")) == _hp0:
+            idle_b += 1
+        else:
+            hits_b += 1
+    check("无 auto_act 时 AI 生效（选招非普攻 ⇒ 出现不结算伤害的刻）", idle_b > 0,
+          f"idle={idle_b}/30 hits={hits_b}")
+    check("AI 未全回落普攻（同帧仍有结算伤害的刻）", hits_b > 0, f"hits={hits_b}/30")
+    # 场景 D（反证）：把 ai 清空 → 决策器 None → 恒走普攻 ⇒ 「本刻零伤害」必须恒 0。
+    #   有了这条，上面两条才是**非平凡**的（否则 idle>0 可能只是「怪压根没出手」）。
+    _ai_keep = mon.get("ai")
+    mon["ai"] = None
+    mon["act_count"] = 0
+    _pd = b.sides_of("player")[0]
+    idle_d = 0
+    for _ in range(30):
+        _hp0 = int(_pd.get("hp"))
+        auto_land(b, mon)
+        if int(_pd.get("hp")) == _hp0:
+            idle_d += 1
+    check("反证：无 ai → 恒普攻 ⇒ 零伤害刻恒 0", idle_d == 0, f"idle={idle_d}/30")
+    mon["ai"] = _ai_keep
     # 场景 C：导演 script_hook 演出刻 skip 优先于 AI
     mon["auto_act"] = None
     st = {"boss_script": AI._new_script_state() if hasattr(AI, "_new_script_state")
@@ -152,16 +176,16 @@ def test_3_target_hint():
     st = {"threat": {"p_a": 0, "p_b": 99999}, "taunt_target": ""}
     pa = {"uid": "p_a", "qq_id": "p_a", "name": "残血甲", "side": "player",
           "hp": 1000, "max_hp": 5000, "atk": 100, "matk": 100, "def": 50,
-          "mdef": 50, "spd": 50, "lv": 20, "effects": {}, "shields": {},
+          "mdef": 50, "spd": 50, "lv": 20, "effects": {},
           "ct": 0.0}
     pb = {"uid": "p_b", "qq_id": "p_b", "name": "满血乙", "side": "player",
           "hp": 5000, "max_hp": 5000, "atk": 100, "matk": 100, "def": 50,
-          "mdef": 50, "spd": 50, "lv": 20, "effects": {}, "shields": {},
+          "mdef": 50, "spd": 50, "lv": 20, "effects": {},
           "ct": 0.0}
     mon = {"uid": "e_m", "id": "b_goblin_chief", "name": "咕噜", "side": "enemy",
            "role": "boss", "is_boss": True, "hp": 99999, "max_hp": 99999,
            "atk": 300, "matk": 150, "def": 50, "mdef": 50, "spd": 80, "lv": 20,
-           "skills": ["ms_lian_zhan"], "effects": {}, "shields": {},
+           "skills": ["ms_lian_zhan"], "effects": {},
            "cooldown": {}, "auto_act": None,
            "ai": {"select": "priority", "moves": [
                {"when": {}, "then": {"type": "skill", "skill": "ms_lian_zhan",

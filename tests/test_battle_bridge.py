@@ -58,8 +58,8 @@ FAIL = 0
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
-from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
-                            shield_names, arm_shield, clear_shields)
+from _container_shape import (sh_value_of, shield_names,  # noqa: E402
+                            arm_shield)
 
 check = bind_check(globals(), "PASS", "FAIL")
 
@@ -104,6 +104,10 @@ check("make_actor 播种 effects", isinstance(a.get("effects"), dict))
 #   「不再播种 shields」+「cooldown 仍在」，防止有人把它加回来。
 check("make_actor 不再播种 shields（收口第2批已删独立容器）", "shields" not in a, str(sorted(a)))
 check("make_actor 播种 cooldown", isinstance(a.get("cooldown"), dict))
+# ★ 播种的新形状：effects 容器在位（护盾落点），播种时为空；旧 shields 键不存在
+check("★ 播种 effects 为空（护盾落点，无预置条目）", a.get("effects") == {}, str(a.get("effects")))
+check("★ 播种 shield_names 为空（不预置任何 absorb 族键）", shield_names(a) == [],
+      f"names={shield_names(a)}")
 check("auto_act 缺省 attack", (a.get("auto_act") or {}).get("act", {}).get("type") == "attack")
 
 section("monster_to_actor 怪扮职业")
@@ -193,6 +197,12 @@ check("播种 cooldown/resources/stacks（player dict 协议；buffs 容器已�
       and "buffs" not in _p2)
 # ★ 收口第 2 批：`shields` 不再是播种键（护盾随 effects 容器走）
 check("★ 不播种 shields（护盾已并进 effects 容器条目）", "shields" not in _p2, str(sorted(_p2)))
+# ★ 播种的新形状（**actor 侧**）：`prepare_player_for_battle` 播的是 player dict 协议，
+#   不带 effects（那是 make_actor 的活，见下面 _boon_actor 那几行）；这里只钉
+#   「player 侧不预置任何护盾键」，effects 容器的播种断言放在 actor 侧。
+check("★ player 侧不预置护盾条目（effects 归 make_actor 播种）",
+      not (isinstance(_p2.get("effects"), dict) and shield_names(_p2)),
+      f"effects={_p2.get('effects')} names={shield_names(_p2)}")
 check("echo_bless 消费进 _battle_boons（V6 面板快照标记）",
       (_p2.get("_battle_boons") or {}).get("echo_bless", {}).get("mult") == 1.05)
 check("echo_bless event_state 清空", not db.get_event_state("bless_10001"))
@@ -202,6 +212,13 @@ check("echo_bless 翻译进 actor.effects",
       (_boon_actor.get("effects") or {}).get("echo_bless", {}).get("mult") == 1.05)
 check("poi_buff 翻译进 actor.effects",
       (_boon_actor.get("effects") or {}).get("poi_buff", {}).get("stat") == "atk")
+# ★ 收口第 2 批：effects 容器由 make_actor 播种（旧 shields 键不再播种）
+check("★ player_to_actor 播种 effects 容器（护盾落点）",
+      isinstance(_boon_actor.get("effects"), dict), str(sorted(_boon_actor)))
+check("★ player_to_actor 不播种 shields 键", "shields" not in _boon_actor,
+      str(sorted(_boon_actor)))
+check("★ 播种后无预置护盾条目（shield_names 为空）", shield_names(_boon_actor) == [],
+      f"names={shield_names(_boon_actor)}")
 check("神龛 poi_buff 挂上", (_p2.get("poi_buff") or {}).get("stat") == "atk")
 check("poi_buff left 2→1", _json.loads(db.get_event_state("poi_buff_10001"))["left"] == 1)
 check("max_hp 实时化 > 100", int(_p2.get("max_hp", 0)) > 100, "max_hp=%s" % _p2.get("max_hp"))
@@ -226,6 +243,28 @@ check("回写 hp", _p4.get("hp") == 77)
 check("回写 mp", _p4.get("mp") == 12)
 check("回写 effects", (_p4.get("effects") or {}).get("atk_up", {}).get("stacks") == 2)
 check("空 actor 安全", BR.sync_player_from_actor(_p4, {}) is _p4)
+
+section("收口第2批：护盾随 effects 容器序列化往返（to_state → from_state）")
+# ★ 护盾并进 effects 容器后，**不再有独立 shields 容器**要单独透传 ——
+#   容器条目（value/expire/stacks）随 effects 一起进快照、恢复后逐字相同。
+_p5 = make_player(level=10, hp=80, mp=20)
+_b5 = BR.make_battle("monster", sides=BR.build_sides(player=_p5, enemies=[mon]))
+_a5 = _b5.focus()
+arm_shield(_a5, "food_shield", 123, expire=9.0)
+check("★ 挂盾后进容器", sh_value_of(_a5, "food_shield") == 123, f"effects={_a5.get('effects')}")
+_restored = BR.restore_battle(_b5.to_state())
+# player_to_actor 把 actor uid 定成 "p_<qq_id>"（player dict 本身没有 uid 键）
+_found = [x for x in _restored.sides["player"] if x.get("uid") == "p_%s" % _p5.get("qq_id")]
+check("★ 恢复后盾条目还在容器里（逐字 value/expire/stacks）",
+      bool(_found) and sh_value_of(_found[0], "food_shield") == 123
+      and (((_found[0].get("effects") or {}).get("food_shield", {}) or {}).get("expire") == 9.0)
+      and (((_found[0].get("effects") or {}).get("food_shield", {}) or {}).get("stacks") == 1),
+      f"effects={_found[0].get('effects') if _found else None}")
+check("★ 恢复后不重建已删的独立容器 shields",
+      bool(_found) and "shields" not in _found[0], str(sorted(_found[0])) if _found else "")
+check("★ 恢复后 shield_names 仍认得这条（absorb 声明驱动）",
+      bool(_found) and shield_names(_found[0]) == ["food_shield"],
+      f"names={shield_names(_found[0]) if _found else None}")
 
 # ============================================================
 # 🔒 T6⑨（2026-09-20）：引擎 Battle「构造 / 恢复」出口唯一性（防复发门禁）

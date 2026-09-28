@@ -92,7 +92,7 @@ legacy = {
     "type": "monster", "now": 2.0, "round": 1, "result": None,
     "enemy": dict(mon), "enemies": [dict(u) for u in group],
     "panel_bonus": {}, "p_buffs": {"atk_up": 1},
-    "p_hot": {}, "p_shields": {}, "p_defending": False, "charging": None,
+    "p_hot": {}, "p_defending": False, "charging": None,
     "poi_buff": None, "cooldown": {}, "mech_stacks": {}, "resources": {},
     "eff_data": {}, "killed_enemies": [], "map": "测试平原",
 }

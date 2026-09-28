@@ -54,7 +54,7 @@ FAILURES = []
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
-from _container_shape import sh_value_of, sh_of  # noqa: E402
+from _container_shape import sh_value_of, sh_of, shield_names  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -224,9 +224,32 @@ def test_on_taken_self_shield():
     _sh = sh_of(m, "buff")
     check("受击触发 → 护盾 50（容器条目）", int(_sh.get("value", 0)) == 50,
           f"effects={m.get('effects')}")
-    check("护盾 expire 存在（容器到期真源）", _sh.get("expire") is not None, str(_sh))
+    check("★ 盾 stacks=1", int(_sh.get("stacks", 0)) == 1, str(_sh))
+    # ★ 精确到期语义：容器条目的 `expire` = 授予时 now + turns 3（不是旧 expire_at）
+    from ext_combat.battle.battle import _now_of as _nowx
+    check("★ 盾 expire = 授予时 now + 3 刻（容器那一个 expire 字段，不是 expire_at）",
+          abs(float(_sh.get("expire", -1)) - (_nowx(b) + 3.0)) < 1e-6,
+          f"expire={_sh.get('expire')} now={_nowx(b)}")
+    check("★ 无 expire_at 影子字段（随独立容器一起删）", "expire_at" not in _sh, str(_sh))
+    check("★ 无 halve 死字段（实测引擎全仓只写不读）", "halve" not in _sh, str(_sh))
     check("★ on_taken 触发的盾走容器写口（不建独立容器 shields）", "shields" not in m,
           str(sorted(m)))
+    # ★ 实测发现（2026-09-28 收口第2批，**登记为发现、不当场改产品**）：
+    #   `act_shield` 的 key 缺省是 `"buff"`，而 `content/rules/effect_rules.json` 的
+    #   21 条 `absorb: true` 声明里**没有** `buff` ⇒ 这条容器条目**不会被承伤路径吸收**。
+    #   旧形状下这个键写在独立容器 `shields` 里、**是**吸收的（landing 无条件遍历），
+    #   ⇒ 收口把这条 on_taken 路径的行为改掉了。此处断的是**实测形状**（不断言「会吸收」），
+    #   由本车道上报给主线裁决：要么给 `buff` 补 absorb 声明，要么把调用方 key 改掉。
+    _hp0 = m["hp"]
+    #   `no_dodge=True`：闪避 roll 在吸收**之前**，躲开就整笔早返回、掉血不是 20
+    #   （本条要断的正是「没吸收 ⇒ 血照掉」，闪避会把它变成断另一件事）
+    L.deal_damage(b, p, m, 20, [], dmg_kind="true", no_dodge=True)
+    check("★ 实测：`buff` 未声明 absorb ⇒ 承伤 20 掉血 20（盾没吸）", m["hp"] == _hp0 - 20,
+          f"{_hp0}→{m['hp']}")
+    check("★ 实测：同一次受击又叠了一条同键盾（value 50→100）", sh_value_of(m, "buff") == 100,
+          f"effects={m.get('effects')}")
+    check("★ 实测：`buff` 不在 absorb 族里（shield_names 为空）", shield_names(m) == [],
+          f"absorb_names={shield_names(m)}")
 
 
 def test_on_heal():

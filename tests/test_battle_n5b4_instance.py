@@ -75,7 +75,7 @@ def mk_snap(qid, name, cls="战士", level=15, learned=None, hp=None):
         "class_tier": 0, "evolve_path": 0, "attributes": pl.get("attributes"),
         "bonus": {"panel": {}, "cap": {}, "cost": {}}, "race": pl.get("race"),
         "uid": f"p_{qid}", "buffs": {}, "stacks": {}, "defending": False,
-        "charging": None, "ct": 0.0, "p_shields": {},
+        "charging": None, "ct": 0.0,
     }
 
 

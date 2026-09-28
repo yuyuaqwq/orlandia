@@ -47,7 +47,7 @@ FAILURES = []
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
 from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
-                            shield_names, arm_shield, clear_shields)
+                            shield_names, clear_shields, _absorb_off)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -153,8 +153,27 @@ def test_weapon_battle_start():
     b = new_battle(p, m)
     # ★ 收口第 2 批：护盾 = effects 容器条目（absorb 族），不再是独立容器 shields
     check("构造后未触发", shield_total(p) == 0, f"effects={p.get('effects')}")
+    check("★ 构造后不建独立容器 shields", "shields" not in p, str(sorted(p)))
+    # ★ 到期基准 = **授予时的** now（battle_start 在 now=0 触发），不是读取时的 now
+    from ext_combat.battle.battle import _now_of as _nowx
+    _now_grant = _nowx(b)
     act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("起手盾 10% maxhp（80，容器条目）", sh_value_of(p, "we_starlight") == 80,
+          f"effects={p.get('effects')}")
+    # ★ 精确到期语义：容器条目的 `expire` = 授予时 now + turns（不是旧 expire_at）
+    _st = sh_of(p, "we_starlight")
+    check("★ 盾 expire = 授予时 now + 3 刻（容器那一个 expire 字段）",
+          abs(float(_st.get("expire", -1)) - (_now_grant + 3.0)) < 1e-6,
+          f"expire={_st.get('expire')} grant_now={_now_grant}")
+    check("★ 盾 stacks=1", int(_st.get("stacks", 0)) == 1, str(_st))
+    # ★ 吸收真的发生（旧形状下只断 value 写对并不能证明机制在跑）
+    #   `no_dodge=True`：闪避 roll 在吸收**之前**，一掷躲开就整笔早返回、盾不被扣
+    #   （同包 test_v181_guard_core.py 的确定性做法）；本测试两个 actor 同等级，无压制。
+    _hp0 = p["hp"]
+    _lg = []
+    L.deal_damage(b, m, p, 30, _lg, dmg_kind="true", no_dodge=True)
+    check("★ 30 点伤害被盾全吸收（hp 不变）", p["hp"] == _hp0, f"{_hp0}→{p['hp']}")
+    check("★ 吸收逐条扣 value（80-30=50）", sh_value_of(p, "we_starlight") == 50,
           f"effects={p.get('effects')}")
     _b = ent(p, "gale_step") or {}
     check("起手速度 buff mult 1.15", abs(float(_b.get("mult", 0)) - 1.15) < 1e-9, f"{_b}")
@@ -429,8 +448,21 @@ def test_shield_taken_cd():
     EP.apply_to_actor(p)
     b = new_battle(p, m)
     from ext_combat.battle.landing import deal_damage as _dd
+    from ext_combat.battle.battle import _now_of as _nowx
+    _now_grant = _nowx(b)          # ★ 到期基准 = 授予时的 now（受击发生在 now=0）
     _dd(b, m, p, 50, [])
     check("受击触发盾 8%（容器条目）", sh_value_of(p, "we_deeprock") == 64,
+          f"effects={p.get('effects')}")
+    # ★ 精确到期语义 + 吸收真的发生
+    _st2 = sh_of(p, "we_deeprock")
+    check("★ deeprock 盾 expire = 授予时 now + turns 3（容器那一个 expire 字段）",
+          abs(float(_st2.get("expire", -1)) - (_now_grant + 3.0)) < 1e-6,
+          f"expire={_st2.get('expire')} grant_now={_now_grant}")
+    _hp0 = p["hp"]
+    #   `no_dodge=True`：闪避 roll 在吸收**之前**，躲开就整笔早返回、盾不被扣
+    _dd(b, m, p, 30, [], dmg_kind="true", no_dodge=True)
+    check("★ deeprock 盾吸收 30 点（hp 不变）", p["hp"] == _hp0, f"{_hp0}→{p['hp']}")
+    check("★ deeprock 盾逐条扣 value（64-30=34）", sh_value_of(p, "we_deeprock") == 34,
           f"effects={p.get('effects')}")
     # cd 内不再触发（盾已破场景：清盾再打一次 → 因 cd 不再上盾）
     clear_shields(p)
@@ -877,6 +909,23 @@ def test_affix_basic():
     act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
     check("battle_start 盾 = 10% maxhp（80，容器条目）", abs(sh_value_of(p2, "affix_shield") - 80) <= 1,
           f"effects={p2.get('effects')}")
+    # ★ 吸收真的发生：affix_shield 在 effect_rules.json 里声明了 absorb ⇒ 掉血被吃掉
+    _hp2 = p2["hp"]
+    L.deal_damage(b2, m2, p2, 30, [], dmg_kind="true", no_dodge=True)
+    check("★ affix_shield 吸收 30 点（hp 不变）", p2["hp"] == _hp2, f"{_hp2}→{p2['hp']}")
+    check("★ affix_shield 逐条扣 value（80-30=50）", sh_value_of(p2, "affix_shield") == 50,
+          f"effects={p2.get('effects')}")
+    # ★ 反证：absorb 声明是「吸收与否的唯一开关」—— 摘掉声明后**同一条**容器条目不再吸收
+    #   （钉住「声明决定吸收型」这条引擎契约，不是绿判据的辅助而是契约本身）
+    with _absorb_off("affix_shield"):
+        check("★ 摘掉 absorb 声明后 shield_names 为空", shield_names(p2) == [],
+              f"names={shield_names(p2)}")
+        _hp3 = p2["hp"]
+        L.deal_damage(b2, m2, p2, 30, [], dmg_kind="true", no_dodge=True)
+        check("★ 摘声明后同一条条目不再吸收（掉血 30，value 不变）",
+              p2["hp"] == _hp3 - 30 and sh_value_of(p2, "affix_shield") == 50,
+              f"hp {_hp3}→{p2['hp']} value={sh_value_of(p2, 'affix_shield')}")
+    check("★ 声明还原后仍吸收", shield_names(p2) == ["affix_shield"], f"names={shield_names(p2)}")
     # --- regen 词条：turn_start 回 1% maxhp ---
     p3 = mk_a("p3", "player")
     m3 = mk_a("e3", "enemy", hp=99999, atk=1)

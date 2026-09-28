@@ -53,8 +53,18 @@ from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_ch
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
 from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
                             shield_names, arm_shield, clear_shields)
+from ext_combat.battle.state_effects import state_def  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
+
+EPS = 1e-6
+
+
+def near(a, b, tol=EPS):
+    try:
+        return abs(float(a) - float(b)) <= tol
+    except Exception:
+        return False
 
 
 def mk(uid, hp=2000, atk=200, spd=50, side="player", cls="cls_zhan_shi", lv=20):
@@ -135,6 +145,16 @@ def test_shield():
     cast(b, p, "shield_all", {"name": "固定盾", "shield_value": 500}, turns=12)
     check("固定值 500 → 全队各 500", all(shield_sum(a) == 500 for a in allies),
           f"sums={[shield_sum(a) for a in allies]}")
+    # 更严：条目形状 + 到期 + 可吸收（原版只判 sums 数字）
+    check("全队都拿到容器条目 shield（带 value + expire=12）",
+          all(sh_of(a, "shield").get("value") == 500
+              and near(sh_of(a, "shield").get("expire"), 12.0) for a in allies),
+          f"efs={[ {k: v for k, v in (a.get('effects') or {}).items()} for a in allies ]}")
+    check("全队盾都在吸收族里（absorb_keys 查得到）",
+          all(shield_names(a) == ["shield"] for a in allies),
+          f"names={[shield_names(a) for a in allies]}")
+    check("★ 护盾不再写独立容器 shields",
+          all("shields" not in a for a in allies), f"keys={[sorted(a) for a in allies]}")
 
     b2, p2, allies2, _ = team_battle(2)
     allies2[1]["max_hp"] = 4000
@@ -160,6 +180,10 @@ def test_shield():
     b5, p5, allies5, _ = team_battle(2)
     cast(b5, p5, "shield_all", {"name": "无参数盾"}, turns=12)
     check("缺字段 = 无行为（不给默认盾）", all(shield_sum(a) == 0 for a in allies5))
+    # 更严：不是「有条目但 value=0」，而是容器里连条目都没有
+    check("缺字段 → 容器里无盾条目（非 value=0 空壳）",
+          all("shield" not in (a.get("effects") or {}) for a in allies5),
+          f"efs={[a.get('effects') for a in allies5]}")
 
     # 按属性基数（相位偏折：每层 8% 魔攻）——期望值从引擎聚合面板现算（勿手算）
     from ext_combat.battle import stats as _S
@@ -174,12 +198,92 @@ def test_shield():
     check(f"自身盾按魔攻：{_matk:.0f} × 40% = {expect}（self_shield 只作用自己）",
           shield_sum(p6) == expect and shield_sum(allies6[1]) == 0,
           f"self={shield_sum(p6)} expect={expect} ally={shield_sum(allies6[1])}")
+    # 更严：self_shield 走的是**自带 key** arcane_shield（不是通用 shield），到期 10
+    check("self_shield 落在自带 key arcane_shield（expire=10）",
+          sh_of(p6, "arcane_shield").get("value") == expect
+          and near(sh_of(p6, "arcane_shield").get("expire"), 10.0)
+          and shield_names(p6) == ["arcane_shield"],
+          f"sh={sh_of(p6, 'arcane_shield')} names={shield_names(p6)}")
 
     # 怪物盾回归：技能完全没声明 shield_* 时，仍用引擎传入的默认 20%（旧行为不破）
+    # ★ 收口第 2 批：这条同时钉「**没声明 absorb 的条目不会吸**」——
+    #   引擎 `act_shield` 的缺省 key 是 `buff`，若 `effect_rules.json` 没给
+    #   `buff` 声明 `absorb: true`，这条盾就是「不掉的血」（值写得对、机制没跑）。
     b7, p7, _, e7 = team_battle(1)
     cast(b7, e7, "shield", {"name": "潮涌领域"}, turns=10, pct=0.20, halve=True)
-    check("怪物盾（无 shield_* 声明）仍得 20% 生命护盾（旧行为不破）",
-          shield_sum(e7) == int(99999 * 0.20), f"got={shield_sum(e7)}")
+    _want = int(99999 * 0.20)
+    _ef = (e7.get("effects") or {})
+    check("怪物盾（无 shield_* 声明）仍得 20% 生命护盾（值写进容器条目）",
+          _want in [int(v.get("value") or 0) for v in _ef.values() if isinstance(v, dict)],
+          f"want={_want} ef={_ef}")
+    check("★ 怪物盾真吸收（200 全被盾吸走）——absorb 声明缺失会让盾变成不掉的血",
+          deal_damage(b7, None, e7, 200, [], dmg_kind="true", no_dodge=True) == 0,
+          f"ef={e7.get('effects')} absorb={shield_names(e7)}"
+          f" state_def({sorted(_ef)})={[state_def(k) for k in _ef]}")
+
+
+def test_shield_strict():
+    print("【2b. 护盾真吸收 + 同源叠厚 + 容器到期（收口第 2 批新形状）】")
+    from ext_combat.battle import schedule as SC
+    # ---- 真吸收：盾真的挡伤害、值真递减、归零即从容器删 ----
+    b, p, allies, e = team_battle(2)
+    cast(b, p, "shield_all", {"name": "固定盾", "shield_value": 500}, turns=12)
+    a1 = allies[1]
+    a1["hp"] = a1["max_hp"]
+    d = deal_damage(b, e, a1, 300, [], dmg_kind="true", no_dodge=True)
+    check("打 300 → 全被盾吸收（0 扣血）", d == 0 and a1["hp"] == a1["max_hp"],
+          f"d={d} hp={a1['hp']}")
+    check("吸收后盾值精确递减 500 → 200", sh_value_of(a1, "shield") == 200,
+          f"sh={sh_of(a1, 'shield')}")
+    d = deal_damage(b, e, a1, 300, [], dmg_kind="true", no_dodge=True)
+    check("打穿：200 吸满 + 100 落血", d == 100 and a1["hp"] == a1["max_hp"] - 100,
+          f"d={d} hp={a1['hp']}")
+    check("★ 归零即从容器删（不留 value=0 空壳）",
+          "shield" not in (a1.get("effects") or {}) and shield_total(a1) == 0,
+          f"ef={a1.get('effects')}")
+    check("同源两队友各自独立（各扣各的）",
+          sh_value_of(allies[0], "shield") == 500 and shield_total(a1) == 0,
+          f"p={sh_of(allies[0], 'shield')} a1={a1.get('effects')}")
+
+    # ---- 同源叠厚：同 key 再敲一次 = value 累加 + expire 取 max（不是覆盖）----
+    b2, p2, allies2, _ = team_battle(1)
+    cast(b2, p2, "shield_all", {"name": "固定盾", "shield_value": 500}, turns=12)
+    cast(b2, p2, "shield_all", {"name": "固定盾", "shield_value": 500}, turns=4)
+    sh = sh_of(p2, "shield")
+    check("同源叠厚：500+500=1000（value 累加，不是覆盖）", sh_value_of(p2, "shield") == 1000,
+          f"sh={sh}")
+    check("叠厚时 expire 取 max（12 刻那次更晚 ⇒ 仍 12，不被 4 刻那次拉低）",
+          near(sh.get("expire"), 12.0), f"expire={sh.get('expire')}")
+    check("叠厚不叠层数（stacks 仍 1）", sh.get("stacks") == 1, f"sh={sh}")
+
+    # ---- 到期：走容器 expire 那一条通路（旧容器已无独立到期段）----
+    b3, p3, allies3, _ = team_battle(1)
+    cast(b3, p3, "shield_all", {"name": "固定盾", "shield_value": 500}, turns=3)
+    exp = float(sh_of(p3, "shield").get("expire") or 0)
+    check("先决：到期刻存在（turns 3 → expire=3）", near(exp, 3.0), f"expire={exp}")
+    b3._now = exp + 0.1
+    SC._settle_time_effects(b3, [])
+    check("★ 过期后容器自动清理（到期走容器 expire，不靠旧容器独立到期段）",
+          "shield" not in (p3.get("effects") or {}) and shield_total(p3) == 0,
+          f"ef={p3.get('effects')}")
+
+    # ---- 反证：absorb 声明摘掉 ⇒ 同一条目不再被吸收（吸收与否只由内容侧声明决定）----
+    from _container_shape import _absorb_off
+    b4, p4, allies4, e4 = team_battle(1)
+    cast(b4, p4, "shield_all", {"name": "固定盾", "shield_value": 500}, turns=12)
+    a4 = allies4[0]
+    a4["hp"] = a4["max_hp"]
+    with _absorb_off("shield"):
+        d = deal_damage(b4, None, a4, 200, [], dmg_kind="true", no_dodge=True)
+    check("反证：摘掉 absorb 声明 → 200 全落血、盾值分毫不动",
+          d == 200 and a4["hp"] == a4["max_hp"] - 200 and sh_value_of(a4, "shield") == 500,
+          f"d={d} hp={a4['hp']} sh={sh_of(a4, 'shield')}")
+    check("反证期间条目仍在容器里（不吸收 ≠ 删条目）",
+          "shield" in (a4.get("effects") or {}), f"ef={a4.get('effects')}")
+    d = deal_damage(b4, None, a4, 200, [], dmg_kind="true", no_dodge=True)
+    check("声明恢复 → 同一笔又被吸收（500 吸满 + 0 落血）",
+          d == 0 and a4["hp"] == a4["max_hp"] - 200 and sh_value_of(a4, "shield") == 300,
+          f"d={d} hp={a4['hp']} sh={sh_of(a4, 'shield')}")
 
 
 def test_reduce_stack():
@@ -384,6 +488,7 @@ def test_element_and_field():
 if __name__ == "__main__":
     test_team_scope()
     test_shield()
+    test_shield_strict()
     test_reduce_stack()
     test_reduce_expire()
     test_vuln()

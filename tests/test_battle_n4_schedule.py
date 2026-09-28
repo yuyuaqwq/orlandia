@@ -40,7 +40,8 @@ FAILURES = []
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
-from _container_shape import sh_value_of, sh_of, arm_shield  # noqa: E402
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            arm_shield)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -214,13 +215,36 @@ def test_time_effects_n72():
     arm_shield(e2, "shield", 100, expire=3.0)
     check("★ 盾在容器条目里（不再是独立容器）", sh_value_of(e2, "shield") == 100,
           f"effects={e2.get('effects')}")
+    # ★ 到期字段名 = `expire`（旧独立容器的 `expire_at` 随容器一起删）
+    _se = sh_of(e2, "shield")
+    check("★ 盾 expire = 3.0（容器那一个 expire 字段）",
+          abs(float(_se.get("expire", -1)) - 3.0) < 1e-6, str(_se))
+    check("★ 无 expire_at 影子字段", "expire_at" not in _se, str(_se))
+    check("★ 盾 stacks=1", int(_se.get("stacks", 0)) == 1, str(_se))
+    check("★ 不建独立容器 shields", "shields" not in e2, str(sorted(e2)))
     b2._now = 2.0
     _settle_time_effects(b2, [])
     check("盾未到期仍在", "shield" in (e2.get("effects") or {}), str(e2.get("effects")))
+    check("★ 未到期 value 不变（100）", sh_value_of(e2, "shield") == 100,
+          f"effects={e2.get('effects')}")
     b2._now = 4.0
     _settle_time_effects(b2, [])
     check("盾到期从容器删除（容器那一个 expire 段）", "shield" not in (e2.get("effects") or {}),
           str(e2.get("effects")))
+    check("★ 到期后 shield_total 归零", shield_total(e2) == 0, f"total={shield_total(e2)}")
+    check("★ 到期后容器里这条 key 彻底消失（不是 value 归零的残条目）",
+          all(e2.get("effects", {}).get(k, {}).get("value") != 100
+              for k in (e2.get("effects") or {})),
+          str(e2.get("effects")))
+    # ★ 永久盾（expire=None）：容器到期段**不碰**它（旧独立容器也是这个口径）
+    arm_shield(e2, "shield", 60, expire=None)
+    check("★ 永久盾条目不写 expire 键", "expire" not in sh_of(e2, "shield"),
+          str(sh_of(e2, "shield")))
+    b2._now = 9999.0
+    _settle_time_effects(b2, [])
+    check("★ 永久盾推到极远时刻仍在容器里", sh_value_of(e2, "shield") == 60,
+          f"effects={e2.get('effects')}")
+    e2["effects"].pop("shield", None)
     # 4. buffs 到期删
     p["effects"]["atk_up"] = {"stacks": 1, "expire": 3.0, "stat": "atk", "op": "mul", "mult": 1.30}
     b2._now = 2.0

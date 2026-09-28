@@ -66,14 +66,14 @@ def mk_battle(mon_hp_ratio=1.0, player_hp_ratio=1.0, with_player=True):
            "is_boss": True, "side": "enemy",
            "hp": int(1000 * mon_hp_ratio), "max_hp": 1000,
            "atk": 100, "matk": 100, "def": 10, "mdef": 10, "spd": 80,
-           "lv": 20, "skills": [], "effects": {}, "shields": {},
+           "lv": 20, "skills": [], "effects": {},
            "cooldown": {}, "auto_act": None, "act_count": 0, "ct": 0.0}
     sides = {"enemy": [mon]}
     if with_player:
         sides["player"] = [{"uid": "p_1", "name": "勇者", "side": "player",
                             "hp": int(5000 * player_hp_ratio), "max_hp": 5000,
                             "atk": 100, "matk": 100, "def": 50, "mdef": 50,
-                            "spd": 50, "lv": 20, "effects": {}, "shields": {},
+                            "spd": 50, "lv": 20, "effects": {},
                             "ct": 0.0}]
     b = B2("instance", sides=sides)
     b._now = 100.0
@@ -232,26 +232,37 @@ def test_7_actor_auto_real_monster():
            "mdef": 50, "spd": 80, "lv": 20, "skills": ["ms_lve_duo_h_ling",
                                                         "ms_lian_zhan",
                                                         "ms_zhao_huan"],
-           "effects": {}, "shields": {}, "cooldown": {}, "auto_act": None,
+           "effects": {}, "cooldown": {}, "auto_act": None,
            "ai": dict(src), "act_count": 0, "ct": 0.0}
     b = B2("instance", sides={
         "enemy": [mon],
         "player": [{"uid": "p_1", "name": "勇者", "side": "player",
                     "hp": 999999, "max_hp": 999999, "atk": 100, "matk": 100,
                     "def": 50, "mdef": 50, "spd": 50, "lv": 20, "effects": {},
-                    "shields": {}, "ct": 0.0}],
+                    "ct": 0.0}],
     })
     b._now = 0.0
-    used = set()
+    # ★ 2026-09-28：断言口径从「日志里出现技能名」改为「**战斗结算真的走了技能**」。
+    #   原因：包侧没装配 `cue_subs_fn` ⇒ `Battle.cues is None` ⇒ 引擎每个已迁移点位
+    #   只吐一行可读坏数据（`cues.py::_cue_broken_line`），**技能名永远不会进日志**。
+    #   那条断点在 cue 解耦（引擎 2026-09-27 B1–B5）之后就恒红了，与状态容器收口无关。
+    #   改用**结算层可观测量**：咕噜三个技能（掠夺号令=蓄力召唤 / 连斩=物攻 / 召唤=召唤）
+    #   都**不是**普攻——蓄力与召唤类本刻不打人（只落 charging / 召唤位），连斩按
+    #   atk×1.4 结算。于是「有 AI 时本刻零伤害」出现、真普攻时恒不出现，两条都成为
+    #   AI 生效的证据（多种子实测 8–12/30 vs 恒 0，见下方零伤害回合断言）。
+    player = b.sides_of("player")[0]
+    idle, hits = 0, 0
     random.seed(7)
     for i in range(20):
+        hp0 = int(player.get("hp"))
         logs, ended = auto_land(b, mon)
-        # 日志里应有技能名（若放了技能）
-        for l in logs:
-            for sk in ("连斩", "怒吼", "掠夺"):
-                if sk in str(l):
-                    used.add(sk)
-    check("战斗内用出技能（连斩/怒吼/掠夺至少一类）", len(used) > 0, f"used={used}")
+        if int(player.get("hp")) == hp0:
+            idle += 1
+        else:
+            hits += 1
+    check("战斗内用出技能（AI 选招非普攻 ⇒ 出现不结算伤害的刻）", idle > 0,
+          f"idle={idle}/20 hits={hits}")
+    check("普攻仍会打（同一决策器非全回落）", hits > 0, f"hits={hits}/20")
     check("act_count 累计 20", mon.get("act_count") == 20, f"n={mon.get('act_count')}")
 
 

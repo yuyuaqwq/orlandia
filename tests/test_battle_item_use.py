@@ -39,7 +39,7 @@ FAILURES = []
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
-from _container_shape import sh_value_of, sh_of  # noqa: E402
+from _container_shape import sh_value_of, sh_of, shield_total  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -59,10 +59,11 @@ def mk_player(cls="战士", level=10, hp_ratio=0.5, mp_ratio=1.0, race=None):
 
 def mk_battle(p):
     from ext_combat import Battle
+    # ★ 收口第 2 批：不再播种已删的独立容器 shields（护盾 = effects 容器条目）
     e = {"uid": "e_0", "name": "木桩", "side": "enemy", "kind": "monster",
          "hp": 99999, "max_hp": 99999, "atk": 0, "def": 0, "matk": 0, "mdef": 0,
          "spd": 1, "crit": 0.0, "level": 1, "human_controlled": False,
-         "buffs": {}, "shields": {}, "state": {}, "ct": 0.0}
+         "effects": {}, "state": {}, "ct": 0.0}
     return Battle(btype="monster", sides={"player": [p], "enemy": [e]})
 
 
@@ -184,11 +185,37 @@ def test_special_shield():
     logs, cast, recover = translate(b, p, 'special:shield_big:{"pct":0.30}')
     # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器条目（读 `sh_value_of`）。
     sh = sh_of(p, "potion_shield")
-    check("护盾挂上（容器条目）", sh_value_of(p, "potion_shield") > 0,
-          f"sh={sh}")
-    if sh:
-        check("盾值 = 30%max", abs(int(sh.get("value", 0)) - int(mx * 0.30)) <= 1,
-              f"value={sh.get('value')} expect={int(mx * 0.30)}")
+    _expect = int(mx * 0.30)
+    check("护盾挂上（容器条目）", sh_value_of(p, "potion_shield") == _expect,
+          f"sh={sh} expect={_expect}")
+    # ★ 到期走容器条目的 `expire`（旧独立容器的 expire_at 已删）
+    check("★ potion_shield expire = 授予时 now + 3 刻（容器那一个 expire 字段）",
+          abs(float(sh.get("expire", -1)) - 3.0) < 1e-6, str(sh))
+    check("★ potion_shield stacks=1", int(sh.get("stacks", 0)) == 1, str(sh))
+    # ★ 吸收真的发生：potion_shield 声明了 absorb ⇒ 掉血被吃掉、value 逐条扣
+    #   两处确定性前提（否则判据偶发红，**不是**被测行为）：
+    #   ① `no_dodge=True` —— 闪避 roll 在**吸收之前**，承伤方一掷躲开就整笔早返回、
+    #      盾压根不被扣（包内 `test_v181_guard_core.py` 同款确定性做法）；
+    #   ② `dmg_kind="true"` + 同等级 —— 等级压制在吸收**之前**，跨等级时盾扣的是压制后的数。
+    from ext_combat.battle.landing import deal_damage as _dd
+    _atk = mk_battle(p).sides["enemy"][0]        # 只借一个攻击者（盾在 p 上）
+    _atk["level"] = p["level"]                   # 同等级 ⇒ 等级压制不生效
+    _hp0 = p["hp"]
+    _dd(b, _atk, p, 20, [], dmg_kind="true", no_dodge=True)
+    check("★ 20 点伤害被药水盾全吸收（hp 不变）", p["hp"] == _hp0, f"{_hp0}→{p['hp']}")
+    check("★ 吸收逐条扣 value（{0}-20={1}）".format(_expect, _expect - 20),
+          sh_value_of(p, "potion_shield") == _expect - 20,
+          f"effects={p.get('effects')}")
+    check("★ shield_total 读容器 absorb 族",
+          shield_total(p) == _expect - 20, f"total={shield_total(p)}")
+    # ★ 顺带钉住「吸收在等级压制**之后**」这条引擎口径（跨等级时盾扣的是压制后的数）
+    _atk2b = mk_battle(p).sides["enemy"][0]
+    _atk2b["level"] = max(1, int(p["level"]) // 2)      # 跨等级 ⇒ 压制生效
+    _v0 = sh_value_of(p, "potion_shield")
+    _dd(b, _atk2b, p, 20, [], dmg_kind="true", no_dodge=True)
+    _drop = _v0 - sh_value_of(p, "potion_shield")
+    check("★ 跨等级时盾扣的是**压制后**的伤害（< 20）", 0 < _drop < 20,
+          f"drop={_drop} 20→_drop")
 
 
 def test_special_gap_none():
@@ -216,8 +243,23 @@ def test_foodfx():
     b2 = mk_battle(p2)
     logs, cast, recover = translate(b2, p2, "foodfx:shield")
     sh = sh_of(p2, "food_shield")
-    check("foodfx shield 立即给盾（容器条目）", sh_value_of(p2, "food_shield") > 0,
-          f"sh={sh}")
+    _exp2 = int(p2["max_hp"] * 0.10)      # 圣餐面包 shield 缺省 10% maxhp
+    check("foodfx shield 立即给盾（容器条目）", sh_value_of(p2, "food_shield") == _exp2,
+          f"sh={sh} expect={_exp2}")
+    check("★ food_shield expire = 授予时 now + 3 刻（容器那一个 expire 字段）",
+          abs(float(sh.get("expire", -1)) - 3.0) < 1e-6, str(sh))
+    check("★ food_shield stacks=1", int(sh.get("stacks", 0)) == 1, str(sh))
+    # ★ 吸收真的发生（food_shield 声明了 absorb）；`no_dodge=True` + 同等级
+    #   ⇒ 无闪避早返回、无等级压制，扣的恰好是 amount（否则判据偶发红）
+    from ext_combat.battle.landing import deal_damage as _dd
+    _atk2 = mk_battle(p2).sides["enemy"][0]
+    _atk2["level"] = p2["level"]
+    _hp2 = p2["hp"]
+    _dd(b2, _atk2, p2, 10, [], dmg_kind="true", no_dodge=True)
+    check("★ 10 点伤害被面包盾全吸收（hp 不变）", p2["hp"] == _hp2, f"{_hp2}→{p2['hp']}")
+    check("★ 吸收逐条扣 value（{0}-10={1}）".format(_exp2, _exp2 - 10),
+          sh_value_of(p2, "food_shield") == _exp2 - 10, f"effects={p2.get('effects')}")
+    check("★ 不建独立容器 shields", "shields" not in p2, str(sorted(p2)))
     check("shield 落容器", "shield" in p2.get("food_effects", []),
           f"fe={p2.get('food_effects')}")
 
@@ -250,7 +292,7 @@ def test_override_end_to_end():
     e = {"uid": "e_0", "name": "木桩", "side": "enemy", "kind": "monster",
          "hp": 99999, "max_hp": 99999, "atk": 0, "def": 0, "matk": 0, "mdef": 0,
          "spd": 1, "crit": 0.0, "level": 1, "human_controlled": False,
-         "buffs": {}, "shields": {}, "state": {}, "ct": 0.0}
+         "effects": {}, "state": {}, "ct": 0.0}
     b = Battle(btype="monster", sides={"player": [p], "enemy": [e]},
                action_override=lambda battle, action, actor, payload, target: (
                    _tr(battle, actor, payload, target) if action == "use_item"
@@ -286,7 +328,7 @@ def test_purify():
     e = {"uid": "e_0", "name": "木桩", "side": "enemy", "kind": "monster",
          "hp": 99999, "max_hp": 99999, "atk": 0, "def": 0, "matk": 0, "mdef": 0,
          "spd": 1, "crit": 0.0, "level": 1, "human_controlled": False,
-         "effects": {}, "shields": {}, "ct": 0.0}
+         "effects": {}, "ct": 0.0}
     b = Battle(btype="monster", sides={"player": [p], "enemy": [e]})
     apply_effects(b, p, p, [{"action": "apply", "key": "stun", "mode": "skip",
                              "on": "caster", "turns": 2}], [])

@@ -170,7 +170,7 @@ def mk_snap(qid, name, cls="cls_zhan_shi", level=15, learned=None, hp=None, spd_
         "class_tier": 0, "evolve_path": 0, "attributes": pl.get("attributes"),
         "bonus": {"panel": {}, "cap": {}, "cost": {}}, "race": pl.get("race"),
         "uid": f"p_{qid}", "buffs": {}, "stacks": {}, "defending": False,
-        "charging": None, "ct": 0.0, "p_shields": {}, "spd": spd,
+        "charging": None, "ct": 0.0, "spd": spd,
     }
 
 
@@ -227,6 +227,25 @@ def _patch_current_members(all_members):
 
 def _restore_current_members(orig):
     _InstImpl._instance_current_members = orig
+
+
+# ★ 状态容器收口第 1 批（引擎 `de0ca27`）：防御姿态**不再是** actor/snap 上的裸 bool
+#   `defending` 兄弟字段（引擎侧该键已彻底消失，grep = 0），改写 `effects` 容器里
+#   一条窗口条目：`{"stacks": 1, "until": "own_act"}`（`battle.py::_do_defend` →
+#   `open_window(actor, DEFEND_TAG)`，tag = "defend"）。到期点 = 施术者自己下一帧。
+# 本文件三处断点（超时自动防御 / defend 落视图 / router 分流）按新形状读。
+DEFEND_TAG = "defend"
+
+
+def _defending_of(holder):
+    """某 actor/snap/侧容器是否处于防御姿态（读**容器条目**，不认旧 bool 键）。
+
+    容器条目是窗口形态（`until` = 边界帧），不是时刻形态（`expire`）——两者不混用。
+    """
+    if not isinstance(holder, dict):
+        return False
+    ent = (holder.get("effects") or {}).get(DEFEND_TAG)
+    return isinstance(ent, dict) and bool(ent)
 
 
 # ---------------------------------------------------------------- 分支测试
@@ -291,8 +310,9 @@ def test_3_timeout_auto_defend():
         inst = _Host()
         msgs = _sync_run(inst, st, 70022, "defend")
         joined = "\n".join(msgs)
-        check("超时者自动防御（defending True）", bool(st["p_defending"].get("70021")),
-              str(st.get("p_defending")))
+        check("超时者自动防御（effects[defend] 窗口条目落位）",
+              _defending_of(st["players"].get("70021")),
+              f"p_effects={st.get('p_effects')}")
         check("日志含自动防御提示", "自动" in joined or "迟迟" in joined, joined[:120])
     finally:
         _restore_current_members(orig)
@@ -323,8 +343,9 @@ def test_5_defend():
     msgs = _sync_run(inst, st, 70032, "defend")
     joined = "\n".join(msgs)
     check("防御姿态日志", "防御" in joined or "减半" in joined, joined[:100])
-    # defend 后 actor defending 状态（视图键同步）
-    check("防御状态落 actor/视图", bool(st["p_defending"].get("70032")), str(st.get("p_defending")))
+    # defend 后防御姿态落容器（effects 窗口条目；旧 bool 键引擎侧已删）
+    check("防御状态落 actor/视图", _defending_of(st["players"].get("70032")),
+          f"snap.effects={st['players']['70032'].get('effects')}")
 
 
 def test_6_switch_next_monster():
@@ -474,18 +495,19 @@ def test_11_command_entry_switch():
             e_hp = max(0, int(_e[0].get("hp", 300) or 300))
     check("attack 分流 → router 普攻造成伤害（db 行敌 hp 下降）", e_hp < 300, f"敌hp={e_hp}")
     check("attack 输出含回合面板", "行动" in joined or "伤害" in joined, joined[:100])
-    # defend：实例行 → router 防御（db 行 defending 置位）
+    # defend：实例行 → router 防御（db 行落 effects["defend"] 窗口条目）
     ev2 = FakeEvent(GID, "70091", "防御")
     msgs2 = _collect(inst.defend(ev2))
     joined2 = "\n".join(msgs2)
     row2 = db.get_battle(GID, 70091)
-    _def = False
+    _def_ent = None
     if row2:
         _sides2 = (row2["state"].get("battle") or {}).get("sides") or {}
         for _p in (_sides2.get("player") or []):
             if str(_p.get("qq_id")) == "70091":
-                _def = bool(_p.get("defending"))
-    check("defend 分流 → router 防御（db 行 defending）", _def, f"defending={_def}")
+                _def_ent = (_p.get("effects") or {}).get(DEFEND_TAG)
+    check("defend 分流 → router 防御（db 行落 effects[defend] 窗口条目）",
+          isinstance(_def_ent, dict) and bool(_def_ent), f"entry={_def_ent!r}")
     check("defend 输出含防御文案", "防御" in joined2 or "减半" in joined2, joined2[:100])
     # skill：需要技能栏/已学——用攻击型验证不崩（heal 已覆盖于单测 4）
     st2 = mk_st([70092], enemy=mk_enemy(hp=500, spd=1))

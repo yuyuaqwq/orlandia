@@ -822,7 +822,7 @@ def _is_mk_snap(qid, name="玩家", cls="战士", level=60):
             "skills": [], "learned_skills": [], "class_tier": 0, "evolve_path": 0,
             "attributes": pl.get("attributes"), "bonus": {"panel": {}, "cap": {}, "cost": {}},
             "race": pl.get("race"), "uid": "p_%s" % qid, "buffs": {}, "stacks": {},
-            "defending": False, "charging": None, "ct": 0.0, "p_shields": {}, "spd": 30}
+            "defending": False, "charging": None, "ct": 0.0, "spd": 30}
 
 
 def _is_mk_enemy(hp=1, spd=1, role="dps", atk=1, uid="e_room", name="房间怪"):
@@ -1382,7 +1382,7 @@ def _il_snap(qid, name="玩家", cls="cls_zhan_shi", level=60, learned=None, hp=
             "class_tier": 0, "evolve_path": 0, "attributes": pl.get("attributes"),
             "bonus": {"panel": {}, "cap": {}, "cost": {}}, "race": pl.get("race"),
             "uid": "p_%s" % qid, "buffs": {}, "stacks": {}, "defending": False,
-            "charging": None, "ct": 0.0, "p_shields": {}, "spd": spd}
+            "charging": None, "ct": 0.0, "spd": spd}
 
 
 def _il_enemy(hp=1, spd=1, role="dps", atk=1, uid="e_il", name="房间怪", lv=15,
@@ -1598,7 +1598,19 @@ def _il_in4_battle_footer():
     st["boss"] = st["enemy"] = enemy
     snap = st["players"]["q_f1"]
     snap["effects"] = {"atk_up": {"expire": 3.0}, "reduce": {"v": 0.25, "expire": 3.0}}
-    snap["shields"] = {"s1": {"value": 30, "expire_at": 2.0}, "s2": {"value": 5}}
+    # ★ 收口第 2 批（2026-09-28）：护盾不再是 `snap["shields"]` 独立容器，而是
+    #   `effects` 容器里**声明了 absorb** 的条目，存的就是容器条目形状
+    #   `{stacks, value, expire}`（生产读点 `instance_cmds` 面板段走
+    #   `state_effects.absorb_keys(snap)`，不认键名）。旧字面量用 `expire_at`，
+    #   容器只有 `expire` 一个到期真源 ⇒ 这里一并改掉。
+    #   ⚠️ 口径保留：迁移前基准里第二条盾渲染成「✨护盾5」**不带剩余刻**——因为旧
+    #   夹具 `{"value": 5}` 压根没给到期点（生产读 `expire`，缺 ⇒ 不显示剩余刻）。
+    #   照搬那个语义：给 `food_shield` **不写 expire**，保住逐字冻结；第一条带
+    #   `expire=2.0` ⇒ 仍渲染「(2刻)」。护盾**数量与刻数都仍被断言**（不是不检查）。
+    snap["effects"].update({
+        "affix_shield": {"stacks": 1, "value": 30, "expire": 2.0},
+        "food_shield": {"stacks": 1, "value": 5},
+    })
     st["now"] = 0.0
     return _ILHost()._instance_battle_footer(st, _IL_GID)
 
@@ -2216,7 +2228,7 @@ def _pb_snap(qid, name="甲", cls="cls_zhan_shi", level=60, hp=None, spd=30, mp=
             "class_tier": 0, "evolve_path": 0, "attributes": pl.get("attributes"),
             "bonus": {"panel": {}, "cap": {}, "cost": {}}, "race": pl.get("race"),
             "uid": "p_%s" % qid, "buffs": {}, "stacks": {}, "defending": False,
-            "charging": None, "ct": 0.0, "p_shields": {}, "spd": spd}
+            "charging": None, "ct": 0.0, "spd": spd}
 
 
 def _pb_enemy(hp=500, spd=1, role="dps", atk=1, uid="e_pb", name="房间怪", lv=15):

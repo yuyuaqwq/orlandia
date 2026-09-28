@@ -59,6 +59,7 @@ from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_ch
 # ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
 from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
                             shield_names, arm_shield, clear_shields)
+from ext_combat.battle.state_effects import state_def  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -416,11 +417,87 @@ def t9_core_overflow():
     sh = sh_of(p, "guard_core_overflow")
     check("3 核 → 承伤 ×0.80 转盾（200×0.8=160，容器条目）",
           sh_value_of(p, "guard_core_overflow") == 160, str(p.get("effects")))
-    check("护盾有到期刻（turns 3，走容器 expire）", sh.get("expire") is not None, str(sh))
+    # ★ 原版只判「有 expire_at 不为 None」；新形状到期走**容器 expire**，这里断准数
+    check("护盾有到期刻（turns 3 → 容器 expire = now+3；旧 expire_at/halve 已删）",
+          near(sh.get("expire"), 3.0) and "expire_at" not in sh and "halve" not in sh, str(sh))
+    check("转盾 stacks=1（叠的是 value 不是层数）", sh.get("stacks") == 1, str(sh))
+    check("转盾被声明为吸收族（absorb_keys 查得到）",
+          shield_names(p) == ["guard_core_overflow"],
+          f"names={shield_names(p)} state_def={state_def('guard_core_overflow')}")
     fire_ev(b, "taken_calc", {"actor": p, "target": p, "source": e, "dmg": 100, "mult": 1.0})
     sh2 = sh_of(p, "guard_core_overflow")
     check("再承伤叠加护盾（160+80=240）", sh_value_of(p, "guard_core_overflow") == 240, str(sh2))
     check("★ 转盾不再写独立容器 shields", "shields" not in p, str(sorted(p)))
+
+
+def t9b_core_overflow_absorb():
+    print("【9b. core_overflow 转盾真吸收（deal_damage）+ 归零删 + 容器到期】")
+    from ext_combat.battle import schedule as SC
+    from ext_combat.battle.landing import deal_damage
+    b, p, e = mk(["磐石之心"])
+    strip_base_reduce(p)
+    # 隔离「吸收」这一个变量：摘掉 passive_overflow_shield 触发器（否则 deal_damage
+    # 内部的 taken_calc 会把这一击**再**转成新盾 —— 那是另一条机制，见 t9）。
+    # 同时 source=None + no_dodge=True + dmg_kind='true' ⇒ 这一笔不会被
+    # 等级压制 / 闪避（拳师面板自带 12% dodge）/ 物免改数——面板随机项全部排除。
+    p["triggers"]["taken_calc"] = [t for t in (p["triggers"]["taken_calc"] or [])
+                                   if not (isinstance(t, dict)
+                                           and (t.get("type") or t.get("action")) == "passive_overflow_shield")]
+    set_st(p, "guard_core", 3)
+    arm_shield(p, "guard_core_overflow", 160, expire=3.0)   # 走容器唯一写口
+    check("先决：转盾 160 在容器里", sh_value_of(p, "guard_core_overflow") == 160,
+          str(p.get("effects")))
+    # ★ 真吸收：只断 value 写对并不能证明机制在跑（引擎只认「声明了 absorb」那条）
+    p["hp"] = 3000
+    d = deal_damage(b, None, p, 100, [], dmg_kind="true", no_dodge=True)
+    check("打 100 → 完全被盾吸收（0 扣血）", d == 0 and p["hp"] == 3000,
+          f"d={d} hp={p['hp']}")
+    check("吸收后盾值精确递减 160 → 60", sh_value_of(p, "guard_core_overflow") == 60,
+          str(sh_of(p, "guard_core_overflow")))
+    d = deal_damage(b, None, p, 100, [], dmg_kind="true", no_dodge=True)
+    check("打穿：60 吸满 + 40 落血（2960）", d == 40 and p["hp"] == 2960,
+          f"d={d} hp={p['hp']}")
+    check("★ 归零即从容器删（不留 value=0 空壳）",
+          "guard_core_overflow" not in (p.get("effects") or {}) and shield_total(p) == 0,
+          f"ef={p.get('effects')}")
+    # 到期：容器 expire 那一条通路（引擎不再有护盾自己的到期段）
+    b2, p2, e2 = mk(["磐石之心"])
+    strip_base_reduce(p2)
+    set_st(p2, "guard_core", 3)
+    fire_ev(b2, "taken_calc", {"actor": p2, "target": p2, "source": e2, "dmg": 200, "mult": 1.0})
+    exp = float(sh_of(p2, "guard_core_overflow").get("expire") or 0)
+    check("先决：到期刻存在", exp > 0, f"expire={exp}")
+    b2._now = exp + 0.1
+    SC._settle_time_effects(b2, [])
+    check("★ 过期后容器自动清理（到期走容器 expire，不靠旧容器独立到期段）",
+          "guard_core_overflow" not in (p2.get("effects") or {}) and shield_total(p2) == 0,
+          f"ef={p2.get('effects')}")
+    # 反证： absorb 声明摘掉 ⇒ 同一条目不再被吸收（只判「声明决定吸收与否」）
+    from _container_shape import _absorb_off
+    b3, p3, e3 = mk(["磐石之心"])
+    strip_base_reduce(p3)
+    # 同样摘掉溢出转盾触发器 ⇒ 本段唯一的变量就是 absorb 声明本身
+    p3["triggers"]["taken_calc"] = [t for t in (p3["triggers"]["taken_calc"] or [])
+                                    if not (isinstance(t, dict)
+                                            and (t.get("type") or t.get("action")) == "passive_overflow_shield")]
+    set_st(p3, "guard_core", 3)
+    arm_shield(p3, "guard_core_overflow", 60, expire=3.0)
+    p3["hp"] = 3000
+    with _absorb_off("guard_core_overflow"):
+        d = deal_damage(b3, None, p3, 100, [], dmg_kind="true", no_dodge=True)
+    check("反证：摘掉 absorb 声明 → 100 全落血、盾值分毫不动（吸收与否只由内容侧声明决定）",
+          d == 100 and p3["hp"] == 2900 and sh_value_of(p3, "guard_core_overflow") == 60,
+          f"d={d} hp={p3['hp']} sh={sh_of(p3, 'guard_core_overflow')}")
+    # 声明摘掉期间容器条目仍在（只是不被吸收）——对照「不是条目消失」
+    check("反证期间条目仍在容器里（不吸收 ≠ 删条目）",
+          "guard_core_overflow" in (p3.get("effects") or {}),
+          f"ef={p3.get('effects')}")
+    # 声明恢复后同一笔立刻恢复吸收（声明表是活读口，不是构造期快照）
+    p3["hp"] = 2900
+    d = deal_damage(b3, None, p3, 100, [], dmg_kind="true", no_dodge=True)
+    check("声明恢复 → 同一笔又被吸收（60 吸满 + 40 落血 2860）",
+          d == 40 and p3["hp"] == 2860 and sh_value_of(p3, "guard_core_overflow") == 0,
+          f"d={d} hp={p3['hp']} ef={p3.get('effects')}")
 
 
 # ---------- 7. 守御姿态 ----------
@@ -507,6 +584,7 @@ def main():
     t7_core_reduce()
     t8_core_last_stand()
     t9_core_overflow()
+    t9b_core_overflow_absorb()
     t10_stance()
     t11_res_cost()
     t12_base_and_stack()
