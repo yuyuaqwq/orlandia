@@ -4385,11 +4385,13 @@ class EconomyImpl(CommandBase):
         出售收藏鱼后图鉴不回退（与怪物图鉴永久收录语义一致）；背包仍有存货时附 ×N 数量。
         v134.1 意见#41：头部加子分类提示（'图鉴 垂钓' 直达，怪物页尾部也有入口）。"""
         inv = {it["key"]: it["count"] for it in db.get_inventory(group_id, qq_id)}
-        _ach_unlocked = set()
-        try:
-            _ach_unlocked = {r["ach_key"] for r in db.get_achievements(group_id, qq_id)}
-        except Exception:
-            pass
+        # ★ 台账 L4578（:4391 同族）：原先 `except Exception: pass` 把「成就读失败」
+        #   降级成「一条都没解锁」⇒ 玩家**已永久收进图鉴**的鱼（卖掉了、背包里没有，
+        #   只靠 collect_fish 成就记着）当场退回「❌ ??? 没收集过」，计数 1/3 → 0/3。
+        #   实跑：给 ach_collect_rainbow 记一次成就后注入读失败，卡片上
+        #   「虹彩龙鲤 ✅」变「❌ ???」、「已收藏 1/3」变「0/3」—— 玩家永久丢收藏记录，
+        #   零报错。本函数**没有**外层兜底（与 #3/#5 不同），故必须在这里 fail-closed。
+        _ach_unlocked = {r["ach_key"] for r in db.get_achievements(group_id, qq_id)}
         _fish_ach = {}
         for _a in _cquest.ACHIEVEMENTS:
             _c = _a.get("cond") or {}

@@ -94,5 +94,36 @@ check("外层两条兜底文案仍登记在文案表里（没被删掉换绿）"
       bool(_TX.static("footprint.fail")) and bool(_TX.static("adv.item_fail")),
       repr(_TX.static("footprint.fail")))
 
+# ---------------------------------------------------------------- ⑦ 彩蛋鱼成就读失败
+# ★ 代价形态与 #3/#5 不同：这里被降级掉的是**永久收藏记录**。鱼卖掉后背包里没有了，
+#   只靠 collect_fish 成就记着；成就读失败 ⇒ 玩家永久解锁的那条退回「❌ ??? 没收集过」，
+#   计数 1/3 → 0/3。派发层 `command/router.py:147` 有真兜底（记日志 + 给通用句），
+#   所以这里 fail-closed 是把错误**升级到玩家看得见**，不是让命令崩掉。
+_fish0 = [a for a in C.ACHIEVEMENTS
+          if (a.get("cond") or {}).get("type") == "collect_fish"]
+check("前提：域里有 collect_fish 成就（探针前提成立）", bool(_fish0), str(len(_fish0)))
+
+if _fish0:
+    db.set_achievement(gid, qid, _fish0[0]["id"], 1, 1)     # 已解锁、背包里没有
+    base_fish = m._collect_fish_bestiary(gid, qid)
+    check("基线：彩蛋鱼卡片认这条永久解锁记录（1/3 而非 0/3）",
+          "1/3" in base_fish, repr(base_fish[:160]))
+
+    _oa = db.get_achievements
+    db.get_achievements = _boom("模拟成就读失败")
+    try:
+        raised, outf = None, ""
+        try:
+            outf = m._collect_fish_bestiary(gid, qid)
+        except Exception as exc:                            # noqa: BLE001
+            raised = exc
+    finally:
+        db.get_achievements = _oa
+    check("⑦ 成就读失败 → 不再谎报「没收集过」（上抛给派发层真兜底）",
+          raised is not None, "没抛，却返回了 %r" % (outf[:160],))
+    check("⑦ 正常路径 · 彩蛋鱼 与基线逐字相同（只改失败那一路）",
+          m._collect_fish_bestiary(gid, qid) == base_fish)
+
+
 print("\n== %d 通过 / %d 失败 ==" % (passed, failed))
 sys.exit(1 if failed else 0)
