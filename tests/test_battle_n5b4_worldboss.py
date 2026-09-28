@@ -57,7 +57,7 @@ def mk_boss_actor(uid, name, hp, is_boss=False):
             "lv": 30, "rank": 1, "reach": 1,
             "is_boss": is_boss, "is_elite": False,
             "buffs": {}, "stacks": {}, "debuffs": {},
-            "defending": False, "charging": None}
+            "charging": None}
 
 
 def seed_world_boss():

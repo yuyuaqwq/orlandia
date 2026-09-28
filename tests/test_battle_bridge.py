@@ -81,7 +81,7 @@ section("monster_to_actor 字段翻译")
 mon = {
     "id": "test_slime", "uid": "e_test_slime-5", "name": "史莱姆", "lv": 5,
     "role": "dps", "rank": 1, "reach": 1, "buffs": {}, "stacks": {},
-    "defending": False, "charging": None,
+    "charging": None,
     "hp": 80, "max_hp": 80, "atk": 12, "def": 5, "matk": 0, "mdef": 3, "spd": 6,
     "exp": 20, "gold": 15, "skills": [], "drops": [], "map": "测试平原",
     "map_area": "field", "is_boss": False, "is_elite": False,

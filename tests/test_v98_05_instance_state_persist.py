@@ -58,7 +58,7 @@ async def main():
     st["enemies"].append({"uid": "e_test_minion", "name": "测试爪牙", "hp": 500, "max_hp": 500,
                           "atk": 100, "matk": 0, "def": 0, "mdef": 0, "spd": 10, "crit": 0,
                           "dodge": 0, "rank": 1, "reach": 1, "buffs": {}, "stacks": {},
-                          "defending": False, "charging": None})
+                          "charging": None})
     st["round"] = 5
     st["boss"]["hp"] = 999999  # 防测试期 Boss 被秒杀导致战斗结束
     for _eu in (st.get("enemies") or []):  # v2：兼容键同步（boss/enemies 深拷贝后脱节）

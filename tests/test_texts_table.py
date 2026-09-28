@@ -830,7 +830,7 @@ def _is_mk_snap(qid, name="玩家", cls="战士", level=60):
             "skills": [], "learned_skills": [], "class_tier": 0, "evolve_path": 0,
             "attributes": pl.get("attributes"), "bonus": {"panel": {}, "cap": {}, "cost": {}},
             "race": pl.get("race"), "uid": "p_%s" % qid, "buffs": {}, "stacks": {},
-            "defending": False, "charging": None, "ct": 0.0, "spd": 30}
+            "charging": None, "ct": 0.0, "spd": 30}
 
 
 def _is_mk_enemy(hp=1, spd=1, role="dps", atk=1, uid="e_room", name="房间怪"):
@@ -1403,7 +1403,7 @@ def _il_snap(qid, name="玩家", cls="cls_zhan_shi", level=60, learned=None, hp=
             "equipment": {}, "skills": [], "learned_skills": list(learned or []),
             "class_tier": 0, "evolve_path": 0, "attributes": pl.get("attributes"),
             "bonus": {"panel": {}, "cap": {}, "cost": {}}, "race": pl.get("race"),
-            "uid": "p_%s" % qid, "buffs": {}, "stacks": {}, "defending": False,
+            "uid": "p_%s" % qid, "buffs": {}, "stacks": {},
             "charging": None, "ct": 0.0, "spd": spd}
 
 
@@ -2249,7 +2249,7 @@ def _pb_snap(qid, name="甲", cls="cls_zhan_shi", level=60, hp=None, spd=30, mp=
             "equipment": {}, "skills": [], "learned_skills": [],
             "class_tier": 0, "evolve_path": 0, "attributes": pl.get("attributes"),
             "bonus": {"panel": {}, "cap": {}, "cost": {}}, "race": pl.get("race"),
-            "uid": "p_%s" % qid, "buffs": {}, "stacks": {}, "defending": False,
+            "uid": "p_%s" % qid, "buffs": {}, "stacks": {},
             "charging": None, "ct": 0.0, "spd": spd}
 
 
