@@ -388,6 +388,10 @@ WIRED = {"药水效果": PKG_POTION_SRC, "场景触发": PKG_POI_EFFECTS_SRC,
          "见闻录": PKG_WORLDCMDS_SRC,
          "时间面板": PKG_WORLDCMDS_SRC,
          "时段名": PKG_WORLDCMDS_SRC,
+         # ★ 审计 L4781（2026-09-28）：require_stats 的 stats 计数键玩家可见名
+         #   （quest.secret 槽位 cond；原先内部键 fish_count/craft_count 直上屏）。
+         #   读口 = content/world_cmds.py 的 _STAT_COUNT_CN（本文件调用点同在 world_cmds.py）
+         "计数名": PKG_WORLDCMDS_SRC,
          # ★ C 档 27a（B-2 第 13 片）：world 余量「交付目标行 / 武器自选礼包」
          #   （_obj_text_lines_of 交付面板多行目标模板 · _weapon_pick_choose 武器自选礼包
          #    裸数字消费全分支 —— 调用点同在 world_cmds.py；两分类键名全 ASCII）
@@ -1144,6 +1148,10 @@ def t1_table_selfcheck():
                         #   装配期现读订阅）。与既有「战斗日志」（we_procs 的护盾/条件类）
                         #   **刻意分家**：后者是机制体自己拼的行，前者由引擎发事件渲染。
                         "表现事件",
+                        # ★ 审计 L4781（2026-09-28，批次 2）：新分类「计数名」= stats 计数键的
+                        #   玩家可见名（world_cmds._STAT_COUNT_CN 读口；原先 fish_count/craft_count
+                        #   直接上屏）。与既有「属性名」（面板属性）刻意分家：那是装备属性，那是进度计数。
+                        "计数名",
                         "属性名", "团队特效名", "条件文案", "宠物技能描述", "帮助面板",
                         "副业图标", "技能面板", "GM面板", "公会面板", "修炼塔",
                         "角色面板", "属性面板", "排行榜", "种族面板", "转职", "技能栏", "流派", "技能详情",

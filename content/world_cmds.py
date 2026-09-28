@@ -79,9 +79,33 @@ from . import wild as _wild
 from . import texts as _T      # ★ C 档 18a（2026-09-18）：文案表读口（本文件首次接入）
 from .flow import instance_gate      # 副本图门禁准入链（`_instance_gate_block` 的判定本体）
 from .flow import instance_run as IR
+
+# ★ 审计 L4781：stats 计数键 → 玩家可见中文名（文案表 `stat_count_name.*`）。
+#   只收 require_stats 真正用到的键（quests.json 两条：fish_count / craft_count）；
+#   域内新增 require_stats 键时**必须**同批在此登记，否则该键会以机器名上屏（本读口不兜底）。
+_STAT_COUNT_KEYS = {
+    "craft_count": "stat_count_name.craft_count",
+    "fish_count": "stat_count_name.fish_count",
+}
+_STAT_COUNT_CN = _T.names(_STAT_COUNT_KEYS, prefix="stat_count_name")
+
+
 from .panel import player_final_stats
 from .skills import skill_info
 from .tables import TIER_GROWTH
+
+def _req_stats_label(require_stats: dict) -> str:
+    """`require_stats` 计数门槛 → 玩家可见描述（`quest.secret` 的 `cond` 槽）。
+
+    ★ 审计 L4781：原先内联 `f"{k} {v}次"` 把内部 stats 计数键**直接上屏** ——
+      玩家实见「需要 fish_count 10次 后才会出现」。计数键的中文名走文案表
+      （`stat_count_name.*`），与本文件 `_wild_cond_label` 的 time_name/season_cn 同一形状。
+
+    **本函数是这条渲染的唯一口**（判据 `tests/test_u1n4_quest_reqstat_label.py` 直接调它）：
+      域里新增 `require_stats` 键时必须同批登记进 `_STAT_COUNT_KEYS`，
+      否则该键会以机器名上屏（`tests/test_u1n4_quest_reqstat_label.py` 会报红）。
+    """
+    return ", ".join(f"{_STAT_COUNT_CN.get(k, k)} {v}次" for k, v in (require_stats or {}).items())
 from .time_weather import PERIOD_CN
 from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（原 `C.gather_map_min_lv`，宿主已无对象）
 
@@ -2034,8 +2058,7 @@ async def quest_accept(self, event: AstrMessageEvent, group_id, qq_id):
                 return
             # v124 隐藏线：require_stats 计数门槛
             if not self._sq_stats_met(player, sq):
-                _rs = sq.get("require_stats") or {}
-                _need = ", ".join(f"{k} {v}次" for k, v in _rs.items())
+                _need = _req_stats_label(sq.get("require_stats") or {})
                 yield event.plain_result(
                     _T.text("quest.secret", cond=_need)
                 )

@@ -234,7 +234,12 @@ FROZEN_COUNTS = {
     #   `content/cues.py::cue_subs` + `content/apply.py` 的 `cue_subs_fn` / `text_table_fn`）
     #   ⇒ 3210 → 3272。引擎侧 `tests/test_texts_schema_contract.py` 的三处锚点同批 +62
     #   （搬移/合入时一并改；②中文键数锚点仍 169，键名全 ASCII）。
-    "texts": 3273,
+    # ★ 2026-09-28 审计 L4781（批次 2）：`require_stats` 的 stats 计数键玩家可见名
+    #   **2** 键（`stat_count_name.fish_count` / `.craft_count`，新分类「计数名」；
+    #   读口 = `content/world_cmds.py::_STAT_COUNT_CN`，调用点 `_req_stats_label`）
+    #   ⇒ 3273 → 3275。原先内部键 `fish_count` / `craft_count` 直接上屏。
+    #   引擎侧 `tests/test_texts_schema_contract.py` 的锚点**本批未触及**（未 bump 引擎指针）。
+    "texts": 3275,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

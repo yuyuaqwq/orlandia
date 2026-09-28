@@ -20379,6 +20379,16 @@
     "category": "社交市场",
     "desc": "搬自 content/social_stall.py:stall_view_player_lines（B 批 C 档）"
   },
+  "stat_count_name.craft_count": {
+    "value": "锻造",
+    "category": "计数名",
+    "desc": "stats 计数键的玩家可见名（审计 L4781：require_stats 内部键 fish_count/craft_count 直上屏）"
+  },
+  "stat_count_name.fish_count": {
+    "value": "垂钓",
+    "category": "计数名",
+    "desc": "stats 计数键的玩家可见名（审计 L4781：require_stats 内部键 fish_count/craft_count 直上屏）"
+  },
   "stat_name.abyss_res": {
     "value": "深渊抗性",
     "category": "属性名",
