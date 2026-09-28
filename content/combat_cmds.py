@@ -1337,13 +1337,20 @@ async def revive_confirm(self, event: AstrMessageEvent, group_id, qq_id):
         return
     # 直接看原始消息（正则已限定只有 使用复活羽毛/放弃复活 两种输入）
     opt = "使用复活羽毛" if "复活羽毛" in (event.get_message_str() or "") else "放弃复活"
+    if opt == "使用复活羽毛":
+        # ★ 审计 L4913：查不到 != 没有羽毛。`count_item` 走真 IO（SQLite 锁 /
+        #   item_data JSON 坏），原先 `except Exception: cnt = 0` 把「查询失败」
+        #   静默降成「玩家没羽毛」=> 紧接着 `cnt <= 0` 分支 **扣玩家的金币**。
+        #   改成先查后清：查不出就走独立出口，既不扣钱也不发结算，挂起状态
+        #   原样留着（5 分钟窗口内可重答，损失与免罚都不发生）。
+        try:
+            cnt = int(db.count_item(group_id, qq_id, "i_fu_huo_yu_mao") or 0)
+        except Exception:                                 # noqa: BLE001
+            yield event.plain_result(_T.static("rv.query_failed"))
+            return
     db.set_event_state(key, "")
     player = self._player(group_id, qq_id)
     if opt == "使用复活羽毛":
-        try:
-            cnt = int(db.count_item(group_id, qq_id, "i_fu_huo_yu_mao") or 0)
-        except Exception:
-            cnt = 0
         if cnt <= 0:
             # 背包里已没有羽毛（可能被其他途径消耗）→ 按损失金币兜底
             db.update_player(group_id, qq_id, gold=max(0, player["gold"] - lost - extra))

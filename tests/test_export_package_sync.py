@@ -234,7 +234,7 @@ FROZEN_COUNTS = {
     #   `content/cues.py::cue_subs` + `content/apply.py` 的 `cue_subs_fn` / `text_table_fn`）
     #   ⇒ 3210 → 3272。引擎侧 `tests/test_texts_schema_contract.py` 的三处锚点同批 +62
     #   （搬移/合入时一并改；②中文键数锚点仍 169，键名全 ASCII）。
-    "texts": 3272,
+    "texts": 3273,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

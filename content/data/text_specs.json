@@ -17922,6 +17922,11 @@
     "category": "许愿商人",
     "desc": "搬自 content/combat_cmds.py:revive_confirm（B 批 C 档）"
   },
+  "rv.query_failed": {
+    "value": "🪶 复活羽毛的账目暂时查不出来……这次作答作废，请再选一次。",
+    "category": "许愿商人",
+    "desc": "审计 L4913：背包查询失败 ≠ 没有羽毛。原先静默降成 0 件 ⇒ 扣玩家金币"
+  },
   "rv.stale": {
     "value": "复活选择已失效……",
     "category": "许愿商人",
