@@ -26,9 +26,9 @@
   ⇒ `read_domain(domain, sub, default)`。
 * `_read_domain` ×2 **fail-closed 变体**（`social_guild.py` 的 `guild.json` / `flow/weekly_progress.py`
   的 `weekly_quests.json`：硬编码单域 + 空表抛 `RuntimeError`）⇒ `read_data_json_strict()`。
-* **未收的两处**：`content/dialogue.py` / `content/dialogue_conds.py` 的 `_read_domain` ——
-  `tests/test_u1i4_dialogue_frozen.py` 把这两段源码逐段冻结（E 栏断言 `frozen == live`，
-  缺符号直接 `KeyError`）且门禁自哈希 pinned ⇒ 该线收口后才能随冻结基准重采一并并入。
+* `_read_domain` ×2 **fail-closed 变体**（`dialogue.py` / `dialogue_conds.py`：读 `dialogues.json` /
+  `quests.json`）—— 口径同上走 `read_data_json_strict()`（台账 C-R2.9：域读失败曾让 **39 棵对话树
+  + 70 条主线任务静默清零、零异常**）。原冻结门禁持有其字节，故那两段已随冻结基准重采移入 C 栏。
 
 **P0-4d（2026-09-19 续批）** —— 表形状口同样收在这里：`num_sorted`（`catalog_b143` /
 `catalog_items` 各一份，逐字同体）/ `ordered`（`catalog_b143` / `catalog_legacy` 的 `_ordered`，
@@ -51,7 +51,8 @@
 
 **有意未收**：`catalog_life` / `catalog_quests` 的 `_ordered`（序名由本模块解析 / 空序宽容 /
 报错口径与前两处不同，硬合会改诊断措辞）；`dialogue.py` / `dialogue_conds.py` 的 `_main_quests`
-（别线冻结门禁持有其字节）。
+（**读口已收口**见上，但其「按 id 扫表取 `source == main` 子集」的业务口径与本模块的域读口不同族，
+且冻结门禁逐字节持有其函数体 ⇒ 仍不并入）。
 
 落点理由（与 `content/_pkgref.py` / `content/_hostref.py` 同一条纪律：**安全依赖面决定落点**）
 ----------------------------------------------------------------------------------
