@@ -187,14 +187,14 @@ _PIN = {
         'class_mech_action::passive_dmg_mult': '3bc2a6faa8e6a08e0068165fcdb54dac193e48a43065ca8d80c515b2bdaa6195',
         'class_mech_action::passive_dot_mult': '795bde0c0d82abe973129d4758ba36b5dcf3c50628e5b0d23ab056f2be3f3b38',
         'class_mech_action::passive_element_core_crit': 'd2fc6aebe628323df47c120571ce9e93a8a88d0a0d5d3ef1ab64055394f90a33',
-        'class_mech_action::passive_heal_overflow_shield': '0d96e8d2cb94589bae0d6d9047ba28fc88b3fd6746b2c640f6387147d5eb2a9f',
+        'class_mech_action::passive_heal_overflow_shield': 'be14efaf0615d9ec7d8357b362adecd4b7529f93267488234548d0197ca656d4',
         'class_mech_action::passive_kill_gain': 'fb977ebe12cc1ecdf1c824b68c76967ee2d6108fe22ac3e9dfcede85c119f3f8',
         'class_mech_action::passive_lian_duan_soft': '642c6f7ee0f9f0283970075a46cf7cd70fff8ccae934fa8f1bb47f4bae98ead2',
         'class_mech_action::passive_lifesteal_buff': 'bff07b2ef9ae782015da0c9d7d6fe40f978f325a296002c588ecee311eb507ae',
         'class_mech_action::passive_low_hp_core': 'fa19058e254b335bfb27031cd793e48f7351c8af28f2d239ea1e250e35bba7db',
         'class_mech_action::passive_mark_enhance': '7753ccab604ade714933f74e4e3e5ba42d006e7ebd47926f09fb674ed0de7ae3',
         'class_mech_action::passive_melody_duet': 'bb07a087721dfe41a88d1c20fc4e9f4cf5f9c0e11b81d913e09e4eb24732a2c0',
-        'class_mech_action::passive_overflow_shield': '88bea1535d516096cd60211bafb3243ee252bcf0a612a8b414b75ef356c2e837',
+        'class_mech_action::passive_overflow_shield': '9c7a0d46631d6dcfd07e5d9a99f336272f608d8e45a1597df308a198dd683fc2',
         'class_mech_action::passive_poison_spread': '1682bd4e2a495d1491b833f7b329091bf810e07d520b6fd909d8ea33399750af',
         'class_mech_action::passive_poison_weaken': '734069d61adca58bf4be0b16f6d905ec0c9908291ca033ae5f3daf759187c052',
         'class_mech_action::passive_res_gain_turn': 'f6b1780ff258b15f040e17d2902244731e49f9b259826f618a1e846ccf9a8066',
@@ -202,8 +202,8 @@ _PIN = {
         'class_mech_action::passive_revive_guard': '94948d0c59d3a364ef59c61503b80038820d0f65ec6ace5e2152f0a7acc1a44f',
         'class_mech_action::passive_shadow_buff': '75d6446c3dee1e07e218d68e6712ad500d2c04f2a5d93f7ea9f66880ea18bc54',
         'class_mech_action::passive_taken_reduce': '6e6e259dece0ede0f1e4ddfe1165e4c96e55a55a7c610e2a5ed1d185427a606e',
-        'class_mech_actions': 'ea732a555481f49b0ea67be4c1cb1c415e113047c1e4fce2ca7f1e6c1d47f7f8',
-        'class_mech_actions_37': '42a3d46485e64494ca6c1ca5c9a7a1bd7cb1d7794f264e65f7f8570333e7cd39',
+        'class_mech_actions': '9db2ebb7e1bbba27055aa831f682c2876e06501ae54e0fb3e9730cbdc8439c80',
+        'class_mech_actions_37': 'dd5eef40e6a1faf3ce3a96624435ea6690f6bddefa823a1f50575df6161d11aa',
     },
     'segments': {
         'E': [
@@ -647,6 +647,15 @@ def _probe_action_bodies():
       `apply_action(...)` 改为等价 `apply_effects(..., [{\"action\": \"apply\", ...}], ...)`
       （旧实现就是这一行展开，参数名/值/桶序一字不变；行为零变化）。
       重钉值由 `_aux_fingerprints()` 跑活实现取件（不重采 frozen；frozen 仍是 U1-D2 前基线）。
+    ★ 2026-09-28 R4-5 登记：`passive_heal_overflow_shield` / `passive_overflow_shield`
+      两个动作体 **有意改动**（C 车道 R1，`3bfb023`）：状态容器收口第 2 批后
+      原先的 `sh = tgt.setdefault("shields", {})` + 手写 `sh[key] = {value, expire_at, halve}`
+      改走容器写口（引擎第 2 批已删 `shields` 容器），是否吸收由内容侧
+      `effect_rules.json` 的 `absorb: true` 声明决定（`heal_overflow` / `guard_core_overflow`）。
+      口径级别：只改**形状**（写哪个容器 / 哪个键），不改任何**数值**（value / turns / 阀值一字未动）。
+      重钉值由活实现取件（`_aux_fingerprints()`，不重采 frozen：frozen 仍是 U1-D2 前基线）。
+      本次只重钉 **4 个键**（2 个动作体 + `class_mech_actions` / `class_mech_actions_37` 两条聚合），
+      其余 37 个动作体键**一字未动**（差异表实测恰好 4 条）。
     ★ 2026-09-19 口径变更（C 档 mech-unblock · 文案迁移）：
       把 `class_mech.py` 里 40 处中文句壳搬进文案表，涉及 **32 个动作体**的 `logs.*` 行
       ⇒ 它们**有意**改变，`_PIN["aux"]` 已由生成器 `--emit-aux` 正规推进为新基线。依据：

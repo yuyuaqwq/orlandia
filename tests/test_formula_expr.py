@@ -10,19 +10,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import _paths  # noqa: E402  ← 引擎根发现（GWEN_FRAMEWORK_DIR 优先；缺失即醒目报错）
 
-# 直接导入模块（不走包 __init__，避免循环导入）
-# S8 拆仓：本体已迁框架仓 `framework/saintess_engine/support/formula_expr.py`
-# （原 game/core/formula_expr.py 只是过渡 shim）——按文件路径加载，零包依赖。
-import importlib.util
-_spec = importlib.util.spec_from_file_location(
-    "formula_expr",
-    os.path.join(_paths.ENGINE_ROOT, "saintess_engine", "expr", "__init__.py"))
-_fx = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_fx)
-compile_expr = _fx.compile_expr
-eval_expr = _fx.eval_expr
-build_vars = _fx.build_vars
-ExprError = _fx.ExprError
+# 正常包导入。★ R4-4（2026-09-28）：原先这里用 `spec_from_file_location` 按**文件路径**
+# 加载引擎模块（"不走包 __init__，避免循环导入"）。但 `saintess_engine/expr/__init__.py`
+# 自 E4（`c3eb91b`, 2026-09-25 21:26）起有**包内相对 import**（`from ..config import
+# EngineNotConfigured` / `from .. import config as _cfg`）⇒ 按路径加载拿不到包上下文
+# ⇒ import 期就抛 `ImportError: attempted relative import beyond top-level package`
+#   （一条断言都跑不到）。同仓 `tests/test_v160_exprs.py:25` 早已是正常包导入，照它写。
+from saintess_engine.expr import (  # noqa: E402
+    compile_expr, eval_expr, build_vars, ExprError)
 
 passed = failed = 0
 
