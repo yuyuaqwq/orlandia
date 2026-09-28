@@ -2765,11 +2765,22 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     # 玩家侧 actor 塞 bonus.panel（v181.M-bonus 统一容器 = **唯一**容器，N10 收口后
     # 无 battle 级回落）；Boss 敌侧不塞——敌侧是纯怪（无 class_name），stats 走
     # `_monster_base_stats` 不读面板增幅容器。
+    # ★ 审计 L4918-3：原先这里包着 `try/except Exception: pass`。`_tb` 形状不对时
+    #   `dict(_tb or {})` 抛错被吞掉 ⇒ actor **完全没有 bonus 键**，而紧邻的注释
+    #   自称「唯一容器、无 battle 级回落」= 面板增幅整场失效、零提示。
+    #   实跑复现（_tb=["atk","def"]）：改前 actor 无 bonus 键；同输入走
+    #   `bridge.apply_battle_loadout` 则落 `{"panel": {}}` ⇒ 分叉就在这层静默。
+    #   处置 = fail-closed：形状错当场抛（认不出就抛），不中止开战就静默开一场
+    #   没有增幅的战斗。正常档（dict / None / 空 dict）行为逐字节不变。
     try:
-        for _a in _sides.get("player", []):
-            _a["bonus"] = {"panel": dict(_tb or {}), "cap": {}, "cost": {}}
-    except Exception:
-        pass
+        _tb_panel = dict(_tb or {})
+    except (TypeError, ValueError) as _e:
+        raise RuntimeError(
+            "content.combat_cmds：世界 Boss 开战的面板增幅形状不对"
+            "（_panel_bonus 应给映射，实得 %s）——拒绝开一场没有增幅的战斗"
+            % type(_tb).__name__) from _e
+    for _a in _sides.get("player", []):
+        _a["bonus"] = {"panel": _tb_panel, "cap": {}, "cost": {}}
     # 敌 actor 装配（weapon/affix 是玩家侧；敌侧只需 auto_act 行动配置）
     for _a in _sides.get("enemy", []):
         if not _a.get("auto_act"):
