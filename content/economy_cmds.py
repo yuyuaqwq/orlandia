@@ -4026,18 +4026,18 @@ class EconomyImpl(CommandBase):
         """冒险手册总览卡片：足迹/怪物/物品/收藏 四维进度。"""
         try:
             # 足迹（剔副本，与足迹面板同口径）
+            # ★ 台账 L4578 #1：原先内层 `except Exception: pass` 把读失败降级成
+            #   「足迹 0/0」—— 玩家读到的是「一个子区域都没去过」，实为 DB 读失败，
+            #   无任何报错。外层本就有可见的 overview_fail ⇒ 删内层兜底，让它走那儿。
             vis = tot = 0
-            try:
-                _visited = db.get_visited_subareas(qq_id)
-                for _m in _cspace.MAPS:
-                    if _m.get("type") in ("副本", "隐藏区域"):
-                        continue
-                    for _sa in ((_cspace.SUBAREAS or {}).get(_m["id"]) or []):
-                        tot += 1
-                        if f"{_m['id']}:{_sa['id']}" in _visited:
-                            vis += 1
-            except Exception:
-                pass
+            _visited = db.get_visited_subareas(qq_id)
+            for _m in _cspace.MAPS:
+                if _m.get("type") in ("副本", "隐藏区域"):
+                    continue
+                for _sa in ((_cspace.SUBAREAS or {}).get(_m["id"]) or []):
+                    tot += 1
+                    if f"{_m['id']}:{_sa['id']}" in _visited:
+                        vis += 1
             best = db.get_bestiary(group_id, qq_id)
             best_total = len(getattr(C, "_INDEXES", {}).get("monsters", {}).get("name_to_id", {}) or {})
             poss = db.count_possessed(qq_id)
@@ -4047,38 +4047,33 @@ class EconomyImpl(CommandBase):
                 if _pk:
                     inv_keys.add(_pk)
             # 收藏品/彩蛋鱼计数复用 helper 逻辑（轻量：数已收集）
+            # ★ 台账 L4578 #2：同 #1，读失败静默变「鱼 0」（看着像一条没收集过）。
             fish_n = 0
-            try:
-                _inv0 = {it["key"]: it["count"] for it in db.get_inventory(group_id, qq_id)}
-                _ach = {r["ach_key"] for r in db.get_achievements(group_id, qq_id)}
-                _fish_ach = {(_a.get("cond") or {}).get("key"): _a["id"] for _a in _cquest.ACHIEVEMENTS
-                             if (_a.get("cond") or {}).get("type") == "collect_fish"}
-                fish_n = len([cf for cf in _b143.FISH_COLLECT
-                              if cf["id"] in _inv0 or _fish_ach.get(cf["id"]) in _ach])
-            except Exception:
-                pass
+            _inv0 = {it["key"]: it["count"] for it in db.get_inventory(group_id, qq_id)}
+            _ach = {r["ach_key"] for r in db.get_achievements(group_id, qq_id)}
+            _fish_ach = {(_a.get("cond") or {}).get("key"): _a["id"] for _a in _cquest.ACHIEVEMENTS
+                         if (_a.get("cond") or {}).get("type") == "collect_fish"}
+            fish_n = len([cf for cf in _b143.FISH_COLLECT
+                          if cf["id"] in _inv0 or _fish_ach.get(cf["id"]) in _ach])
             # 收藏品 defs（type=收藏 非鱼，去重；与 _collect_items_bestiary 同源）
             # ★ def_owned 与 defs 同源同算：持有面走背包条目 data.name，
             #   与 _collect_items_bestiary 的 owned 判定逐字同口径（审计 L4577）。
             _defs = 0
             _def_owned = 0
-            try:
-                _fish_names = {cf["name"] for cf in _b143.FISH_COLLECT}
-                _def_names = set()
-                for _k, _v in (_cit.MATERIALS or {}).items():
-                    if isinstance(_v, dict) and _v.get("type") == "收藏" \
-                            and _v.get("name") not in _fish_names:
-                        _def_names.add(_v.get("name", _k))
-                for _k, _v in (_cit.ITEMS or {}).items():
-                    if isinstance(_v, dict) and _v.get("type") == "收藏" \
-                            and _v.get("name") not in _fish_names:
-                        _def_names.add(_v.get("name", _k))
-                _defs = len(_def_names)
-                _inv_names = {(it.get("data") or {}).get("name", "")
-                              for it in db.get_inventory(group_id, qq_id)}
-                _def_owned = len(_def_names & _inv_names)
-            except Exception:
-                pass
+            _fish_names = {cf["name"] for cf in _b143.FISH_COLLECT}
+            _def_names = set()
+            for _k, _v in (_cit.MATERIALS or {}).items():
+                if isinstance(_v, dict) and _v.get("type") == "收藏" \
+                        and _v.get("name") not in _fish_names:
+                    _def_names.add(_v.get("name", _k))
+            for _k, _v in (_cit.ITEMS or {}).items():
+                if isinstance(_v, dict) and _v.get("type") == "收藏" \
+                        and _v.get("name") not in _fish_names:
+                    _def_names.add(_v.get("name", _k))
+            _defs = len(_def_names)
+            _inv_names = {(it.get("data") or {}).get("name", "")
+                          for it in db.get_inventory(group_id, qq_id)}
+            _def_owned = len(_def_names & _inv_names)
             _kill = sum(r["kills"] for r in best)
             # v173.3 意见#125：宠物维度（pet_dex 孵化记录）
             _pet_dex = db.pet_dex_get(qq_id)
