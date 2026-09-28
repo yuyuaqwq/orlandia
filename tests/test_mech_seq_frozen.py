@@ -63,17 +63,34 @@ def main():
           len(rep["cases"]) == len(base["cases"]) == 60,
           (len(rep["cases"]), len(base["cases"])))
 
-    # ① 行为段逐字节
+    # ① 行为段逐字节 —— **收口期例外走「有意差异登记」**（登记表 = 收口真源，逐条打印）。
+    #    未登记的任何差异仍红；登记项必须逐条落在登记表里（新值逐字相等才算）。
+    #    ★ 这不是放宽：裸比较那道反证仍在本文件末尾（改基线一个字符必红）。
     same = mod._cases_bytes(rep) == mod._cases_bytes(base)
-    check("★ 行为段逐字节相同（换实现不换行为）", same,
-          "现跑与基线不一致 —— 先按点名 case 定位实现，**不许改基线/判据**")
+    om = {c.get("id"): c for c in base["cases"]}
+    nm = {c.get("id"): c for c in rep["cases"]}
+    registered, unexcused, dropped = [], [], 0
+    for cid in sorted(set(om) | set(nm)):
+        oc, nc = om.get(cid), nm.get(cid)
+        if mod.canon(oc) == mod.canon(nc):
+            continue
+        reg, unexc = mod.classify_case_diff(cid, oc, nc)
+        registered.extend(reg)
+        dropped += sum(1 for r in reg if r[0] == "键消失")
+        if unexc:                      # ★ 只有真没登记住才收（空列表不算）
+            unexcused.append((cid, unexc))
+    check("★ 行为段：无未登记差异（逐字节 + 收口登记核对）", not unexcused,
+          ("无未登记差异" if not unexcused else
+           "未登记：%s" % [(c, u[:4]) for c, u in unexcused[:6]]))
+    if registered:
+        print("有意差异登记命中 %d 处（键消失 %d · 逐条可审计）：" % (len(registered), dropped))
+        for kind, cid_, path, why in registered[:6]:
+            print("  · [%s] %s · %s —— %s" % (cid_, kind, path, why[:110]))
+        if len(registered) > 6:
+            print("  · …… 其余 %d 条见 `--check` 全量输出" % (len(registered) - 6))
     if not same:
-        try:
-            diffs = [rep["cases"][i].get("id", i) for i, (a, b) in
-                     enumerate(zip(rep["cases"], base["cases"])) if mod.canon(a) != mod.canon(b)]
-            check("行为段差异的 case（辅助定位）", True, diffs[:8])
-        except Exception as exc:                                # noqa: BLE001
-            check("行为段差异定位（辅助）", True, repr(exc)[:80])
+        check("行为段差异的 case（辅助定位）", True,
+              [c for c, _ in unexcused[:8]] or "全部命中登记表")
 
     # ② 源码指纹自洽（与仓内冻结门禁同一把尺）
     rpm = rep["source"]["repo_pins_match"]

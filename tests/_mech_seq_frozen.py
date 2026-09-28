@@ -803,7 +803,10 @@ def c_C3():
     e = mk_wooden()
     b = mk_battle(p, e)
     b._now = 10.0
-    bar_gain(e, "shaken", 45.0, None, now=10.0)      # 45/50（未触发）
+    # ★ B4（2026-09-27）起 bar_gain 首参是**战斗本体**（日志走 cue ⇒ 总线在它身上）；
+    #   本行原按旧签名调用 ⇒ bar_key 被塞成 45.0 → bar_def(45.0) = {} → 静默 no-op，
+    #   条从没被推起来（本 case 的反证：现跑 logs 只有 5/125，且 破绽·极 段没跑）。
+    bar_gain(b, e, "shaken", 45.0, None, now=10.0)   # 45/50（未触发）
     be = (e.get("effects") or {}).get(bar_effect_key("shaken"))
     before = _j(be)
     info = _SKILLS.skill_info("cls_wu_seng", "钢拳")
@@ -885,6 +888,134 @@ def build_report() -> dict:
 
 
 # ============================================================
+# 4.5 收口期的「有意差异登记」（照抄引擎侧 tools/_cue_freeze.py 同款先例）
+# ============================================================
+#
+# 收口某批重构时会**故意删掉**若干只写不读的键（第二本账的影子字段 / 已被并进容器的
+# 独立容器）。它们从 actor 快照里消失是**预期结果**，不是行为变化 —— 判据要认得这件
+# 事，否则每次收口都要人工解释一遍 RED。
+#
+# ★ 刻意做窄的三条边界（不许以后被当成「放宽判据」的先例）：
+#   ① 只有「键**消失**」才放行；同键的**值**变了仍 RED。
+#   ② 只有登记过的键名才放行；没登的消失键仍 RED（不许「顺手加一条就变绿」）。
+#   ③ 每次命中都在输出里**逐条打印**（键名 + 理由 + 出现在哪一条 case），审计可见。
+EXPECTED_DROPPED_KEYS = {
+    "shields": ("状态容器收口第 2 批（引擎 df4caf0）删掉独立容器：护盾并进 effects 容器条目"
+                "（带 value + absorb 声明）—— 快照里这个键不再存在是**预期**的，不是行为变化"
+                "（护盾吸收/到期/叠厚由 tests/test_battle_landing 等门禁逐条钉）"),
+    "defending": ("状态容器收口（引擎 de0ca27）：被动动作改成窗口条目 effects[\"defend\"]"
+                  "[\"until\"]=\"own_act\" —— 被动快照里这个键不再存在是**预期**的"),
+}
+
+
+# ★ 措辞级登记（B4 cue 迁移）：同一事件、同一槽位、**逐字**写死旧→新。
+#   口径同 R2.1：只放行这一对已核对过的措辞；任何第三种值仍 RED。
+#   条目 = (case_id, 叶子路径, 旧值, 新值)
+EXPECTED_TEXT_CHANGES = {
+    ("C3_fire_skill_hit_顺序契约", "output.logs.[0]"):
+        ("💥 shaken 积蓄 +5（50/125）", "✦ shaken 积蓄 +5（50/125）"),
+    ("C3_fire_skill_hit_顺序契约", "output.logs.[1]"):
+        ("💢 【破绽】触发！(第 1 次)", "✦ 破绽 积蓄触发（第 1 次）"),
+}
+#: 登记条目的理由（逐条打印用）
+EXPECTED_TEXT_WHY = ("cue B4（引擎 dae38dc · 2026-09-27）把 gauge 族日志改走表现事件总线，"
+                     "措辞真源迁到内容侧 `battle.gauge.gain` / `battle.gauge.trigger`"
+                     "（本车道 R1 落的文案半边）—— 同事件同槽位，属**预期**的措辞变化；"
+                     "行为侧（条 val/threshold/trigger_count/immune_until）逐字未变")
+
+
+def _leaf_value(case: dict, path: str):
+    """按叶子路径取值（`a.b.[0].c`）；取不到 ⇒ None。"""
+    cur = case
+    for part in path.replace("[", ".[", 1).split("."):
+        if not part:
+            continue
+        if part.startswith("["):
+            try:
+                cur = cur[int(part[1:-1])]
+            except Exception:
+                return None
+        elif isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
+            return None
+    return cur
+
+
+def classify_case_diff(cid: str, old_case, new_case):
+    """**单一真源**：把一条 case 的旧/新快照分类成「已登记放行」与「未登记差异」。
+
+    返回 (registered, unexcused)：
+      registered  = [(kind, cid, path, 理由), ...]  逐条可审计
+      unexcused   = [path, ...]                    任何一处未登记 ⇒ 该 case 仍红
+
+    ★ 三路**互斥穷尽**判定（不许用 for/else 串联 —— 那种写法会让「另一路已登记」
+      把未登记的那一路整段跳过，实测放过未登记的新增/变值）：
+      ① 消失  → 命中 `EXPECTED_DROPPED_KEYS` 才放行（收口只会删不会加）
+      ② 新增  → **永不登记**（键长出来就是行为变了）
+      ③ 变值  → 只有逐条写死旧→新、且现跑值**逐字等于**登记的新值才放行
+    """
+    gone, added, changed = _diff_case_paths(old_case, new_case)
+    registered, unexcused = [], []
+    for path in gone:
+        why = _is_expected_dropped(path)
+        if why:
+            registered.append(("键消失", cid, path, why))
+        else:
+            unexcused.append(path)
+    unexcused.extend(added)
+    for path in changed:
+        want = EXPECTED_TEXT_CHANGES.get((cid, path))
+        if not want or _leaf_value(new_case, path) != want[1]:
+            unexcused.append(path)
+            continue
+        registered.append(("措辞变值", cid, path,
+                           "%r → %r（%s）" % (want[0], want[1], EXPECTED_TEXT_WHY)))
+    return registered, unexcused
+
+
+def _is_expected_dropped(path: str) -> str:
+    """path 命中登记表 ⇒ 返回理由；没命中 ⇒ 空串（仍算差异）。"""
+    leaf = path.rsplit(".", 1)[-1]
+    return EXPECTED_DROPPED_KEYS.get(leaf, "")
+
+
+def _diff_case_paths(old_case, new_case, pre: str = ""):
+    """逐叶子路径 diff：返回 (消失路径列, 新增路径列, 同路径变值列)。
+
+    只认**叶子**路径：容器缩进一层就继续下沉（不在中间层报「整个不同」）。
+    """
+    gone, added, changed = [], [], []
+    if isinstance(old_case, dict) and isinstance(new_case, dict):
+        for k in sorted(set(old_case) | set(new_case)):
+            p = pre + str(k)
+            if k in old_case and k not in new_case:
+                gone.append(p)
+            elif k in new_case and k not in old_case:
+                added.append(p)
+            else:
+                g2, a2, c2 = _diff_case_paths(old_case[k], new_case[k], p + ".")
+                gone += g2
+                added += a2
+                changed += c2
+    elif isinstance(old_case, list) and isinstance(new_case, list):
+        for i in range(max(len(old_case), len(new_case))):
+            p = pre + "[%d]" % i
+            if i >= len(old_case):
+                added.append(p)
+            elif i >= len(new_case):
+                gone.append(p)
+            else:
+                g2, a2, c2 = _diff_case_paths(old_case[i], new_case[i], p + ".")
+                gone += g2
+                added += a2
+                changed += c2
+    elif old_case != new_case:
+        changed.append(pre.rstrip("."))
+    return gone, added, changed
+
+
+# ============================================================
 # 5. 入口
 # ============================================================
 
@@ -937,15 +1068,30 @@ def main(argv=None) -> int:
         old = json.load(open(BASELINE_PATH, encoding="utf-8"))
         old_b, new_b = _cases_bytes(old), _cases_bytes(rep)
         diff_ids = []
+        registered = []          # 命中登记表、已放行的审计行（键消失 / 措辞变值）
+        dropped = 0              # 其中「键消失」条数
+        unexcused = []           # 未登记的差异（任何一处未登记 ⇒ 该 case 仍红）
         if old_b != new_b:
             om = {c["id"]: c for c in old["cases"]}
             nm = {c["id"]: c for c in rep["cases"]}
             for cid in sorted(set(om) | set(nm)):
-                if canon(om.get(cid)) != canon(nm.get(cid)):
+                oc, nc = om.get(cid), nm.get(cid)
+                if canon(oc) == canon(nc):
+                    continue
+                reg, unexc = classify_case_diff(cid, oc, nc)
+                registered.extend(reg)
+                dropped += sum(1 for r in reg if r[0] == "键消失")
+                if unexc:
+                    print("  · %s 未登记差异 %d 处：%s" % (cid, len(unexc), unexc[:6]))
                     diff_ids.append(cid)
         src_changed = _source_bytes(old) != _source_bytes(rep)
         print("case 数：基线 %d / 现跑 %d" % (len(old["cases"]), len(rep["cases"])))
         print("行为段（cases）：%s" % ("逐字节相同 ✅" if not diff_ids else "有差异 ❌"))
+        if registered:
+            print("有意差异登记命中 %d 处（键消失 %d · 逐条可审计）："
+                  % (len(registered), dropped))
+            for kind, cid, path, why in registered:
+                print("  · [%s] %s · %s —— %s" % (cid, kind, path, why))
         if diff_ids:
             for cid in diff_ids:
                 print("  · 差异 case：%s" % cid)
