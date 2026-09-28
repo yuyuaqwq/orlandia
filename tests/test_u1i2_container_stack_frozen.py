@@ -221,7 +221,9 @@ PIN_UNCHANGED = {
     'get_possessed_rows': '01b7d002c9efd8d124ef4412caedd83dbfa107713ed540a046260eff52af9bc0',
     'count_possessed': '8b91914a1e2aafaeb9f1d30b65c3edc49f92cc9797196095d6bdb9b5a6df0b0c',
 }
-PIN_ENGINE = '8eb5b50a81ed7d924387627e6034dc234dc11396ffe0a9ae2f6f450173581ad4'
+# 2026-09-28 重钉：ea9433e（L1545 加载 strict=）改了 stack.py 却没重钉本 PIN，
+# 门禁自那时起常驻红（23/24）。本次叠加 L1540/L1544（cap 形态 fail-closed）后重钉。
+PIN_ENGINE = 'dfb3f1907e912ad80859ba94c292e8f94e7eb566ac1f4ba18e061f69c7ff53a4'
 
 # ============================================================
 # 通用件
@@ -811,6 +813,48 @@ def divergence_violations():
 # ============================================================
 # ⑥ 序列化（纯 JSON）
 # ============================================================
+def cap_violations():
+    """`cap`（个体记录条数上限）必须 fail-closed —— 台账 L1540 / L1544。
+
+    钉住的意图（每条都是「曾经零报错做错事」的形态）：
+      * `cap=0`  ⇒ `joined[-0:] == joined` ⇒ **上限静默失效**（全量保留）
+      * `cap<0`   ⇒ 悄悄丢最旧若干条
+      * `cap=True`⇒ `int(True)==1` ⇒ 把「不限」写成「只留 1 条」
+      * `cap=2.5` ⇒ 切片下标抛标准库 TypeError（文案与本模块口径无关）
+    ★ 同时钉住**合法用法零变化**（`None` / 正整数 / 数字字符串）——
+      门禁只收窄这条路径，不许顺手把正常上限也拒掉。
+    """
+    bad = []
+    def must_raise(label, fn_):
+        try:
+            got = fn_()
+        except ValueError:
+            return
+        except Exception as exc:                       # noqa: BLE001
+            bad.append("%s 抛的是 %s（本模块口径要求 ValueError）：%s"
+                       % (label, type(exc).__name__, exc))
+        else:
+            bad.append("%s 零报错返回了 %r（上限静默失效）" % (label, got))
+
+    must_raise("merge cap=0",  lambda: STK.merge_records({"m": [1, 2, 3]}, {"m": [4]}, marks="m", cap=0))
+    must_raise("merge cap=-1", lambda: STK.merge_records({"m": [1, 2, 3]}, {"m": [4]}, marks="m", cap=-1))
+    must_raise("merge cap=True", lambda: STK.merge_records({"m": [1, 2]}, {"m": [3]}, marks="m", cap=True))
+    must_raise("merge cap=2.5", lambda: STK.merge_records({"m": [1, 2]}, {"m": [3]}, marks="m", cap=2.5))
+    must_raise("Stack cap=0",   lambda: Stack((), marks="m", cap=0))
+    must_raise("Stack cap=-1",  lambda: Stack((), marks="m", cap=-1))
+
+    # 合法口径必须逐项不变（收窄不许变成「什么都拒」）
+    if STK.merge_records({"m": [1, 2, 3, 4]}, {"m": [5]}, marks="m", cap=3) != {"m": [3, 4, 5]}:
+        bad.append("合法 cap=3 的丢最旧行为变了")
+    if STK.merge_records({"m": [1]}, {"m": [2]}, marks="m") != {"m": [1, 2]}:
+        bad.append("cap=None（不限）行为变了")
+    if Stack((), marks="m", cap="5").cap != 5:
+        bad.append("数字字符串 cap 不再按原口径解析")
+    if Stack((), marks="m", cap=3).cap != 3:
+        bad.append("合法 cap=3 构造结果变了")
+    return bad
+
+
 def serial_violations():
     bad = []
     st = Stack((), marks="m", cap=2).add("甲", 2, {"m": [1, 2], "cls": "材料"})
@@ -954,6 +998,9 @@ def test_serialization():
     print("【⑥ 序列化：load / dump 纯 JSON 往返】")
     bad = serial_violations()
     check("load/dump 往返 + 容错 + 未转义", not bad, "；".join(bad[:5]))
+    bad_c = cap_violations()
+    check("cap 上限 fail-closed（0/负/bool/非整数抛 · 合法口径不变）",
+          not bad_c, "；".join(bad_c[:4]))
 
 
 def test_order_and_double_fault():
@@ -966,6 +1013,36 @@ def test_order_and_double_fault():
     check("两处同时坏（顺序反转 + 尾删）→ 门禁变红", bool(bad_d),
           "（没红说明顺序/双故障矩阵没牙）")
     check("双故障还原后复绿", not order_violations())
+
+
+def test_cap_teeth():
+    print("【⑨ cap fail-closed 有牙反证：拆掉 _cap_of 的拒绝 → 门禁必须变红；跑完还原】")
+    base = cap_violations()
+    check("基线：cap 判据本来全绿", not base, "；".join(base[:3]))
+    src = _lf(inspect.getsource(STK._cap_of))
+    # 猴补 1：把「非正整数拒绝」改成「原样放行」⇒ cap=0 又静默失效
+    m1 = src.replace("    if n <= 0:", "    if False:", 1)
+    check("M4 猴补目标存在（_cap_of 的 n<=0 那一行）", m1 != src, "（没找到猴补点，判据可能已改名）")
+    ns = dict(vars(STK))
+    exec(compile(m1, "<tamper:_cap_of>", "exec"), ns)              # noqa: S102 测试用内存猴补
+    orig_fn = STK._cap_of
+    STK._cap_of = ns["_cap_of"]
+    try:
+        check("M4 拆掉非正整数拒绝 → cap 判据变红", bool(cap_violations()),
+              "（没红说明 cap 判据没牙）")
+    finally:
+        STK._cap_of = orig_fn
+    # 猴补 2：把「bool 拒绝」拆掉 ⇒ True 又被当成 1
+    m2 = src.replace("    if isinstance(cap, bool) or not isinstance(cap, (int, str, float)):",
+                      "    if not isinstance(cap, (int, str, float)):", 1)
+    exec(compile(m2, "<tamper:_cap_of2>", "exec"), ns)             # noqa: S102 测试用内存猴补
+    STK._cap_of = ns["_cap_of"]
+    try:
+        check("M5 拆掉 bool 拒绝 → cap 判据变红", bool(cap_violations()),
+              "（没红说明 bool 那条没牙）")
+    finally:
+        STK._cap_of = orig_fn
+    check("两处猴补还原后复绿", not cap_violations())
 
 
 def _tamper(name, old, new):
@@ -1033,6 +1110,7 @@ def main():
     test_serialization()
     test_order_and_double_fault()
     test_teeth()
+    test_cap_teeth()
     print("\n== 结果：通过 %d / 共 %d ==" % (PASS, PASS + FAIL))
     for f in FAILURES:
         print("  FAIL:", f)
