@@ -320,13 +320,21 @@ def party_leave_execute(group_id, qq_id, inst_member, unlock_battle_hook=None, p
         # v141 大陆隔离：队员退队时若正挂在副本大陆（world_id=inst:），
         # 回滚 world_id 到主大陆 + 位置回副本入口图（防卡副本图出不去）。
         # 大陆实例的 members 快照保留（展示用），副本进度不受退队影响。
+        # 审计 L4574-#7：原为 `except Exception: pass`。本段的存在理由就是
+        # 「回滚 world_id（**防卡副本图出不去**）」，而静默吞掉读档异常恰好让它**什么都不做**：
+        # db.party_leave 已经把玩家移出队伍（且已回「退队成功」），玩家却被永久留在
+        # `inst:` 大陆 —— 零报错、玩家看到成功提示、卡死在副本图。fail-closed：读不到就抛。
+        # 判无此人不是这条路径：db.get_player 查无此人返 None（不抛），只有真读失败才落 here。
         try:
             _p2 = player_hook(group_id, qq_id)
             _wid2 = (_p2 or {}).get("world_id") or ""
             if _wid2.startswith("inst:"):
                 db.update_player(group_id, qq_id, world_id="mainland")
-        except Exception:
-            pass
+        except Exception as _e:
+            raise RuntimeError(
+                "party.party_leave_execute：退队后的大陆回滚读不到玩家档（player_hook 抛）——"
+                "拒绝静默跳过（玩家会被永久留在 inst: 大陆，副本图出不去）"
+            ) from _e
         # v104 M04 P2：队长退队=队伍解散，其名下撤退保留的副本进度行一并清理
         # （队伍已散，进度无法恢复；此前该行驻留到被新开本覆盖，长期占一行数据）
         if not db.party_members(group_id, qq_id):
