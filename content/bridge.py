@@ -145,15 +145,13 @@ _PLAYER_PASSTHROUGH = (
     # 效果类（echo_bless/poi_buff/…）V6 起由 _start_effects_to_actor 翻译进
     # actor.effects 面板快照，不在 passthrough 冗余透传）
     "resources", "stacks", "eff", "hot", "food_effects",
-    "buff_hits", "last_element",
+    "buff_hits",
     "battle_prefs",   # 战前偏好（双形态/终结阈值/奥术力场档——内容侧读）
-    "overflow_shield_cd", "stealth_atk",
     # ★ 收口第 2 批（2026-09-28）：`reduce_all_left` / `reduce_left` 从播种键元组删除 ——
     #   引擎第 2 批（`df4caf0`）已把 `reduce_left` 整键删除（它是容器条目 `expire` 的
     #   **第二本账**，引擎内零消费者，只被本播种表透传 + 面板展示）。到期只有一个真源
     #   = 容器条目的 `expire`。`reduce_all_left` 同批一并清（同一个影子族）。
-    "combo_seq", "last_combo_tag",
-    "tailwind_prev_energy", "last_skill", "last_cast_at",
+    "combo_seq",
 )
 
 # 开战仪式一次性祝福 → actor.effects 面板快照条目（V6：旧引擎 BUFF_MULT 折算
@@ -455,9 +453,6 @@ def _seed_battle_keys(player: dict) -> dict:
         "resources": dict, "stacks": dict, "eff": dict,
         "cooldown": dict, "hot": dict, "food_effects": list,
         "buff_hits": dict, "combo_seq": list,
-        "last_combo_tag": None, "last_element": None,
-        "tailwind_prev_energy": None,
-        "overflow_shield_cd": False, "stealth_atk": False,
         # ★ 收口第 2 批（2026-09-28）：`shields` / `reduce_all_left` / `reduce_left`
         #   三个键从播种表删除 —— 引擎第 2 批已删 `shields` 独立容器与 `reduce_left`
         #   影子字段（后者是容器 `expire` 的第二本账）。护盾改由容器写口落进
@@ -497,9 +492,7 @@ _BACK_SYNC_BAGS = (
     "ct", "poi_buff",
     # 旧玩家 dict 兼容键（职业层可能在 player 上读，见 _PLAYER_PASSTHROUGH）
     "resources", "stacks", "eff", "food_effects", "buff_hits",
-    "last_element", "overflow_shield_cd",
-    "stealth_atk",
-    "combo_seq", "last_combo_tag", "tailwind_prev_energy",
+    "combo_seq",
 )
 
 
