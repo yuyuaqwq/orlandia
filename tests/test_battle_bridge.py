@@ -57,6 +57,9 @@ PASS = 0
 FAIL = 0
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL")
 
@@ -97,7 +100,10 @@ check("effects 播种（V 系列，buffs 不透传）", a.get("effects") == {} a
 check("kind=monster（无 class_name）", a.get("kind") == "monster")
 check("make_actor 播种 ct", "ct" in a and a.get("ct") == 0.0)
 check("make_actor 播种 effects", isinstance(a.get("effects"), dict))
-check("make_actor 播种 shields/cooldown", isinstance(a.get("shields"), dict) and isinstance(a.get("cooldown"), dict))
+# ★ 收口第 2 批：`shields` 独立容器已删（护盾并进 effects 容器条目）⇒ 断言改为
+#   「不再播种 shields」+「cooldown 仍在」，防止有人把它加回来。
+check("make_actor 不再播种 shields（收口第2批已删独立容器）", "shields" not in a, str(sorted(a)))
+check("make_actor 播种 cooldown", isinstance(a.get("cooldown"), dict))
 check("auto_act 缺省 attack", (a.get("auto_act") or {}).get("act", {}).get("type") == "attack")
 
 section("monster_to_actor 怪扮职业")
@@ -181,10 +187,12 @@ db.set_event_state("bless_10001", "1")
 db.set_event_state("poi_buff_10001", _json.dumps(
     {"stat": "atk", "mult": 1.10, "name": "攻击", "left": 2}, ensure_ascii=False))
 BR.prepare_player_for_battle(_p2, panel_bonus={}, event_state=BR._as_event_state(db))
-check("播种 shields/cooldown/resources/stacks（player dict 协议；buffs 容器已随 V 系列合并删除）",
+check("播种 cooldown/resources/stacks（player dict 协议；buffs 容器已随 V 系列合并删除）",
       all(isinstance(_p2.get(k), dict) for k in
-          ("shields", "cooldown", "resources", "stacks"))
+          ("cooldown", "resources", "stacks"))
       and "buffs" not in _p2)
+# ★ 收口第 2 批：`shields` 不再是播种键（护盾随 effects 容器走）
+check("★ 不播种 shields（护盾已并进 effects 容器条目）", "shields" not in _p2, str(sorted(_p2)))
 check("echo_bless 消费进 _battle_boons（V6 面板快照标记）",
       (_p2.get("_battle_boons") or {}).get("echo_bless", {}).get("mult") == 1.05)
 check("echo_bless event_state 清空", not db.get_event_state("bless_10001"))

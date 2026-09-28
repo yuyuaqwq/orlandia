@@ -56,6 +56,9 @@ EPS = 1e-6
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -405,16 +408,19 @@ def t9_core_overflow():
     strip_base_reduce(p)
     set_st(p, "guard_core", 2)
     fire_ev(b, "taken_calc", {"actor": p, "target": p, "source": e, "dmg": 200, "mult": 1.0})
-    check("2 核（<3）→ 无护盾", not (p.get("shields") or {}), str(p.get("shields")))
+    # ★ 收口第 2 批（2026-09-28）：转盾 = `effects` 容器条目（`class_mech.py` 原先
+    #   `setdefault("shields")` 那几行随引擎删独立容器而**完全不生效**）。
+    check("2 核（<3）→ 无护盾", shield_names(p) == [], str(p.get("effects")))
     set_st(p, "guard_core", 3)
     fire_ev(b, "taken_calc", {"actor": p, "target": p, "source": e, "dmg": 200, "mult": 1.0})
-    sh = (p.get("shields") or {}).get("guard_core_overflow") or {}
-    check("3 核 → 承伤 ×0.80 转盾（200×0.8=160）", int(sh.get("value", 0) or 0) == 160,
-          str(p.get("shields")))
-    check("护盾有到期刻（turns 3）", sh.get("expire_at") is not None, str(sh))
+    sh = sh_of(p, "guard_core_overflow")
+    check("3 核 → 承伤 ×0.80 转盾（200×0.8=160，容器条目）",
+          sh_value_of(p, "guard_core_overflow") == 160, str(p.get("effects")))
+    check("护盾有到期刻（turns 3，走容器 expire）", sh.get("expire") is not None, str(sh))
     fire_ev(b, "taken_calc", {"actor": p, "target": p, "source": e, "dmg": 100, "mult": 1.0})
-    sh2 = (p.get("shields") or {}).get("guard_core_overflow") or {}
-    check("再承伤叠加护盾（160+80=240）", int(sh2.get("value", 0) or 0) == 240, str(sh2))
+    sh2 = sh_of(p, "guard_core_overflow")
+    check("再承伤叠加护盾（160+80=240）", sh_value_of(p, "guard_core_overflow") == 240, str(sh2))
+    check("★ 转盾不再写独立容器 shields", "shields" not in p, str(sorted(p)))
 
 
 # ---------- 7. 守御姿态 ----------

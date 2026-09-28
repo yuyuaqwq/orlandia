@@ -457,7 +457,7 @@ def _check_simple_mech(st: dict, battle, actor: dict, cfg: dict, bs: dict,
       stacks：每 2 刻 +1（上限 5，每层 atk/matk +8%）
       heal  ：每 4 刻回复 8% 生命
       enrage：血量 <30%（一次）atk/matk +35%——若 phases 含 enrage 阶段则 phases 管
-      shield：开战一次获得 20% 生命护盾（halve：盾存在受伤减半，landing 消费）
+      shield：开战一次获得 20% 生命护盾
     """
     mech = cfg.get("mech") or []
     if not mech:
@@ -501,13 +501,22 @@ def _check_simple_mech(st: dict, battle, actor: dict, cfg: dict, bs: dict,
                 ef["boss_enrage_matk"] = {"stat": "matk", "op": "mul",
                                           "mult": 1.35, "stacks": 1}
                 logs.append(_T.text("boss.mech_enrage", name=name))
-    # ---- shield：开战一次 20% 护盾（halve 盾存在受伤减半）----
+    # ---- shield：开战一次 20% 护盾 ----
+    # ★ 收口第 2 批（2026-09-28）：原先这里传 `halve: True` 并注释「landing 消费」——
+    #   **那个注释是错的**（实测引擎只写不读，landing 的吸收循环只读 `value`），
+    #   「盾存在受伤减半」从来没生效过 ⇒ 参数与错误注释一并删除（不改任何数值）。
+    #   护盾现走容器写口 `act_shield`（`effects` 容器里一条带 `value` 的条目），
+    #   吸收与否由 `rules/effect_rules.json` 的 `absorb: true` 声明决定。
+    # ★ 这里**显式传 `key`**（原先不传 ⇒ 吃引擎 `act_shield` 的 `or "buff"` 兜底，
+    #   落到一个泛名条目上、还得靠给 `buff` 加声明才能吸收 —— 泛名声明会误伤别的
+    #   同名状态）。改成专名后，声明只落在这一个 key 上，判定唯一。
     if "shield" in mech and not bs.get("flags", {}).get("_shielded"):
         bs.setdefault("flags", {})["_shielded"] = True
         try:
             from ext_combat.battle import effects as _EF
-            _EF.act_shield(battle, actor, actor, {"pct": 0.20, "halve": True,
-                                                 "turns": 999}, logs)
+            _EF.act_shield(battle, actor, actor,
+                           {"key": "boss_opening_shield", "pct": 0.20, "turns": 999},
+                           logs)
         except Exception:
             pass
 
@@ -576,7 +585,7 @@ def _check_summon(st: dict, battle, actor: dict, cfg: dict, bs: dict,
             "atk": max(1, int(actor.get("atk", 1) * 0.4)),
             "def": 10, "matk": 10, "mdef": 10, "spd": 80,
             "lv": actor.get("lv", 1), "rank": 1, "reach": 1,
-            "drops": [], "exp": 0, "gold": 0, "effects": {}, "shields": {},
+            "drops": [], "exp": 0, "gold": 0, "effects": {},
         }
         _tpl_name = "爪牙"
     seq = int(bs.get("summon_seq", 0) or 0) + 1
@@ -592,7 +601,10 @@ def _check_summon(st: dict, battle, actor: dict, cfg: dict, bs: dict,
     m["mech"] = ""
     m["ct"] = float(now) + 2.0  # 站场不插队当前行动
     m["effects"] = dict(m.get("effects") or {})
-    m["shields"] = dict(m.get("shields") or {})
+    # ★ 收口第 2 批（2026-09-28）：原 `m["shields"] = dict(...)` 一行删除 ——
+    #   `shields` 独立容器已被引擎删除（护盾 = `effects` 容器里一条带 `value` 的条目，
+    #   吸收由 `effect_rules.json` 的 `absorb: true` 声明决定）。留着它只会给援军
+    #   挂一个引擎**根本不读**的野字段（第二本账）。
     # 入 enemy side：走引擎公开 API Battle.add_actor(front=True)。
     # ⚠️ 此前是手工 `battle.sides.setdefault("enemy", []).insert(0, m)`——只入容器，
     #    不建 actor["_skill_index"]（技能索引仅 Battle 构造期建一次）→ 援军的 ms_* 技能

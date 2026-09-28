@@ -50,6 +50,9 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -63,7 +66,7 @@ def mk(uid, hp=2000, atk=200, spd=50, side="player", cls="cls_zhan_shi", lv=20):
                    race=None, evolve_path=0, class_tier=0, attributes={},
                    **{"def": 20, "mdef": 20})
     a["effects"] = {}
-    a["shields"] = {}
+    # ★ 收口第 2 批：独立容器 `shields` 已删（护盾 = effects 容器里带 value 的条目）
     return a
 
 
@@ -72,7 +75,6 @@ def mk_boss(hp=99999):
                    hp=hp, max_hp=hp, atk=100, matk=100, spd=50, crit=0.0,
                    level=20, exp=0, gold=0, **{"def": 0, "mdef": 0})
     e["effects"] = {}
-    e["shields"] = {}
     return e
 
 
@@ -103,10 +105,8 @@ def hit(b, source, target, amount=1000):
 
 
 def shield_sum(a):
-    tot = 0
-    for v in (a.get("shields") or {}).values():
-        tot += int((v or {}).get("value", 0) or 0)
-    return tot
+    """★ 收口第 2 批：护盾总和改读**容器条目**（absorb 族 value 之和）。"""
+    return shield_total(a)
 
 
 # ------------------------------------------------------------

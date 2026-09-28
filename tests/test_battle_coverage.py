@@ -43,6 +43,8 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import sh_value_of, sh_of  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -285,9 +287,14 @@ def test_effects_branches():
     # shield 名词直通 → shield 动词（默认 on=caster：施法者给自己上盾）
     m2 = make_actor(uid="m2", name="怪", side="enemy", kind="monster",
                     hp=100, max_hp=100, atk=1, **{"def": 0}, level=1)
-    FX.apply_effects(b, p, m2, [{"type": "shield", "value": 30, "halve": True}], logs)
-    check("shield 动词直通写 caster", p["shields"].get("buff", {}).get("value") == 30,
-          f"p.shields={p['shields']}")
+    FX.apply_effects(b, p, m2, [{"type": "shield", "value": 30}], logs)
+    # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器里一条带 value 的条目
+    #   （旧独立容器 `p["shields"]` 已随引擎删除，判据必须断新形状；且 `halve`
+    #   死字段删除 —— 实测引擎只写不读，删它不改行为）。
+    check("shield 动词直通写 caster（容器条目）", sh_value_of(p, "buff") == 30,
+          f"p.effects={p.get('effects')}")
+    check("shield 走容器写口（不再建独立容器 shields）", "shields" not in p,
+          str(sorted(p)))
     # apply 动词直通控制型（mode 显式声明）——N7.2 快照形态 {expire, mode}
     m3 = make_actor(uid="m3", name="怪", side="enemy", kind="monster",
                     hp=100, max_hp=100, atk=1, **{"def": 0}, level=1)
@@ -330,7 +337,17 @@ def test_actions_branches():
                        "mech_val": 45, "pct_from_mech_val": True}], logs4)
     check("buff pct 折算 45→0.45", abs(float((ent(p2, "reduce") or {}).get("v", 0)) - 0.45) < 1e-9,
           f"reduce={ent(p2, 'reduce')}")
-    check("reduce_left 记 5 刻", p2.get("reduce_left") == 5)
+    # ★ 收口第 2 批（2026-09-28 引擎删 `reduce_left` 影子字段）：改断**容器条目的 expire**
+    #   —— 减伤到期时刻落在 `battle._now + turns` 那一格（真比值，不是只判存在）。
+    #   加强不是削弱：原断言验的是影子账本的值，新断的是唯一真源的时刻落点，
+    #   再加一条「影子字段确实不存在」（到期只有一本账）。
+    _rd5 = ent(p2, "reduce") or {}
+    _now5 = float(getattr(b4, "_now", 0) or 0)
+    check("reduce 条目 expire=now+5（到期只有 expire 一本账）",
+          abs(float(_rd5.get("expire", 0) or 0) - (_now5 + 5)) < 1e-9,
+          f"expire={_rd5.get('expire')} now={_now5} entry={_rd5}")
+    check("reduce 无 reduce_left 影子字段（收口第2批整键已删）", "reduce_left" not in p2,
+          f"reduce_left={p2.get('reduce_left')}")
 
 
 def test_schedule_edge():
@@ -419,10 +436,13 @@ def test_more_branches():
     p6, m6 = mk_ctx()
     b6 = BT_NEW(btype="monster", sides={"player": [p6], "enemy": [m6]})
     logs6 = []
-    FX3.apply_effects(b6, m6, p6, [{"type": "shield", "pct": 0.5, "halve": True}], logs6)
+    FX3.apply_effects(b6, m6, p6, [{"type": "shield", "pct": 0.5}], logs6)
     expect_sh = int(m6["max_hp"] * 0.5)
-    check("shield pct 0.5", m6["shields"].get("buff", {}).get("value") == expect_sh,
-          f"sh={m6['shields'].get('buff')} expect={expect_sh}")
+    # ★ 收口第 2 批（2026-09-28）：读容器条目（`sh_of`）而非已删的独立容器 `shields`。
+    check("shield pct 0.5（容器条目）", sh_value_of(m6, "buff") == expect_sh,
+          f"sh={sh_of(m6, 'buff')} expect={expect_sh}")
+    check("★ shield pct 分支同样不建独立容器 shields", "shields" not in m6,
+          str(sorted(m6)))
     # float 值 buff 折算（spd_down 快照形态：{stat: spd, op: reduce, mult: 0.5}）
     p7, m7 = mk_ctx()
     b7 = BT_NEW(btype="monster", sides={"player": [p7], "enemy": [m7]})

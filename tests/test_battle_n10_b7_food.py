@@ -40,6 +40,9 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -213,8 +216,9 @@ def test_sacred_bread_shield():
     e = mk_enemy()
     b = B2(btype="monster", sides={"player": [p], "enemy": [e]})
     logs, cast, recover = eat_food(b, p, ["shield"])
-    check("盾已上（shields 容器）", bool(p.get("shields") or {}),
-          f"shields={p.get('shields')}")
+    # ★ 收口第 2 批：护盾 = effects 容器里声明 absorb 的条目（不再是独立容器）
+    check("盾已上（容器条目）", shield_total(p) > 0,
+          f"effects={p.get('effects')}")
 
 
 def test_duplicate_idempotent():

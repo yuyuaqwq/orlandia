@@ -37,6 +37,9 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -61,7 +64,7 @@ def mk_player():
             "equipment": {}, "class_tier": 0, "attributes": None,
             "evolve_path": 0, "race": None, "learned_skills": [],
             # v181.M-R3：player["resources"] 死字段（无生产写入）——测试不再构造
-            "stacks": {}, "buffs": {}, "shields": {}}
+            "stacks": {}, "buffs": {}}
 
 
 def mk_enemy():
@@ -97,8 +100,13 @@ def test_status_line_battle_buffs():
                                                 "op": "mul", "mult": 1.3}
     # 控制类 dict（stun 剩 3 刻：now=0 + turns 3）
     focus["effects"]["stun"] = {"stacks": 1, "expire": 3.0, "mode": "skip"}
-    # 护盾 dict：expire_at 折算（now=0，剩 5 刻）
-    focus.setdefault("shields", {})["we_test"] = {"value": 100, "expire_at": 5.0}
+    # ★ 收口第 2 批：护盾 = effects 容器条目（走容器写口 arm_shield；到期读条目的
+    #   `expire`，旧容器的 `expire_at` 已随独立容器删掉）。
+    #   ★ key 必须用**声明表里声明了 `absorb: true`** 的那个（`we_starlight`）——
+    #     面板现在靠 `state_effects.absorb_keys` 问声明（引擎零游戏名词，不认键名），
+    #     用一个没声明的合成键（`we_test`）会**合法地不显示**（声明不写 = 不吸收）。
+    #     这本身就是新口径的一条真判据：护盾只认声明。
+    arm_shield(focus, "we_starlight", 100, expire=5.0)
     # 真实命令层流程：行动后 sync_player_from_actor 回写 player dict（展示读 player）
     from content import bridge as BR
     BR.sync_player_from_actor(player, focus)

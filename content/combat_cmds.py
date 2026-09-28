@@ -2343,17 +2343,20 @@ def _status_line(self, player: dict, b) -> str:
     for k, v in stacks.items():
         if v and v > 0 and k in _STACK_NAMES and k not in _ENEMY_MECH_STACKS:
             pbuf.append(f"{_STACK_NAMES[k]}×{v}")
-    # 玩家护盾（读 player dict shields；expire_at 绝对秒折算，同旧逻辑）
-    shields = player.get("shields") or {}
-    for sname, s in shields.items():
+    # 玩家护盾（★ 收口第 2 批 2026-09-28：改读**容器条目**）
+    #   原先读 `player["shields"]`（独立容器）—— 引擎第 2 批已删该容器 ⇒ 这一段**恒空**，
+    #   护盾在面板上一个都不显示。现改为：遍历 `effects` 容器里**声明了 `absorb`** 的
+    #   条目（引擎问内容侧声明，不认键名 ⇒ `state_effects.absorb_keys`），逐条取
+    #   `entry["value"]` 与条目自己的 `expire`（旧档 `expire_at` / `turns` 两档兼容
+    #   已删：容器只有 `expire` 一个到期真源）。
+    from ext_combat.battle.state_effects import absorb_keys as _absorb_keys
+    for sname in _absorb_keys(player):
+        s = (player.get("effects") or {}).get(sname) or {}
         if (s or {}).get("value", 0) > 0:
-            _exp = (s or {}).get("expire_at")
+            _exp = (s or {}).get("expire")
             _left_sec = None
             if isinstance(_exp, (int, float)):
                 _left_sec = float(_exp) - _now_t
-            # 旧档 {turns} 兼容：无 expire_at 时按 turns 折算
-            if _left_sec is None and (s or {}).get("turns") is not None:
-                _left_sec = max(0.0, float(s.get("turns", 0) or 0)) * (ACT_TICK or 1.0)
             if _left_sec is not None and _left_sec > 0:
                 _turns = max(1, int(round(_left_sec / (ACT_TICK or 1.0))))
                 pbuf.append(_T.text("st.shield_ticks", tail=s['value'], ticks=_turns))

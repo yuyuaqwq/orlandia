@@ -53,6 +53,8 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import sh_value_of, sh_of  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -217,9 +219,14 @@ def test_on_taken_self_shield():
     b = new_battle(p, m)
     b._ensure_battle_started([])
     do_attack(b, p, m)
-    _sh = (m["shields"] or {}).get("buff") or {}
-    check("受击触发 → 护盾 50", int(_sh.get("value", 0)) == 50, f"shields={m['shields']}")
-    check("护盾 expire_at 3 刻", _sh.get("expire_at") is not None)
+    # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器条目（到期间读 `expire`，
+    #   旧容器的 `expire_at` 已随独立容器一起删）。
+    _sh = sh_of(m, "buff")
+    check("受击触发 → 护盾 50（容器条目）", int(_sh.get("value", 0)) == 50,
+          f"effects={m.get('effects')}")
+    check("护盾 expire 存在（容器到期真源）", _sh.get("expire") is not None, str(_sh))
+    check("★ on_taken 触发的盾走容器写口（不建独立容器 shields）", "shields" not in m,
+          str(sorted(m)))
 
 
 def test_on_heal():

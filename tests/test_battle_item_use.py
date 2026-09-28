@@ -38,6 +38,8 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import sh_value_of, sh_of  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -180,8 +182,9 @@ def test_special_shield():
     b = mk_battle(p)
     mx = p["max_hp"]
     logs, cast, recover = translate(b, p, 'special:shield_big:{"pct":0.30}')
-    sh = p["shields"].get("potion_shield")
-    check("护盾挂上", isinstance(sh, dict) and sh.get("value", 0) > 0,
+    # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器条目（读 `sh_value_of`）。
+    sh = sh_of(p, "potion_shield")
+    check("护盾挂上（容器条目）", sh_value_of(p, "potion_shield") > 0,
           f"sh={sh}")
     if sh:
         check("盾值 = 30%max", abs(int(sh.get("value", 0)) - int(mx * 0.30)) <= 1,
@@ -212,8 +215,8 @@ def test_foodfx():
     p2 = mk_player(hp_ratio=0.5)
     b2 = mk_battle(p2)
     logs, cast, recover = translate(b2, p2, "foodfx:shield")
-    sh = p2["shields"].get("food_shield")
-    check("foodfx shield 立即给盾", isinstance(sh, dict) and sh.get("value", 0) > 0,
+    sh = sh_of(p2, "food_shield")
+    check("foodfx shield 立即给盾（容器条目）", sh_value_of(p2, "food_shield") > 0,
           f"sh={sh}")
     check("shield 落容器", "shield" in p2.get("food_effects", []),
           f"fe={p2.get('food_effects')}")

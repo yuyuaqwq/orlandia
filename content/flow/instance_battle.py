@@ -276,8 +276,12 @@ def abort_text(code) -> str:
 # 缺省解析要用模块级那一只；它与宿主壳传入的 `_IB.team_heal_text` 是**同一函数对象**）。
 _TEAM_HEAL_RENDERER = team_heal_text
 
+# ★ 收口第 2 批（2026-09-28）：`"shields": "p_shields"` 这条键映射**删除** ——
+#   护盾不再是一个独立容器，而是 `effects` 容器里一条带 `value` 的条目，随
+#   `p_effects` 一起持久化（快照里存的就是**容器条目形状** `{stacks, value, expire}`，
+#   回填时直接进 `effects` —— **不搞翻译层**，避免第二本账）。
 _VIEW_ST_KEYS = {
-    "effects": "p_effects", "shields": "p_shields", "food_effects": "p_food_effects",
+    "effects": "p_effects", "food_effects": "p_food_effects",
     "defending": "p_defending", "charging": "charging", "cooldown": "cooldown",
 }
 
@@ -309,8 +313,10 @@ def _player_actor(snap: dict, st: dict, key: str) -> dict:
     """
     actor = BR.player_to_actor(snap)
     # 状态键合并：快照内键优先，st 顶层键兜底（老存档恢复兼容）
+    # ★ 收口第 2 批（2026-09-28）：`shields` 键从合并名单删除（护盾已并进 `effects`
+    #   容器条目，随 `effects` 一起进快照 `p_effects`、一起回填 —— 无翻译层）。
     _snap_src = {}
-    for _k in ("effects", "shields", "defending", "charging", "ct",
+    for _k in ("effects", "defending", "charging", "ct",
                "cooldown", "food_effects"):
         if snap.get(_k) is not None:
             _snap_src[_k] = snap[_k]
@@ -319,8 +325,6 @@ def _player_actor(snap: dict, st: dict, key: str) -> dict:
             _snap_src[_snap_k] = (st.get(_st_k) or {}).get(str(key))
     if _snap_src.get("effects") is not None:
         actor["effects"] = dict(_snap_src["effects"])
-    if _snap_src.get("shields") is not None:
-        actor["shields"] = dict(_snap_src["shields"])
     if _snap_src.get("defending") is not None:
         actor["defending"] = bool(_snap_src["defending"])
     if _snap_src.get("charging") is not None:
@@ -648,7 +652,7 @@ def _pkg_sync_player(snap: dict, actor: dict) -> None:
 def sync_views(st: dict, group_id, sync_player_fn=None, db_update_fn=None) -> None:
     """唯一视图/DB 同步点：saintess_engine actors → 玩法壳旧键 + 玩家 DB 血量。
 
-    - st["players"][k] 快照：hp/mp/max/buffs/shields/defending/charging/ct/...
+    - st["players"][k] 快照：hp/mp/max/effects/defending/charging/ct/...
     - st per-player 键（p_buffs/p_hot/p_defending/...）同帧更新（老玩法壳读）
     - st["boss"]/st["enemy"]/st["enemies"]：存活敌视图（死亡由玩法壳 compact）
     - st["now"]
@@ -671,7 +675,7 @@ def sync_views(st: dict, group_id, sync_player_fn=None, db_update_fn=None) -> No
         if snap is None:
             continue
         if sync_player_fn is not None:
-            sync_player_fn(snap, _a)  # hp/mp/max/buffs/shields/defending/charging...
+            sync_player_fn(snap, _a)  # hp/mp/max/effects/defending/charging...
         for _ak, _sk in _VIEW_ST_KEYS.items():
             if _a.get(_ak) is not None:
                 st.setdefault(_sk, {})[_k] = _a[_ak]

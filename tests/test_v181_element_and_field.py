@@ -50,6 +50,9 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -66,7 +69,6 @@ def mk(uid, side="player", hp=2000, matk=150, cls="cls_fa_shi"):
                    race=None, evolve_path=0, class_tier=0, attributes={},
                    **{"def": 20, "mdef": 20})
     a["effects"] = {}
-    a["shields"] = {}
     return a
 
 
@@ -75,7 +77,6 @@ def mk_boss(hp=99999):
                    hp=hp, max_hp=hp, atk=100, matk=100, spd=50, crit=0.0,
                    level=20, exp=0, gold=0, **{"def": 0, "mdef": 0})
     e["effects"] = {}
-    e["shields"] = {}
     return e
 
 
@@ -310,7 +311,7 @@ def test_arcane_field():
     _left = float((p["effects"].get("arcane") or {}).get("stacks", 0) or 0)
     _matk = float((_S.actor_stats(b, p) or {}).get("matk", 0) or 0)
     _expect = int(_matk * (_left * 0.08))
-    shields = sum(int(v.get("value", 0) or 0) for v in (p.get("shields") or {}).values())
+    shields = shield_total(p)      # ★ 收口第 2 批：读容器 absorb 族条目
     check(f"盾档：面板魔攻 {_matk:.0f} × {_left:g}层×8% = {_expect} 护盾", shields == _expect,
           f"got={shields} expect={_expect}")
     check("盾档消耗 2 点充能（5 → 3）",

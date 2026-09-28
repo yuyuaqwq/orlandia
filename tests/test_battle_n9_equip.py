@@ -45,6 +45,9 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -148,10 +151,11 @@ def test_weapon_battle_start():
     check("battle_start 两个效果", len(tr.get("battle_start", [])) == 2,
           f"{tr.get('battle_start')}")
     b = new_battle(p, m)
-    check("构造后未触发", not (p.get("shields") or {}), f"shields={p.get('shields')}")
+    # ★ 收口第 2 批：护盾 = effects 容器条目（absorb 族），不再是独立容器 shields
+    check("构造后未触发", shield_total(p) == 0, f"effects={p.get('effects')}")
     act_land(b, ActCtx(caster=p, action="attack", target=m))
-    _sh = (p.get("shields") or {}).get("we_starlight") or {}
-    check("起手盾 10% maxhp（80）", int(_sh.get("value", 0)) == 80, f"shields={p.get('shields')}")
+    check("起手盾 10% maxhp（80，容器条目）", sh_value_of(p, "we_starlight") == 80,
+          f"effects={p.get('effects')}")
     _b = ent(p, "gale_step") or {}
     check("起手速度 buff mult 1.15", abs(float(_b.get("mult", 0)) - 1.15) < 1e-9, f"{_b}")
     check("buff stat=spd", _b.get("stat") == "spd")
@@ -171,9 +175,9 @@ def test_weapon_abyss_and_multi():
     act_land(b, ActCtx(caster=p, action="attack", target=m))
     check("abyss maxhp +8%（864）", p["max_hp"] == int(mhp0 * 1.08), f"max_hp={p['max_hp']}")
     check("hp 同步 +bonus", p["hp"] == hp0 + (p["max_hp"] - mhp0), f"hp={p['hp']}")
-    _sh = p.get("shields") or {}
-    check("蚀月 15%（基于加成后 maxhp）", int((_sh.get("we_eclipse") or {}).get("value", 0)) == int(p["max_hp"] * 0.15),
-          f"shields={_sh}")
+    check("蚀月 15%（基于加成后 maxhp，容器条目）",
+          sh_value_of(p, "we_eclipse") == int(p["max_hp"] * 0.15),
+          f"effects={p.get('effects')}")
 
 
 def test_no_equip_no_trigger():
@@ -184,7 +188,7 @@ def test_no_equip_no_trigger():
     check("无 triggers 注入", not (p.get("triggers") or {}), f"{p.get('triggers')}")
     b = new_battle(p, m)
     act_land(b, ActCtx(caster=p, action="attack", target=m))
-    check("无盾无 buff", not (p.get("shields") or {}) and not ((p).get("effects") or {}))
+    check("无盾无 buff", shield_total(p) == 0 and not ((p).get("effects") or {}))
 
 
 def test_unsupported_key_skipped():
@@ -426,18 +430,18 @@ def test_shield_taken_cd():
     b = new_battle(p, m)
     from ext_combat.battle.landing import deal_damage as _dd
     _dd(b, m, p, 50, [])
-    check("受击触发盾 8%", int((p["shields"] or {}).get("we_deeprock", {}).get("value", 0)) == 64,
-          f"shields={p.get('shields')}")
+    check("受击触发盾 8%（容器条目）", sh_value_of(p, "we_deeprock") == 64,
+          f"effects={p.get('effects')}")
     # cd 内不再触发（盾已破场景：清盾再打一次 → 因 cd 不再上盾）
-    p["shields"] = {}
+    clear_shields(p)
     b._now = 0.5
     _dd(b, m, p, 50, [])
-    check("cd 内不重复触发", not (p["shields"] or {}), f"shields={p.get('shields')}")
+    check("cd 内不重复触发", shield_total(p) == 0, f"effects={p.get('effects')}")
     # cd 过（ACT_TICK=1 × cd 2）后恢复
     b._now = 3.0
     _dd(b, m, p, 50, [])
-    check("cd 过恢复触发", int((p["shields"] or {}).get("we_deeprock", {}).get("value", 0)) == 64,
-          f"shields={p.get('shields')}")
+    check("cd 过恢复触发", sh_value_of(p, "we_deeprock") == 64,
+          f"effects={p.get('effects')}")
 
 
 def test_dusk_blade_kill():
@@ -463,14 +467,14 @@ def test_shield_cond_overflow_crit():
     b = new_battle(p, m)
     from ext_combat.battle.landing import deal_damage as _dd
     _dd(b, m, p, 30, [])   # hp 高不触发
-    check("hp 高不触发", not (p["shields"] or {}), f"shields={p.get('shields')}")
+    check("hp 高不触发", shield_total(p) == 0, f"effects={p.get('effects')}")
     p["hp"] = 150  # 800×0.25=200 阈值下
     _dd(b, m, p, 10, [])
-    check("低保盾 20%（160）", int((p["shields"] or {}).get("we_bedrock", {}).get("value", 0)) == 160,
-          f"shields={p.get('shields')}")
-    p["shields"] = {}
+    check("低保盾 20%（160，容器条目）", sh_value_of(p, "we_bedrock") == 160,
+          f"effects={p.get('effects')}")
+    clear_shields(p)
     _dd(b, m, p, 10, [])   # 整场一次 → used 不重复
-    check("整场一次不重复", not (p["shields"] or {}), f"shields={p.get('shields')}")
+    check("整场一次不重复", shield_total(p) == 0, f"effects={p.get('effects')}")
     # echo_bless：heal 溢出转盾（溢出 30% cap 10%）
     p2 = mk_a("p2", "player")
     m2 = mk_a("e2", "enemy", hp=99999, atk=1)
@@ -480,8 +484,8 @@ def test_shield_cond_overflow_crit():
     from ext_combat.battle.landing import heal_actor as _ha
     p2["hp"] = p2["max_hp"] - 100  # 缺 100
     _ha(b2, p2, 200, [])   # 计划 200 实回 100 → 溢出 100
-    check("溢出 30% → 盾 30", int((p2["shields"] or {}).get("we_echo_bless", {}).get("value", 0)) == 30,
-          f"shields={p2.get('shields')}")
+    check("溢出 30% → 盾 30（容器条目）", sh_value_of(p2, "we_echo_bless") == 30,
+          f"effects={p2.get('effects')}")
     # endless_radiance：crit 事件 → 5% 盾
     p3 = mk_a("p3", "player", crit=1.0)
     m3 = mk_a("e3", "enemy", hp=99999, atk=1)
@@ -489,8 +493,8 @@ def test_shield_cond_overflow_crit():
     EP.apply_to_actor(p3)
     b3 = new_battle(p3, m3)
     act_land(b3, ActCtx(caster=p3, action="attack", target=m3))
-    check("暴击给盾 5%（40）", int((p3["shields"] or {}).get("we_radiance", {}).get("value", 0)) == 40,
-          f"shields={p3.get('shields')}")
+    check("暴击给盾 5%（40，容器条目）", sh_value_of(p3, "we_radiance") == 40,
+          f"effects={p3.get('effects')}")
 
 
 def test_extra_dmg():
@@ -871,9 +875,8 @@ def test_affix_basic():
           f"triggers={p2.get('triggers')}")
     b2 = new_battle(p2, m2)
     act_land(b2, ActCtx(caster=p2, action="attack", target=m2))
-    sh = (p2.get("shields") or {}).get("affix_shield")
-    check("battle_start 盾 = 10% maxhp（80）", sh is not None and abs(int(sh.get("value", 0)) - 80) <= 1,
-          f"shields={p2.get('shields')}")
+    check("battle_start 盾 = 10% maxhp（80，容器条目）", abs(sh_value_of(p2, "affix_shield") - 80) <= 1,
+          f"effects={p2.get('effects')}")
     # --- regen 词条：turn_start 回 1% maxhp ---
     p3 = mk_a("p3", "player")
     m3 = mk_a("e3", "enemy", hp=99999, atk=1)

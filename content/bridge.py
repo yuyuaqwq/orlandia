@@ -148,7 +148,11 @@ _PLAYER_PASSTHROUGH = (
     "buff_hits", "last_element",
     "battle_prefs",   # 战前偏好（双形态/终结阈值/奥术力场档——内容侧读）
     "overflow_shield_cd", "stealth_atk",
-    "reduce_all_left", "reduce_left", "combo_seq", "last_combo_tag",
+    # ★ 收口第 2 批（2026-09-28）：`reduce_all_left` / `reduce_left` 从播种键元组删除 ——
+    #   引擎第 2 批（`df4caf0`）已把 `reduce_left` 整键删除（它是容器条目 `expire` 的
+    #   **第二本账**，引擎内零消费者，只被本播种表透传 + 面板展示）。到期只有一个真源
+    #   = 容器条目的 `expire`。`reduce_all_left` 同批一并清（同一个影子族）。
+    "combo_seq", "last_combo_tag",
     "tailwind_prev_energy", "last_skill", "last_cast_at",
 )
 
@@ -192,7 +196,9 @@ def player_to_actor(player: dict) -> dict:
     # 同构状态键透传（V 系列：effects 由 make_actor 播种，调用方按需填；
     # buffs/debuffs/hot/state 旧四键已废弃——透传只会造成脏残留，剔除；
     # poi_buff 已由 V6 翻译进 effects 面板快照条目，不再透传冗余 actor 字段）
-    for k in ("shields", "cooldown", "charging", "defending",
+    # ★ 收口第 2 批（2026-09-28）：`shields` 独立容器键删除（引擎已删该容器；
+    #   护盾现住在 `effects` 容器里，作为一条带 `value` 的条目随 `effects` 一起透传）。
+    for k in ("cooldown", "charging", "defending",
               "ct"):
         if player.get(k) is not None:
             stats_kw[k] = player[k]
@@ -237,8 +243,9 @@ def monster_to_actor(mon: dict, idx: int = 0) -> dict:
               "crit", "crit_dmg", "dodge", "block", "pene", "luck", "tenacity"):
         if mon.get(k) is not None:
             stats_kw[k] = mon[k]
-    # 同构状态键透传（V 系列：effects/shields/cooldown；旧 buffs/debuffs/hot/state 废弃剔除）
-    for k in ("shields", "cooldown", "charging",
+    # 同构状态键透传（V 系列：effects/cooldown；旧 buffs/debuffs/hot/state 废弃剔除）
+    # ★ 收口第 2 批（2026-09-28）：`shields` 键删除（护盾已并进 `effects` 容器条目）。
+    for k in ("cooldown", "charging",
               "defending", "ct"):
         if mon.get(k) is not None:
             stats_kw[k] = mon[k]
@@ -343,7 +350,8 @@ def prepare_player_for_battle(player: dict, panel_bonus: Optional[dict] = None,
     对齐旧 Battle.__init__ 的玩家侧副作用（只做不依赖 Battle 实例的部分；
     效果执行类属上层职业/装备模块，N5b 增量）：
 
-    1. 战斗字段键播种（buffs/shields/state/cooldown/... 与旧引擎同构）
+    1. 战斗字段键播种（effects/cooldown/... 与旧引擎同构；★ `shields` 独立容器已于
+       收口第 2 批删除，护盾走 `effects` 容器条目）
     2. max_hp/max_mp 实时重算（v95.19：DB max 是注册/升级快照，换装备后过时——
        战斗内面板/护盾 pct/heal clamp 以实时聚合值为准）
     3. echo_bless 消费（event_state bless_{qq_id} → player.buffs.echo_bless，一次性）
@@ -441,13 +449,16 @@ def prepare_player_for_battle(player: dict, panel_bonus: Optional[dict] = None,
 def _seed_battle_keys(player: dict) -> dict:
     """玩家战斗可变键播种（旧 Battle.__init__ 玩家侧 setdefault 全量）。"""
     _seeds = {
-        "resources": dict, "stacks": dict, "eff": dict, "shields": dict,
+        "resources": dict, "stacks": dict, "eff": dict,
         "cooldown": dict, "hot": dict, "food_effects": list,
         "buff_hits": dict, "combo_seq": list,
         "last_combo_tag": None, "last_element": None,
         "tailwind_prev_energy": None,
         "overflow_shield_cd": False, "stealth_atk": False,
-        "reduce_all_left": 0, "reduce_left": 0,
+        # ★ 收口第 2 批（2026-09-28）：`shields` / `reduce_all_left` / `reduce_left`
+        #   三个键从播种表删除 —— 引擎第 2 批已删 `shields` 独立容器与 `reduce_left`
+        #   影子字段（后者是容器 `expire` 的第二本账）。护盾改由容器写口落进
+        #   `effects`（一条带 `value` 的条目，`absorb: true` 声明决定是否吸收）。
         "poi_buff": None, "charging": None, "defending": False,
     }
     for _k, _ctor in _seeds.items():
@@ -473,15 +484,17 @@ _BACK_SYNC_SCALARS = (
 )
 
 # 战斗可变状态键（actor → player dict 同构回写；V 系列：效果状态在 effects，
-# shields/cooldown 独立容器，defending/charging/ct 行动状态——战斗内由引擎维护
+# cooldown 独立容器，defending/charging/ct 行动状态——战斗内由引擎维护
 # 在 actor 上，战斗结束/展示前回写 player 保证命令层读得到）。
+# ★ 收口第 2 批（2026-09-28）：`shields`（独立容器已删，护盾随 `effects` 一起回写）
+#   与 `reduce_all_left` / `reduce_left`（影子账已删）三个键从回写名单移除。
 _BACK_SYNC_BAGS = (
-    "effects", "shields", "cooldown", "charging", "defending",
+    "effects", "cooldown", "charging", "defending",
     "ct", "poi_buff",
     # 旧玩家 dict 兼容键（职业层可能在 player 上读，见 _PLAYER_PASSTHROUGH）
     "resources", "stacks", "eff", "food_effects", "buff_hits",
     "last_element", "overflow_shield_cd",
-    "stealth_atk", "reduce_all_left", "reduce_left",
+    "stealth_atk",
     "combo_seq", "last_combo_tag", "tailwind_prev_energy",
 )
 

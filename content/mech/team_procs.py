@@ -270,12 +270,15 @@ def team_shield(battle, caster, target, params, logs):
         return  # 缺字段 = 无此行为（零默认值铁律）
     turns = turns or 12
     key = params.get("key") or "shield"
-    halve = bool(params.get("halve", False))
     members = team_of(battle, src)
     if not members:
         return
     for a in members:
-        act_shield(battle, a, a, {"key": key, "value": value, "turns": turns, "halve": halve}, logs)
+        # ★ 收口第 2 批（2026-09-28）：`halve` 参数删除 —— 实测引擎**只写不读**
+        #   （landing 的吸收循环只读 `value`），是纯死字段；`EFFECT_ACTIONS` 里的
+        #   `halve: True` 随形态一起删（不改任何数值：那个机制从来没生效过）。
+        #   「盾存在受伤减半」要真生效请走 `defend` 姿态窗口（引擎真读）。
+        act_shield(battle, a, a, {"key": key, "value": value, "turns": turns}, logs)
     logs.append(_T.text("tp.team_shield", label=params.get('label') or '护盾', n=len(members), value=value,
                     turns=turns))
 
@@ -293,8 +296,7 @@ def self_shield(battle, caster, target, params, logs):
         return
     turns = turns or 10
     key = params.get("key") or "shield"
-    halve = bool(params.get("halve", False))
-    act_shield(battle, src, src, {"key": key, "value": value, "turns": turns, "halve": halve}, logs)
+    act_shield(battle, src, src, {"key": key, "value": value, "turns": turns}, logs)
     logs.append(_T.text("tp.self_shield", label=params.get('label') or '护盾', value=value, turns=turns))
 
 

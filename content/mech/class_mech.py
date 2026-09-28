@@ -1373,8 +1373,15 @@ def passive_heal_overflow_shield(battle, caster, target, params, logs):
     """heal_calc 治疗溢出转盾：计划治疗超出目标缺口部分 ×pct → 护盾（给被治疗者）。
 
     语义（NO_OLD，desc 权威）：圣光回响「治疗溢出量的 50% 转为护盾」——heal_calc
-    在落地前（缺口未填充），溢出 = heal - 当前缺口。护盾结构对齐引擎 shield 动词
-    （shields[key]={value, expire_at, halve}；转盾默认 3 刻）。
+    在落地前（缺口未填充），溢出 = heal - 当前缺口。转盾默认 3 刻。
+
+    ★ 收口第 2 批（2026-09-28）：原先这里 `sh = tgt.setdefault("shields", {})`
+      然后手写 `sh[key] = {value, expire_at, halve}` —— 引擎第 2 批已删 `shields`
+      独立容器 ⇒ **这几行完全不生效**（护盾写进了没人读的野字典）。
+      现改走**容器写口** `actors.open_entry(..., value=…)`（与引擎 `act_shield` 同一个口），
+      护盾 = `effects` 容器里一条带 `value` 的条目，到期走容器 `expire` 那一条通路。
+      吸收与否由 `rules/effect_rules.json` 的 `heal_overflow.absorb: true` 声明决定。
+      同源叠厚口径与旧实现逐字一致（`value` 累加 + `expire` 取 max）。
     """
     ctx = getattr(battle, "_fire_ctx", None)
     if ctx is None:
@@ -1401,16 +1408,20 @@ def passive_heal_overflow_shield(battle, caster, target, params, logs):
         now = now_of(battle)
     except Exception:
         now = 0.0
-    sh = tgt.setdefault("shields", {})
+    from ext_combat.battle.actors import open_entry      # ★ 收口第 2 批：容器唯一写口
     key = "heal_overflow"
     expire = now + 3  # 转盾默认 3 刻（shield 动词缺省 turns=3）
-    cur = sh.get(key)
+    ef = tgt.get("effects")
+    if not isinstance(ef, dict):
+        ef = tgt["effects"] = {}
+    cur = ef.get(key)
     if isinstance(cur, dict):
+        # 同源叠厚：value 累加 + expire 取 max（与旧 shields 容器口径逐字一致）
         cur["value"] = int(cur.get("value", 0) or 0) + val
-        if cur.get("expire_at") is not None:
-            cur["expire_at"] = max(float(cur.get("expire_at", 0) or 0), expire)
+        if cur.get("expire") is not None:
+            cur["expire"] = max(float(cur.get("expire", 0) or 0), expire)
     else:
-        sh[key] = {"value": val, "expire_at": expire, "halve": False}
+        open_entry(tgt, key, stacks=1, value=val, expire=expire)
     logs.append(_T.text("cmech.heal_overflow_shield", label=params.get('label') or '被动', overflow=overflow,
                     val=val))
 
@@ -1670,8 +1681,19 @@ def passive_overflow_shield(battle, caster, target, params, logs):
     语义源 = 旧 passive_procs._h_dr_cond overflow_shield 段逐字
     （_add_shield('core_overflow', dmg × shield_pct, turns)——纯副作用，无乘区）。
     ⚠️ 设计原文「溢出承伤转为护盾」未给折算比例（v153 表零数值）——shield_pct/turns
-    取技能 passive dict（旧引擎 D0 回填 0.80/3，非自创）。护盾结构对齐引擎 shield
-    动词（shields[key] = {value, expire_at, halve}）。
+    取技能 passive dict（旧引擎 D0 回填 0.80/3，非自创）。
+    ⚠️ **旧注释里的 `'core_overflow'` 不是实际 key**：实际写入的是
+      `key = f"{res}_overflow"`，而 `res` 来自 `passive_proc.json` 的 `"res": "guard_core"`
+      ⇒ 实际 key 是 **`guard_core_overflow`**（该键已声明 `absorb: true`）。
+      上行保留旧名只为标注语义来源，别照它改。
+
+    ★ 收口第 2 批（2026-09-28）：原先这里 `sh = owner.setdefault("shields", {})`
+      + 手写 `sh[key] = {value, expire_at, halve}` —— 引擎第 2 批已删 `shields` 容器
+      ⇒ **完全不生效**。现改走容器写口 `open_entry(..., value=…)`；吸收由
+      `rules/effect_rules.json` 的 `absorb: true` 声明决定（key = `<res>_overflow`，
+      属职业资源名派生，声明时按前缀继承或逐条登记）。
+      ⚠️ 本动作挂在 `taken_calc` 上但**不改 `mult`**（纯副作用）——所以引擎
+      2026-09-28 的「承伤减免两条通道互斥」**不摘这条**（弃的只是乘区，见 wiki）。
     """
     ctx = getattr(battle, "_fire_ctx", None)
     if ctx is None:
@@ -1699,15 +1721,19 @@ def passive_overflow_shield(battle, caster, target, params, logs):
         now = now_of(battle)
     except Exception:
         now = 0.0
-    sh = owner.setdefault("shields", {})
+    from ext_combat.battle.actors import open_entry      # ★ 收口第 2 批：容器唯一写口
     key = f"{res}_overflow"
-    cur = sh.get(key)
+    ef = owner.get("effects")
+    if not isinstance(ef, dict):
+        ef = owner["effects"] = {}
+    cur = ef.get(key)
     if isinstance(cur, dict):
+        # 同源叠厚：value 累加 + expire 取 max（与旧 shields 容器口径逐字一致）
         cur["value"] = int(cur.get("value", 0) or 0) + val
-        if cur.get("expire_at") is not None:
-            cur["expire_at"] = max(float(cur.get("expire_at", 0) or 0), now + turns)
+        if cur.get("expire") is not None:
+            cur["expire"] = max(float(cur.get("expire", 0) or 0), now + turns)
     else:
-        sh[key] = {"value": val, "expire_at": now + turns, "halve": False}
+        open_entry(owner, key, stacks=1, value=val, expire=now + turns)
     logs.append(_T.text("cmech.overflow_shield", label=params.get('label') or '磐石之心', val=val))
 
 

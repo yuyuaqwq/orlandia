@@ -39,6 +39,10 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条，
+#   吸收由 `rules/effect_rules.json` 的 `absorb: true` 声明决定）。旧写法
+#   `actor["shields"][key]` 已随引擎删掉独立容器而恒空，判据必须断新形状。
+from _container_shape import arm_shield, sh_value_of, _absorb_off  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -54,19 +58,38 @@ def test_damage_shield_first():
     b = BT_NEW(btype="monster", sides={"player": [], "enemy": []})
     src = mk_actor("p", "打手", "player", hp=500)
     tgt = mk_actor("e", "靶", "enemy", hp=100)
-    tgt["shields"]["test"] = {"value": 30, "halve": False}
+    # ★ 收口第 2 批（2026-09-28）：护盾不再是独立容器 `shields`，而是 `effects`
+    #   容器里一条**带 value** 的条目；**是否吸收由内容侧声明 `absorb: true` 决定**
+    #   （引擎零游戏名词，只问「声明了什么」）。这里挂 `shield`（包内声明表里
+    #   声明了 absorb 的那一族），并额外钉「声明摘掉 ⇒ 立刻不吸收」这条反证。
+    arm_shield(tgt, "shield", 30, expire=None)
     logs = []
     real = L.deal_damage(b, src, tgt, 50, logs)
     # 返回 = 实际扣 hp = 20（护盾 30 是中间吸收，不计数）
     check("护盾吸收 30，实际扣血 20", real == 20, f"real={real}")
     check("target hp 100-20=80", tgt["hp"] == 80, f"hp={tgt['hp']}")
-    check("护盾耗尽移除", "test" not in tgt.get("shields", {}))
+    check("护盾耗尽从容器移除（不再是独立容器 shields）",
+          "shield" not in (tgt.get("effects") or {}), str(tgt.get("effects")))
+    check("★ 旧独立容器 `shields` 不再被建出来（收口第 2 批已删）",
+          "shields" not in tgt, str(sorted(tgt)))
     # 护盾全挡
     tgt2 = mk_actor("e2", "靶2", "enemy", hp=100)
-    tgt2["shields"]["s"] = {"value": 100, "halve": False}
+    arm_shield(tgt2, "shield", 100, expire=None)
     logs2 = []
     real2 = L.deal_damage(b, src, tgt2, 50, logs2)
     check("护盾全挡不扣血", real2 == 0 and tgt2["hp"] == 100, f"real={real2} hp={tgt2['hp']}")
+    check("全挡后余盾 value=50 留在容器条目里", sh_value_of(tgt2, "shield") == 50,
+          str(tgt2.get("effects")))
+    # ★ 反证：同一个 key 摘掉 `absorb` 声明 ⇒ 同一枚护盾**不再吸收**（全额落到血上）。
+    #   这一条把「吸收与否由声明决定」钉在包自己的声明表上（引擎侧同款：
+    #   tests/test_state_container_r2.py ⑤⑥）。
+    with _absorb_off("shield"):
+        tgt3 = mk_actor("e3", "靶3", "enemy", hp=100)
+        arm_shield(tgt3, "shield", 30, expire=None)
+        real3 = L.deal_damage(b, src, tgt3, 50, logs2)
+        check("★ 反证：摘掉 absorb 声明 ⇒ 同一条目不再吸收（real=50 全额扣血）",
+              real3 == 50 and tgt3["hp"] == 50 and sh_value_of(tgt3, "shield") == 30,
+              f"real={real3} hp={tgt3['hp']} 盾={sh_value_of(tgt3, 'shield')}")
 
 
 def test_damage_lv_pressure():

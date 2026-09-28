@@ -3,7 +3,7 @@
 
 把旧引擎道具 payload（item_templates 模板产物，引擎无关中间语言）翻译成
 saintess_engine actor 效果。核心不变式：效果全部落到 saintess_engine actor
-（hp/mp/buffs/hot/shields/food_effects），只调 saintess_engine 动词
+（hp/mp/buffs/hot/food_effects + effects 容器条目），只调 saintess_engine 动词
 （landing.heal_actor / effects.apply_effects / actor 容器直写），
 引擎零道具名词。
 
@@ -383,7 +383,8 @@ _EFFECT_ACTION_KEYS = {
     "buff_matk_strong", "buff_matk_food", "food_spd_up_small",
 }
 
-# shield 动词族：payload kind → shields 容器 key（数值读 effect_data/DEFAULTS）
+# shield 动词族：payload kind → 护盾**容器条目 key**（数值读 effect_data/DEFAULTS）
+# ★ 收口第 2 批：条目落在 `effects` 容器里（不再是已删的独立容器 `shields`）。
 _SHIELD_KINDS = {
     "shield_small": "potion_shield",
     "shield_big": "potion_shield",

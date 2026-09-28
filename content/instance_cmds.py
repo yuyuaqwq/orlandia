@@ -1243,7 +1243,18 @@ class InstanceImpl:
         战斗开始词条护盾只在新开战斗 Battle.__init__(player=...) 发放；副本每场战斗经
         _instance_act 的 Battle.from_state（无 player 参数）重建，从不执行 battle_start 链，
         装备『护盾』/『奥术屏障』词条在副本内静默失效。此处按同源数据（affixes/legendary
-        effect + shield_power 属性）逐成员种子到快照 p_shields，随快照持久化跨刻生效。"""
+        effect + shield_power 属性）逐成员种子到快照，随快照持久化跨刻生效。
+
+        ★ 收口第 2 批（2026-09-28）—— **口径裁定（这一条定「快照存什么形状」）**：
+          快照里**直接存容器条目形状** `{stacks, value, expire}`，写进 `snap["p_effects"]`
+          的那一份 `effects` 里；**不建 `p_shields` 键、不做翻译层**。理由：翻译层
+          （旧 `{value, expire_at}` ⇄ 新 `{value, expire}`）就是设计案 §1 里点名的
+          「第二本账」——同一个数两处写、到期两个真源。凡是「翻译旧键」的地方都是
+          后面要再收一次的债，直接让快照与容器同构，回填时 `effects` 原样进 actor。
+          ⇒ 旧档里已经存在的 `p_shields` **不再读回**（未开服，没有需要迁的存档；
+            「没开服不留兼容壳」是这一批的前提）。
+          同源叠厚口径与旧实现逐字一致（`value` 累加 + `expire` 取 max）。
+        """
         try:
             if value <= 0:
                 return
@@ -1259,20 +1270,23 @@ class InstanceImpl:
                 pass
             _now = float(st.get("now", 0.0) or 0.0)
             _exp = _now + max(1, int(turns or 1)) * (ACT_TICK or 2.0)
-            shields = snap.setdefault("p_shields", {})
-            cur = shields.get(key)
-            if cur:
+            effects = snap.setdefault("p_effects", {})
+            if not isinstance(effects, dict):
+                effects = snap["p_effects"] = {}
+            cur = effects.get(key)
+            if isinstance(cur, dict):
                 cur["value"] = int(cur.get("value", 0) or 0) + value
-                cur["expire_at"] = max(float(cur.get("expire_at", _exp) or _exp), _exp)
+                if cur.get("expire") is not None:
+                    cur["expire"] = max(float(cur.get("expire", _exp) or _exp), _exp)
             else:
-                shields[key] = {"value": value, "expire_at": _exp}
+                effects[key] = {"stacks": 1, "value": value, "expire": _exp}
         except Exception:
             pass
 
     def _instance_seed_battle_start_affixes(self, st: dict):
         """v110 P0（#136）：副本每场战斗开始时，按野外同款 battle_start 词条链给各成员
         种子护盾（affix『护盾』+ 专属『奥术屏障』，数值读数据）。在 _enter_stage_combat
-        新战斗入口调用一次；p_shields 随快照持久化，_instance_act 重建 Battle 时透传。"""
+        新战斗入口调用一次；随快照 `p_effects` 持久化，_instance_act 重建 Battle 时透传。"""
         try:
             for m in IR.roster_of(st).members:
                 snap = st.get("players", {}).get(str(m))
@@ -1675,7 +1689,8 @@ class InstanceImpl:
             if _rl_txt:
                 lines.append(f"　⚡ {_rl_txt}")
             # 玩家 buff（V 系列：效果在 snap.effects 条目 {expire/stat/period/...}，
-            # 叠层/资源在条目 stacks；护盾 snap.shields）——旧 p_buffs 键由 N10 清
+            # 叠层/资源在条目 stacks；★ 收口第 2 批后护盾也在 effects 里，声明 absorb）
+            # ——旧 p_buffs 键由 N10 清
             pbuf = []
             _now_eff = float(st.get("now", 0.0) or 0.0)
             snap_eff = snap.get("effects") or {}
@@ -1705,18 +1720,24 @@ class InstanceImpl:
                 if _rv > 0 and isinstance(_re, (int, float)):
                     _left_r = max(1, int(round((float(_re) - _now_eff) / (ACT_TICK or 1.0))))
                     pbuf.append(T.text("instance.日志_面板_减伤", pct=int(_rv * 100), turns=_left_r))
-            shields = (snap.get("shields") or {})
-            # v167.3 显示修复（同 combat._status_line）：护盾实际按 expire_at 绝对时刻到期，
-            # 旧 {turns} 兼容值 turns=0 时显示 (0刻) 很怪 → 只对真正剩余 >0 的盾显示剩余刻数。
+            # ★ 收口第 2 批（2026-09-28）：护盾改读**容器条目**（`snap["effects"]` 里
+            #   声明了 `absorb` 的那些），不再读 `snap["shields"]`（引擎已删该容器 ⇒
+            #   原先这段恒空）。口径与 `_instance_seed_shield` 对称：快照存的就是
+            #   容器条目形状 `{stacks, value, expire}`，面板与容器同构、无翻译层。
+            #   v167.3 显示修复的意图保留：只对真正剩余 >0 的盾显示剩余刻数。
+            try:
+                from ext_combat.battle.state_effects import absorb_keys as _ak
+                _shield_names = _ak(snap)
+            except Exception:
+                _shield_names = []
             _now_sh = _now_eff
-            for sname, s in shields.items():
+            for sname in _shield_names:
+                s = snap_eff.get(sname) or {}
                 if (s or {}).get("value", 0) > 0:
-                    _exp = (s or {}).get("expire_at")
+                    _exp = (s or {}).get("expire")
                     _left_sec = None
                     if isinstance(_exp, (int, float)):
                         _left_sec = float(_exp) - _now_sh
-                    if _left_sec is None and (s or {}).get("turns") is not None:
-                        _left_sec = max(0.0, float(s.get("turns", 0) or 0)) * (ACT_TICK or 1.0)
                     if _left_sec is not None and _left_sec > 0:
                         _turns = max(1, int(round(_left_sec / (ACT_TICK or 1.0))))
                         pbuf.append(T.text("instance.日志_面板_护盾_剩刻", value=s['value'], turns=_turns))

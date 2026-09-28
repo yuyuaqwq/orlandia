@@ -2984,8 +2984,7 @@
       ],
       "shield_all": [
         {
-          "action": "team_shield",
-          "halve": true
+          "action": "team_shield"
         }
       ],
       "shield_block": [
@@ -3000,8 +2999,7 @@
       ],
       "shield_all_reduce": [
         {
-          "action": "team_shield",
-          "halve": true
+          "action": "team_shield"
         },
         {
           "action": "team_taken_reduce"
@@ -3012,8 +3010,7 @@
           "action": "team_taken_reduce"
         },
         {
-          "action": "team_shield",
-          "halve": true
+          "action": "team_shield"
         }
       ],
       "arcane_shield": [
@@ -3265,14 +3262,12 @@
       ],
       "shield_self": [
         {
-          "action": "shield",
-          "halve": false
+          "action": "shield"
         }
       ],
       "shield": [
         {
-          "action": "shield",
-          "halve": true
+          "action": "shield"
         }
       ],
       "cleanse": [

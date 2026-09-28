@@ -99,13 +99,18 @@ EFFECT_ACTIONS: dict = {
                      {"action": "team_apply", "key": "all_up_crit"},
                      {"action": "team_cc_immune"}],
     # ---- 护盾族（盾值三形态：shield_pct / shield_per_stack+shield_res_key / shield_value）----
-    "shield_all":        [{"action": "team_shield", "halve": True}],
+    # ★ 收口第 2 批（2026-09-28）：原先这一族每条都带 `halve: True/False` —— 实测引擎
+    #   **只写不读**（landing 的吸收循环只读 `value`），纯死字段 ⇒ 一并删除。
+    #   「盾存在受伤减半」从来没生效过，所以删它**不改任何行为**；要那个机制请走
+    #   `defend` 姿态窗口（引擎真读）。护盾的「是否吸收」现由 `rules/effect_rules.json`
+    #   的 `absorb: true` 声明决定（引擎零游戏名词，只问内容侧声明了什么）。
+    "shield_all":        [{"action": "team_shield"}],
     "shield_block":      [{"action": "self_shield", "key": "shield_self"},
                           {"action": "apply", "key": "block_up"}],
-    "shield_all_reduce": [{"action": "team_shield", "halve": True},
+    "shield_all_reduce": [{"action": "team_shield"},
                           {"action": "team_taken_reduce"}],
     "reduce_shield_all": [{"action": "team_taken_reduce"},
-                          {"action": "team_shield", "halve": True}],
+                          {"action": "team_shield"}],
     "arcane_shield":     [{"action": "self_shield", "key": "arcane_shield"}],
     # ---- 减伤族（乘算叠加；数值读技能数据 reduce/reduce_pct）----
     "reduce_all":        [{"action": "team_taken_reduce"}],
@@ -166,8 +171,9 @@ EFFECT_ACTIONS: dict = {
     # ---- 减伤（value 型 buff：mech_val 折算百分比 45→0.45）----
     "reduce":    [{"action": "apply", "key": "reduce", "pct_from_mech_val": True}],
     # ---- 护盾 ----
-    "shield_self": [{"action": "shield", "halve": False}],
-    "shield":      [{"action": "shield", "halve": True}],
+    # ★ 收口第 2 批（2026-09-28）：`halve` 死字段删除（引擎只写不读，见上面护盾族那段注）。
+    "shield_self": [{"action": "shield"}],
+    "shield":      [{"action": "shield"}],
     # ---- 净化 ----
     "cleanse":     [{"action": "cleanse"}],
     "cleanse_all": [{"action": "cleanse_all"}],

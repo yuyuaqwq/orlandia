@@ -39,6 +39,8 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import sh_value_of, sh_of, arm_shield  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -203,17 +205,22 @@ def test_time_effects_n72():
     human_land(b, "skill", "猛击", p)
     check("沉默下技能仍造成伤害", e["hp"] < hp0, f"hp={e['hp']}")
     check("沉默持续未清除", "silence" in ((p).get("effects") or {}))
-    # 3. shields 到期删
+    # ★ 收口第 2 批（2026-09-28）：护盾到期走**容器**那一个 `expire` 段
+    #   （旧独立容器 `shields` 的专属到期段已整段删除）。用 `shield`（包内声明表
+    #   里声明了 absorb 的那一族）走容器写口，验「到期即删」且删的是容器条目。
     e2 = make_actor(uid="e_e2", name="怪2", side="enemy", kind="monster",
                     hp=500, max_hp=500, atk=1, spd=10, level=1)
     b2 = BT_NEW(btype="monster", sides={"player": [p], "enemy": [e2]})
-    e2["shields"]["test"] = {"value": 100, "expire_at": 3.0}
+    arm_shield(e2, "shield", 100, expire=3.0)
+    check("★ 盾在容器条目里（不再是独立容器）", sh_value_of(e2, "shield") == 100,
+          f"effects={e2.get('effects')}")
     b2._now = 2.0
     _settle_time_effects(b2, [])
-    check("盾未到期仍在", "test" in e2["shields"])
+    check("盾未到期仍在", "shield" in (e2.get("effects") or {}), str(e2.get("effects")))
     b2._now = 4.0
     _settle_time_effects(b2, [])
-    check("盾到期删除", "test" not in e2["shields"])
+    check("盾到期从容器删除（容器那一个 expire 段）", "shield" not in (e2.get("effects") or {}),
+          str(e2.get("effects")))
     # 4. buffs 到期删
     p["effects"]["atk_up"] = {"stacks": 1, "expire": 3.0, "stat": "atk", "op": "mul", "mult": 1.30}
     b2._now = 2.0

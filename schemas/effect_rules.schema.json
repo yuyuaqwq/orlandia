@@ -411,18 +411,6 @@
               "title": "命中参数",
               "description": "命中相关参数：字符串（简写）或参数块。"
             },
-            "halve": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "number"
-                }
-              ],
-              "title": "减半",
-              "description": "减半标记/系数（布尔或数值形态）。"
-            },
             "pct_from_mech_val": {
               "anyOf": [
                 {

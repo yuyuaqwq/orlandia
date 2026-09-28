@@ -14,6 +14,9 @@
       "turns": 3
     }
   },
+  "affix_shield": {
+    "absorb": true
+  },
   "all_up_atk": {
     "cap": 1,
     "panel": {
@@ -57,6 +60,9 @@
   "arcane": {
     "name": "奥术",
     "cap": 5
+  },
+  "arcane_shield": {
+    "absorb": true
   },
   "atk_up": {
     "cap": 1,
@@ -360,6 +366,12 @@
       "mult": 1.1
     }
   },
+  "boss_opening_shield": {
+    "absorb": true
+  },
+  "food_shield": {
+    "absorb": true
+  },
   "food_spd_up": {
     "cap": 1,
     "panel": {
@@ -431,6 +443,9 @@
       }
     }
   },
+  "guard_core_overflow": {
+    "absorb": true
+  },
   "guard_stance": {
     "name": "守御姿态",
     "cap": 1,
@@ -441,6 +456,9 @@
   "heal_down": {
     "cap": 5,
     "on": "target"
+  },
+  "heal_overflow": {
+    "absorb": true
   },
   "holy_weaken": {
     "cap": 1,
@@ -592,6 +610,9 @@
       ]
     }
   },
+  "potion_shield": {
+    "absorb": true
+  },
   "rage": {
     "name": "怒气",
     "cap": 10,
@@ -625,7 +646,11 @@
     "cap": 10,
     "stat_scale": {
       "reduce": 0.03
-    }
+    },
+    "absorb": true
+  },
+  "shield_self": {
+    "absorb": true
   },
   "silence": {
     "cap": 1,
@@ -703,11 +728,47 @@
       "atk": 0.01
     }
   },
+  "tie_pi_bulwark": {
+    "absorb": true
+  },
   "time_staff": {
     "cap": 10,
     "stat_scale": {
       "atk": 0.015
     }
+  },
+  "we_atonement": {
+    "absorb": true
+  },
+  "we_bedrock": {
+    "absorb": true
+  },
+  "we_deeprock": {
+    "absorb": true
+  },
+  "we_echo_bless": {
+    "absorb": true
+  },
+  "we_eclipse": {
+    "absorb": true
+  },
+  "we_firmament": {
+    "absorb": true
+  },
+  "we_gargoyle": {
+    "absorb": true
+  },
+  "we_radiance": {
+    "absorb": true
+  },
+  "we_sentinel": {
+    "absorb": true
+  },
+  "we_shield": {
+    "absorb": true
+  },
+  "we_starlight": {
+    "absorb": true
   },
   "wind_mark": {
     "cap": 4,

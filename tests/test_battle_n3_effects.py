@@ -39,6 +39,8 @@ FAILURES = []
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import sh_value_of, sh_of, clear_shields  # noqa: E402
 
 check = bind_check(globals(), "PASS", "FAIL", "FAILURES")
 
@@ -175,14 +177,24 @@ def test_buff_effect_handler():
     print("【N3.4 增益 effect 单表：reduce/atk_all/shield_self/cleanse】")
     b = BT_NEW(btype="monster", sides={"player": [], "enemy": []})
     caster = {"uid": "p", "name": "勇者", "effects": {},
-              "shields": {}, "reduce_left": 0, "max_hp": 1000, "hp": 500}
+              "max_hp": 1000, "hp": 500}
     logs = []
     # reduce（mech_val=45 → 45%）——N7.1 形态：{expire, v}
     FX.apply_effects(b, caster, caster,
                      [{"type": "reduce", "turns": 8, "mech_val": 45, "info": {}}], logs)
     check("reduce buffs.v=0.45", abs(ent(caster, "reduce").get("v", 0) - 0.45) < 1e-9,
           f"reduce={ent(caster, 'reduce')}")
-    check("reduce_left=8", caster.get("reduce_left") == 8)
+    # ★ 收口第 2 批（2026-09-28 引擎删 `reduce_left` 影子字段）：改断**容器条目的 expire**
+    #   —— 减伤到期时刻落在 `battle._now + turns` 那一格（真比值，不是只判存在）。
+    #   加强不是削弱：原断言验的是影子账本的值，新断的是唯一真源的时刻落点，
+    #   再加一条「影子字段确实不存在」（到期只有一本账）。
+    _rd8 = ent(caster, "reduce") or {}
+    _now8 = float(getattr(b, "_now", 0) or 0)
+    check("reduce 条目 expire=now+8（到期只有 expire 一本账）",
+          abs(float(_rd8.get("expire", 0) or 0) - (_now8 + 8)) < 1e-9,
+          f"expire={_rd8.get('expire')} now={_now8} entry={_rd8}")
+    check("reduce 无 reduce_left 影子字段（收口第2批整键已删）", "reduce_left" not in caster,
+          f"reduce_left={caster.get('reduce_left')}")
     # atk_all → atk_up（N7.1 快照：{expire, stat, op, mult}）
     # ⚠️ 2026-09-11 行为变更：`*_all` 系列改为**团队面幅**（遍历同侧存活 actor）——
     #   此前只作用施法者自己（单人时代无感）。故本测试需把 caster 放进 sides 才有受益者。
@@ -205,7 +217,12 @@ def test_buff_effect_handler():
     # shield_self
     FX.apply_effects(b, caster, caster,
                      [{"type": "shield_self", "mech_val": 300, "info": {"effect_val": 0}}], logs)
-    check("shield_self 300", caster["shields"].get("buff", {}).get("value") == 300)
+    # ★ 收口第 2 批（2026-09-28）：护盾 = `effects` 容器里一条带 value 的条目
+    #   （旧独立容器 `caster["shields"]` 已随引擎删除 ⇒ 原断言恒空）。
+    check("shield_self 300（容器条目）", sh_value_of(caster, "buff") == 300,
+          f"effects={caster.get('effects')}")
+    check("★ shield_self 走容器写口（不建独立容器 shields）", "shields" not in caster,
+          str(sorted(caster)))
     # cleanse：先挂状态再净化（cleanse 清 state 减益键 + buffs 控制键）
     caster["effects"]["burn"] = {"stacks": 2}
     caster["effects"]["stun"] = {"stacks": 1}
@@ -307,7 +324,7 @@ def test_n72_more_branches():
     print("【N3.8 N7.2 补分支：纯状态 buff / 护盾叠厚 / 缺省盾值 / 过期控制】")
     b = BT_NEW(btype="monster", sides={"player": [], "enemy": []})
     caster = {"uid": "p", "name": "勇者", "effects": {},
-              "shields": {}, "reduce_left": 0, "max_hp": 1000, "hp": 500}
+              "max_hp": 1000, "hp": 500}
     logs = []
     # 纯状态 buff（无 stat）→ 只记 expire，不折算（cc_immune 走 buff 动词无 stat 参数）
     FX.apply_effects(b, caster, caster,
@@ -317,19 +334,24 @@ def test_n72_more_branches():
           f"cc_immune={_ci}")
     check("纯状态 buff 无 stat", "stat" not in _ci)
     # 护盾同源叠厚：两次 shield_self → value 累加
-    caster["shields"].clear()
+    # ★ 收口第 2 批（2026-09-28）：清护盾 = 清容器里声明了 absorb 的条目
+    #   （旧写法 `caster["shields"].clear()` 的新形状等价物），到期读条目的 `expire`
+    #   （旧容器那个 `expire_at` 已随独立容器一起删）。
+    clear_shields(caster)
     FX.apply_effects(b, caster, caster,
                      [{"type": "shield_self", "value": 100, "turns": 3}], logs)
     FX.apply_effects(b, caster, caster,
                      [{"type": "shield_self", "value": 50, "turns": 5}], logs)
-    _sh = caster["shields"].get("buff") or {}
-    check("同源叠厚 value=150", int(_sh.get("value", 0)) == 150, f"sh={_sh}")
-    check("expire 取 max≈5", abs(float(_sh.get("expire_at", 0)) - 5.0) < 1e-9, f"exp={_sh.get('expire_at')}")
+    _sh = sh_of(caster, "buff")
+    check("同源叠厚 value=150（容器条目）", int(_sh.get("value", 0)) == 150, f"sh={_sh}")
+    check("expire 取 max≈5（容器 `expire`，非旧 `expire_at`）",
+          abs(float(_sh.get("expire", 0)) - 5.0) < 1e-9, f"exp={_sh.get('expire')}")
+    check("★ 容器条目不再有旧容器的 `expire_at` 影子键", "expire_at" not in _sh, str(_sh))
     # 缺省盾值：value=0 且无 pct → max_hp×20%
-    caster["shields"].clear()
+    clear_shields(caster)
     FX.apply_effects(b, caster, caster, [{"type": "shield_self", "turns": 3}], logs)
-    check("缺省盾 max_hp×20% = 200", int((caster["shields"].get("buff") or {}).get("value", 0)) == 200,
-          f"sh={caster['shields'].get('buff')}")
+    check("缺省盾 max_hp×20% = 200（容器条目）", sh_value_of(caster, "buff") == 200,
+          f"sh={sh_of(caster, 'buff')}")
 
 
 def test_on_hit_n73():

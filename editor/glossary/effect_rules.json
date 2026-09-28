@@ -263,10 +263,10 @@
       "note": "EFFECT_ACTIONS 动作里的状态/增益持续回合数（由动作实现解释）。",
       "group": "ctrl"
     },
-    "halve": {
-      "zh": "减半",
-      "note": "EFFECT_ACTIONS 动作里的减半标记/系数（布尔或数值形态）。",
-      "group": "ctrl"
+    "absorb": {
+      "zh": "承伤吸收（护盾型）",
+      "note": "★ 收口第 2 批（2026-09-28）：本条目的 `value` 是**承伤资源**（护盾量）——引擎 `state_effects.absorb_keys` 认出这一族，`landing._apply_damage` 逐条扣 `value`、归零即从容器删。**声明不写就不吸收**（条目会变成不掉的血）。引擎零游戏名词：它只问「声明了什么」，不认「哪个 key 是盾」。到期走容器 `expire` 那一条通路（不再有独立 shields 容器）。",
+      "group": "guard"
     },
     "pct_from_mech_val": {
       "zh": "按机制数值折算比例",
@@ -357,8 +357,8 @@
      "fields": ["period"]},
     {"id": "cooldown", "label": "冷却与开局", "icon": "🧊",
      "fields": ["cd_mult", "start_full", "start_classes", "load_tiers"]},
-    {"id": "guard", "label": "濒死保护", "icon": "🛡",
-     "fields": ["guard_hp_pct", "heal_pct", "overload_heal_pct", "wake_on_hit"]},
+    {"id": "guard", "label": "承伤与濒死", "icon": "🛡",
+     "fields": ["guard_hp_pct", "heal_pct", "overload_heal_pct", "wake_on_hit", "absorb"]},
     {"id": "ctrl", "label": "控制与渠道", "icon": "🌀",
      "fields": ["consume", "channels", "on_threshold", "ctrl_half_traits"]}
   ]

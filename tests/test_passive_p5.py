@@ -28,6 +28,9 @@ FAIL = 0
 
 
 from _check import bind_check  # noqa: E402  P0-1 断言助手单源：tests/_check.py
+# ★ 收口第 2 批（2026-09-28）：护盾读口 = 容器条目（`effects` 里带 value 的那一条）。
+from _container_shape import (sh_value_of, sh_of, shield_total,  # noqa: E402
+                            shield_names, arm_shield, clear_shields)
 
 check = bind_check(globals(), "PASS", "FAIL")
 
@@ -113,9 +116,14 @@ def test_5_overflow_shield():
     m2 = b.sides_of("player")[0]
     m2['hp'] = 4900  # 缺口 100，治疗大概率溢出
     logs, _, _ = b.human_act("skill", "圣言术", m2)
-    sh = (m2.get("shields") or {}).get("heal_overflow")
-    check("治疗溢出 → 转盾出现", isinstance(sh, dict) and int(sh.get("value") or 0) > 0,
-          f"shields={m2.get('shields')} logs={[l for l in logs if '护盾' in l or '治愈' in l][-2:]}")
+    # ★ 收口第 2 批（2026-09-28）：转盾写口改走容器（`class_mech.py` 原先
+    #   `setdefault("shields")` 那几行**完全不生效** —— 引擎已删该独立容器）。
+    #   现在护盾 = `effects` 容器里一条带 value 的条目（key `heal_overflow`，
+    #   包内 `effect_rules.json` 声明了 `absorb: true`）。
+    sh = sh_of(m2, "heal_overflow")
+    check("治疗溢出 → 转盾出现（容器条目）", sh_value_of(m2, "heal_overflow") > 0,
+          f"effects={m2.get('effects')} logs={[l for l in logs if '护盾' in l or '治愈' in l][-2:]}")
+    check("★ 转盾不再写独立容器 shields", "shields" not in m2, str(sorted(m2)))
 
 
 def test_6_no_overflow():
@@ -126,9 +134,9 @@ def test_6_no_overflow():
     m2 = b.sides_of("player")[0]
     m2['hp'] = 500  # 重伤，缺口大
     logs, _, _ = b.human_act("skill", "圣言术", m2)
-    sh = (m2.get("shields") or {}).get("heal_overflow")
-    check("无溢出 → 无转盾", not (isinstance(sh, dict) and int(sh.get("value") or 0) > 0),
-          f"shields={m2.get('shields')}")
+    sh = sh_of(m2, "heal_overflow")
+    check("无溢出 → 无转盾", sh_value_of(m2, "heal_overflow") == 0,
+          f"effects={m2.get('effects')}")
 
 
 def main():
