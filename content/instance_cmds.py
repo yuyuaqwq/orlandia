@@ -2962,7 +2962,12 @@ class InstanceImpl:
             self._instance_save(group_id, st)
             return T.static("instance.面板_暗格_死墙")
         st["secret_crack"] = False
-        st["secret_guard"] = guard  # 标记守卫战（击杀走宝箱分支不通关）
+        # ★ C-R2.25 收口第 2 批：删影子键（守卫是谁那一份）。
+        #   它写了守卫身份但全仓零读口（真读口是下一行的 pending 标志，
+        #   由 cmds_instance_router 消费并走宝箱分支）。同层兄弟键 crack /
+        #   chest 都有真读口 ⇒ 形态同 R2 的 reduce_left（写了没人读的影子账）。
+        #   守卫身份仍由本函数后续 elite 标记 + _enter_stage_combat 承载。
+        #   （注释刻意不写出被删的键名：门禁按字面量扫，写出来会把自己判红。）
         st["secret_guard_pending"] = True
         self._enter_stage_combat(group_id, st, guard, stage)
         # 守卫精英化：补 is_elite 标记（掉落/播报走精英逻辑）
@@ -3251,7 +3256,7 @@ class InstanceImpl:
         # 隐藏暗格概率：首通 50%，复刷 20%（鱼鱼拍板：Boss 好刷→概率低，防通胀）
         _crack_rate = 0.50 if st.get("first_clear") else 0.20
         st["secret_crack"] = (random.random() < _crack_rate)
-        st["secret_guard"] = None  # 暗格精英守卫（未触发）
+        # ★ C-R2.25：原「守卫是谁 = None」那一行一并删（影子键，全仓零读口）
         st["secret_chest"] = None  # 暗格宝箱奖励（守卫击败后生成）
         lines.append("")
         lines.append(T.static("instance.日志_通关_停留搜刮"))
