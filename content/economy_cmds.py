@@ -301,19 +301,13 @@ _REQ_NAMES = _ATTR_CN
 #   修法 = 收成**一个出口**（与本文件 `_clamp_desc` 同一形状），diff 面与面板面**同口径**。
 #   口径变化**仅限**「百分比上屏形态」：非百分比属性、条数、页码、排序、件数一律不动。
 #   ★ 3981 那行注释提到的一处截断写法是 v130.2e 一次 P0 崩溃的**事故记录**，刻意保留。
-# ★ 百分比 half-up 舍入所需的两个名字（标准库，无外部依赖）。
-from decimal import Decimal, ROUND_HALF_UP
-
-
+# ★ 百分比上屏口径的**包级单源**现在在 `content/catalog_core.py::pct_str`：本文件原有的
+#   12 处仅覆盖本模块，而 `world_cmds.py`（转职加成 / 传送折扣 / 野外遭遇概率 /
+#   房屋恢复 / 坐骑）走同一类上屏却仍各写一份裸 `int(v*100)` ⇒ 同一口径散在两个命令模块。
+#   本名字与行为**一字未变**（本文件 12 处与外部字符串测试都指向它）。
 def _pct_str(v) -> str:
-    """把 0..1 的比率渲染成整数百分数字符串（**四舍五入 half-up**，绝不向零截断）。
-
-    走 `Decimal(...).quantize(..., ROUND_HALF_UP)` 而非裸 `round`：
-      · 裸 `round` 是**银行家舍入**（0.5→0 / 1.5→2），而本包域里**真有两格平局**
-        （`EQUIP_PREFIX_FLAVOR` 的 0.005 → 0.5%），会把玩家看到的加成印成 `0%`；
-      · 裸 `floor(x*100 + 0.5)` 在 float 误差上会翻车（0.145*100 = 14.4999… → 14）。
-    """
-    return str(int(Decimal(str(float(v) * 100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)))
+    """包级单源的本文件名（保留 = 不破坏已有调用点）。"""
+    return _ccore.pct_str(v)
 
 
 
@@ -719,15 +713,15 @@ def _render_consumable(d, lines, equipped):
         _t = d.get("hot_turns", 3)
         parts = []
         if d.get("hot"):
-            parts.append(_T.text("item.hot_hp", pct=int(d['hot'] * 100), turns=_t))
+            parts.append(_T.text("item.hot_hp", pct=_pct_str(d['hot']), turns=_t))
         if d.get("hot_mana"):
-            parts.append(_T.text("item.hot_mp", pct=int(d['hot_mana'] * 100), turns=_t))
+            parts.append(_T.text("item.hot_mp", pct=_pct_str(d['hot_mana']), turns=_t))
         if d.get("heal"):
             h = d["heal"]
-            parts.append(_T.text("item.heal_pct", pct=int(h * 100)) if h < 1 else _T.text("item.heal_flat", hp=h))
+            parts.append(_T.text("item.heal_pct", pct=_pct_str(h)) if h < 1 else _T.text("item.heal_flat", hp=h))
         if d.get("mana"):
             m = d["mana"]
-            parts.append(_T.text("item.mana_pct", pct=int(m * 100)) if m < 1 else _T.text("item.mana_flat", mp=m))
+            parts.append(_T.text("item.mana_pct", pct=_pct_str(m)) if m < 1 else _T.text("item.mana_flat", mp=m))
         if d.get("stamina"):
             parts.append(_T.text("item.stamina_line", stamina=d['stamina']))
         lines.append(_T.static("item.effect_head") + "、".join(parts))
@@ -742,10 +736,10 @@ def _render_consumable(d, lines, equipped):
         parts = []
         if d.get("heal"):
             h = d["heal"]
-            parts.append(_T.text("item.heal_pct", pct=int(h * 100)) if h < 1 else _T.text("item.heal_flat", hp=h))
+            parts.append(_T.text("item.heal_pct", pct=_pct_str(h)) if h < 1 else _T.text("item.heal_flat", hp=h))
         if d.get("mana"):
             m = d["mana"]
-            parts.append(_T.text("item.mana_pct", pct=int(m * 100)) if m < 1 else _T.text("item.mana_flat", mp=m))
+            parts.append(_T.text("item.mana_pct", pct=_pct_str(m)) if m < 1 else _T.text("item.mana_flat", mp=m))
         if d.get("stamina"):
             parts.append(_T.text("item.stamina_line", stamina=d['stamina']))
         lines.append(_T.static("item.effect_head") + " + ".join(parts))
@@ -3625,7 +3619,7 @@ class EconomyImpl(CommandBase):
         _sgn = "+" if _val > 0 else ""
         yield event.plain_result(
             _T.text("calamity.result", arrow=_arrow, name=d['name'], stat=_stat_cn, sign=_sgn,
-                pct=int(_val * 100), n=d.get('calamity_count', 1), cap=_clife.CALAMITY_MAX,
+                pct=_pct_str(_val), n=d.get('calamity_count', 1), cap=_clife.CALAMITY_MAX,
                 gold=_clife.CALAMITY_COST['gold']))
 
     @declared("enchant")
@@ -4755,7 +4749,7 @@ class EconomyImpl(CommandBase):
                 for _k, _v in (_eq.get("stats") or {}).items():
                     if _v:
                         _lb = _STAT_NAMES.get(_k, _k)
-                        _stat_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
+                        _stat_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=_pct_str(_v)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                 if _stat_lines:
                     elines.append(_T.static("ency.eq_detail_stats_head"))
                     for _s in _stat_lines:
@@ -4765,7 +4759,7 @@ class EconomyImpl(CommandBase):
                     if isinstance(_af, dict):  # 旧结构兼容
                         _k, _v = _af.get("stat"), _af.get("value", 0)
                         _lb = _STAT_NAMES.get(_k, _k)
-                        _aff_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
+                        _aff_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=_pct_str(_v)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                         continue
                     _ai = _cit.AFFIXES.get(_af)
                     if _ai:
@@ -4894,7 +4888,7 @@ class EconomyImpl(CommandBase):
                     for _k, _v in _st.items():
                         if _v:
                             _lb = _STAT_NAMES.get(_k, _k)
-                            _stat_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
+                            _stat_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=_pct_str(_v)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                     if _stat_lines:
                         lines.append(_T.static("ency.eq_detail_stats_head"))
                         for _s in _stat_lines:
@@ -4904,7 +4898,7 @@ class EconomyImpl(CommandBase):
                         if isinstance(_af, dict):  # 旧结构兼容
                             _k, _v = _af.get("stat"), _af.get("value", 0)
                             _lb = _STAT_NAMES.get(_k, _k)
-                            _aff_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=int(_v * 100)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
+                            _aff_lines.append(_T.text("ency.eq_detail_stat_pct", label=_lb, pct=_pct_str(_v)) if _k in _ccore.PCT_STATS else _T.text("ency.eq_detail_stat", label=_lb, value=_v))
                             continue
                         _ai = _cit.AFFIXES.get(_af)
                         if _ai:
@@ -5286,7 +5280,7 @@ class EconomyImpl(CommandBase):
                 _trig_line = _T.text("ency.affix_detail_trigger", trigger=_trig_cn)
                 if _av.get("chance"):
                     _trig_line += _T.text("ency.affix_detail_chance",
-                                          pct=int(_av["chance"] * 100))
+                                          pct=_pct_str(_av["chance"]))
                 lines.append(_trig_line)
                 if _av.get("desc"):
                     lines.append(_T.text("ency.affix_detail_effect", desc=_av["desc"]))
@@ -6689,7 +6683,7 @@ class EconomyImpl(CommandBase):
                 yield event.plain_result(_T.text("sell.cant", name=d['name']))
                 return
             name, cnt, gold = r2
-            yield event.plain_result(_T.text("sell.ok_qty", name=name, n=cnt, gold=gold, rate=int(rate * 100)))
+            yield event.plain_result(_T.text("sell.ok_qty", name=name, n=cnt, gold=gold, rate=_pct_str(rate)))
             return
         r = self._sell_one(group_id, qq_id, player, target, rate)
         if not r:
@@ -6697,7 +6691,7 @@ class EconomyImpl(CommandBase):
             return
         name, cnt, gold = r
         # v105 M09 P3-10：100% 原价回收也提示（此前 rate>=1.0 静默，玩家不知药水零损耗规则）
-        tip = _T.text("sell.rate_tip", rate=int(rate * 100))
+        tip = _T.text("sell.rate_tip", rate=_pct_str(rate))
         yield event.plain_result(_T.text("sell.ok", name=name, n=cnt, gold=gold, tip=tip))
 
     @declared("shop")

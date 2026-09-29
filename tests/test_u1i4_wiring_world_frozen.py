@@ -313,6 +313,17 @@ _LIVE_SHA_INTENT = {
                '行为不变由 [2] 甲/乙等价网 + [3] 丙类 golden（逐字节）证明：本轮实测仅本条 sha 变，'
                '其余 28 段与 golden 指纹全绿。',
     },
+    'content/world_cmds.py::_wild_cond_label': {
+        'old': 'aaf472287c4353f37e27fb44bce94411f57ecbd64d4502af19750218a07e73cd',
+        'new': 'c9e5da963f120d3aa3d0a94df3349aa02a2404496e67df9f1c9e7a623697c197',
+        'why': 'afix2 (2026-09-29) package-level single exit for player-visible percent'
+               ' rounding: this segment used pct=int(npc[chance]*100); it now goes through'
+               ' catalog_core.pct_str (half-up). Before the fix, chance values in'
+               ' [.xx5,.xx9) showed one point below the true value while the engine'
+               ' charged the true value, so players estimated encounter odds wrong.'
+               ' This IS the intended change, so the matching grid cells are registered'
+               ' in _INTENDED_GRID_MISMATCH below (a declared divergence, not a fit failure).',
+    },
 }
 
 

@@ -143,6 +143,27 @@ def equip_value(stats, *args, **kwargs):
     return _f(stats, *args, **kwargs)
 
 
+# ★ 审计 B2 自开口（族：玩家可见比率被**向零截断**）的**包级单源**。
+#   `content/economy_cmds.py::_pct_str` 原本是那 12 处的**文件内**出口，但
+#   `world_cmds.py`（转职加成 / 传送折扣 / 野外遭遇概率 / 房屋恢复 / 坐骑）走同一类
+#   上屏却仍各写一份裸 `int(v*100)` ⇒ 同一个渲染口径散在两个命令模块里。
+#   本函数是该口径的**包级唯一出口**；`economy_cmds._pct_str` 改为薄转发（签名/行为一字不变）。
+#   方向用 `Decimal(...).quantize(..., ROUND_HALF_UP)` 而非裸 `round`：
+#     · 裸 `round` 是**银行家舍入**（0.5→0 / 1.5→2），而域里**真有两格平局**
+#       （`EQUIP_PREFIX_FLAVOR` 的 0.005 → 0.5%），会把玩家看到的加成印成 `0%`；
+#     · 裸 `int(x*100)` 是**向零截断**（0.015 → 「1%」，真值 1.5%）：宝石 1/2 两阶
+#       都印「×1%」，玩家看到两个数值相同的档位；`TIER_GROWTH[1]=1.15` 因
+#       float 误差（0.1499999999999999×100 = 14.9999…）印「+14%」而真值是 15%。
+#     · 裸 `floor(x*100+0.5)` 在 float 误差上翻车（0.145*100 = 14.4999… → 14）。
+#   纯标准库、无外部依赖（与本模块「装载期不碰宿主」的既有口径一致）。
+from decimal import Decimal, ROUND_HALF_UP  # noqa: E402  放在函数上方为的是让 import 紧贴用法
+
+
+def pct_str(v) -> str:
+    """把 0..1 的比率渲染成整数百分数字符串（**四舍五入 half-up**，绝不向零截断）。"""
+    return str(int(Decimal(str(float(v) * 100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)))
+
+
 # 缺口登记（不暴露 = 不猜值；门禁报 `门面缺 1`，报告 `overnight/W-B14-E.md` 给字段清单）
 CLASS_NOVICE = placeholder("CLASS_NOVICE")
 PCT_STATS = placeholder("PCT_STATS")
@@ -227,6 +248,8 @@ __all__ = [
     "PLAYER_SKILLS", "BRANCH_SKILLS", "TUTOR_SKILLS", "TUTOR_TABLE_CLASSES",
     # F 数值函数
     "exp_to_next", "equip_stats", "equip_value",
+    # F′ 玩家可见百分比渲染单源（审计 B2 自开口族）
+    "pct_str",
     # 缺口登记
     "GAP_QUALITY",
 ]

@@ -402,14 +402,14 @@ async def deed_view(self, event: AstrMessageEvent, group_id, qq_id, player):
         hl = _cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])
         lines.append(_T.text("house.mine", name=prop['name'],
                          map=_cat_space.MAP_BY_ID.get(prop['map'], {}).get('name', '？')))
-        lines.append(_T.text("house.row", name=hl['name'], lv=dlv, cap=hl['storage'], heal=int(hl['heal_pct'] * 100)))
+        lines.append(_T.text("house.row", name=hl['name'], lv=dlv, cap=hl['storage'], heal=_cat_core.pct_str(hl['heal_pct'])))
         if dlv < _cat_life.HOUSE_MAX_LEVEL:
             nxt = _cat_life.HOUSE_LEVELS[dlv + 1]
             cost = _T.text("house.upgrade_cost", gold=nxt['upgrade_cost']['gold']) + " + ".join(f"{_idx.display('materials', m)}×{c}" for m, c in nxt['upgrade_cost']['mats'].items())
             lines.append(_T.text("house.upgrade_row", lv=dlv + 1, name=nxt['name'], need=cost))
         else:
             lines.append(_T.static("house.max"))
-        lines.append(_T.text("house.sell_hint", pct=int(_cat_life.HOUSE_REFUND.get(dlv, 0.5) * 100)))
+        lines.append(_T.text("house.sell_hint", pct=_cat_core.pct_str(_cat_life.HOUSE_REFUND.get(dlv, 0.5))))
     else:
         lines.append(_T.static("house.none_head"))
         for i, (pid, prop) in enumerate(_cat_life.PROPERTIES.items(), 1):
@@ -463,7 +463,7 @@ async def deed_sell(self, event: AstrMessageEvent, group_id, qq_id, player):
     db.set_event_state(f"deed_owner_{deed}", "")  # v104 M09 P1：卖房释放产权（先到先得）
     yield event.plain_result(_T.text("house.sell_ok", name=prop['name'],
                                  lv_name=_cat_life.HOUSE_LEVELS.get(dlv, _cat_life.HOUSE_LEVELS[1])['name'],
-                                 lv=dlv, gold=refund, pct=int(refund_pct * 100)))
+                                 lv=dlv, gold=refund, pct=_cat_core.pct_str(refund_pct)))
 
 
 async def _deed_upgrade(self, event, group_id, qq_id, player):
@@ -509,7 +509,7 @@ async def _deed_upgrade(self, event, group_id, qq_id, player):
     hl = _cat_life.HOUSE_LEVELS[dlv + 1]
     yield event.plain_result(
         _T.text("house.up_ok", name=hl['name'], lv=dlv + 1, cap=hl['storage'],
-            heal=int(hl['heal_pct'] * 100))
+            heal=_cat_core.pct_str(hl['heal_pct']))
         + (_T.text("house.up_shop_slot", n=hl['stall_slots']) if hl["stall_slots"] else "")
         + (_T.text("house.up_max_tip", ) if dlv + 1 >= _cat_life.HOUSE_MAX_LEVEL else ""))
 
@@ -1850,7 +1850,7 @@ async def portal_view(self, event: AstrMessageEvent, group_id, qq_id, player):
             tag = ""
             if disc > 0:
                 shown = max(_cat_life.ECON_CONFIG["portal_min_cost"], int(cost * (1 - disc)))
-                tag = _T.text("portal.mount_disc", pct=int(disc*100))
+                tag = _T.text("portal.mount_disc", pct=_cat_core.pct_str(disc))
             name = p.get("name", mid) if p else mid
             icon = p.get("icon", "🌌") if p else "🌌"
             lines.append(_T.text("portal.row", idx=i, icon=icon, name=name, map=m.get('name', '?'), cost=shown, tag=tag))
@@ -2623,7 +2623,7 @@ def _wild_cond_label(self, npc: dict) -> str:
     if npc.get("cycle"):
         labels.append(_T.text("wildcond.cycle", cycle=npc['cycle']))
     if npc.get("chance"):
-        labels.append(_T.text("wildcond.chance", pct=int(npc['chance']*100)))
+        labels.append(_T.text("wildcond.chance", pct=_cat_core.pct_str(npc['chance'])))
     if npc.get("unlock"):
         labels.append(_T.static("wildcond.locked"))
     return "，".join(labels) if labels else _T.static("wildcond.anytime")
@@ -3398,7 +3398,7 @@ def _do_evolve_via_npc(self, group_id, qq_id, player, next_tier, path):
     db.update_player(group_id, qq_id, **fields)
     player = self._player(group_id, qq_id)
     new_title = self._branch_title(player["class_name"], next_tier, path or player.get("evolve_path", 0))
-    bonus = int((TIER_GROWTH.get(next_tier, 1.0) - 1.0) * 100)
+    bonus = _cat_core.pct_str(TIER_GROWTH.get(next_tier, 1.0) - 1.0)
     branch_line = ""
     if path:
         tag = _T.static("evolve.path_atk") if path == 1 else _T.static("evolve.path_def")

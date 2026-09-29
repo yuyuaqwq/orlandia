@@ -42,8 +42,14 @@ _call_re = re.compile(r"_pct_str\(")
 _call_lines = [i for i, ln in enumerate(_SRC_LINES, 1)
                if _call_re.search(ln) and not ln.lstrip().startswith("#")
                and "def _pct_str" not in ln]
-check("百分比渲染走单源 _pct_str（10 处 v 值 + 2 处 diff = 12）",
-      len(_call_lines) == 12, "实际 %d 处：%s" % (len(_call_lines), _call_lines))
+# ★ 锚点重钉（正规推进，非放宽）：12 -> 26。
+#   本批（审计 B2 自开口「百分比上屏取整方向」的包级收口）把 world_cmds.py
+#   7 处与 economy_cmds.py 消费品/装备详情/灾难/回收 7 处一并改走 _pct_str ⇒ 本文件调用点
+#   12 -> 26。**旧锚点保护的意图未变**（本文件不得出现第二个百分比出口），
+#   只是数字过时；同时新增本批的独立判据 tests/test_afix2_pct_single_source.py
+#   把「包级单源 + 两模块零裸截断」钉死。
+check("百分比渲染走单源 _pct_str（12 处装备/宝石 + 7 处消费品/详情/灾难/回收，共 26）",
+      len(_call_lines) == 26, "实际 %d 处：%s" % (len(_call_lines), _call_lines))
 
 # ── ③ 不得有裸截断（活代码；注释里的事故记录不算）──
 _bare = [i for i, ln in enumerate(_SRC_LINES, 1)
