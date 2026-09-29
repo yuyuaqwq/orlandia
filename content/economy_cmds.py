@@ -288,6 +288,35 @@ _STAT_NAMES = STAT_NAMES
 _REQ_NAMES = _ATTR_CN
 
 
+# ★ 审计 B2 自开口（族：玩家可见比率被**向零截断**）· 百分比渲染的**唯一口**。
+# 原实现：本文件 **12 处**各写一份截断（面板 419/431/469/483、宝石 3177、强化值 3838、
+#   套装 setview 3985/3994、图鉴 5803/5810 = 10 处；强化 diff 5976 / 精炼 diff 6034 = 2 处）。
+#   向零截断（`int`）而不是四舍五入 ⇒ 真值落在 [.xx5, .xx9) 的属性，**屏显少 1**。
+#   实跑（真装包 + 真调 `_render_equip`，扫全名册 687 件 + 5 槽位 × 全品质 × 全武器类型
+#   = **737 个渲染样本**）：改前 **177 个样本**屏显比四舍五入少 1，逐例
+#     铁甲胸 暴击 0.018 → 「暴击 + 1%」（真值 1.8%）；元气币 0.038 → 「+ 3%」（真值 3.8%）
+#   ⇒ 玩家照面板估伤害 / 堆暴击，与实机生效值差一个百分点。
+#   ★ 更硬的一层：**面板与强化 diff 自相矛盾** —— 改前实跑 345 个样本里 **75 个**出现
+#   「new% − old% ≠ diff%」：面板印「+9%」而升一级后差值印「+12%」，同一件装备两页对不上账。
+#   修法 = 收成**一个出口**（与本文件 `_clamp_desc` 同一形状），diff 面与面板面**同口径**。
+#   口径变化**仅限**「百分比上屏形态」：非百分比属性、条数、页码、排序、件数一律不动。
+#   ★ 3981 那行注释提到的一处截断写法是 v130.2e 一次 P0 崩溃的**事故记录**，刻意保留。
+# ★ 百分比 half-up 舍入所需的两个名字（标准库，无外部依赖）。
+from decimal import Decimal, ROUND_HALF_UP
+
+
+def _pct_str(v) -> str:
+    """把 0..1 的比率渲染成整数百分数字符串（**四舍五入 half-up**，绝不向零截断）。
+
+    走 `Decimal(...).quantize(..., ROUND_HALF_UP)` 而非裸 `round`：
+      · 裸 `round` 是**银行家舍入**（0.5→0 / 1.5→2），而本包域里**真有两格平局**
+        （`EQUIP_PREFIX_FLAVOR` 的 0.005 → 0.5%），会把玩家看到的加成印成 `0%`；
+      · 裸 `floor(x*100 + 0.5)` 在 float 误差上会翻车（0.145*100 = 14.4999… → 14）。
+    """
+    return str(int(Decimal(str(float(v) * 100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)))
+
+
+
 # v135 装备特色增强：词条特色标签（装备详情面板展示）
 # 按词条 trigger/effect 关键词归类，让玩家一眼看出这件装备的战斗性格
 # ★ D5：21 行规则表 → 包内 `content/rules/affix_feature_rules.json` 域（读口 = 引擎既有
@@ -416,7 +445,7 @@ def _render_equip(d, lines, equipped):
     for k, v in st.items():
         if v:
             label = stat_names.get(k, k)
-            stat_lines.append(f"{label} + {int(v * 100)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
+            stat_lines.append(f"{label} + {_pct_str(v)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
     if stat_lines:
         # v101.21 排版：属性每项单独一行（鱼鱼：属性+两边空格+换行，别挤一行）
         lines.append(_T.static("item.eq_stats"))
@@ -428,7 +457,7 @@ def _render_equip(d, lines, equipped):
         if isinstance(af, dict):  # 旧结构兼容
             k, v = af.get("stat"), af.get("value", 0)
             label = stat_names.get(k, k)
-            aff_lines.append(f"{label} + {int(v * 100)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
+            aff_lines.append(f"{label} + {_pct_str(v)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
             continue
         info = _cit.AFFIXES.get(af)
         if info:
@@ -466,7 +495,7 @@ def _render_equip(d, lines, equipped):
         else:
             k, v = en.get("stat"), en.get("value", 0)
             label = stat_names.get(k, k)
-            ench_lines.append(f"{label} + {int(v * 100)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
+            ench_lines.append(f"{label} + {_pct_str(v)}%" if k in _ccore.PCT_STATS else f"{label} + {v}")
     _slots = _b143.ENCHANT_SLOTS.get(d.get("quality", ""), 0)
     if _slots:
         lines.append(_T.text("item.eq_slots", used=len(d.get('enchant', [])), total=_slots))
@@ -480,7 +509,7 @@ def _render_equip(d, lines, equipped):
         if sinfo:
             # v105 M07 P3-3：新套 4 件效果在 bonus_4_stats（旧套在 bonus_4.desc），
             # 拼装展示，杜绝「🌳橡木套()」空括号
-            b4_parts = [f"{_STAT_NAMES.get(k, k)}+{int(v * 100)}%"
+            b4_parts = [f"{_STAT_NAMES.get(k, k)}+{_pct_str(v)}%"
                         for k, v in sinfo.get("bonus_4_stats", {}).items()]
             b4d = sinfo.get("bonus_4", {}).get("desc", "")
             if b4d:
@@ -3174,7 +3203,7 @@ class EconomyImpl(CommandBase):
         for it in gems:
             gd = it["data"]
             stats_str = "、".join(
-                f"{_SNAMES.get(k, k)}+{int(v * 100)}%" for k, v in (gd.get("stats") or {}).items())
+                f"{_SNAMES.get(k, k)}+{_pct_str(v)}%" for k, v in (gd.get("stats") or {}).items())
             need = "蓝孔" if gd.get("tier", 1) <= 2 else ("紫孔" if gd.get("tier", 1) <= 4 else "橙孔")
             lines.append(_T.text("gem.view_row", name=gd['name'], count=it['count'], tier=gd.get('tier', '?'),
                              stats=stats_str, need=need))
@@ -3835,7 +3864,7 @@ class EconomyImpl(CommandBase):
             # F1 P0-1：背包格原子写回（替代 remove+add 两步非原子替换）
             db.update_item_data(group_id, qq_id, target["key"], d)
         sn = _STAT_CN                      # ★ B 批 B-1：真源 = 文案表 stat_name.*
-        val_str = _T.text("enhance.val_pct", pct=int(v * 100)) if stat_key in _ccore.PCT_STATS else _T.text("enhance.val", v=v)
+        val_str = _T.text("enhance.val_pct", pct=_pct_str(v)) if stat_key in _ccore.PCT_STATS else _T.text("enhance.val", v=v)
         big_str = _T.static("enhance.big_success") if big else ""
         # 阶段九：附魔次数 + 成就判定
         db.bump_stats(group_id, qq_id, enchant_count=1)
@@ -3982,7 +4011,7 @@ class EconomyImpl(CommandBase):
                 b2 = b2_raw.get("desc", "") or ""
             else:
                 b2 = "  ".join(
-                    _T.text("setview.bonus_stat", sn=sn, pct=int(v * 100))
+                    _T.text("setview.bonus_stat", sn=sn, pct=_pct_str(v))
                     for k, v in b2_raw.items()
                     if isinstance(v, (int, float)) and not isinstance(v, bool)
                     for sn in [_STAT_CN.get(k, k)]
@@ -3991,7 +4020,7 @@ class EconomyImpl(CommandBase):
             b4_parts = []
             for k, v in info.get("bonus_4_stats", {}).items():
                 sn = _STAT_CN.get(k, k)
-                b4_parts.append(_T.text("setview.bonus_stat", sn=sn, pct=int(v * 100)))
+                b4_parts.append(_T.text("setview.bonus_stat", sn=sn, pct=_pct_str(v)))
             b4_desc = info.get("bonus_4", {}).get("desc", "")
             if b4_desc:
                 b4_parts.append(b4_desc)
@@ -5800,14 +5829,14 @@ class EconomyImpl(CommandBase):
                 if v:
                     label = _stat_names.get(k, k)
                     if k in _ccore.PCT_STATS:
-                        lines.append(f"      · {label} + {int(v * 100)}%")
+                        lines.append(f"      · {label} + {_pct_str(v)}%")
                     else:
                         lines.append(f"      · {label} + {v}")
             for af in item.get("affixes") or []:
                 if isinstance(af, dict):
                     k, v = af.get("stat"), af.get("value", 0)
                     label = _stat_names.get(k, k)
-                    lines.append(f"      · {label} + {int(v * 100)}%" if k in _ccore.PCT_STATS else f"      · {label} + {v}")
+                    lines.append(f"      · {label} + {_pct_str(v)}%" if k in _ccore.PCT_STATS else f"      · {label} + {v}")
                     continue
                 info = _cit.AFFIXES.get(af)
                 if info:
@@ -5973,7 +6002,7 @@ class EconomyImpl(CommandBase):
                 diff = st[k] - old_stats[k]
                 if abs(diff) >= 1e-9:
                     if k in _ccore.PCT_STATS:
-                        diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(diff*100))}%")
+                        diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(_pct_str(diff)))}%")
                     else:
                         diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(diff))}")
         # v101.21b 排版：每项一行 + 两侧空格，不显示当前属性
@@ -6031,7 +6060,7 @@ class EconomyImpl(CommandBase):
             diff = st[k] - old_stats[k]
             if abs(diff) >= 1e-9:
                 if k in _ccore.PCT_STATS:
-                    diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(diff*100))}%")
+                    diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(_pct_str(diff)))}%")
                 else:
                     diff_parts.append(f"{label} {'+' if diff > 0 else '-'} {abs(int(diff))}")
         q = _b143.QUALITY[item["quality"]]
