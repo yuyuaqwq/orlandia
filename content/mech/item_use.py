@@ -405,6 +405,11 @@ _SHIELD_KINDS = {
 #   ↳ op 必须 `"add"`（`mult` 在引擎里是**加成的比例**，不是乘数）。
 # 键名同源 = `content/rules/panel_rules.json`、`optional_stats.json`。
 _PANEL_SNAPSHOT_KINDS = {
+    # C-R2.28：`heal_up`（圣光药剂）—— 治疗技能效果 +pct。落点 = 面板 `heal_power`
+    #   （`panel_rules.pct_stats` 名单源内、值 0.0-1.0 比例），
+    #   引擎读点 `actions._do_heal`：`min(st["heal_power"], heal_power_cap())` → `heal×(1+v)`。
+    #   与上列 8 族同手法（op="add" 参数直传）；不能走查表（门禁档三钉住）。
+    "heal_up": "heal_power",
     "dodge_pot": "dodge",
     "block_pot": "block",
     "crit_dmg_pot": "crit_dmg",
