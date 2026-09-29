@@ -5139,7 +5139,9 @@ class EconomyImpl(CommandBase):
             _qb = " ".join("{}{}".format(_b143.QUALITY[q]["color"], _qcnt[q]) for q in _b143.QUALITY_ORDER if _qcnt[q])
             _reps = []
             for _q in _b143.QUALITY_ORDER:
-                _pool = sorted((r for r in _items if r.get("quality") == _q), key=lambda r: -r.get("lv", 0))
+                # ★ 并列 lv 加 name 作次级键（否则并列那组「取最高一件」由插入序决定）
+                _pool = sorted((r for r in _items if r.get("quality") == _q),
+                                key=lambda r: (-int(r.get("lv", 0) or 0), str(r.get("name", ""))))
                 if not _pool:
                     continue
                 _top = _pool[0]
@@ -5179,7 +5181,8 @@ class EconomyImpl(CommandBase):
                                      names="、".join(_names)))
                 continue
             # 大分类：数量 + 每类代表性 3 个（价格降序即稀有度观感，稳定且不随插入序漂移）
-            _rep = sorted(_names, key=lambda n: -int(_cit.MATERIALS_BY_NAME[n].get("price", 0)))[:3]
+            # ★ 并列价加 name 作次级键：截断点并列时「取前 3」才真的稳定（否则随插入序漂移）
+            _rep = sorted(_names, key=lambda n: (-int(_cit.MATERIALS_BY_NAME[n].get("price", 0)), n))[:3]
             lines.append(_T.text("ency.mat_row_rep", cat=_t, n=_cnt, names="、".join(_rep)))
         lines.append("━━━━━━━━━━━━")
         lines.append(_T.static("ency.mat_tip"))
