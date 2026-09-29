@@ -267,7 +267,7 @@ FROZEN_COUNTS = {
     #   `test_command_parse.py:28` / `test_v1304_use_batch.py:29`）。文件顶层仍是 **196 键**
     #   （`content/data/commands.json`），本轮只统一「私有键不算条目」的口径，不改数据、不改指令行为。
     "commands": 195, "events": 146, "monster_mods": 140, "maps": 121, "worlds": 121,
-    "achievements": 119, "item_templates": 99, "effect_rules": 105, "affixes": 76,
+    "achievements": 119, "item_templates": 99, "effect_rules": 106, "affixes": 76,
     "gather_pools": 68, "guild": 4, "instances": 27, "classes": 8, "races": 6,
     "pets": 16, "runes": 16, "passive_proc": 42, "dialogues": 39, "titles": 68,
 }

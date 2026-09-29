@@ -593,6 +593,12 @@
       "spd": 0.01
     }
   },
+  "mortal_wound": {
+    "cap": 1,
+    "tag": "mortal_wound",
+    "negative": true,
+    "lifesteal_mult": 0.5
+  },
   "poison": {
     "cap": 5,
     "on": "target",
