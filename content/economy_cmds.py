@@ -4371,12 +4371,19 @@ class EconomyImpl(CommandBase):
         return "其他"
 
     def _norm_item_key(self, k, data):
-        """展示用：把背包 key 归一化（装备 uuid → 原型 eq_）。复用 store 层解析。"""
-        try:
-            _possessed_key = _h('_possessed_key')  # ← from ..store.inventory import _possessed_key
-            return _possessed_key(k, data)
-        except Exception:
-            return k
+        """展示用：把背包 key 归一化（装备 uuid → 原型 eq_）。复用 store 层解析。
+
+        审计 L4378：`except Exception: return k` 把取件器的 **fail-closed 整个吞掉** ——
+        未装配时回原 key ⇒ 展示名把「装备实例 uuid」原样打给玩家（满屏 uuid），
+        而代码路径毫无痕迹（与 L5614 存档回读 / L5577 印记层数同族）。
+
+        `_h` 是 `economy_host` 的 fail-closed 取件器（缺件抛 `WireMissing` 并点名），
+        `'_possessed_key'` 已在 `facade._BIND_SLOTS` 的「① 自由键登记处」面内 ⇒
+        正常装配**不缺件**，宽异常在此**零收益**、只负责盖住装配缺陷。
+        收口 = 删兜底：缺件直接抛（点名是哪个键），不静默给玩家看 uuid。
+        """
+        _possessed_key = _h('_possessed_key')  # ← from ..store.inventory import _possessed_key
+        return _possessed_key(k, data)
 
     @declared("bestiary")
     @require_player()
