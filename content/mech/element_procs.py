@@ -39,6 +39,7 @@ from ext_combat.battle.effect_triggers import EVENTS as _ENGINE_EVENTS
 
 from .. import texts as _T              # 文案表（C 档 PRE3-a：mech 散件句壳 → 单源）
 from .element_data import ELEMENT_REACTIONS   # 审计 L5577：反应表提模块顶层单源取件（无循环依赖，已双向 import 验证）
+from ext_combat.battle import now_of            # 审计 L5578 同族：公开读口（避免读私槽 + 吞异常）
 
 # 印记 key（元素 → 印记）
 ELEMENT_MARKS = {"fire": "fire_mark", "ice": "ice_mark", "thunder": "thunder_mark"}
@@ -88,13 +89,30 @@ def _element_of(info: dict, actor: dict) -> str:
 
 
 def _mark_of(target: dict, mark_key: str) -> int:
+    """元素印记层数（`effects[mark_key].stacks`；小数保真取整）。
+
+    ★ 审计 L5577 同族（2026-09-29）：原实现是 `except Exception: return 0` ——
+    把「`stacks` 读坏了」压成**与「没有这枚印记」完全同一个 0**。
+    后果是元素反应整族静默失效且零痕迹：印记明明挂上了（`stacks` 是脏值），
+    消费点 `_mark_of(...) > 0` 全部判否 ⇒ 反应不触发、清印不执行，
+    玩家看到「元素打上去没反应」，日志与探针一片正常。
+    收窄为 `(TypeError, ValueError)`（与 `team_procs._norm_pct` / `worldboss` / `L5618` 同一收口口径）：
+    数值脏值（`"abc"` / 不可转的容器）仍回落 0（**战斗不炸** —— 一场战斗不该因一个脏字段崩），
+    但**范围被收窄了**：原来被宽异常一并盖住的 `AttributeError` / `KeyError` / `RuntimeError`
+    （真·代码缺陷）现在会**当场上抛**，不再混进「合法 0」那条静默路径。
+    ★ 另把 `raw is None or raw == ""` 提前判掉：`stacks` 合法值域是**正整数层数**，
+      缺键/空串本来就该是 0，不必进 try。
+    """
     e = (target or {}).get("effects") or {}
     entry = e.get(mark_key)
     if not isinstance(entry, dict):
         return 0
+    raw = entry.get("stacks", 0)
+    if raw is None or raw == "":
+        return 0
     try:
-        return int(float(entry.get("stacks", 0) or 0))
-    except Exception:
+        return int(float(raw))
+    except (TypeError, ValueError):
         return 0
 
 
@@ -124,8 +142,8 @@ def _reaction_of(element: str, target: dict) -> dict:
             continue
         try:
             need = int(r.get("min_layers", 1) or 1)
-        except Exception:
-            need = 1
+        except (TypeError, ValueError):
+            need = 1        # 门槛脏值 → 退回 1（不卡住反应）；非数值型则上抛
         if n >= need:
             return r
     return {}
@@ -158,8 +176,8 @@ def elem_reaction(battle, caster, target, params, logs):
     try:
         _m0 = r.get("mult", 1.0)
         mult = 1.0 if _m0 is None else float(_m0)   # ★ 2026-09-29 审计 L246 同族：只认 None
-    except Exception:
-        mult = 1.0
+    except (TypeError, ValueError):
+        mult = 1.0      # 脏倍率 → 无强化（战斗不炸）；非数值型则上抛
     if mult != 1.0:
         ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * mult
     name = r.get("name") or "元素反应"
@@ -184,11 +202,10 @@ def elem_reaction(battle, caster, target, params, logs):
 
 def _apply_freeze(battle, tgt: dict, logs) -> None:
     """反应附带冻结：写控制态（mode=skip，1.5 刻 → 取整 2 刻）。"""
-    try:
-        from ext_combat.battle import now_of
-        now = float(now_of(battle) or 0)
-    except Exception:
-        now = float(getattr(battle, "_now", 0) or 0)
+    now = float(now_of(battle) or 0)   # ★ 审计 L5578 同族（2026-09-29）：原来这里是
+    # 「惰性 import + 宽异常 + 回落私槽 `_now`」，而公开读口 `now_of` 的实现**逐字**就是
+    # `float(getattr(battle, "_now", 0) or 0)` ⇒ 那条 except 分支与公开读口同值、纯冗余兜底。
+    # 改走模块顶层单源取件（与 `team_procs._now` 同一手法），缺件在 import 期 fail-closed。
     ef = tgt.setdefault("effects", {})
     old = ef.get("freeze") or {}
     old_exp = float(old.get("expire", 0) or 0) if isinstance(old, dict) else 0.0
