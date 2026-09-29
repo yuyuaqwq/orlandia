@@ -6189,11 +6189,14 @@ class EconomyImpl(CommandBase):
                 yield event.plain_result(_T.static("bt.stale_explore"))
                 return
             # I4：from_state 后注入道具行动回调（action_override 不可序列化）
-            try:
-                make_override = _h('make_override')  # ← from .battle_item_use import make_override
-                b.action_override = make_override()
-            except Exception:
-                b.action_override = None
+            # 审计 L6188：原为 `except Exception: b.action_override = None` —— 吞掉取件器的
+            # fail-closed 之后，引擎遇 `use_item` 回落「未知行动类型」：**不占刻不扣道具**，
+            # 玩家在战斗里用道具「没反应」，而战斗照常推进、无任何日志/报错。
+            # （`mech/item_use.py::make_override` docstring 写明 logs=None = 未消费。）
+            # `'make_override'` 已在 `facade._BIND_SLOTS` 登记 ⇒ 正常装配不缺件，
+            # 宽异常在此零收益、只负责盖住装配缺陷 ⇒ 删兜底，让缺件当场点名抛出。
+            make_override = _h('make_override')  # ← from .battle_item_use import make_override
+            b.action_override = make_override()
             ctx = IT.ItemContext(group_id, qq_id, player, d, battle=battle["state"], hooks=hooks)
             r = IT.TEMPLATES[tpl_name](ctx)
             if not r.consume:
