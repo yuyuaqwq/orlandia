@@ -131,7 +131,10 @@ print("   战斗内可翻译 %d 件 · **被拦下 %d 件**" % (live, len(blocke
 #   不是判据放松：本条针对**当前真实缺口清单**，
 #   接线使缺口变小是**事实推进**，不是判据失效。
 #   判据只跟着事实走，**断言强度未变**（仍是精确等值，不是「≤ 35」那种允许集合）。
-check("被拦下的件数 = 32（C-R2.29A execute_pot 接线后基线）", len(blocked) == 32, len(blocked))
+# ★ C-R2.29B（2026-09-29）：`mana_cost_down` 接入**消耗折扣族**（第四种形状，
+#   落 `bonus.cost.mp_pct` + `effect_expire` 到期归零）⇒ **32 → 31**（-1）。
+#   实跑 = 战斗内可翻译 64 / 被拦下 31（正是本件接的那 1 件）。
+check("被拦下的件数 = 31（C-R2.29B mana_cost_down 接线后基线）", len(blocked) == 31, len(blocked))
 _molten = [b for b in blocked if b[0] == "i_molten_core"]
 check("熔核之心在名单内（承 C-R2.23）", len(_molten) == 1, _molten)
 check("熔核之心的 payload = special:restore_resource_full:{...}",
@@ -211,7 +214,7 @@ if FAILS:
     print("★ 失败 %d 项：%s" % (len(FAILS), " / ".join(FAILS)))
 else:
     print("全绿。")
-    print("  ⇒ 战斗中 32 件战斗药水仍被 can_translate 拦下 ⇒ 玩家吃到 use.not_migrated。")
+    print("  ⇒ 战斗中 %d 件战斗药水仍被 can_translate 拦下 ⇒ 玩家吃到 use.not_migrated。" % len(blocked))
     print("  ⇒ 熔核之心的减伤是**第二层**病（第一层：机制压根没被调用）。")
     print("  ⇒ 本批**只加门禁**：接线是内容侧设计决定（走哪条路 / 数值口径），需单独立项。")
 sys.exit(1 if FAILS else 0)

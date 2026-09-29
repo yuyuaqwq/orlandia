@@ -152,7 +152,8 @@ def can_translate(payload: str) -> bool:
         if (_kind in _EFFECT_ACTION_KEYS or _kind in _SHIELD_KINDS
                 or _kind in _PANEL_SNAPSHOT_KINDS
                 or _kind in _EXPIRE_EXTEND_KINDS
-                or _kind in _MULTIPLIER_TRIGGER_KINDS):
+                or _kind in _MULTIPLIER_TRIGGER_KINDS
+                or _kind in _COST_DISCOUNT_KINDS):
             return True
         # 其余机制型 special → 缺口
         return False
@@ -471,6 +472,39 @@ _MULTIPLIER_TRIGGER_KINDS = {
 _MULTIPLIER_TRIGGER_TTL_KEY = "potion_execute_window"
 
 
+# 消耗折扣族（C-R2.29B）：payload kind → 写 `actor["bonus"]["cost"]` 的 mp_pct。
+# ★ 本族是**第四种形状**，与前三族都不同 —— 落点既不是 effects 条目、也不是 triggers
+#   乘区声明，而是引擎**已有的消耗折算容器** `bonus.cost`：
+#     引擎读点 `actions._skill_pay_of`（+ `_skill_usable` 预检同源）：
+#       `out["mp"] = max(1, int(_dmp * (1.0 - min(max(mp_pct,0),0.99))) - mp_flat)`
+#     技能费声明（`info["mp"]`）是**每条技能的真源**，折扣只作用在折算点 ⇒
+#     改一个容器即可对全技能生效，无需逐技能改声明。
+#   同一容器的另一半 `bonus.cap` 由 `apply_class_passives` 在**开战装配期**写
+#   （职业被动 proc）—— 那是「学会即永久」，天生无到期需求；本族是**战斗中喝药**，
+#   必须有到期 ⇒ 见下方 TTL 真源。
+#
+# ★ 为什么到期不需动引擎（**本件推翻台账 §0.40 的「需先定形状」前置**）：
+#   台账写「`bonus.cost` 容器无到期机制 ⇒ 需引擎立项或先定形状」。逐条现取后该前提
+#   **不成立** —— 到期是一个**通用事件**，不只服务 effects 条目：
+#     · 引擎 `EVENTS`（effect_triggers.py:53）已含 `effect_expire`
+#     · `schedule._settle_time_effects`（:594-599）真跑 fire("effect_expire",
+#       ctx={"actor": a, "target": a, "key": key})，**带到期条目的 key**
+#   ⇒ 正确做法 = 折扣本体落 effects 里的**无 stat 纯状态 TTL 条目**
+#     （`_COST_DISCOUNT_TTL_KEY`），到期时由 `effect_expire` 钩子把
+#     `bonus.cost.mp_pct` 归零。**纯内容侧，引擎零改动。**
+#   ⚠️ 这比台账给的两个口径都好：①（每次行动挂 turn_start 钩子跑「过期即清」）
+#     每回合多跑一次全 actor 扫描；本件只在**真到期那一次** fire。
+#
+# ⚠️ 幂等：同 kind 再喝 = 只顺延 TTL（复用已有折扣值，不叠第二份 pct）。
+#   与乘区触发族同纪律，但**不能 mount 重挂**（那会把 mp_pct 加两遍）——
+#   本族是「容器内一个标量字段」，顺延 expire 即可，声明不重挂。
+_COST_DISCOUNT_KINDS = {
+    # kind: (pct 取值字段, turns 取值字段, 窗口 TTL 键后缀)
+    "mana_cost_down": ("pct", "turns", "mana_cost"),
+}
+_COST_DISCOUNT_TTL_KEY = "potion_cost_window"
+
+
 def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                        recover: float):
     """special 分诊：EFFECT_ACTIONS 直映射 / shield 动词 / 缺口 None。"""
@@ -586,5 +620,62 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                         "turns": _turns, "on": "caster"}], [])
         logs.append(_T.text("iu.execute_pot", hp_th=int(_thr * 100), pct=int(_pct * 100)))
         return logs, cast, recover
+    # 6. 消耗折扣族（C-R2.29B）—— 写 `bonus.cost.mp_pct`，引擎 _skill_pay_of 折算
+    if kind in _COST_DISCOUNT_KINDS:
+        _pct_f, _turns_f, _sfx = _COST_DISCOUNT_KINDS[kind]
+        _ed = value if isinstance(value, dict) and value else             (_load_potion_defaults().get(kind) or {})
+        _pct = float(_ed.get(_pct_f, 0.0) or 0.0)
+        _turns = int(_ed.get(_turns_f, 3) or 3)
+        if _pct <= 0:
+            return None
+        from ext_combat.battle.battle import _now_of
+        from ext_combat.battle.effects import apply_effects
+        _now = _now_of(battle)
+        _tk = "%s_%s" % (_COST_DISCOUNT_TTL_KEY, _sfx)
+        _bonus = actor.setdefault("bonus", {})
+        _cost = _bonus.setdefault("cost", {})
+        _old = (actor.get("effects") or {}).get(_tk) or {}
+        _oexp = float(_old.get("expire", 0) or 0)
+        if _oexp > 0 and _oexp > _now:
+            # 窗口仍在 ⇒ 只顺延到期，**不重写 mp_pct**（重写会把折扣叠成两倍）
+            apply_effects(battle, actor, actor,
+                          [{"action": "apply", "key": _tk,
+                            "turns": _turns, "on": "caster"}], logs)
+            logs.append(_T.text("iu.cost_window", turns=_turns))
+            return logs, cast, recover
+        _cost["mp_pct"] = float(_cost.get("mp_pct", 0) or 0) + _pct
+        # TTL 条目 = 折扣窗口的唯一真源；无 stat，故引擎面板不读它
+        apply_effects(battle, actor, actor,
+                      [{"action": "apply", "key": _tk,
+                        "turns": _turns, "on": "caster"}], logs)
+        logs.append(_T.text("iu.mana_cost_down", pct=int(_pct * 100),
+                            turns=_turns))
+        return logs, cast, recover
     # 6. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None
+
+# ============================================================
+# 消耗折扣族（C-R2.29B）· 到期清折扣钩子
+# ============================================================
+def install_cost_discount_expire(actor: dict) -> None:
+    """给 actor 挂 `effect_expire` 声明：折扣 TTL 条目到期时把 mp_pct 归零。
+
+    ★ 为什么是这条事件而不是「每次行动查一遍」（台账 §0.40 给的口径①）：
+      `schedule._settle_time_effects` 在**真到期那一次** fire("effect_expire")，
+      带着到期条目的 `key` ⇒ 本钩子零成本、零轮询；口径①要每回合扫全部 actor。
+    ★ 为什么不需要「扣除已生效的量」而能直接归零：本族是**一个标量字段**，
+      加它只有本族一处（`_translate_special` 分支 6），没有第二个写点
+      ⇒ 到期时 `bonus.cost` 里的 `mp_pct` 除了本族无人写，直接置 0 即精确。
+      ⚠️ 这条推论的前提已由门禁钉住（档五：容器里除本族外无其他 mp_pct 写点）。
+      ⚠️ `apply_class_passives` 写的 `bonus.cost`（职业被动）**只在开战装配期**跑，
+      与本族不在同一时刻 ⇒ 战斗中期归零不会抹掉被动折扣。
+    """
+    if not isinstance(actor, dict):
+        raise TypeError("actor 必须是 dict")
+    from ext_combat.battle.declarations import Compiler as _Compiler
+    from ext_combat.battle.effect_triggers import EVENTS as _EVENTS
+    _c = _Compiler(events=_EVENTS, key_of=lambda d: d.get("key"),
+                   owner_key="_owner")
+    _c.mount(actor, {"effect_expire": [
+        {"type": "we_cost_discount_expire", "key": "potion_cost_window",
+         "tag": "💧减耗到期"}]}, merge="replace")

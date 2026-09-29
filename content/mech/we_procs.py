@@ -1545,6 +1545,33 @@ def we_affix_purify(battle, caster, target, params, logs):
         logs.append(_T.text("we.purify_holy_weaken", pct=int(wk * 100)))
 
 
+# ★ C-R2.29B（消耗折扣族）· 到期清折扣动作
+# 落点 = `actor["bonus"]["cost"]["mp_pct"]`（引擎 `actions._skill_pay_of` 折算点）。
+# 事件 = `effect_expire`（引擎 `schedule._settle_time_effects` 在**真到期那一次**
+# fire，带 ctx["key"] = 到期条目键）⇒ 本动作零轮询、零 per-turn 扫描。
+# ⚠️ 与前 27 个动作的性质差异：那 27 个是**真源逐字拷贝**；本条是 C 车道**新写**的
+#    （无游戏仓真源可抄），故 docstring 写清推导链，便于日后核对。
+@register_action("we_cost_discount_expire")
+def we_cost_discount_expire(battle, caster, target, params, logs):
+    """折扣窗口到期 → `bonus.cost.mp_pct` 归零（战斗内减耗药水用）。
+
+    与 `_translate_special` 分支 6 成对：那边加、这边到点清。
+    逐 key 归位（窗口键带族后缀）⇒ 多族共存只清到期的那一族。
+    """
+    key = str((getattr(battle, "_fire_ctx", None) or {}).get("key") or "")
+    from .item_use import _COST_DISCOUNT_TTL_KEY
+    if not key.startswith(_COST_DISCOUNT_TTL_KEY):
+        return
+    _actor = target if isinstance(target, dict) else caster
+    if not isinstance(_actor, dict):
+        return
+    _cost = ((_actor.get("bonus") or {}).get("cost")) or {}
+    if "mp_pct" not in _cost:
+        return
+    _cost["mp_pct"] = 0.0
+    logs.append(_T.text("iu.cost_expired"))
+
+
 # ★ B10-L1（2026-09-13）**逐字端口回填**：下面这一段（banner + `_INSTALLED` +
 #   `ensure_registered()`）抄自游戏仓 `game/services/battle_we_procs.py:1481-1494`，
 #   与真源**逐字相同**（函数体/文案/注释一字未改）。
