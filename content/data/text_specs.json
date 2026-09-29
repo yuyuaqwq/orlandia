@@ -12116,6 +12116,24 @@
     "category": "道具使用",
     "desc": "C-R2.29B 消耗折扣族（mana_cost_down 写 bonus.cost.mp_pct · 引擎 _skill_pay_of 折算）"
   },
+  "iu.mana_full": {
+    "params": [
+      "mp",
+      "mx"
+    ],
+    "value": "`💙` 你的魔力已满({mp}/{mx})，用不着再回蓝。",
+    "category": "道具使用",
+    "desc": "回蓝药水在满蓝时不给「恢复 0 点」那种丑回执（不含 real 槽位：满蓝时没有增量）"
+  },
+  "iu.mana_restore_cost": {
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "value": "`💧` 圣泉之流生效——{turns} 刻内技能魔力消耗 -{pct}%！",
+    "category": "道具使用",
+    "desc": "圣泉源泉瓶的减耗那半（C-R2.30 第 5 族，与 mana_cost_down 同族同容器）"
+  },
   "iu.mult_window": {
     "value": "⏳ 增益窗口延长——{turns} 刻！",
     "params": [

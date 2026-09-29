@@ -71,6 +71,7 @@ from .mech import element_procs as _element_procs  # 元素反应/克制/流转�
 from .mech import equip as _equip                # 装备/词条/武器特效 → triggers + bonus 分域
 from .mech import params as P
 from .mech import food_proc as _food_proc       # 食物效果装配（B8 端口，真源 game/services/battle_food_proc.py）
+from .mech import item_use as _item_use           # 消耗品战斗内分诊（C-R2.30 接线用）
 from .mech import team_procs as _team_procs      # 团队/面幅（20）
 from .mech import we_procs as _we_procs          # 武器/词条特效（27）
 from .mech import worldboss as _worldboss        # 世界 Boss GM 增伤（1）
@@ -409,6 +410,12 @@ def apply_game_content(actor: dict, ctx: dict | None = None) -> dict:
     _step("bar", _bar_procs.apply_bar_procs, actor)
     _step("cond", _cond_procs.apply_cond_procs, actor)
     _step("element", _element_procs.apply_element_procs, actor)
+    #   ⑤c 消耗品折扣窗口到期钩子（C-R2.30 补 C-R2.29B 的**漏接线**）：
+    #   29B 造了 `install_cost_discount_expire`，但全仓只有它自己的门禁测试调它
+    #   ⇒ 生产装配链里没人挂 ⇒ `effect_expire` 声明永不进 actor.triggers
+    #   ⇒ **减耗窗口在真实战斗里永不到期**（真缺陷，靠静态查调用方逮到，不是自省）。
+    #   幂等（Compiler mount merge="replace"）⇒ 重复装配无副作用。
+    _step("item_use_expire", _item_use.install_cost_discount_expire, actor)
     aids = (ctx or {}).get("aids")
     if aids:
         _step("food", _food_proc.install_food_fx, actor, list(aids),

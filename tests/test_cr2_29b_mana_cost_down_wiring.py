@@ -131,7 +131,13 @@ if _H is not None:
     b3, a3, _l3, _ = _act()
     IU.install_cost_discount_expire(a3)
     rows = (a3.get("triggers") or {}).get("effect_expire") or []
-    check("5.8 install mounted effect_expire declaration", len(rows) == 1, rows)
+    # ★ C-R2.30：本钩子现按**族**各挂一行（第 5 族 mana_restore 加入同一容器）
+    #   ⇒ 精确等值锚点 1 -> 2（未放宽：仍不许 >2，也不改成 'any'）。
+    _keys = [r.get("key") for r in rows]
+    check("5.8 install mounted one effect_expire row per cost family",
+          len(rows) == 2, rows)
+    check("5.8b this family's row is among them",
+          (TTL_KEY + "_mana_cost") in _keys, _keys)
     b3._fire_ctx = {"actor": a3, "target": a3, "key": TTL_KEY + "_mana_cost"}
     _out = []
     _H(b3, a3, a3, dict(rows[0]) if rows else {}, _out)

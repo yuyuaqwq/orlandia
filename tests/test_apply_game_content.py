@@ -36,6 +36,7 @@ from ext_combat.battle import game_config as _b2c   # 游戏配置取件面（�
 from _engine_harness import boot as _eng_cfg; _eng_cfg()  # ★ P5C-REPOINT：宿主装配壳已删 → 测试侧引擎通道装配口
 from ext_combat import make_actor
 from _engine_harness import C  # ★ P5C-REPOINT：包内聚合门面（原 game.content）
+from content.mech import item_use as IU   # noqa: E402  C-R2.30 parallel path parity
 from content import apply as APPLY  # ★ P5C-REPOINT：装配入口真源 = 包内 content.apply（宿主壳已删）
 from content.mech import bar_procs as BAR  # ★ B18-REPOINT：直取包内实现本体（宿主同名壳不再被测试引用）
 from content.mech import cond_procs as COND  # ★ P5C-REPOINT：直取包内真源（原 battle_cond_procs）
@@ -168,6 +169,11 @@ def apply_old(a):
         pass
     EP.apply_to_actor(a)
     CM.apply_class_mech(a)
+    # C-R2.30: the single entrypoint gained step 5c (cost-discount expiry hook),
+    # so the parallel-caller path gets the same step. The E gate protects
+    # "both paths build the SAME actor", not the step list -- byte-exact
+    # equality is kept, not weakened to a subset.
+    IU.install_cost_discount_expire(a)
     return a
 
 

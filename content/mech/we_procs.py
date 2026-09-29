@@ -1559,8 +1559,15 @@ def we_cost_discount_expire(battle, caster, target, params, logs):
     逐 key 归位（窗口键带族后缀）⇒ 多族共存只清到期的那一族。
     """
     key = str((getattr(battle, "_fire_ctx", None) or {}).get("key") or "")
-    from .item_use import _COST_DISCOUNT_TTL_KEY
-    if not key.startswith(_COST_DISCOUNT_TTL_KEY):
+    from .item_use import _COST_DISCOUNT_TTL_KEY, _COST_DISCOUNT_KINDS
+    from .item_use import _MANA_RESTORE_KINDS
+    # 逐族后缀 -> 族（key 形如 potion_cost_window_<族后缀>）
+    _sfx_of = {v[2]: k for k, v in _COST_DISCOUNT_KINDS.items()}
+    _sfx_of.update({v[3]: k for k, v in _MANA_RESTORE_KINDS.items()})
+    if not key.startswith(_COST_DISCOUNT_TTL_KEY + "_"):
+        return
+    _sfx = key[len(_COST_DISCOUNT_TTL_KEY) + 1:]
+    if _sfx not in _sfx_of:
         return
     _actor = target if isinstance(target, dict) else caster
     if not isinstance(_actor, dict):
@@ -1568,7 +1575,13 @@ def we_cost_discount_expire(battle, caster, target, params, logs):
     _cost = ((_actor.get("bonus") or {}).get("cost")) or {}
     if "mp_pct" not in _cost:
         return
-    _cost["mp_pct"] = 0.0
+    # ★ C-R2.30：改为**按本族精确清退**，不再整字段置 0。
+    #   原写法 `_cost["mp_pct"] = 0.0` 的前提是「本族是唯一写点」（§0.41）——
+    #   本件新增第 5 族（mana_restore）后该前提**失效**：两族共用同一字段，
+    #   置 0 会把另一族仍在生效的折扣一起清掉（真缺陷）。
+    #   退掉本族在账本里的那一笔即精确（见 item_use._pop_ledger_pct 的前提钉）。
+    from .item_use import _pop_ledger_pct
+    _pop_ledger_pct(_cost, _sfx)
     logs.append(_T.text("iu.cost_expired"))
 
 

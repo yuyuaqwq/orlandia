@@ -153,7 +153,8 @@ def can_translate(payload: str) -> bool:
                 or _kind in _PANEL_SNAPSHOT_KINDS
                 or _kind in _EXPIRE_EXTEND_KINDS
                 or _kind in _MULTIPLIER_TRIGGER_KINDS
-                or _kind in _COST_DISCOUNT_KINDS):
+                or _kind in _COST_DISCOUNT_KINDS
+                or _kind in _MANA_RESTORE_KINDS):
             return True
         # 其余机制型 special → 缺口
         return False
@@ -505,6 +506,76 @@ _COST_DISCOUNT_KINDS = {
 _COST_DISCOUNT_TTL_KEY = "potion_cost_window"
 
 
+# ============================================================
+# 第 5 族 · 回蓝 + 消耗折扣（C-R2.30 `mana_restore`）—— 两半一次做完
+# ============================================================
+# ★ 为什么「回蓝」半不需要引擎立项（台账 §0.40 / §0.41 给的前置再次不成立）：
+#   台账写「回蓝 % 那半需 mp 写口（引擎 actions.py:338 有读无写同族）」。
+#   逐条现取后该前提不成立 —— `ATTR.set_current(actor, "mp", ...)` **是活的写口**：
+#     · extends/ext_combat/battle/attributes.py:109 `set_current` = 唯一写口
+#     · schedule.py:538 / :774 / :786（自然回蓝与 hot 持续回蓝）**真在跑它**
+#   ⇒ 且它自带上限边界（`_clamp` → `ceiling` → `max_mp`）⇒ 本族直接调它，
+#     上限与两条既有回蓝路径**逐字同一套**（引擎写口，不另写 min()）。
+#   ⇒ 纯内容侧，引擎零改动。
+#
+# ★ 为什么 §0.41 那句「本族是一个标量字段、除本族外无第二写点」现在**不成立**了：
+#   本族（mana_restore）与消耗折扣族（mana_cost_down）**共用** `bonus.cost.mp_pct`，
+#   是两个写点 ⇒ 29B 到期钩子里那句 `_cost["mp_pct"] = 0.0` 会**连坐**把
+#   另一族仍在生效的折扣一起清零（真缺陷：先喝减耗、再喝圣泉 ⇒ 减耗提前消失）。
+#   修法（不碰引擎、不加形状）：**每个 actor 自带一本账**
+#   `actor[bonus.cost][_COST_LEDGER_KEY][族后缀] = 该族仍生效的 pct`，
+#   加/清都逐族加减，钩子只清**自己那一族**的量 ⇒ 到期不再连坐。
+#   ⚠️ 这条推论的前提由本件门禁钉住（档五：账本里除本族外无其他写点）。
+_MANA_RESTORE_KINDS = {
+    # kind: (回蓝% 字段, 减耗% 字段, turns 字段, 窗口 TTL 键后缀)
+    "mana_restore": ("mana_pct", "cost_reduce", "turns", "mana_restore"),
+}
+# ★ 账本住在 `bonus.cost` 下（不新造顶层键）：它随折扣容器同生同灭，
+#   且引擎 `_skill_pay_of` 只读 `mp_pct` / `mp_flat` / `res` 三个字段
+#   ⇒ 多一个非引擎字段**不构成**契约面（引擎读口是显式点名的三个键）。
+_COST_LEDGER_KEY = "_pct_ledger"
+
+
+def _add_ledger_pct(cost: dict, sfx: str, pct: float) -> float:
+    """把某族的折扣记进本 actor 的账本，返回记账后该族的**总**量。
+
+    ★ 为什么要账本（引擎零改动解法）：到期钩子只能拿到「哪一条目到期了」，
+      拿不到该条目当初写了多少 pct —— 因为引擎 `schedule._settle_time_effects`
+      在 `fire("effect_expire")` **之前**就把 `effects[key]` 摘掉了（:592 pop）。
+      若到期时把整个 `mp_pct` 置 0，会把**别的族**仍在生效的折扣一起清掉
+      （C-R2.30 实测：先喝减耗、再喝圣泉，减耗会提前消失）⇒ 改为逐族记账/逐族清退。
+    ★ 刻意不新造顶层 actor 键：账本落在 `bonus.cost` 内（随折扣容器同生同灭），
+      引擎 `_skill_pay_of` 只点读 `mp_pct`/`mp_flat`/`res` 三个字段
+      ⇒ 不碰引擎读口，不动公开契约。
+    """
+    led = cost.setdefault(_COST_LEDGER_KEY, {})
+    tot = float(led.get(sfx, 0.0) or 0.0) + float(pct)
+    led[sfx] = tot
+    cost["mp_pct"] = float(cost.get("mp_pct", 0) or 0) + float(pct)
+    return tot
+
+
+def _pop_ledger_pct(cost: dict, sfx: str) -> float:
+    """到期清退**本族**那一笔，返回清退后 `mp_pct` 的应然值。
+
+    精确退（而不是置 0）：`_add_ledger_pct` 是唯一的加减口 ⇒ 账本总量恒等于
+    该字段总量 ⇒ 退掉本族量即精确，不依赖「当前 mp_pct 是否被别人动过」。
+    夹到 0 防浮点残差留一个极小的正折扣（那会让 `_skill_pay_of` 少收钱且永不到期）。
+    """
+    led = cost.get(_COST_LEDGER_KEY) or {}
+    back = float(led.get(sfx, 0.0) or 0.0)
+    if back <= 0:
+        return float(cost.get("mp_pct", 0) or 0)
+    led.pop(sfx, None)
+    if not led:
+        cost.pop(_COST_LEDGER_KEY, None)
+    v = float(cost.get("mp_pct", 0) or 0) - back
+    if v <= 1e-9:
+        v = 0.0
+    cost["mp_pct"] = v
+    return v
+
+
 def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                        recover: float):
     """special 分诊：EFFECT_ACTIONS 直映射 / shield 动词 / 缺口 None。"""
@@ -643,13 +714,58 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                             "turns": _turns, "on": "caster"}], logs)
             logs.append(_T.text("iu.cost_window", turns=_turns))
             return logs, cast, recover
-        _cost["mp_pct"] = float(_cost.get("mp_pct", 0) or 0) + _pct
+        _add_ledger_pct(_cost, _sfx, _pct)
         # TTL 条目 = 折扣窗口的唯一真源；无 stat，故引擎面板不读它
         apply_effects(battle, actor, actor,
                       [{"action": "apply", "key": _tk,
                         "turns": _turns, "on": "caster"}], logs)
         logs.append(_T.text("iu.mana_cost_down", pct=int(_pct * 100),
                             turns=_turns))
+        return logs, cast, recover
+    # 7. 回蓝 + 消耗折扣族（C-R2.30 `mana_restore`）—— 两半一次做完
+    if kind in _MANA_RESTORE_KINDS:
+        _mp_f, _cr_f, _turns_f, _sfx = _MANA_RESTORE_KINDS[kind]
+        _ed = value if isinstance(value, dict) and value else             (_load_potion_defaults().get(kind) or {})
+        _mpct = float(_ed.get(_mp_f, 0.0) or 0.0)
+        _cr = float(_ed.get(_cr_f, 0.0) or 0.0)
+        if _mpct <= 0 and _cr <= 0:
+            return None
+        from ext_combat.battle import attributes as ATTR
+        from ext_combat.battle.battle import _now_of
+        from ext_combat.battle.effects import apply_effects
+        # --- 半 1：回蓝（引擎唯一写口；clamp 到 max_mp 由写口自带，不另写 min()）---
+        _real = 0
+        _mx = 0
+        if _mpct > 0:
+            _mx = int(actor.get("max_mp", actor.get("mp", 0)) or 0)
+            _before = int(actor.get("mp", 0) or 0)
+            if _mx > _before:
+                _gain = max(1, int(_mx * _mpct))
+                _after = ATTR.set_current(actor, "mp", _before + _gain,
+                                          reason="potion", battle=battle)
+                _real = int(_after) - _before
+            # 满蓝时 _real==0 ⇒ 走「已满」槽位（不打「恢复 0 点」）
+            logs.append(_T.text("iu.mana" if _real > 0 else "iu.mana_full",
+                                mp=actor.get("mp", 0), mx=_mx))
+        # --- 半 2：消耗折扣（与消耗折扣族同源：bonus.cost.mp_pct + 本族 TTL 键）---
+        if _cr > 0:
+            _turns = max(1, int(_ed.get(_turns_f, 2) or 2))
+            _tk = "%s_%s" % (_COST_DISCOUNT_TTL_KEY, _sfx)
+            _cost = actor.setdefault("bonus", {}).setdefault("cost", {})
+            _old = (actor.get("effects") or {}).get(_tk) or {}
+            _oexp = float(_old.get("expire", 0) or 0)
+            if _oexp > 0 and _oexp > _now_of(battle):
+                apply_effects(battle, actor, actor,
+                              [{"action": "apply", "key": _tk,
+                                "turns": _turns, "on": "caster"}], logs)
+                logs.append(_T.text("iu.cost_window", turns=_turns))
+            else:
+                _add_ledger_pct(_cost, _sfx, _cr)
+                apply_effects(battle, actor, actor,
+                              [{"action": "apply", "key": _tk,
+                                "turns": _turns, "on": "caster"}], logs)
+                logs.append(_T.text("iu.mana_restore_cost", pct=int(_cr * 100),
+                                    turns=_turns))
         return logs, cast, recover
     # 6. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None
@@ -676,6 +792,11 @@ def install_cost_discount_expire(actor: dict) -> None:
     from ext_combat.battle.effect_triggers import EVENTS as _EVENTS
     _c = _Compiler(events=_EVENTS, key_of=lambda d: d.get("key"),
                    owner_key="_owner")
+    from .item_use import _COST_DISCOUNT_KINDS, _MANA_RESTORE_KINDS
+    _keys = sorted({"%s_%s" % (_COST_DISCOUNT_TTL_KEY, v[2])
+                    for v in _COST_DISCOUNT_KINDS.values()}
+                   | {"%s_%s" % (_COST_DISCOUNT_TTL_KEY, v[3])
+                      for v in _MANA_RESTORE_KINDS.values()})
     _c.mount(actor, {"effect_expire": [
-        {"type": "we_cost_discount_expire", "key": "potion_cost_window",
-         "tag": "💧减耗到期"}]}, merge="replace")
+        {"type": "we_cost_discount_expire", "key": k, "tag": "💧减耗到期"}
+        for k in _keys]}, merge="replace")

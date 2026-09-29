@@ -256,7 +256,10 @@ FROZEN_COUNTS = {
     #   中文键数**不变**（新键名全 ASCII）。
     # ★ C-R2.29B 补记：新槽位 `iu.mana_cost_down`（首版漏了，回执退化成裸 key）⇒ 3280 -> 3281。
     #   中文键数**不变**（新键名全 ASCII）。
-    "texts": 3281,
+    # ★ C-R2.30（2026-09-29）：第 5 族 `mana_restore` 新槽位 `iu.mana_full` /
+    #   `iu.mana_restore_cost`（回蓝满蓝回执 + 本族减耗宣告）=> 3281 -> 3283。
+    #   中文键数**不变**（新键名全 ASCII）。
+    "texts": 3283,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）

@@ -1180,9 +1180,15 @@ _AUX_SHA_INTENT = {
     #     玩家可见数值零变化（五张表在真源上逐条读到，判据
     #     `tests/test_cr2_8_readfail.py` 的正常态组把条数钉死：8 / 330 / 76 / 93 / 58）。
     #   语义仍是「装配契约的挂点变化」，与 U1-D2 盯的触发面无关。
+    #   2026-09-29 **C-R2.30** (C lane `c-r2`): `mana_restore` family #5 --
+    #   the single assembly entrypoint GAINS step 5c
+    #   (`install_cost_discount_expire`, the cost-discount expiry hook that
+    #   C-R2.29B built but never wired). Same class of change as every entry
+    #   above: an assembly-contract attach point, unrelated to the trigger
+    #   surface U1-D2 watches. Player-visible numbers unchanged.
     'contract:content/apply.py': (
         '28f97caa30ab3dcf689e7d91f935a08b3bcce45a56204ddee2d2789473bbd5f4',
-        'f43100ab637b9ac04545c40df8a0980fef07afd10dc7961ead3546f55be93ab1',
+        '6c8c17da52325dc870b9460a3122f76ff3152d37e8ea78fa737463d5fe329bad',
     ),
 }
 
@@ -1260,8 +1266,11 @@ def test_apply_contract():
                     and isinstance(node.args[0], ast.Name) \
                     and node.args[0].id == "_MARK":
                 get_mark = True        # if actor.get(_MARK): return actor（保险丝）
-    check("六步顺序 == [install, equip, mech, bar, cond, element, food]",
-          steps == ["install", "equip", "mech", "bar", "cond", "element", "food"], steps)
+    # ★ C-R2.30: step 5c `item_use_expire` inserted before `food` (still exact
+    #   equality -- not weakened to a prefix/contains check).
+    check("七步顺序 == [install, equip, mech, bar, cond, element, item_use_expire, food]",
+          steps == ["install", "equip", "mech", "bar", "cond", "element",
+                    "item_use_expire", "food"], steps)
     check("幂等保险丝两处仍在：`actor[_MARK] = True` 与 `if actor.get(_MARK)`",
           sub_mark and get_mark, (sub_mark, get_mark))
 

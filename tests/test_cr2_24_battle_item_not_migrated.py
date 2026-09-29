@@ -134,7 +134,10 @@ print("   战斗内可翻译 %d 件 · **被拦下 %d 件**" % (live, len(blocke
 # ★ C-R2.29B（2026-09-29）：`mana_cost_down` 接入**消耗折扣族**（第四种形状，
 #   落 `bonus.cost.mp_pct` + `effect_expire` 到期归零）⇒ **32 → 31**（-1）。
 #   实跑 = 战斗内可翻译 64 / 被拦下 31（正是本件接的那 1 件）。
-check("被拦下的件数 = 31（C-R2.29B mana_cost_down 接线后基线）", len(blocked) == 31, len(blocked))
+# ★ C-R2.30（2026-09-29）：`mana_restore` 接入**第 5 族**（回蓝 + 消耗折扣）⇒ **31 → 30**（-1）。
+#   实跑 = 战斗内可翻译 65 / 被拦下 30（正是本件接的那 1 件）。
+#   仍是**精确等值**断言，不是「≤ 31」那种允许集合：接线使缺口变小是**事实推进**。
+check("被拦下的件数 = 30（C-R2.30 mana_restore 接线后基线）", len(blocked) == 30, len(blocked))
 _molten = [b for b in blocked if b[0] == "i_molten_core"]
 check("熔核之心在名单内（承 C-R2.23）", len(_molten) == 1, _molten)
 check("熔核之心的 payload = special:restore_resource_full:{...}",
