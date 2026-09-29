@@ -427,19 +427,24 @@ class InstanceImpl:
         }
         # 5. CTB 播种（docs/archive/RESEARCH_join_battle.md §四.2）：参考点 = min(存活敌方 ct, 存活玩家 ct)，
         #    新玩家 ct = 参考点 + 自身 _ct_cost(spd) —— 入场有代价、不抢当前行动窗口。
-        try:
-            ref = None
-            ec = [float(u.get("ct", 0) or 0) for u in st.get("enemies") or [] if u.get("hp", 0) > 0]
-            pc = [float(s.get("ct", 0) or 0) for k, s in players.items()
-                  if IR.alive_of(st, k) and s.get("hp", 0) > 0]
-            cands = [c for c in (ec + pc) if c is not None]
-            if cands:
-                ref = min(cands)
-            from ext_combat.battle.schedule import action_time as _b2_at
-            cost = _b2_at(int(_spd))
-            snap["ct"] = (ref if ref is not None else 0.0) + cost
-        except Exception:
-            snap["ct"] = -_spd  # 兜底：-spd 与旧副本口径一致
+        #    ★ 审计 L5261（2026-09-29）：原兜底 `snap["ct"] = -_spd` 是 **v121 旧口径残留**
+        #    —— 与同文件 `_instance_reset_player_cts`（:1323-1337）的 v121 契约**直接矛盾**，
+        #    那段 docstring 逐字写「v121 旧语义 -spd 是相对时钟，与绝对时刻播种（ref+cost）
+        #    混用会错乱」。兜底可达且危害实：try 块内 `float(u.get("ct",0) or 0)`
+        #    （脏 ct 抛 ValueError）与 `action_time`（未装配抛 EngineNotConfigured）
+        #    都是真抛点；兜底给 -10~-120（负数，落在时间轴起点之前），正确播种给 ref+cost
+        #    ⇒ 偏差可达数百刻，新加入者要数百次自己行动才追上现存在场者。
+        #    按铁律收口：**不兜底，让它冒泡**（fail-closed，与引擎时间模型同口径）。
+        ref = None
+        ec = [float(u.get("ct", 0) or 0) for u in st.get("enemies") or [] if u.get("hp", 0) > 0]
+        pc = [float(s.get("ct", 0) or 0) for k, s in players.items()
+              if IR.alive_of(st, k) and s.get("hp", 0) > 0]
+        cands = [c for c in (ec + pc) if c is not None]
+        if cands:
+            ref = min(cands)
+        from ext_combat.battle.schedule import action_time as _b2_at
+        cost = _b2_at(int(_spd))
+        snap["ct"] = (ref if ref is not None else 0.0) + cost
         # 6. 并入 st（只改状态，不推进行动轴）
         players[new_key] = snap
         # v185：名单写入收口——成员追加（Roster.join 幂等）+ 存活登记随写回一并落盘
