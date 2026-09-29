@@ -299,6 +299,20 @@ _LIVE_SHA_INTENT = {
                '文案唯一真源），改 `self._open_battle` 直调 fail-closed。行为不变由 [2] 甲/乙等价网'
                ' + [3] 丙类 golden（逐字节）证明：本轮实测仅本条 sha 变，其余 28 段与 golden 指纹全绿。',
     },
+    'content/world_cmds.py::_render_talk_node': {
+        'old': 'bc07dbdcf5bd2d4a960fe09a09b17b9ff4266f96a5da86657a79ba15f3a53e52',
+        'new': '8c8b0b1cb94c0d6848b28255fa2a8d1a14234b41aeb96976a5a7962bd74822e4',
+        'why': '★ afix2（b68ffda，已入库 2026-09-29 08:0x）把本段那段 `try: ... except Exception: pass`'
+               '删掉、改 fail-closed 上抛：它盖住的是「自动补任务入口」——读支线清单一抛，整个补入口'
+               '步骤被跳过 ⇒ 玩家在对话菜单里看不到『有委托可接』那个按钮（v173.3 鱼鱼拍板加的新手'
+               '可发现性功能），且**零报错**。同批另有两处把硬写文案迁到 `_T.static`'
+               '（talk.auto_quest_opt / talk.end_opt）。'
+               '★ 属**已提交的有意变更**，不是在途改动：全量红时逐支单跑 rc=1 复现（§0.31 那轮'
+               '用 pytest 口径得 8/8 漏掉了本条 —— pytest 集合里不含 `test_frozen_pins`，'
+               '即**登记优先那 29 段 sha 断言只在直跑口径下**才验）。'
+               '行为不变由 [2] 甲/乙等价网 + [3] 丙类 golden（逐字节）证明：本轮实测仅本条 sha 变，'
+               '其余 28 段与 golden 指纹全绿。',
+    },
 }
 
 
