@@ -749,6 +749,14 @@ def guild_add_exp(gid, exp, member_qq=None, contribute=0):
                     conn.execute("UPDATE guilds SET exp=exp-?, level=level+1 WHERE gid=?", (g["level"] * C.GUILD_EXP_BASE, gid))
                     conn.commit()
                     g = conn.execute("SELECT * FROM guilds WHERE gid=?", (gid,)).fetchone()
+                    # ★ 循环里的**重取**也要判（2026-09-29 C 车道 R2.17）。
+                    #   `if g:` 只护住了第一次取；重取到 None 时下一轮 `g["exp"]` 直接
+                    #   `TypeError: 'NoneType' object is not subscriptable` 把整条指令打崩
+                    #   （实测：并发 disband/leave 删掉该 guild 时复现，见台账 §0.27）。
+                    #   判据：公会已被解散 ⇒ 这次经验没有归属，**正常收尾**（不是异常），
+                    #   否则一条升级回执会把玩家打成崩溃。
+                    if not g:
+                        break
             return True
         finally:
             conn.close()
