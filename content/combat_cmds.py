@@ -944,11 +944,11 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
         _bl = _boons.get("echo_bless")
         bless_note = ""
         if _bl and _bl.get("mult"):
-            _pct = int(round((float(_bl["mult"]) - 1.0) * 100))
+            _pct = int(_cc.pct_str(float(_bl["mult"]) - 1.0))
             bless_note += _T.text("ex.echo_bless", pct=_pct)
         _pb = player.get("poi_buff")
         if _pb:
-            _pct_pb = int(round((float(_pb.get("mult", 1.10)) - 1.0) * 100))
+            _pct_pb = int(_cc.pct_str(float(_pb.get("mult", 1.10)) - 1.0))
             bless_note += _T.text("ex.shrine_bless", text=_pb.get('name', _pb['stat']), pct=_pct_pb)
         # O121 Boss 战隐藏『逃跑』选项（引擎/命令层均禁逃，防误导）
         _acts = _T.static("ex.act_hint") + ("" if monster.get("is_boss") else _T.static("ex.act_hint2"))
@@ -1016,11 +1016,11 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     _bl = _boons.get("echo_bless")
     bless_note = ""
     if _bl and _bl.get("mult"):
-        _pct = int(round((float(_bl["mult"]) - 1.0) * 100))
+        _pct = int(_cc.pct_str(float(_bl["mult"]) - 1.0))
         bless_note += _T.text("ex.echo_bless", pct=_pct)
     _pb = player.get("poi_buff")
     if _pb:
-        _pct_pb = int(round((float(_pb.get("mult", 1.10)) - 1.0) * 100))
+        _pct_pb = int(_cc.pct_str(float(_pb.get("mult", 1.10)) - 1.0))
         bless_note += _T.text("ex.shrine_bless", text=_pb.get('name', _pb['stat']), pct=_pct_pb)
     role_mark = tag or ("👑 BOSS" if monster["is_boss"] else (_T.static("ex.elite_tag") if monster["is_elite"] else "🐾"))
     # v104 修复（M06 P2-2）：展示 MONSTER_MODS 个体特色文案（此前只有数值生效，玩家看不到）
@@ -2005,7 +2005,7 @@ def _skill_list_gains(self, info: dict, lv: int) -> list:
     kind = info.get("kind", "")
     if info.get("power"):
         label = "治疗" if kind == K_HEAL else "伤害"
-        parts.append(f"{label} {int(info['power'] * skill_power_mult(lv, info) * 100)}%")
+        parts.append(f"{label} {_cc.pct_str(info['power'] * skill_power_mult(lv, info))}%")
     if kind in (K_BUFF, K_TAUNT):
         parts.append(_T.text("sk.gain_dur", v=skill_buff_turns(lv)))
     if info.get("cond"):
@@ -2013,7 +2013,7 @@ def _skill_list_gains(self, info: dict, lv: int) -> list:
     if info.get("mech_val"):
         parts.append(_T.text("sk.gain_stack", v=skill_mech_val(info, lv)))
     if info.get("lifesteal"):
-        parts.append(_T.text("sk.gain_leech", v=int(skill_lifesteal_pct(info, lv) * 100)))
+        parts.append(_T.text("sk.gain_leech", v=_cc.pct_str(skill_lifesteal_pct(info, lv))))
     return parts
 
 def _skill_gains_curve(self, info: dict, cur: int, mx: int) -> str:
@@ -2026,7 +2026,7 @@ def _skill_gains_curve(self, info: dict, cur: int, mx: int) -> str:
     if info.get("power"):
         label = "治疗" if kind == K_HEAL else "伤害"
         vals = _curve_vals(
-            lambda lv: int(info["power"] * skill_power_mult(lv, info) * 100), cur, mx)
+            lambda lv: _cc.pct_str(info["power"] * skill_power_mult(lv, info)), cur, mx)
         if len(vals) > 1:
             parts.append(f"{label} {'/'.join(f'{v}%' for v in vals)}")
     if kind in (K_BUFF, K_TAUNT):
@@ -2044,7 +2044,7 @@ def _skill_gains_curve(self, info: dict, cur: int, mx: int) -> str:
             parts.append(_T.text("sk.curve_stack", v='/'.join(str(v) for v in vals)))
     if info.get("lifesteal"):
         vals = _curve_vals(
-            lambda lv: int(skill_lifesteal_pct(info, lv) * 100), cur, mx)
+            lambda lv: _cc.pct_str(skill_lifesteal_pct(info, lv)), cur, mx)
         if len(vals) > 1:
             parts.append(_T.text("sk.curve_leech", v='/'.join(f'{v}%' for v in vals)))
     return " · ".join(parts)
@@ -2451,7 +2451,7 @@ def _status_line(self, player: dict, b) -> str:
     # 异常抗性（dot_res>0 才显示——普通怪不设键=0）
     _dres = float(_eb.get("dot_res", 0) or 0)
     if _dres > 0:
-        ebuf.append(_T.text("st.anti", pct=int(_dres * 100)))
+        ebuf.append(_T.text("st.anti", pct=_cc.pct_str(_dres)))
     if ebuf:
         parts.append(_T.text("st.enemy_buffs", buffs=' '.join(ebuf)))
     return "\n".join(parts)
@@ -2680,7 +2680,7 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
                         if (u.get("hp") or 0) > 0]
             _sum_hp = sum(max(0, u.get("hp", 0)) for u in _enemies)
             _sum_max = sum(max(0, u.get("max_hp", u.get("hp", 1))) for u in _enemies)
-            _pct = max(0, int(_sum_hp / max(1, _sum_max) * 100))
+            _pct = max(0, int(_cc.pct_str(_sum_hp / max(1, _sum_max))))
             yield event.plain_result(
                 _T.text("wb.joined_arr", name=_enemies[0].get('name', '?') if _enemies else b.get('name', '?'),
                     left=len(_enemies), total=_sum_hp, killed=_sum_max, pct=_pct) + "\n  ".join([f"{u.get('name','?')} ❤️{max(0,u.get('hp',0))}" for u in _enemies]) + _T.text("wb.you_hp", hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
@@ -2690,7 +2690,7 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
             _enemies = [u for u in _st.get("enemies") if (u.get("hp") or 0) > 0]
             _sum_hp = sum(max(0, u.get("hp", 0)) for u in _enemies)
             _sum_max = sum(max(0, u.get("max_hp", u.get("hp", 1))) for u in _enemies)
-            _pct = max(0, int(_sum_hp / max(1, _sum_max) * 100))
+            _pct = max(0, int(_cc.pct_str(_sum_hp / max(1, _sum_max))))
             yield event.plain_result(
                 _T.text("wb.joined_arr", name=b.get('name', '?'), left=len(_enemies), total=_sum_hp,
                     killed=_sum_max, pct=_pct) + "\n  ".join([f"{u.get('name','?')} ❤️{max(0,u.get('hp',0))}" for u in _enemies]) + _T.text("wb.you_hp", hp=player['hp'], hpmax=player['max_hp'], mp=player['mp'],
@@ -2698,7 +2698,7 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
             )
         else:
             b2 = battle["state"].get("enemy", {})
-            pct = max(0, int(b2.get("hp", 0) / max(1, b2.get("max_hp", 1)) * 100))
+            pct = max(0, int(_cc.pct_str(b2.get("hp", 0) / max(1, b2.get("max_hp", 1)))))
             yield event.plain_result(
                 _T.text("wb.joined_solo", name=b2.get('name', '?'), hp=max(0, b2.get('hp', 0)),
                     hpmax=b2.get('max_hp', 0), pct=pct, hp2=player['hp'],
@@ -2820,7 +2820,7 @@ async def hunt_boss(self, event: AstrMessageEvent, group_id, qq_id, player):
     db.save_world_event(cur["etype"], cur["ends_at"], cur["data"])
     db.save_battle(group_id, qq_id, nb.to_state())
     self._lock_battle(group_id, qq_id)
-    pct = max(0, int(_main.get("hp", 0) / max(1, _main.get("max_hp", 1)) * 100))
+    pct = max(0, int(_cc.pct_str(_main.get("hp", 0) / max(1, _main.get("max_hp", 1)))))
     yield event.plain_result(
         _T.text("wb.start", name=_main['name'], lv=_main.get('lv', 30), hp=_main.get('hp', 0),
             hpmax=_main.get('max_hp', 1), pct=pct,
@@ -2918,7 +2918,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
                     _it = self._grant_worldboss_drop(group_id, qq2, random.choice(boss_pool))
                     if _it:
                         item_txt += f" 🎁{_it}"
-            lines.append(_T.text("wb.contrib_row", name=p2['name'], pct=d, gold=int(ratio*100), exp=g, x=e, y=item_txt))
+            lines.append(_T.text("wb.contrib_row", name=p2['name'], pct=d, gold=_cc.pct_str(ratio), exp=g, x=e, y=item_txt))
             # L3-P3：玩家级反应总线——任何击杀都算数（鱼鱼 09-09 语义决策）。
             # 世界Boss 死亡对每个 contrib>0 玩家 fire：quests 按 boss 名/属性推进
             # （主线/每日/支线/周常，现状不推=漏接）、公会每场胜利+1、成就
@@ -2981,7 +2981,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     _enemies_alive = [u for u in b.sides_of("enemy") if (u.get("hp") or 0) > 0]
     _sum_hp = sum(max(0, u.get("hp", 0)) for u in _enemies_alive or [])
     _sum_max = sum(max(0, u.get("max_hp", u.get("hp", 1))) for u in _enemies_alive or [])
-    pct = max(0, int(_sum_hp / max(1, _sum_max) * 100))
+    pct = max(0, int(_cc.pct_str(_sum_hp / max(1, _sum_max))))
     body = "\n".join(lines)
     status = self._status_line(player, b)
     rl_wb = self._resource_line(player, b)
