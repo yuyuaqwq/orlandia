@@ -23,15 +23,13 @@
   · 把 `landing.py` 的窗口查询改坏 ⇒ ① ② 同时变红
     ⇒ 证明两者都真的在读容器窗口，不是恒绿。
 
-★ **本文件故意不进全量门禁**（2026-09-28）：全量跑器只枚举 `test_*.py`，
-  本文件叫 `_probe_*` ⇒ 天然出闸。原因：2.1 是**R2.2 那条真缺陷的尺**，
-  引擎修好之前它必须一直是红的 —— 若把它改名进闸，全量就会长期带一条已知红，
-  下一个人会把它当回归去修（或更糟：为了让全量绿而把它登记掉/改松）。
-  ⇒ 引擎立项修好后，**由那一批**决定是否改名进闸（那时它该是绿的）。
-  本轮实测：包全量 290 文件 · 通过 285 · 失败 5（4 支单跑全绿 = 并行争用假红 ·
-  1 支 `test_texts_table` 69/70 = 与 R2.2 基线同值），**与基线同值**。
+★ **已进闸**（2026-09-29 · R2.2 修复批）：引擎修复落地（`Battle.act` 登记段为
+  防御预开窗 —— battle.py「★ R2.2」注）后 2.1 已转绿 ⇒ 本文件改名 `test_*`
+  进全量，作为 R2.2 的**常驻守护**（防未来回归）。改名同批补 `extends` 的
+  sys.path 自包含（原先显式依赖调用方环境，干净会话跑会 ModuleNotFoundError）。
+  （历史：2026-09-28 曾以 `_probe_*` 刻意出闸 —— 当时 2.1 是「引擎未修」的红。）
 
-跑法：python tests/_probe_defend_window_probe.py
+跑法：python tests/test_defend_window_probe.py（已自包含，任意 cwd / 干净 env 可跑）
 """
 import os
 import random
@@ -43,6 +41,7 @@ FW_ROOT = os.environ.get("GWEN_FRAMEWORK_DIR") or os.path.dirname(PKG_ROOT)
 os.environ.setdefault("GWEN_GAME_DB", os.path.join(PKG_ROOT, "defend_window_probe.db"))
 os.environ.setdefault("GWEN_TEST_MODE", "1")
 sys.path.insert(0, FW_ROOT)
+sys.path.insert(0, os.path.join(FW_ROOT, "extends"))   # ext_combat（2026-09-29 自包含修补）
 sys.path.insert(0, PKG_ROOT)
 sys.path.insert(0, _HERE)
 
@@ -164,9 +163,9 @@ def _case_real_run():
           "stage_idx": 0, "stage_cleared": False, "world_id": ""}
     pl = db.get_player(GID, "q_d1") or {}
     mh = int(pl.get("max_hp", 500) or 500)
-    st["players"]["q_d1"] = dict(pl, name="甲", hp=3, max_hp=mh, mp=999, max_mp=999)
+    st["players"]["q_d1"] = dict(pl, name="甲", hp=100, max_hp=mh, mp=999, max_mp=999)
     st["enemies"] = [{"qq_id": "m1", "name": "房间怪", "level": 20,
-                      "role": "boss", "hp": 99999, "max_hp": 99999, "atk": 99999,
+                      "role": "boss", "hp": 99999, "max_hp": 99999, "atk": 12,
                       "def": 0, "mdef": 0, "spd": 200, "stats_spd": 200}]
     st["boss"] = st["enemy"] = st["enemies"][0]
     IB.build_battle(st)
@@ -193,26 +192,31 @@ def _case_real_run():
         finally:
             loop.close()
 
-    blocked = False
+    flat = []
     for _ in range(12):
         st["turn_time"] = int(_t.time())
-        for m in _run("q_d1", "defend"):
-            if "格挡后" in str(m):
-                blocked = True
+        flat.extend(str(m) for m in _run("q_d1", "defend"))
         if st.get("over") or not (st.get("alive") or {}).get("q_d1", True):
             break
-    return blocked
+    text = "\n".join(flat)
+    n_hit = text.count("💥 甲 受到")
+    n_blk = text.count("(格挡后")
+    # ★ 2026-09-29 收紧（R2.2 修复批）：每一次自身受击都必须伴随减半；受击 ≥ 3 次
+    #   （防空集绿）。原版判据「整场任意一次出现格挡行」在「第 0 轮受击」相位下、
+    #   修复前也绿（首轮窗口新鲜）⇒ 假绿、抓不住 R2.2 —— 故改为全称判据 + 多轮场景。
+    ok = (n_hit >= 3) and (n_blk == n_hit)
+    why = "" if ok else ("受击 %d 次 / 减半 %d 次（要求：每次受击皆减半，且受击 ≥ 3）"
+                         % (n_hit, n_blk))
+    return ok, why
 
 
 try:
-    _two_ok = _case_real_run()
-    _two_why = ("" if _two_ok
-                else "整场日志里没有「(格挡后 N 点伤害)」行 => 减半整段没生效")
+    _two_ok, _two_why = _case_real_run()
 except Exception as _exc:
     _two_ok = False
     _two_why = "副本真跑路径抛错：%s: %s" % (type(_exc).__name__, _exc)
 
-check("2.1 副本真跑路径 => 敌手那一手吃到减半（引擎改好后应转绿）",
+check("2.1 副本真跑路径 => 每一次「甲受到」都吃到减半（≥3 次受击）",
       _two_ok, _two_why)
 
 print("\n%d passed, %d failed" % (PASS, FAIL))
