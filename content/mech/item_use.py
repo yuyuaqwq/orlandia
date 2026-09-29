@@ -150,7 +150,8 @@ def can_translate(payload: str) -> bool:
         #   判定口径必须与 `_translate_special` 的分诊一致，
         #   否则出现「判定能过、执行返回 None」的双源。
         if (_kind in _EFFECT_ACTION_KEYS or _kind in _SHIELD_KINDS
-                or _kind in _PANEL_SNAPSHOT_KINDS):
+                or _kind in _PANEL_SNAPSHOT_KINDS
+                or _kind in _EXPIRE_EXTEND_KINDS):
             return True
         # 其余机制型 special → 缺口
         return False
@@ -421,6 +422,19 @@ _PANEL_SNAPSHOT_KINDS = {
 }
 
 
+# 到期顺延族（C-R2.28）：payload kind → 改**已落 effects 条目的 expire**。
+# `buff_extend`（时之延香）= 自身全部增益时长 +N 刻。旧 handler 的落点是
+#   `p_buffs[k] = 原刻数 + N`（逐个刻计数顺延），而现行的到期只有一个真源
+#   = 条目的 `expire`（`landing._apply_damage` 的收口批同族已把第二本账
+#   `reduce_left` 删掉）⇒ 正解是**顺延 expire**，不新建任何形状。
+# 豁免名单 = 旧 handler 原样搬过来的一次性/控制类键（语义上不该被延）。
+# ★ 不需要任何 battle 替身回调（旧 handler 的战斗面只有 p_buffs 遍历）。
+_EXPIRE_EXTEND_KINDS = {"buff_extend"}
+# 一次性/控制类豁免（逐字承 `potion_effects.eff_buff_extend` 的同名元组）
+_EXPIRE_EXTEND_EXEMPT = ("next_atk_up", "buff_phys_next", "stealth", "reduce_all",
+                        "stun", "freeze")
+
+
 def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                        recover: float):
     """special 分诊：EFFECT_ACTIONS 直映射 / shield 动词 / 缺口 None。"""
@@ -474,5 +488,28 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                         "mult": pct, "on": "caster"}], logs)
         logs.append(_T.text("iu.potion_stat", pct=int(pct * 100), turns=turns))
         return logs, cast, recover
-    # 4. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
+    # 4. 到期顺延族（C-R2.28）—— 改**已落条目**的 expire，不新建形状
+    #    `turns` 语义与面板快照型一致（默认 3 刻），但**到期顺延量**从
+    #    `value.extend_turns` 读（数据侧 i_shi_zhi_yan_xiang = {"extend_turns": 2}）。
+    if kind in _EXPIRE_EXTEND_KINDS:
+        ext = int(value.get("extend_turns", 0) or 0) if isinstance(value, dict) else 0
+        if ext <= 0:
+            return None
+        from ext_combat.battle.battle import _now_of
+        ef = actor.get("effects") or {}
+        now = _now_of(battle)
+        n = 0
+        for k in list(ef):
+            _e = ef.get(k)
+            if not isinstance(_e, dict) or k in _EXPIRE_EXTEND_EXEMPT:
+                continue
+            # 只延「有绝对到期时刻」的条目（无 expire 的 = 不计时的一次性标记，
+            # 顺延它没有语义）—— 与旧 p_buffs 刻计数口径的差别在注释里写明。
+            if float(_e.get("expire", 0) or 0) <= 0:
+                continue
+            _e["expire"] = float(_e["expire"]) + float(ext)
+            n += 1
+        logs.append(_T.text("iu.buff_extend", n=n, turns=ext))
+        return logs, cast, recover
+    # 5. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None

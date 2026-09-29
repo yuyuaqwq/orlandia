@@ -12008,6 +12008,15 @@
     "category": "道具使用",
     "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
   },
+  "iu.buff_extend": {
+    "value": "⏳ 时之延香生效——{n} 项增益各延长 {turns} 刻！",
+    "params": [
+      "n",
+      "turns"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/mech/item_use.py:_translate_special（C-R2.28 到期顺延族）"
+  },
   "iu.food_fx": {
     "value": "🍲 你吃下了料理，获得【{names}】效果！(本场战斗)",
     "params": [
