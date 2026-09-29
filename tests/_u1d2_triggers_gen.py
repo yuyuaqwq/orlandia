@@ -207,7 +207,23 @@ LIVE_DIVERGENCE = {
         "why": "包栈重构第 2 批：`battle` 从 `saintess_engine/` 搬进扩展包 `ext_combat/`"
                "（import 面搬迁，行为逐字不变）",
     },
+    "content/mech/worldboss.py::wb_gm_dmg_mult": {
+        "old_base": "f8b2e9c6d2aed67b061c5c38db3fb01ec763e7f9ddf79f02b9e5550b71a5a470",
+        "rewrites": ((
+            'ctx["mult"] = float(ctx.get("mult", 1.0) or 1.0) * f',
+            'ctx["mult"] = float(ctx.get("mult") if ctx.get("mult") is not None else 1.0) * f',
+        ),),
+        "commit": "87f473a",
+        "date": "2026-09-29",
+        "why": "审计 L5618 同族：承伤乘区回落只认 None —— `or 1.0` 会吞掉"
+               "合法 0.0（格挡/免伤），与 L5618 `actions.py` /"
+               "`worldboss.apply_gm_dmg_mult` 同一收口；修的正是「格挡/免伤」"
+               "这个做不出来的填法，故登记本条改写（自检⑥ 逐字节可证）。",
+    },
 }
+
+#: 登记改写条数（自检⑥ 钉「条数恒 N」）—— 新增登记项时同步改这里。
+_LIVE_DIVERGENCE_COUNT = len(LIVE_DIVERGENCE)
 
 #: base 树**必须落盘**的文件（切片源 + aux 的文件面：4 数据表 + 装配契约）
 BASE_RELS = tuple(sorted({rel for rel, _sym in SEGMENTS} | {
@@ -573,9 +589,10 @@ def self_check(*, with_live=True) -> list:
                 text = text.replace(old, new)
             if text != _live_text(*key.split("::")):
                 div_bad.append("%s 改写(base 切片) ≠ 活实现文本" % key)
-        if len(LIVE_DIVERGENCE) != 1 or div_bad:
-            raise SystemExit("自检⑥失败（登记跨线改写恒 1 条、逐字节可证）：%s"
-                             % ("; ".join(div_bad) or "条数 ≠ 1"))
+        if len(LIVE_DIVERGENCE) != _LIVE_DIVERGENCE_COUNT or div_bad:
+            raise SystemExit("自检⑥失败（登记跨线改写恒 %d 条、逐字节可证）：%s"
+                             % (_LIVE_DIVERGENCE_COUNT,
+                                "; ".join(div_bad) or ("条数 ≠ %d" % _LIVE_DIVERGENCE_COUNT)))
         lines.append("  ⑥ 登记过的跨线改写 %d 条：改写(base 切片) == 活实现文本（逐字节）"
                      % len(LIVE_DIVERGENCE))
         bad = [k for k, cls in CLASS.items()
