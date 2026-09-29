@@ -123,7 +123,10 @@ for k, v in _items.items():
         blocked.append((k, tpl, p))
 
 print("   战斗内可翻译 %d 件 · **被拦下 %d 件**" % (live, len(blocked)))
-check("被拦下的件数 = 44（本轮实测基线）", len(blocked) == 44, len(blocked))
+# ★ C-R2.27（2026-09-29）：面板快照型 8 族接线 ⇒ 被拦下的件数 **44 → 35**（-9）。
+#   不是判据放松：本条针对**当前真实缺口清单**，
+#   接线使缺口变小是**事实推进**，不是判据失效。
+check("被拦下的件数 = 35（C-R2.27 接线后基线）", len(blocked) == 35, len(blocked))
 _molten = [b for b in blocked if b[0] == "i_molten_core"]
 check("熔核之心在名单内（承 C-R2.23）", len(_molten) == 1, _molten)
 check("熔核之心的 payload = special:restore_resource_full:{...}",
@@ -159,10 +162,14 @@ check("★ POTION_EFFECTS 零消费方 ⇒ 36 个 handler 永不执行", not _hi
 
 print("【档 四】★ 反证：往白名单塞一个键 ⇒ 命中数立刻变小（不是恒绿档）")
 _before = len(blocked)
-IU._EFFECT_ACTION_KEYS.add("magic_resist")
-_try = IU.can_translate("special:magic_resist;cast:2.0")
-IU._EFFECT_ACTION_KEYS.discard("magic_resist")
-_after_ok = IU.can_translate("special:magic_resist;cast:2.0")
+# ★ C-R2.27：原版用 magic_resist，但它已被 C-R2.27 接亿（面板快照型）
+#   ⇒ 旧反证档失效了（加键与不加键都是 True）。
+#   改用一个**仍未接线**的族名 phoenix（机制型，属 R2.2 引擎立项）。
+_PROBE = "phoenix"
+IU._EFFECT_ACTION_KEYS.add(_PROBE)
+_try = IU.can_translate("special:%s;cast:2.0" % _PROBE)
+IU._EFFECT_ACTION_KEYS.discard(_PROBE)
+_after_ok = IU.can_translate("special:%s;cast:2.0" % _PROBE)
 print("   加键后 can_translate = %s（原本 False）· 撤回后 = %s" % (_try, _after_ok))
 check("★ 反证档：加键后判 True ⇒ 本门禁会红（不是恒绿）", _try is True and _after_ok is False,
       (_try, _after_ok))
@@ -185,9 +192,9 @@ for k, v in _items.items():
         continue
     if p is None:
         continue
-    IU._EFFECT_ACTION_KEYS.add("magic_resist")
+    IU._EFFECT_ACTION_KEYS.add(_PROBE)
     r2 = IU.can_translate(p)
-    IU._EFFECT_ACTION_KEYS.discard("magic_resist")
+    IU._EFFECT_ACTION_KEYS.discard(_PROBE)
     if not r2:
         _new.append((k, tpl, p))
 print("   接线后被拦件数 = %d（原 %d）" % (len(_new), _before))
@@ -199,7 +206,7 @@ if FAILS:
     print("★ 失败 %d 项：%s" % (len(FAILS), " / ".join(FAILS)))
 else:
     print("全绿。")
-    print("  ⇒ 战斗中 44 件战斗药水被 can_translate 拦下 ⇒ 玩家吃到 use.not_migrated。")
+    print("  ⇒ 战斗中 35 件战斗药水仍被 can_translate 拦下 ⇒ 玩家吃到 use.not_migrated。")
     print("  ⇒ 熔核之心的减伤是**第二层**病（第一层：机制压根没被调用）。")
     print("  ⇒ 本批**只加门禁**：接线是内容侧设计决定（走哪条路 / 数值口径），需单独立项。")
 sys.exit(1 if FAILS else 0)

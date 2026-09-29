@@ -12030,6 +12030,15 @@
     "category": "道具使用",
     "desc": "搬自 content/item_use.py:_translate_special（B 批 C 档）"
   },
+  "iu.potion_stat": {
+    "value": "你饮下副药，属性强化！({pct}% 数值，持续 {turns} 刻)",
+    "params": [
+      "pct",
+      "turns"
+    ],
+    "category": "道具使用",
+    "desc": "搬自 content/mech/item_use.py:_translate_special（C-R2.27 面板快照型）"
+  },
   "iu.purify_none": {
     "value": "✨ 净化卷轴展开，没有需要驱散的负面效果～",
     "category": "道具使用",

@@ -146,7 +146,11 @@ def can_translate(payload: str) -> bool:
     if _body.startswith("special:"):
         _k = _body[8:]
         _kind = _k.split(":", 1)[0] if ":" in _k else _k
-        if _kind in _EFFECT_ACTION_KEYS or _kind in _SHIELD_KINDS:
+        # 面板快照型族（C-R2.27）与上两组并列 ——
+        #   判定口径必须与 `_translate_special` 的分诊一致，
+        #   否则出现「判定能过、执行返回 None」的双源。
+        if (_kind in _EFFECT_ACTION_KEYS or _kind in _SHIELD_KINDS
+                or _kind in _PANEL_SNAPSHOT_KINDS):
             return True
         # 其余机制型 special → 缺口
         return False
@@ -396,6 +400,21 @@ _SHIELD_KINDS = {
     "shield": "food_shield",
 }
 
+# 面板快照型族（C-R2.27）：payload kind → **面板 stat 键**。
+# 这些都是**比例属性**（全在 `panel_rules.pct_stats` 内、值 0.0-1.0）
+#   ↳ op 必须 `"add"`（`mult` 在引擎里是**加成的比例**，不是乘数）。
+# 键名同源 = `content/rules/panel_rules.json`、`optional_stats.json`。
+_PANEL_SNAPSHOT_KINDS = {
+    "dodge_pot": "dodge",
+    "block_pot": "block",
+    "crit_dmg_pot": "crit_dmg",
+    "lifesteal_pot": "lifesteal",
+    "thorns_pot": "thorns",
+    "pene_pot": "pene_phys",
+    "pene_magi_pot": "pene_magi",
+    "magic_resist": "magic_reduce",
+}
+
 
 def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                        recover: float):
@@ -429,5 +448,26 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                         "turns": turns, "on": "caster"}], logs)
         logs.append(_T.text("iu.shield", pct=int(pct * 100), turns=turns))
         return logs, cast, recover
-    # 3. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
+    # 3. 面板快照型（pct 比例属性增益，C-R2.27）
+    #    与 shield 族同手法（参数直传）。不能走查表：这 8 族在
+    #    `EFFECT_ACTIONS`/`EFFECT_RULES` 两表均零条目（门禁档三钉住）。
+    if kind in _PANEL_SNAPSHOT_KINDS:
+        _st = _PANEL_SNAPSHOT_KINDS[kind]
+        _ed = value if isinstance(value, dict) and value else \
+            (_load_potion_defaults().get(kind) or {})
+        pct = float(_ed.get("pct", 0.0) or 0.0)
+        turns = int(_ed.get("turns", 3) or 3)
+        if pct <= 0:
+            return None
+        from ext_combat.battle.effects import apply_effects
+        # op="add"：这几个都是**比例属性**（pct_stats 内，0.0-1.0）
+        #   —— `mul` 会把 `dodge 0.20 × 1.15` 变 0.23（比例被放大 15%），语义错。
+        # stat/op/mult 直传（引擎快照型分支读 params，不查表）。
+        apply_effects(battle, actor, actor,
+                      [{"action": "apply", "key": "potion_%s" % kind,
+                        "turns": turns, "stat": _st, "op": "add",
+                        "mult": pct, "on": "caster"}], logs)
+        logs.append(_T.text("iu.potion_stat", pct=int(pct * 100), turns=turns))
+        return logs, cast, recover
+    # 4. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None
