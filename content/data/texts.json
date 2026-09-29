@@ -11968,6 +11968,13 @@
     "category": "道具使用",
     "desc": "搬自 content/mech/item_use.py:_translate_special（C-R2.28 到期顺延族）"
   },
+  "iu.execute_pot": {
+    "value": "💀 死神药剂生效——{turns} 刻内对生命低于 {hp_th}% 的敌人伤害 +{pct}%！",
+    "params": ["hp_th", "pct", "turns"],
+    "category": "道具使用",
+    "desc": "C-R2.29A 乘区触发族（execute_pot 接 actor.triggers 的 dmg_calc 乘区）"
+  },
+
   "iu.food_fx": {
     "value": "🍲 你吃下了料理，获得【{names}】效果！(本场战斗)",
     "params": [
@@ -12034,6 +12041,13 @@
     "category": "道具使用",
     "desc": "搬自 content/item_use.py:translate（B 批 C 档）"
   },
+  "iu.mult_window": {
+    "value": "⏳ 增益窗口延长——{turns} 刻！",
+    "params": ["turns"],
+    "category": "道具使用",
+    "desc": "C-R2.29A 乘区触发族（窗口未过期时幂等重挂，不叠第二份乘区声明）"
+  },
+
   "iu.potion_ready": {
     "value": "🧪 你饮下战斗药水，效果就绪！(本场)",
     "category": "道具使用",

@@ -151,7 +151,8 @@ def can_translate(payload: str) -> bool:
         #   否则出现「判定能过、执行返回 None」的双源。
         if (_kind in _EFFECT_ACTION_KEYS or _kind in _SHIELD_KINDS
                 or _kind in _PANEL_SNAPSHOT_KINDS
-                or _kind in _EXPIRE_EXTEND_KINDS):
+                or _kind in _EXPIRE_EXTEND_KINDS
+                or _kind in _MULTIPLIER_TRIGGER_KINDS):
             return True
         # 其余机制型 special → 缺口
         return False
@@ -435,6 +436,41 @@ _EXPIRE_EXTEND_EXEMPT = ("next_atk_up", "buff_phys_next", "stealth", "reduce_all
                         "stun", "freeze")
 
 
+# 乘区触发族（C-R2.29A）：payload kind → `actor["triggers"]` **事件声明**。
+# ★ 这是 C-R2.27 面板快照型 / C-R2.28 到期顺延型之外的**第三种形状**：
+#   前两者改「actor 身上的状态条目」，本族不落任何 effects 条目 ——
+#   它挂的是**事件乘区**（`dmg_calc`/`taken_calc`），由引擎在每次伤害结算时
+#   fire 出来、改 `_fire_ctx["mult"]`。语义 = 「条件增伤/条件减伤」。
+# 为何不能沿用前两族：面板快照型落 `effects[key]={stat,op,mult}`（引擎按 stat 读），
+#   本族是**条件触发**（目标血量低于阈值才生效）⇒ 引擎的面板通道表达不了这个条件。
+#
+# `execute_pot`（死神药剂）：3 刻内对**生命 < hp_threshold 的敌人**增伤 pct。
+# 引擎侧读点 = `we_dmg_mult_cond`（`content/mech/we_procs.py:824`），
+#   它已在 `dmg_calc` 事件上 fire，谓词 `cond="hp_target_lt"` 逐字同义
+#   （`hp / max_hp < threshold`）。数值真源 = 域文件 `potion_effects.json`
+#   的 `execute_pot` = {pct, hp_threshold}，与 `items.json` 的
+#   `i_death_pot.effect_data` 同值（后者是物品侧那份拷贝，门禁逐字对拍）。
+#
+# ★ 装配器与 food 族同源（`content/mech/food_proc.py` 的 `install_food_fx`）：
+#   `Compiler(events=EVENTS, key_of=key, owner_key="_owner")` 挂 `actor["triggers"]`。
+#   `key_of=key` ⇒ 同 kind 同事件幂等（喝两次不叠两条）。
+#   `owner_key="_owner"` ⇒ 挂载期注入归属，`fire()` 消费期再兜底一次
+#   （`we_dmg_mult_cond` 读 `params["_owner"]` 判 `hp_self_*` 谓词；
+#   本族只用 `hp_target_lt` 但仍按同族惯例挂上）。
+# ★ 幂等与到期：`turns` 由 effects 容器管不到 —— 乘区声明**无到期机制**
+#   （引擎 `triggers` 是无时限的）。故本族**必须**同时落一个到期标记条目
+#   （见 `_translate_special` 分支 5 的 `_MULTIPLIER_TRIGGER_TTL_KEY`），
+#   由翻译器在读取时判定是否已过期并 `Compiler.purge` 清掉。
+#   —— 这是本族与前两族的**关键结构差异**，别照抄前两族。
+_MULTIPLIER_TRIGGER_KINDS = {
+    # kind: (事件名, 扩展动作 type, 阈值字段, 数值字段)
+    "execute_pot": ("dmg_calc", "we_dmg_mult_cond", "hp_threshold", "pct"),
+}
+# 到期标记条目键（effects 容器）—— 挂一条**无 stat 的纯状态条目**，
+#   只记录 `expire`，让「乘区还有效吗」这件事有唯一真源（= 条目是否过期）。
+_MULTIPLIER_TRIGGER_TTL_KEY = "potion_execute_window"
+
+
 def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
                        recover: float):
     """special 分诊：EFFECT_ACTIONS 直映射 / shield 动词 / 缺口 None。"""
@@ -511,5 +547,44 @@ def _translate_special(battle, actor, kind: str, value, logs: list, cast: float,
             n += 1
         logs.append(_T.text("iu.buff_extend", n=n, turns=ext))
         return logs, cast, recover
-    # 5. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
+    # 5. 乘区触发族（C-R2.29A）—— 挂 `actor["triggers"]` 事件声明，不落面板
+    if kind in _MULTIPLIER_TRIGGER_KINDS:
+        _ev, _act, _thr_f, _val_f = _MULTIPLIER_TRIGGER_KINDS[kind]
+        _ed = value if isinstance(value, dict) and value else             (_load_potion_defaults().get(kind) or {})
+        _thr = float(_ed.get(_thr_f, 0.0) or 0.0)
+        _pct = float(_ed.get(_val_f, 0.0) or 0.0)
+        _turns = int(_ed.get("turns", 3) or 3)
+        # 门槛校验：阈值与增伤都必须是 (0,1] 内的正值，否则不构成「条件增伤」
+        if _thr <= 0 or _pct <= 0:
+            return None
+        from ext_combat.battle.battle import _now_of
+        from ext_combat.battle.declarations import Compiler as _Compiler
+        from ext_combat.battle.effect_triggers import EVENTS as _EVENTS
+        _now = _now_of(battle)
+        # 已有窗口且未过期 ⇒ 幂等重挂（清旧声明重挂，避免 key 判重留下过期参数）
+        _old = (actor.get("effects") or {}).get(_MULTIPLIER_TRIGGER_TTL_KEY) or {}
+        _oexp = float(_old.get("expire", 0) or 0)
+        if _oexp > 0 and _oexp > _now:
+            # 窗口仍在 ⇒ 只延后到期，不重挂声明（重挂会把同一份乘区挂两遍）
+            _old["expire"] = _oexp + _turns
+            from ext_combat.battle.effects import apply_effects
+            apply_effects(battle, actor, actor,
+                          [{"action": "apply", "key": _MULTIPLIER_TRIGGER_TTL_KEY,
+                            "turns": _turns, "on": "caster"}], [])
+            logs.append(_T.text("iu.mult_window", turns=_turns))
+            return logs, cast, recover
+        # 窗口已过（首次喝 or 上一轮结束）⇒ 挂乘区声明 + 新窗口
+        _c = _Compiler(events=_EVENTS, key_of=lambda d: d.get("key"),
+                       owner_key="_owner")
+        _c.mount(actor, {_ev: [{"type": _act, "key": "potion_%s" % kind,
+                                "cond": "hp_target_lt", "threshold": _thr,
+                                "mult": 1.0 + _pct, "tag": "💀处决"}]},
+                 merge="replace")
+        from ext_combat.battle.effects import apply_effects
+        apply_effects(battle, actor, actor,
+                      [{"action": "apply", "key": _MULTIPLIER_TRIGGER_TTL_KEY,
+                        "turns": _turns, "on": "caster"}], [])
+        logs.append(_T.text("iu.execute_pot", hp_th=int(_thr * 100), pct=int(_pct * 100)))
+        return logs, cast, recover
+    # 6. 机制型真缺口（装配层/职业批）→ None：调用方提示不扣道具
     return None

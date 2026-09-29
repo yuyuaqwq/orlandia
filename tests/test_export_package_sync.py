@@ -248,7 +248,10 @@ FROZEN_COUNTS = {
     #   中文键数锚点不变（新键名全 ASCII）。
     # ★ C-R2.28B（2026-09-29）：新槽位 `iu.buff_extend`（到期顺延族）⇒ 3275 → 3276。
     #   中文键数**不变**（新键名全 ASCII）—— 仍跟引擎侧 texts_schema_contract 同一口径。
-    "texts": 3276,
+    # ★ C-R2.29A（2026-09-29）：乘区触发族新槽位 `iu.execute_pot` / `iu.mult_window`
+    #   （execute_pot 接 actor.triggers 的 dmg_calc 乘区）⇒ 3276 -> 3278。
+    #   中文键数**不变**（新键名全 ASCII）。
+    "texts": 3278,
     #     · EconomyImpl.titles 4 新键（新分类 称号面板：卸下回执 / 无称号整段 / 分页头 /
     #       未佩戴底栏）· _equip_title 3 新键（用法行 / 未获得 / 佩戴成功）
     #     · item_view_mode_cmd 2 新键（itemview.on / off —— 归既有 背包面板）
