@@ -20,6 +20,7 @@ import json
 import random
 import re
 import time
+import unicodedata as _ud
 
 from .economy_host import _HostRef, _h  # noqa: F401
 
@@ -133,6 +134,58 @@ from ext_social.presence import Lookup
 _WILD_NPCS_LOOKUP = Lookup(_cquest.WILD_NPCS)
 #: 行商行取用口（真源 = `ALL_WILD`，与旧 `_wild.ALL_WILD.get(id, {})` 同表同口径）
 _ALL_WILD_LOOKUP = Lookup(_wild.ALL_WILD)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ★ 审计 B2 第 ㊿+1 族「玩家可见说明按**字符数**截断」：百科三处（词条 / 符文 / 收藏）
+#   各写一份 `desc[:N]`，而 desc 是中文正文 ⇒ 截断点**落在数字/半角记号的中间**，
+#   上屏的是一个**读起来成立、但数值错误的句子**（实跑数据）：
+#     `swift_tailwind`「…精力回复 +10」⇒ 上屏「…精力回复 +1…」  ← 玩家照着 +1 练级
+#     `break_magic`「…＋25% 伤害」     ⇒ 上屏「…＋2…」          ← 伤害砍成十分之一
+#     `combo_ward`「(史诗 30%；…)」     ⇒ 上屏「(史诗 3…」        ← 品质线读成 3%
+#   三个调用点还各用各的宽度（24 / 30 / 30），同一屏里两种行长 = 观感不齐。
+#   ⇒ 收成**一个出口**：按**显示列宽**（全角 2 列，`unicodedata.east_asian_width`）切，
+#     且**永不切断一个数字/百分号/单位**，末尾补省略号占位。
+#   ★ 口径变化的只有「长描述的上屏形态」；短描述、页码、排序、条数**逐字不变**。
+_NUM_TAIL = "0123456789.,%％+－-×~"
+
+
+def _clamp_desc(desc, cols: int) -> str:
+    """玩家可见描述 → 截到 `cols` **显示列**，不切断数字尾巴。
+
+    * 宽度按 east-asian width：全角/宽字符 2 列，半角 1 列（= 终端/IM 里真实的占位）。
+    * 切点若落在「一个数字/百分号/加减号还没写完」的中间 ⇒ 往前退到该 token 之前，
+      于是宁可少给几个字，也**不给出错误的数值**（`+1` / `＋2` 那两种形态被消灭）。
+    * 不需要截断时原样返回（**短描述一个字符都不动**）。
+    """
+    if not isinstance(desc, str) or not desc:
+        return desc
+    if sum(2 if _EASW(ch) in ("W", "F") else 1 for ch in desc) <= cols:
+        return desc
+    out, used = [], 0
+    for i, ch in enumerate(desc):
+        w = 2 if _EASW(ch) in ("W", "F") else 1
+        if used + w > cols:
+            cut = i
+            break
+        out.append(ch)
+        used += w
+    else:
+        return desc
+    # ── 往回退：切点**绝不能落在数词的中间**（宁可少给几个字，也不给错数值）。
+    #   两头都要看：
+    #     ① `desc[cut]` 是数词字符 ⇒ 这个数词被切了头（`…20% 雷伤` 切成 `…20`）
+    #     ② `desc[cut-1]` 是数词字符 ⇒ 被切了尾（`…+10` 切成 `…+1`）
+    #   ★ 本轮实测两条都真会发生：第一版只判 ②，漏了 ① ⇒ 判据当场逮到
+    #     `element_thunder`「…追加 20% 雷伤」→「…追加 20…」与 `(S46 纪念品)`→「(S4…」。
+    #   整段往回退到「上一个非数词字符之后」，于是数词要么完整要么整个不出现。
+    while cut > 0 and (desc[cut] in _NUM_TAIL or desc[cut - 1] in _NUM_TAIL):
+        cut -= 1
+    return "".join(out[:cut]).rstrip() + "…"
+
+_EASW = _ud.east_asian_width
+#: 百科三处（词条 / 符文 / 收藏）说明的**统一**显示列宽（原各写各的 24 / 30 / 30）。
+_ENCY_DESC_COLS = 40
 
 # ★ D5：部位中文别名 → 内部 id —— 三处（原 `_slot_map` / `_slot_map_c` / `_slot_map0` 各自内联
 #   一份**逐键逐序相等**的字面量，实测见 `out/raw/02_merge_proof.json`）合为**一张域**。
@@ -4498,7 +4551,7 @@ class EconomyImpl(CommandBase):
                 lines.append(_T.text("adv.col_owned", name=n, cnt=_cnt))
             else:
                 _d = (_v or {}).get("desc", "")
-                _hint = _T.text("adv.col_hint", desc=_d[:30]) if _d else ""
+                _hint = _T.text("adv.col_hint", desc=_clamp_desc(_d, _ENCY_DESC_COLS)) if _d else ""
                 lines.append(_T.text("adv.col_missing", hint=_hint))
         lines.append("")
         lines.append(_T.static("adv.col_tip"))
@@ -5228,9 +5281,7 @@ class EconomyImpl(CommandBase):
                          pages=_pages), "━━━━━━━━━━━━"]
         for _i, (_ak2, _av2) in enumerate(_view, (_page - 1) * _per + 1):
             _qcn = self._affix_q_label(_ak2)
-            _desc = _av2.get("desc", "")
-            if len(_desc) > 24:
-                _desc = _desc[:24] + "…"
+            _desc = _clamp_desc(_av2.get("desc", ""), _ENCY_DESC_COLS)
             lines.append(_T.text("ency.affix_row", idx=_i, name=_av2.get("name", _ak2),
                                  qname=_qcn, desc=_desc))
         lines.append("━━━━━━━━━━━━")
@@ -5309,9 +5360,7 @@ class EconomyImpl(CommandBase):
         for _i, (_rk, _rs) in enumerate(_view, (_page - 1) * _per + 1):
             _q = _b143.QUALITY.get(_rs.get("quality", ""), {})
             _ri = _mk_rune(_rs.get("effect"), 1) or {}
-            _d = _ri.get("desc") or _rs.get("desc", "")
-            if len(_d) > 30:
-                _d = _d[:30] + "…"
+            _d = _clamp_desc(_ri.get("desc") or _rs.get("desc", ""), _ENCY_DESC_COLS)
             lines.append(_T.text("ency.rune_row", idx=_i, color=_q.get("color", ""),
                                  name=_rs.get("name", _rk), qname=_q.get("name", ""), desc=_d))
         lines.append("━━━━━━━━━━━━")
