@@ -813,6 +813,9 @@ async def explore(self, event: AstrMessageEvent, group_id, qq_id, player):
     # v87 02 章 7.6：POI 探索点独立判定（15%）
     # v87.9 修复：放在随机事件之前——事件命中直接 return 会吞掉 POI 判定，导致挂载了却探索不到
     # v94 体力：野外探索消耗 1 体力（偶遇 NPC 不消耗）；v101.13 坐骑 stamina_reduce 概率免费（流程照常，只免体力）
+    # ★ 已核非缺陷（台账 L4921 · 归档）：坐骑 `stamina_reduce` 的**合法值含 0.0** ⇒ `or 0`
+    #   与 `0.0` 结果恰好相同（此处不是 bug，是被 `or` 意外「兜对了」）；形状危险保留原样 ——
+    #   将来若出现负值/其他 falsy 合法值会静默失效，若改按「回落只认 None」写。**不列缺陷**。
     _stam_cost = 0 if random.random() < float(_mount_effects(player).get("stamina_reduce", 0) or 0) else 1
     if _stam_cost > 0:
         _ok, _st = self._spend_stamina(group_id, qq_id, _stam_cost, player, "探索")
@@ -2853,6 +2856,10 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     genemies = gboss.get("enemies")
     # N5b4-3（saintess_engine）：本地敌 actor = b.sides_of("enemy")（死亡不移除 → 读存活过滤）；
     # 行动前全局阵列血量 → 本地（逐 uid；旧单怪数据回落主目标 hp）。
+    # ★ 存活过滤「三口径」说明（2026-09-30 审计残余 #19 / O3 · 三处**皆有意**，勿随手统一）：
+    #   ① 本行：`存活列表 or 全队`——全灭时仍要逐 uid 回写死敌（保阵列数量与 before/after
+    #      求和口径一致；「死亡不移除」见上注）；② 行动后主目标汇总：首选存活、无则首元素
+    #      （只喂 name/hp 展示字段）；③ 回合面板计数：纯存活过滤（无回落）。
     _l_enemies = [u for u in b.sides_of("enemy") if (u.get("hp") or 0) > 0] or b.sides_of("enemy")
     if genemies:
         _g_by_uid = {u.get("uid"): u for u in genemies}
@@ -2886,6 +2893,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
             _lu = _l_by_uid.get(_gu.get("uid"))
             if _lu is not None:
                 _gu["hp"] = _lu.get("hp", _gu.get("hp", 0))
+        # 口径②（见上方「三口径」注）：主目标展示字段专用，不参与回写判定。
         _main_now = next((u for u in _l_all if (u.get("hp") or 0) > 0), None) or (_l_all[0] if _l_all else None)
         if _main_now:
             gboss["name"] = _main_now.get("name", gboss.get("name", "?"))
@@ -2978,6 +2986,7 @@ async def _worldboss_act(self, event, group_id, qq_id, player, b, action, skill_
     # Boss 未死：更新贡献 + 全局血量/阵列 + 战斗状态
     db.save_world_event(cur_evt["etype"], cur_evt["ends_at"], cur_evt["data"])
     db.save_battle(group_id, qq_id, b.to_state())
+    # 口径③（见上方「三口径」注）：面板计数专用，纯存活过滤、无回落。
     _enemies_alive = [u for u in b.sides_of("enemy") if (u.get("hp") or 0) > 0]
     _sum_hp = sum(max(0, u.get("hp", 0)) for u in _enemies_alive or [])
     _sum_max = sum(max(0, u.get("max_hp", u.get("hp", 1))) for u in _enemies_alive or [])

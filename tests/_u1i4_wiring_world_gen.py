@@ -98,7 +98,10 @@ CLASS = {
     "content/world_cmds.py::_town_npc_absent_hint": "C",
     "content/world_cmds.py::_player_map_name": "E",
     "content/world_cmds.py::_subarea_name": "E",
-    "content/world_cmds.py::_find_wild_npc": "E",
+    # ↓ 2026-09-30 由 E 改判 C：审计残余修复线（分拣单 #18 / O5）把本段句壳搬进文案表
+    #   （`_T.static("wild.default_title")`，三处重复裸串收归单源），实现不再逐字等于
+    #   冻结基线（非本线接引擎形状）。
+    "content/world_cmds.py::_find_wild_npc": "C",
     # ↓ 2026-09-19 由 E 改判 C：C 档 31a（B-2 第 18 片）把本段的句壳搬进文案表
     #   （`_T.text("find.unseen_hint")`），实现不再逐字等于冻结基线（非本线接引擎形状）。
     "content/world_cmds.py::_wild_unseen_hint": "C",

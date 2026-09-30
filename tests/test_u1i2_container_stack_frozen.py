@@ -223,7 +223,10 @@ PIN_UNCHANGED = {
 }
 # 2026-09-28 重钉：ea9433e（L1545 加载 strict=）改了 stack.py 却没重钉本 PIN，
 # 门禁自那时起常驻红（23/24）。本次叠加 L1540/L1544（cap 形态 fail-closed）后重钉。
-PIN_ENGINE = '57772578cd72b7603e81830e7a084a353831957516b7070c7c43a8c1f9e42314'
+# 2026-09-30 重钉（审计残余修复线）：L1545 None 归一（`_stored_records` 对 `marks: None`
+# 归一 `[]`，行为面只此一处）+ L1548 口径钉注（Stack 类 docstring「写操作不可变」的边界）
+# 改了 stack.py —— 下方规则矩阵 / 旧实现对拍继续钉住全部合法口径。
+PIN_ENGINE = '8727ed742212cf66e313962574598fa2b837d52dfd2122a095e56393f156c4e1'
 
 # ============================================================
 # 通用件
@@ -317,16 +320,54 @@ def _rows(qq):
         conn.close()
 
 
+#: ★ **有意差异登记**（2026-09-30 · 审计残余修复线 · 台账 L1545）：按场景名登记
+#: 「旧实现 vs 新实现**允许且有意**不同」的场景。登记不是放行：差异本身在两处
+#: 逐格写死（见 `_intended_divergence_bad`），任一侧再漂移照样红。
+#:   · `tags:null 病态行`：存量 `{"tags": null}`（None = 明确无个体记录）在旧实现里
+#:     于合并处**崩**（TypeError、整条不入账）；新实现按引擎口径 None→`[]` 归一后
+#:     **正常入账** —— 本条修复的正是这一崩溃面（`_stored_records` None 归一）。
+INTENDED_DIVERGENCES = {"tags:null 病态行"}
+
+
+def _intended_divergence_bad(name, ro, rn, so, sn):
+    """有意差异场景的**两侧逐格钉死**（不做 old == new 对拍）。返回违规清单。"""
+    bad = []
+    if name != "tags:null 病态行":
+        return ["有意差异登记指向未知场景：%r" % (name,)]
+    if ro == rn and so == sn:
+        bad.append("%s：登记为有意差异但实况已相同（撤销登记）" % (name,))
+    # 旧侧：历史实况（合并处崩、不落账）——写死防「旧行为悄悄又变了」
+    if ro != [("exc", "TypeError")] or len(so) != 2 or len(so[0]) != 1 \
+            or so[0][0][0] != "null_tags" or so[0][0][2] != 1 \
+            or json.loads(so[0][0][1]) != {"tags": None} or so[1] != []:
+        bad.append("%s：旧侧历史实况变了（应为「TypeError 崩、不落账」）：%r / %r"
+                   % (name, ro, so))
+    # 新侧：有意差异后的口径（正常入账；tags 合并、count=2）
+    if rn != [("ok", None)] or len(sn) != 2 or len(sn[0]) != 1 \
+            or sn[0][0][0] != "null_tags" or sn[0][0][2] != 2 \
+            or json.loads(sn[0][0][1]) != {"name": "甲", "tags": [{"a": 1}]} or sn[1] != []:
+        bad.append("%s：新侧实况变了（应为「正常入账、tags 合并、count=2」）：%r / %r"
+                   % (name, rn, sn))
+    return bad
+
+
 def compare_scenarios(scenarios):
-    """旧实现 vs 新实现：每个场景各跑一遍（独立 qq），比返回 + 比落库。返回违规清单。"""
+    """旧实现 vs 新实现：每个场景各跑一遍（独立 qq），比返回 + 比落库。返回违规清单。
+
+    登记进 `INTENDED_DIVERGENCES` 的场景不做 old == new 对拍，改走
+    `_intended_divergence_bad`（有意差异也要有牙：两侧逐格写死）。
+    """
     bad = []
     _reset()
     for i, (name, run) in enumerate(scenarios):
         qo, qn = "old_%d" % i, "new_%d" % i
         ro, rn = run(_OLD, qo), run(INV, qn)
+        so, sn = _rows(qo), _rows(qn)
+        if name in INTENDED_DIVERGENCES:
+            bad.extend(_intended_divergence_bad(name, ro, rn, so, sn))
+            continue
         if ro != rn:
             bad.append("%s：返回不同 old=%r new=%r" % (name, ro, rn))
-        so, sn = _rows(qo), _rows(qn)
         if so != sn:
             bad.append("%s：落库不同 old=%r new=%r" % (name, so, sn))
     return bad
@@ -674,6 +715,16 @@ def rule_violations():
     eq("merge_records 上限丢最旧",
        STK.merge_records({"m": [1, 2]}, {"m": [3, 4]}, marks="m", cap=3), {"m": [2, 3, 4]})
     eq("merge_records 无上限", STK.merge_records({"m": [1]}, {"m": [2]}, marks="m"), {"m": [1, 2]})
+    # ★ 审计 L1545（2026-09-30）：存量 `{marks: None}`（合法落盘形态：None = 明确无记录）
+    #   归一成 `[]` —— 原先 `None + list` 当场 TypeError；**坏类型照旧原样炸**（只归一
+    #   None 这一种既有口径，不是放宽兜底）。
+    eq("merge_records 存量 None 归一（不再 TypeError）",
+       STK.merge_records({"m": None}, {"m": [1, 2]}, marks="m"), {"m": [1, 2]})
+    try:
+        STK.merge_records({"m": "坏"}, {"m": [1]}, marks="m")
+        bad.append("merge_records 坏类型（字符串记录）未炸：归一过宽")
+    except TypeError:
+        pass
     eq("carries_records 判据", (STK.carries_records({"m": []}, marks="m"),
                                 STK.carries_records({"m": None}, marks="m"),
                                 STK.carries_records({}, marks="m"),
@@ -1008,6 +1059,9 @@ def test_behavior_equivalence():
     check("全量物品域逐格比对（返回 + 落库 + possessed）", not bad, "；".join(bad[:3]))
     bad_b = ["边界：" + x for x in compare_scenarios(BOUNDARY_SCENARIOS)]
     check("边界矩阵 %d 组逐格比对" % len(BOUNDARY_SCENARIOS), not bad_b, "；".join(bad_b[:3]))
+    check("★ 有意差异登记自洽（登记名都在边界矩阵里）",
+          INTENDED_DIVERGENCES <= {_n for _n, _fn in BOUNDARY_SCENARIOS},
+          str(sorted(INTENDED_DIVERGENCES)))
     bad_t = _trim_matrix_violations()
     check("_trim_individuals 纯函数矩阵（15 形状 × 4 扣量）", not bad_t, "；".join(bad_t[:3]))
     # 反空转：全量域里旧实现确实落了格（否则「逐格比对」是拿空表比空表）

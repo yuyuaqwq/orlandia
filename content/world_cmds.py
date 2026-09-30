@@ -36,12 +36,7 @@
 | 函数内 `from ..services.battle_bridge import …` | 包内 `content/bridge.py`（同对象） | `probe_c4_faces.py` |
 | `from .talk_actions import ACTIONS, check_action_keys` | `ACTIONS` = **包内** `content/talk_actions.py`；`check_action_keys` = **冻结注入名**（宿主独有，留宿主读点） | 接口表第 4 行 |
 | 掉落族四个函数名（`build_monster_group` / `generate_roster_equip` 等） | `_drops()`：**包内直取** `content/drops.py`（接口表第 5 行冻结落点，B2-C2 已落地）；宿主 `game.core.drops` 为同对象过渡保险 | 接口表第 5 行 + `identity_map.txt` |
-| 兼容面两个旧替身口名（`content/cmds_world.py:49` 的 F401 再导出） | 仅保留**名字**（值 = None，零调用点），使该 import 不炸 | 见下文 ⚠️ |
-
-⚠️ **残留的门禁命中（2 类，逐条说明）**：
-* `content/cmds_world.py:49` 的 F401 再导出（**包内不属于 B2-C4 文件集**，不就地改）——
-  本文件为此保留两个**旧替身口名**（值 = None，全仓零调用点）：删掉它们本文件的兼容别名段即可整体删除。
-  收口建议：`content/cmds_world.py:49` 去掉那两个名字（**一行**）。
+⚠️ **残留的门禁命中（1 类，逐条说明）**：
 * 包内 `content/index.py` / `content/maps.py` 各有一个**惰性宿主模块工厂函数**（名字里的
   `host` 片段撞上本批 grep）= **注入面提供者**（不是读点）：5 个宿主薄壳按名调用它
   （`game/core/{index,maps,mounts,factions,exploration,position,pets}.py`）
@@ -77,6 +72,7 @@ from .catalog_rules import (FACTION_SHOP, FACTION_CAMPS, FACTION_CAMP_OPEN_LV, F
                             FACTION_CAMP_DAILY_TASKS, FACTION_CAMP_DAILY_LIMIT, FACTION_CAMP_SHOP)
 from . import wild as _wild
 from . import texts as _T      # ★ C 档 18a（2026-09-18）：文案表读口（本文件首次接入）
+from . import obs              # 包内唯一日志取用口（fail-closed；审计 L4782② 修复引入）
 from .flow import instance_gate      # 副本图门禁准入链（`_instance_gate_block` 的判定本体）
 from .flow import instance_run as IR
 
@@ -111,9 +107,8 @@ from .prof_config import gather_map_min_lv  # ★ B15b：宿主函数进包（�
 
 
 # ============================================================
-# ① 宿主面取件口（B2-C4 收口）—— 本文件 B2 读点全部包内直取；只剩两件：
+# ① 宿主面取件口（B2-C4 收口）—— 本文件 B2 读点全部包内直取；只剩一件：
 #    · `_drops()`：`core.drops` 面（B2-C2 线待落 `content/drops.py`，未落则回退宿主同对象）
-#    · 兼容面两个旧替身口名（`content/cmds_world.py:49` 的 F401 再导出用，**零调用点**，见头注 ⚠️）
 # ============================================================
 from ._hostref import drops_module  # 宿主取件样板单源（P0-3/P0-5）
 from saintess_engine.wire import slot as _slot
@@ -799,7 +794,13 @@ def _map_blocks(self, player: dict, cur_map: dict, cur_sa: str,
                     _ev_note = _T.text("map.ev_note_loot", mult=_ev_fx.get('loot_mult', 1.0))
                 lines.append(_T.text("map.today_event", name=_ev['name'], desc=_ev.get('desc', ''), note=_ev_note))
         except Exception:
-            pass
+            # ★ 审计 L4782②（分拣单 #35，2026-09-30）：原写法 `except Exception: pass` ——
+            #   读日榜一抛，「今日奇遇」整区块**静默消失、零提示**（玩家主动查地图，
+            #   看不到就以为今天没奇遇）。处置 = 对齐同批已修模式：**降级保留**（不连坐
+            #   整个地图面板），但出口不再静默 —— 走包内唯一日志口记 warning + 栈
+            #   （同族先例：achievements.check_achievements「记一条警告 + 降级为空」）。
+            obs.log().warning("[dragonfall] 今日奇遇区块读失败：today_map_event(%r) 抛异常，"
+                              "本区块降级隐藏", cur, exc_info=True)
     # v87.4 区块间统一空行分隔（不再叠分隔线）
     if lines and lines[-1]:
         lines.append("")
@@ -1680,10 +1681,13 @@ def _subarea_arrive(self, player: dict, cur_map: dict, sa: dict, group_id=None, 
             if _rv.get("first"):
                 _rw = _rv.get("reward") or ""
                 if _rw:
-                    out += f"\n🎉 {_rw}"
+                    # ★ 2026-09-30 审计残余修复线（分拣单 #51 / O4）：🎉 首访行收归文案表。
+                    out += _T.text("explore.reward_line", reward=_rw)
             else:
                 _rw = _rv.get("reward") or ""
                 if _rw:
+                    # 回访行无渲染自有文字（纯换行 + 内容侧正文）⇒ 不入表；
+                    # 首访/落点行见 `explore.reward_line`（审计残余 #51 / O4）。
                     out += f"\n{_rw}"
 
     # v128 赶路模式：移动落点统一提示（回复 0 结束），替代『前往结束』
@@ -1952,7 +1956,8 @@ async def portal_travel(self, event: AstrMessageEvent, group_id, qq_id):
             if _rv:
                 _rwt = _rv.get("reward") or ""
                 if _rwt:
-                    _rec_txt = f"\n🎉 {_rwt}"
+                    # ★ 落点首访行收归文案表（审计残余 #51 / O4）。
+                    _rec_txt = _T.text("explore.reward_line", reward=_rwt)
         except Exception:
             _rec_txt = ""
     # v95 #142：传送落地后清除对话会话（否则对话状态跨图残留，『前往』被"还在交谈中"拦截）
@@ -2426,7 +2431,9 @@ def _find_wild_npc(self, player, name_key, group_id, qq_id):
         if not _wild.wild_npc_findable(nid, wnpc, player, group_id, qq_id):
             return None, None
         wnpc = dict(wnpc)
-        wnpc.setdefault("title", "游历于野外的旅人")
+        # ★ 2026-09-30 审计残余修复线（分拣单 #18 / O5）：默认头衔收归文案表单源
+        #   —— 此前「游历于野外的旅人」三处逐字重复的裸串之一。
+        wnpc.setdefault("title", _T.static("wild.default_title"))
         return nid, wnpc
     return None, None
 
@@ -2787,7 +2794,8 @@ async def find_npc(self, event: AstrMessageEvent):
                 yield event.plain_result(_T.static("find.wild_left"))
                 return
             npc = dict(_w)
-            npc.setdefault("title", "游历于野外的旅人")  # 与 _find_wild_npc 一致
+            # ★ 默认头衔文案表单源（审计残余 #18 / O5）；与 _find_wild_npc 同源。
+            npc.setdefault("title", _T.static("wild.default_title"))
     else:
         npc_id, npc = self._find_npc_in_map(player, name_key)
         if npc and player.get("_npc_absent"):
@@ -3527,7 +3535,8 @@ async def talk_choice(self, event: AstrMessageEvent, group_id, qq_id, player):
         yield event.plain_result(_T.static("talk.npc_left_map"))
         return
     npc = dict(npc)
-    npc.setdefault("title", "游历于野外的旅人")  # v95.11：wild NPC 无 title，与 _find_wild_npc 一致
+    # ★ 默认头衔文案表单源（审计残余 #18 / O5）；v95.11：wild NPC 无 title，与 _find_wild_npc 一致。
+    npc.setdefault("title", _T.static("wild.default_title"))
     # 惰性失效：NPC 不在当前地图 → 会话作废（wild NPC 按 roam 定位）
     if _wild.npc_map_id(npc_id, npc) != player.get("cur_map"):
         db.clear_talk_state(group_id, qq_id)

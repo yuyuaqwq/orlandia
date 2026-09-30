@@ -184,7 +184,7 @@ _PIN = {
         'content/world_cmds.py::_town_npc_absent_hint': '527b5705d3879566f07287655f4bce6be09e0dd260feeb6487e463b844bfccb9',
         'content/world_cmds.py::_player_map_name': 'f716578d359827ea51e1ee9f32cfd6f1ec286e47c530ebf218aea0915544e91e',
         'content/world_cmds.py::_subarea_name': '4250943f42e65eee747ecab6aede8dfab04880085198bbcaf9a34d4e4c178a90',
-        'content/world_cmds.py::_find_wild_npc': '1547f72725e15d2e0d7221ceba33951077de824fc564aaf7393db1ed1041ca7a',
+        'content/world_cmds.py::_find_wild_npc': 'b686f835ce5f6071d48286ddf76fbc56d9288ce4f53690390ff28ade92291177',
         'content/world_cmds.py::_wild_unseen_hint': 'e8e8528364d2d1037b00aec78cd24b65808a23fc282c3a97ccce717c846e6fe8',
         'content/world_cmds.py::_npc_direction_hint': '311ec109f83fe125b0c68465f023343ffb9a6dc34671df564b45c6d295388a23',
         'content/world_cmds.py::_wild_cond_label': 'aaf472287c4353f37e27fb44bce94411f57ecbd64d4502af19750218a07e73cd',
@@ -218,7 +218,6 @@ _PIN = {
             'content/world_cmds.py::_npc_dialogue',
             'content/world_cmds.py::_player_map_name',
             'content/world_cmds.py::_subarea_name',
-            'content/world_cmds.py::_find_wild_npc',
             'content/world_cmds.py::_talk_active',
             'content/world_cmds.py::_talk_ctx',
             'content/world_cmds.py::_apply_talk_action_async',
@@ -230,6 +229,7 @@ _PIN = {
             'content/world_cmds.py::_start_talk_list',
             'content/world_cmds.py::_find_npc_in_map',
             'content/world_cmds.py::_town_npc_absent_hint',
+            'content/world_cmds.py::_find_wild_npc',
             'content/world_cmds.py::_wild_unseen_hint',
             'content/world_cmds.py::_npc_direction_hint',
             'content/world_cmds.py::_wild_cond_label',
@@ -324,7 +324,37 @@ _LIVE_SHA_INTENT = {
                ' This IS the intended change, so the matching grid cells are registered'
                ' in _INTENDED_GRID_MISMATCH below (a declared divergence, not a fit failure).',
     },
+    'content/world_cmds.py::_map_blocks': {
+        'old': '62203c5199b8a26a6b90fda81aa6764debdfdde1737758bb6ec31b8d6d936420',
+        'new': 'a5e2fccd66dce7cddc43f65cce8384fee986349ffdcc43b5ac21dcc637c6c0ad',
+        'why': '★ 2026-09-30 审计残余修复线（台账 L4782② / 分拣单 #35）：今日奇遇块的 '
+               '`except Exception: pass` 改 `obs.log().warning(... exc_info=True)` —— '
+               '原写法读日榜一抛即整区块**静默消失**（玩家主动查地图，看不到就以为今天没奇遇）；'
+               '现降级保留、出口不再静默（同族先例 achievements.check_achievements）。'
+               '行为面只在「today_map_event 抛异常」这一支变化（本门禁网格输入不触发该支，'
+               '甲/乙逐格比 + 丙类 golden 全绿即证）；正常路输出逐字不变。',
+    },
+    'content/world_cmds.py::find_npc': {
+        'old': '89d945fca2f2e6b53b5a94118fc74b20f8e11f9d54ec281ad58252e026d30fe7',
+        'new': '10941f2b277220a2368340375641c19d84f8f1d2bb942ede0dac850a00161c8d',
+        'why': '★ 2026-09-30 审计残余修复线（分拣单 #18 / O5）：序号命中在场野外旅人的默认头衔 '
+               '`"游历于野外的旅人"` 改 `_T.static("wild.default_title")`（文案表收归单源，'
+               '三处逐字重复裸串之一）。玩家可见输出逐字不变（表值 == 原字面量）；'
+               '本段相撞网格走输出比对，行为面零变化。',
+    },
+    'content/world_cmds.py::talk_choice': {
+        'old': 'aed0593592c295f41a7c474229f97e90264bf21426a1d5aa0c2184202c1d354c',
+        'new': 'd869122b81d939d133de10cb2e02d86dd9b73c17ea3bd250b5e3a14900f4a3db',
+        'why': '★ 2026-09-30 审计残余修复线（分拣单 #18 / O5）：对话中 wild NPC 的默认头衔 '
+               '`"游历于野外的旅人"` 改 `_T.static("wild.default_title")`（同上，三处之一）。'
+               '输出逐字不变（值同）。',
+    },
 }
+
+#: ★ 2026-09-30（审计残余修复线 · 分拣单 #18 / O5）：`_find_wild_npc` 由 E 改判 C
+#:   （句壳搬 `_T.static("wild.default_title")`）—— 改判段不能走「登记优先」（C 栏不等式
+#:   按**原始钉**判），故其 `_PIN['live']` 已随改判同步更新（等价于一次单键重采）；
+#:   分类台账见生成器 `_u1i4_wiring_world_gen.py::CLASS` 的同日注。
 
 
 # ══════════════════════════════════════════════════════════════════════════════

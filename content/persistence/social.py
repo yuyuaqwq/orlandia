@@ -18,6 +18,7 @@ import json
 import sqlite3
 import time
 from ext_life.periodic import Streak
+from saintess_engine.container import merge_records
 from .handles import _connect, _lock, atomic, clock
 # ★ W2a：内容聚合面取自**包内门面**（原 `from .handles import C` → 宿主 `game.content`）
 from ..facade import C
@@ -266,12 +267,12 @@ def _inv_upsert(conn, group_id, qq_id, item_key, item_data, count):
         # 同 key 已存在：堆叠且带个体 tags → 合并（上限截断丢最旧）；否则裸累加 count
         if isinstance(slim, dict) and slim.get("tags") is not None:
             _old = json.loads(row["item_data"] or "{}")
-            _old_tags = _old.get("tags", []) if isinstance(_old, dict) else (
-                _old if isinstance(_old, list) else [])
-            _new_tags = (_old_tags + slim["tags"])[-FISH_TAGS_MAX:]
-            # v126.4 审计 P2：保留 slim 非 tags 字段（配置未命中动态物的类属性兜底）
-            _merged = {k: v for k, v in slim.items() if k != "tags"}
-            _merged["tags"] = _new_tags
+            # ★ 2026-09-30 审计残余修复线（L1542 · 分拣单 #4）：改调引擎 `merge_records` ——
+            #   原先是引擎同函数的**第二份手写实现**，且两处已实际分叉（引擎侧已把存量
+            #   `{"tags": null}` 归一成「无记录」，本副本对值 `None` 仍 `None + list`
+            #   抛 TypeError）。语义逐字对齐：来件为准（保留 slim 非 tags 字段 = v126.4
+            #   口径）+ 旧记录在前 + 尾截 FISH_TAGS_MAX；stored 侧 None/裸序列随引擎归一。
+            _merged = merge_records(_old, slim, marks="tags", cap=FISH_TAGS_MAX)
             conn.execute(
                 "UPDATE inventory SET count=count+?, item_data=? WHERE qq_id=? AND item_key=?",
                 (count, json.dumps(_merged, ensure_ascii=False), qq_id, item_key),

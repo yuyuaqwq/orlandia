@@ -263,11 +263,14 @@ def test_landing_branches():
     t9["effects"]["heal_down"] = {"stacks": 10}  # 10×10% cap 50%
     r9 = L.heal_actor(b, t9, 100, logs6)
     check("heal_down 10 层 cap 50% → 50", r9 == 50, f"r9={r9}")
-    # label 日志
+    # （原 `label` 日志用例随引擎形参退役 —— 2026-09-30 审计残余修复线 · 分拣单 #20：
+    #   `label` 是引擎里唯一「调用方塞模板串拼措辞」的 heal 出口，生产零调用、
+    #   无 hook 实现方；治疗可见行一律走内容侧 cue/文案表。此处保回血量 + 不产行两断言。）
     t10 = make_actor("t10", "带标签", "enemy", hp=50, max_hp=100)
     logs7 = []
-    r10 = L.heal_actor(b, t10, 30, logs7, label="回血 {_real} 计划 {_planned}")
-    check("label 有日志", any("回血 30" in l for l in logs7))
+    r10 = L.heal_actor(b, t10, 30, logs7)
+    check("heal 正常回 30（label 退役后行为面不变）", r10 == 30, f"r10={r10}")
+    check("heal 不再产 label 行（措辞走内容侧）", logs7 == [], logs7)
 
 
 def test_effects_branches():

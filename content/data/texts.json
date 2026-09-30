@@ -6960,6 +6960,14 @@
     "category": "探索事件",
     "desc": "搬自 content/exploration.py:record_visit（B 批 C 档）"
   },
+  "explore.reward_line": {
+    "value": "\n🎉 {reward}",
+    "params": [
+      "reward"
+    ],
+    "category": "探索事件",
+    "desc": "搬自 content/world_cmds.py:_subarea_arrive / portal_travel（审计残余 #51 / O4）"
+  },
   "extra_log.afterglow_splash": {
     "value": "🌅 余波 溅射 {dmg} 点奥术伤害！",
     "category": "战斗日志",
@@ -23733,6 +23741,11 @@
     "value": "⚔️ 怪物经验＋30%，击杀声望双倍！守护大陆！",
     "category": "世界事件",
     "desc": "搬自 content/world_event_templates.py:_d_swarm（B 批 C 档）"
+  },
+  "wild.default_title": {
+    "value": "游历于野外的旅人",
+    "category": "NPC查找",
+    "desc": "搬自 content/world_cmds.py:_find_wild_npc / find_npc / talk_choice（审计残余 #18 / O5）"
   },
   "wildcond.anytime": {
     "value": "随时可能出现",
